@@ -5,7 +5,7 @@ generic-service:
   replicaCount: 2
 
   ingress:
-    host: hmpps-nomis-visits-mapping-service-dev.hmpps.service.justice.gov.uk
+    host: nomis-visits-mapping-dev.hmpps.service.justice.gov.uk
     contextColour: green
 
   env:
