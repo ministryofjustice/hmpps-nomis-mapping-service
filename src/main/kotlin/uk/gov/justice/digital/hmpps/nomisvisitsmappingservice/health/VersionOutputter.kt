@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsnomisvisitsmappingservice.health
+package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.health
 
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.event.ApplicationReadyEvent

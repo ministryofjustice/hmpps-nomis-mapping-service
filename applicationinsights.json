@@ -1,6 +1,6 @@
 {
   "role": {
-    "name": "hmpps-nomis-visits-mapping-service"
+    "name": "nomis-visits-mapping-service"
   },
   "customDimensions": {
     "service.version": "${BUILD_NUMBER}"
