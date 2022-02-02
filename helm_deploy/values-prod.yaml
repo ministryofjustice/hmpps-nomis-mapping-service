@@ -2,15 +2,10 @@
 # Per environment values which override defaults in hmpps-nomis-visits-mapping-service/values.yaml
 
 generic-service:
-  replicaCount: 2
-
   ingress:
-    host: nomis-visits-mapping-dev.hmpps.service.justice.gov.uk
-
-  env:
-    APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.dev.json
+    host: nomis-visits-mapping-prod.hmpps.service.justice.gov.uk
 
 # CloudPlatform AlertManager receiver to route promethues alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
 generic-prometheus-alerts:
-  alertSeverity: digital-prison-service-dev
+  alertSeverity: digital-prison-service
