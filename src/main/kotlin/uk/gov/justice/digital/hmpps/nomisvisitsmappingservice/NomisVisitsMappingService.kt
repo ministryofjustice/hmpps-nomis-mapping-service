@@ -1,11 +1,11 @@
-package uk.gov.justice.digital.hmpps.hmppsnomisvisitsmappingservice
+package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication()
-class HmppsNomisVisitsMappingService
+class NomisVisitsMappingService
 
 fun main(args: Array<String>) {
-  runApplication<HmppsNomisVisitsMappingService>(*args)
+  runApplication<NomisVisitsMappingService>(*args)
 }
