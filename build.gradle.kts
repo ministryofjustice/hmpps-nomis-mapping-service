@@ -18,7 +18,7 @@ dependencies {
 
   implementation("org.flywaydb:flyway-core:8.4.4")
   implementation("com.vladmihalcea:hibernate-types-52:2.14.0")
-  runtimeOnly("org.postgresql:postgresql")
+  runtimeOnly("org.postgresql:postgresql:42.3.2")
 
   implementation("org.springdoc:springdoc-openapi-ui:1.6.5")
   implementation("org.springdoc:springdoc-openapi-kotlin:1.6.5")
