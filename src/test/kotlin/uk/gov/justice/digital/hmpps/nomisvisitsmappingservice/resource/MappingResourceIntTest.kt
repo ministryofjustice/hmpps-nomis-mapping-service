@@ -20,7 +20,7 @@ private fun createMapping(): MappingDto {
     nomisId = nomisId,
     vsipId = vsipId,
     label = "2022-01-01",
-    visitType = "ONLINE",
+    mappingType = "ONLINE",
   )
 }
 
@@ -46,10 +46,10 @@ class MappingResourceIntTest : IntegrationTestBase() {
         .body(
           BodyInserters.fromValue(
             """{
-            "nomisId"   : $nomisId,
-            "vsipId"    : "$vsipId",
-            "label"     : "2022-01-01",
-            "visitType" : "ONLINE"
+            "nomisId"     : $nomisId,
+            "vsipId"      : "$vsipId",
+            "label"       : "2022-01-01",
+            "mappingType" : "ONLINE"
           }"""
           )
         )
@@ -66,7 +66,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping1.nomisId).isEqualTo(nomisId)
       assertThat(mapping1.vsipId).isEqualTo(vsipId)
       assertThat(mapping1.label).isEqualTo("2022-01-01")
-      assertThat(mapping1.visitType).isEqualTo("ONLINE")
+      assertThat(mapping1.mappingType).isEqualTo("ONLINE")
 
       val mapping2 = webTestClient.get().uri("/mapping/vsipId/$vsipId")
         .headers(setAuthorisation(roles = listOf("ROLE_READ_NOMIS")))
@@ -78,7 +78,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping2.nomisId).isEqualTo(nomisId)
       assertThat(mapping2.vsipId).isEqualTo(vsipId)
       assertThat(mapping2.label).isEqualTo("2022-01-01")
-      assertThat(mapping2.visitType).isEqualTo("ONLINE")
+      assertThat(mapping2.mappingType).isEqualTo("ONLINE")
     }
   }
 }

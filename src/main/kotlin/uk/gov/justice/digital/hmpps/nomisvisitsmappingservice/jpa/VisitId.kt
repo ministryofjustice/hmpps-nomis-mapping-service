@@ -20,9 +20,9 @@ data class VisitId(
   val label: String? = null,
 
   @Enumerated(EnumType.STRING)
-  val source: VisitIdSource,
+  val mappingType: MappingType,
 
-) {
+  ) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other == null || Hibernate.getClass(this) != Hibernate.getClass(other)) return false
@@ -35,6 +35,6 @@ data class VisitId(
   }
 }
 
-enum class VisitIdSource {
-  MIGRATION, ONLINE
+enum class MappingType {
+  MIGRATED, ONLINE
 }

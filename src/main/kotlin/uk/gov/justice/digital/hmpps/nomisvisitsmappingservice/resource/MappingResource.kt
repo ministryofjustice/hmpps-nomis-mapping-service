@@ -20,8 +20,6 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.MappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.VisitService
 import javax.validation.Valid
 
-const val OFFENDER_NO_PATTERN = "[A-Z]\\d{4}[A-Z]{2}"
-
 @RestController
 @Validated
 @RequestMapping("/", produces = [MediaType.APPLICATION_JSON_VALUE])

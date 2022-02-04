@@ -12,7 +12,7 @@ import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.Repository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.VisitId
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.VisitIdSource
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.MappingType
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -32,7 +32,7 @@ class VisitIdRepositoryTest {
   @Test
   fun saveVisitId() {
 
-    repository.save(VisitId(123, "123", "TIMESTAMP", VisitIdSource.MIGRATION))
+    repository.save(VisitId(123, "123", "TIMESTAMP", MappingType.MIGRATED))
     entityManager.flush()
 
     val persistedVisitId = repository.findById(123L).orElseThrow()
@@ -40,7 +40,7 @@ class VisitIdRepositoryTest {
       assertThat(nomisId).isEqualTo(123)
       assertThat(vsipId).isEqualTo("123")
       assertThat(label).isEqualTo("TIMESTAMP")
-      assertThat(source).isEqualTo(VisitIdSource.MIGRATION)
+      assertThat(mappingType).isEqualTo(MappingType.MIGRATED)
     }
   }
 }
