@@ -40,12 +40,12 @@ class VisitService(
   }
 
   fun getVisitMappingGivenNomisId(nomisId: Long): MappingDto {
-    return visitIdRepository.findById(nomisId).orElseThrow(NotFoundException("NOMIS visit id not found"))
+    return visitIdRepository.findById(nomisId).orElseThrow(NotFoundException("NOMIS visit id=$nomisId"))
       .run { MappingDto(nomisId, vsipId, label, source.name) }
   }
 
   fun getVisitMappingGivenVsipId(vsipId: String): MappingDto {
-    return visitIdRepository.findOneByVsipId(vsipId).orElseThrow(NotFoundException("VSIP visit id not found"))
+    return visitIdRepository.findOneByVsipId(vsipId).orElseThrow(NotFoundException("VSIP visit id=$vsipId"))
       .run { MappingDto(nomisId, vsipId, label, source.name) }
   }
 }
@@ -53,11 +53,5 @@ class VisitService(
 class NotFoundException(message: String?) : RuntimeException(message), Supplier<NotFoundException> {
   override fun get(): NotFoundException {
     return NotFoundException(message)
-  }
-}
-
-class BadDataException(message: String?) : RuntimeException(message), Supplier<BadDataException> {
-  override fun get(): BadDataException {
-    return BadDataException(message)
   }
 }
