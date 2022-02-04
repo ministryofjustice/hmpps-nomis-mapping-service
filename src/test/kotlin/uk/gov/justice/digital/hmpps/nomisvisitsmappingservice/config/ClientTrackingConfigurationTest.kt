@@ -17,9 +17,9 @@ import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import uk.gov.justice.digital.hmpps.nomisprisonerapi.helper.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ClientTrackingConfiguration
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ClientTrackingInterceptor
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.JwtAuthHelper
 import java.time.Duration
 
 @Import(JwtAuthHelper::class, ClientTrackingInterceptor::class, ClientTrackingConfiguration::class)

@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 import javax.validation.ValidationException
 
 @RestControllerAdvice
@@ -20,6 +21,20 @@ class NomisVisitsMappingServiceExceptionHandler {
         ErrorResponse(
           status = BAD_REQUEST,
           userMessage = "Validation failure: ${e.message}",
+          developerMessage = e.message
+        )
+      )
+  }
+
+  @ExceptionHandler(NotFoundException::class)
+  fun handleNotFoundException(e: Exception): ResponseEntity<ErrorResponse?>? {
+    log.info("Not Found: {}", e.message)
+    return ResponseEntity
+      .status(HttpStatus.NOT_FOUND)
+      .body(
+        ErrorResponse(
+          status = HttpStatus.NOT_FOUND,
+          userMessage = "Not Found: ${e.message}",
           developerMessage = e.message
         )
       )
