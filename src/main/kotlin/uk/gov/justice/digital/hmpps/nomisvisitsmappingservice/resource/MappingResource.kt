@@ -17,13 +17,13 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.MappingDto
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.VisitService
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.MappingService
 import javax.validation.Valid
 
 @RestController
 @Validated
 @RequestMapping("/", produces = [MediaType.APPLICATION_JSON_VALUE])
-class VisitResource(private val visitService: VisitService) {
+class MappingResource(private val mappingService: MappingService) {
 
   @PreAuthorize("hasRole('ROLE_UPDATE_NOMIS')")
   @PostMapping("/mapping")
@@ -57,7 +57,7 @@ class VisitResource(private val visitService: VisitService) {
     ]
   )
   fun createMapping(@RequestBody @Valid createMappingRequest: MappingDto) =
-    visitService.createVisitMapping(createMappingRequest)
+    mappingService.createVisitMapping(createMappingRequest)
 
   @PreAuthorize("hasRole('ROLE_READ_NOMIS')")
   @GetMapping("/mapping/nomisId/{nomisId}")
@@ -87,7 +87,7 @@ class VisitResource(private val visitService: VisitService) {
     @Schema(description = "NOMIS Id", example = "12345", required = true)
     @PathVariable
     nomisId: Long,
-  ): MappingDto = visitService.getVisitMappingGivenNomisId(nomisId)
+  ): MappingDto = mappingService.getVisitMappingGivenNomisId(nomisId)
 
   @PreAuthorize("hasRole('ROLE_READ_NOMIS')")
   @GetMapping("/mapping/vsipId/{vsipId}")
@@ -117,5 +117,5 @@ class VisitResource(private val visitService: VisitService) {
     @Schema(description = "VSIP Id", example = "12345", required = true)
     @PathVariable
     vsipId: String,
-  ): MappingDto = visitService.getVisitMappingGivenVsipId(vsipId)
+  ): MappingDto = mappingService.getVisitMappingGivenVsipId(vsipId)
 }

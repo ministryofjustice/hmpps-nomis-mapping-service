@@ -11,8 +11,8 @@ import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.Repository
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.VisitId
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.MappingType
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.VisitId
 
 @DataJpaTest
 @ActiveProfiles("test")

@@ -13,7 +13,7 @@ import java.util.function.Supplier
 
 @Service
 @Transactional(readOnly = true)
-class VisitService(
+class MappingService(
   private val visitIdRepository: VisitIdRepository,
   private val telemetryClient: TelemetryClient,
 ) {
