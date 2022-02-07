@@ -35,7 +35,7 @@ jobs:
             - gradle-
       - run:
           name: Wait for Postgres to be ready
-          command: ./postgres-check.sh
+          command: chmod +x postgres-check.sh && ./postgres-check.sh
       - run:
           command: ./gradlew check
       - save_cache:
