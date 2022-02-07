@@ -16,14 +16,12 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.Integr
 private const val nomisId = 1234L
 private const val vsipId = "12345678"
 
-private fun createMapping(): MappingDto {
-  return MappingDto(
-    nomisId = nomisId,
-    vsipId = vsipId,
-    label = "2022-01-01",
-    mappingType = "ONLINE",
-  )
-}
+private fun createMapping(): MappingDto = MappingDto(
+  nomisId = nomisId,
+  vsipId = vsipId,
+  label = "2022-01-01",
+  mappingType = "ONLINE",
+)
 
 class MappingResourceIntTest : IntegrationTestBase() {
 
@@ -36,7 +34,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
 
     @AfterEach
     internal fun deleteData() {
-      repository.deleteAll()
+      repository.deleteAll().block()
     }
 
     @Test
@@ -80,7 +78,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(createMapping().copy(vsipId = "other")))
           .exchange()
-          .expectStatus().isBadRequest()
+          .expectStatus().isBadRequest
           .expectBody(ErrorResponse::class.java)
           .returnResult().responseBody?.userMessage
       ).isEqualTo("Validation failure: Nomis visit id = 1234 already exists")

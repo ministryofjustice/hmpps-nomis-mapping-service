@@ -12,12 +12,12 @@ api:
 
 spring:
   flyway:
-    enabled: true
+    url: r2dbc:postgresql://localhost:5432/mapping?sslmode=prefer
+    user: mapping
+    password: mapping
 
-  datasource:
-    url: jdbc:postgresql://localhost:5432/mapping?sslmode=prefer
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/mapping?sslmode=prefer
     username: mapping
     password: mapping
 
-  jpa:
-    show-sql: true

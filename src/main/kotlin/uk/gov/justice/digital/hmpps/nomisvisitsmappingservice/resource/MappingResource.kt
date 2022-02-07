@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.MappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.MappingService
@@ -56,7 +57,7 @@ class MappingResource(private val mappingService: MappingService) {
       ),
     ]
   )
-  fun createMapping(@RequestBody @Valid createMappingRequest: MappingDto) =
+  fun createMapping(@RequestBody @Valid createMappingRequest: MappingDto): Mono<Void> =
     mappingService.createVisitMapping(createMappingRequest)
 
   @PreAuthorize("hasRole('ROLE_READ_NOMIS')")
@@ -87,7 +88,7 @@ class MappingResource(private val mappingService: MappingService) {
     @Schema(description = "NOMIS Id", example = "12345", required = true)
     @PathVariable
     nomisId: Long,
-  ): MappingDto = mappingService.getVisitMappingGivenNomisId(nomisId)
+  ): Mono<MappingDto> = mappingService.getVisitMappingGivenNomisId(nomisId)
 
   @PreAuthorize("hasRole('ROLE_READ_NOMIS')")
   @GetMapping("/mapping/vsipId/{vsipId}")
@@ -115,7 +116,6 @@ class MappingResource(private val mappingService: MappingService) {
   )
   fun getVisitMappingGivenVsipId(
     @Schema(description = "VSIP Id", example = "12345", required = true)
-    @PathVariable
-    vsipId: String,
-  ): MappingDto = mappingService.getVisitMappingGivenVsipId(vsipId)
+    @PathVariable vsipId: String
+  ): Mono<MappingDto> = mappingService.getVisitMappingGivenVsipId(vsipId)
 }
