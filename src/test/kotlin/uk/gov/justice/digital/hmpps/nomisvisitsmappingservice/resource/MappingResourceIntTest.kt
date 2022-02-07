@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.MappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.Repository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
@@ -35,7 +36,54 @@ class MappingResourceIntTest : IntegrationTestBase() {
 
     @AfterEach
     internal fun deleteData() {
-      repository.delete(nomisId)
+      repository.deleteAll()
+    }
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.post().uri("/mapping")
+        .body(BodyInserters.fromValue(createMapping()))
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.post().uri("/mapping")
+        .headers(setAuthorisation(roles = listOf()))
+        .body(BodyInserters.fromValue(createMapping()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `create visit forbidden with wrong role`() {
+      webTestClient.post().uri("/mapping")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .body(BodyInserters.fromValue(createMapping()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `create when mapping already exists`() {
+      webTestClient.post().uri("/mapping")
+        .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_NOMIS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createMapping()))
+        .exchange()
+        .expectStatus().isCreated
+
+      assertThat(
+        webTestClient.post().uri("/mapping")
+          .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_NOMIS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(createMapping().copy(vsipId = "other")))
+          .exchange()
+          .expectStatus().isBadRequest()
+          .expectBody(ErrorResponse::class.java)
+          .returnResult().responseBody?.userMessage
+      ).isEqualTo("Validation failure: Nomis visit id = 1234 already exists")
     }
 
     @Test
