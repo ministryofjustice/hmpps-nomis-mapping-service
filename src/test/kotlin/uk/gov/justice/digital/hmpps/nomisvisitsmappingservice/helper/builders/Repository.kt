@@ -16,4 +16,5 @@ class Repository(
   fun lookupVisitId(nomisId: Long): VisitId = visitIdRepository.findByIdOrNull(nomisId)!!
 
   fun delete(nomisId: Long) = visitIdRepository.deleteById(nomisId)
+  fun deleteAll() = visitIdRepository.deleteAll()
 }

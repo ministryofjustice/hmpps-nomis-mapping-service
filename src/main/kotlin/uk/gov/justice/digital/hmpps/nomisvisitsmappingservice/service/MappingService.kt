@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.MappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.VisitId
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.VisitIdRepository
 import java.util.function.Supplier
+import javax.validation.ValidationException
 
 @Service
 @Transactional(readOnly = true)
@@ -24,6 +25,11 @@ class MappingService(
   @Transactional
   fun createVisitMapping(createMappingRequest: MappingDto) {
     with(createMappingRequest) {
+      visitIdRepository.findById(nomisId)
+        .ifPresent { throw ValidationException("Nomis visit id = $nomisId already exists") }
+      if (visitIdRepository.findOneByVsipId(vsipId) != null) {
+        throw ValidationException("VSIP visit id=$vsipId already exists")
+      }
       visitIdRepository.save(VisitId(nomisId, vsipId, label, MappingType.valueOf(mappingType)))
 
       telemetryClient.trackEvent(
