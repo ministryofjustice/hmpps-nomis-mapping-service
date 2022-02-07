@@ -33,8 +33,9 @@ jobs:
           keys:
             - gradle-{{ checksum "build.gradle.kts" }}
             - gradle-
-      - hmpps/wait_till_ready: # Wait for Postgres to be ready
-          port: 5432
+      - run:
+          name: Wait for Postgres to be ready
+          command: ./postgres-check.sh
       - run:
           command: ./gradlew check
       - save_cache:
