@@ -11,22 +11,35 @@ parameters:
     type: string
     default: dps-releases
 
+executors:
+  validator:
+    docker:
+      - image: cimg/openjdk:17.0
+      - image: cimg/postgres:14.0
+        environment:
+          - POSTGRES_PASSWORD=mapping
+          - POSTGRES_USER=mapping
+          - POSTGRES_DB=mapping
+    environment:
+      _JAVA_OPTIONS: -Xmx256m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process
+    working_directory: ~/app
+
 jobs:
   validate:
-    executor:
-      name: hmpps/java
-      tag: "17.0"
+    executor: validator
     steps:
       - checkout
       - restore_cache:
           keys:
             - gradle-{{ checksum "build.gradle.kts" }}
             - gradle-
+      - hmpps/wait_till_ready: # Wait for Postgres to be ready
+          port: 5432
       - run:
           command: ./gradlew check
       - save_cache:
           paths:
-            - ~/.gradle
+            - ~/.gradleS
           key: gradle-{{ checksum "build.gradle.kts" }}
       - store_test_results:
           path: build/test-results

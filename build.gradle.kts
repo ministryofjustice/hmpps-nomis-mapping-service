@@ -27,7 +27,7 @@ dependencies {
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.1")
 
   implementation("com.zaxxer:HikariCP:5.0.1")
-  runtimeOnly("com.h2database:h2:2.1.210")
+  // runtimeOnly("com.h2database:h2:2.1.210")
 
   developmentOnly("org.springframework.boot:spring-boot-devtools")
 
@@ -37,6 +37,7 @@ dependencies {
   testImplementation("org.mockito:mockito-inline:4.3.1")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.0.29")
   testImplementation("org.springframework.security:spring-security-test")
+  testImplementation("org.testcontainers:postgresql:1.16.3")
 }
 
 java {

@@ -15,7 +15,7 @@ data class VisitId(
   val vsipId: String,
 
   /**
-   * timestamp of batch job if a migration
+   * ISO timestamp of batch job if a migration
    */
   val label: String? = null,
 

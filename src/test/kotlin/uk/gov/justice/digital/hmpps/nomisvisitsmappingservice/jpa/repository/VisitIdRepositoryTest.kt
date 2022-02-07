@@ -8,18 +8,17 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager
 import org.springframework.context.annotation.Import
 import org.springframework.security.test.context.support.WithMockUser
-import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.AuthenticationFacade
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestBase
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.Repository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.MappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.VisitId
 
 @DataJpaTest
-@ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(AuthenticationFacade::class, Repository::class)
 @WithMockUser
-class VisitIdRepositoryTest {
+class VisitIdRepositoryTest : TestBase() {
   @Autowired
   lateinit var builderRepository: Repository
 
