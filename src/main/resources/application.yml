@@ -30,7 +30,7 @@ spring:
     add-properties: false
 
   flyway:
-    enabled: false
+    enabled: true
 
   data:
     web:
