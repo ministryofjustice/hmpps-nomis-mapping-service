@@ -40,7 +40,7 @@ jobs:
           command: ./gradlew check
       - save_cache:
           paths:
-            - ~/.gradleS
+            - ~/.gradle
           key: gradle-{{ checksum "build.gradle.kts" }}
       - store_test_results:
           path: build/test-results
