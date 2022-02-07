@@ -12,7 +12,7 @@ api:
 
 spring:
   flyway:
-    url: r2dbc:postgresql://localhost:5432/mapping?sslmode=prefer
+    url: jdbc:postgresql://localhost:5432/mapping?sslmode=prefer
     user: mapping
     password: mapping
 

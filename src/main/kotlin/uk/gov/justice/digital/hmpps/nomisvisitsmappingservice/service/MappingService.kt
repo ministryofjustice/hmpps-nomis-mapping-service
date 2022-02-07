@@ -25,11 +25,11 @@ class MappingService(
   fun createVisitMapping(createMappingRequest: MappingDto): Mono<Void> =
     with(createMappingRequest) {
       visitIdRepository.findById(nomisId)
-        .map { throw ValidationException("Nomis visit id = $nomisId already exists") }
+        .doOnNext { throw ValidationException("Nomis visit id = $nomisId already exists") }
         .thenMany(visitIdRepository.findOneByVsipId(vsipId))
-        .map { throw ValidationException("VSIP visit id=$vsipId already exists") }
+        .doOnNext { throw ValidationException("VSIP visit id=$vsipId already exists") }
         .thenMany(visitIdRepository.save(VisitId(nomisId, vsipId, label, MappingType.valueOf(mappingType))))
-        .map {
+        .doOnComplete {
           telemetryClient.trackEvent(
             "visit-created",
             mapOf(
