@@ -20,7 +20,7 @@ class ResourceServerConfiguration : WebSecurityConfigurerAdapter() {
       .authorizeRequests { auth ->
         auth.antMatchers(
           "/webjars/**", "/favicon.ico", "/csrf",
-          "/health/**", "/info", "/h2-console/**",
+          "/health/**", "/info",
           "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"
         )
           .permitAll().anyRequest().authenticated()

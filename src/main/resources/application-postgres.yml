@@ -1,8 +1,0 @@
-spring:
-  datasource:
-    url: jdbc:postgresql://${DATABASE_ENDPOINT}/${DATABASE_NAME}?sslmode=prefer
-
-api:
-  base:
-    url:
-      oauth: https://sign-in-dev.hmpps.service.justice.gov.uk/auth

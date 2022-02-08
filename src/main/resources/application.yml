@@ -36,9 +36,9 @@ spring:
     web:
       pageable:
         max-page-size: 20000
-  h2:
-    console:
-      enabled: false
+#  h2:
+#    console:
+#      enabled: false
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQL10Dialect

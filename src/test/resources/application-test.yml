@@ -15,13 +15,9 @@ spring:
     enabled: true
 
   datasource:
-    url: 'jdbc:h2:mem:mapping-db;MODE=PostgreSQL'
-    username: sa
-    password:
+    url: jdbc:postgresql://localhost:5432/mapping?sslmode=prefer
+    username: mapping
+    password: mapping
 
   jpa:
     show-sql: true
-
-  test:
-    database:
-      replace: none

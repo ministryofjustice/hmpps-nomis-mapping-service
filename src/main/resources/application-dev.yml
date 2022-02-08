@@ -14,18 +14,14 @@ api:
 spring:
   flyway:
     enabled: true
-    locations: classpath:db/migration,classpath:db/dev
 
   devtools:
     add-properties: true
 
   datasource:
-    url: 'jdbc:h2:mem:mapping-db;MODE=PostgreSQL'
+    url: jdbc:postgresql://localhost:5432/mapping?sslmode=prefer
+    username: mapping
+    password: mapping
 
   jpa:
     show-sql: true
-
-  h2:
-    console:
-      enabled: true
-      path: /h2-console

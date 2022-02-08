@@ -13,11 +13,11 @@ Self-contained fat-jar micro-service to interact with prisoners in the NOMIS dat
 
 Various methods to run the application locally are detailed below.
 
-Once up the application should be available on port 8101 - see the health page at http://localhost:8101/health.
+Once up the application should be available on port 8080 - see the health page at http://localhost:8080/health.
 
-Also try http://localhost:8101/swagger-ui/configUrl=/v3/api-docs to see the API specification.
+Also try http://localhost:8080/swagger-ui/index.html to see the API specification.
 
-###Available spring profiles
-- dev: runs locally with H2
-- postgres: runs locally with the dev auth server and a postgres database configured by setting:
-  DATABASE_ENDPOINT, DATABASE_NAME, SPRING_DATASOURCE_USERNAME, SPRING_DATASOURCE_PASSWORD
+## Running tests
+
+By default a Postgres database is automatically created using testcontainers, unless a database is already running in which case that is used.
+To run up a database independently for testing, with the right database name, user etc., use the database entry in docker-compose.yml.
