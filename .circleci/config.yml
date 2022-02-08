@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  hmpps: ministryofjustice/hmpps@3.12
+  hmpps: ministryofjustice/hmpps@dev:e90610a
 
 parameters:
   alerts-slack-channel:
@@ -11,31 +11,20 @@ parameters:
     type: string
     default: dps-releases
 
-executors:
-  validator:
-    docker:
-      - image: cimg/openjdk:17.0
-      - image: cimg/postgres:14.0
-        environment:
-          - POSTGRES_PASSWORD=mapping
-          - POSTGRES_USER=mapping
-          - POSTGRES_DB=mapping
-    environment:
-      _JAVA_OPTIONS: -Xmx256m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process
-    working_directory: ~/app
-
 jobs:
   validate:
-    executor: validator
+    executor:
+      name: hmpps/java_postgres
+      jdk_tag: "17.0"
+      postgres_tag: "14"
     steps:
       - checkout
       - restore_cache:
           keys:
             - gradle-{{ checksum "build.gradle.kts" }}
             - gradle-
-      - run:
-          name: Wait for Postgres to be ready
-          command: chmod +x postgres-check.sh && ./postgres-check.sh
+      - hmpps/wait_till_ready:
+          port: 5432
       - run:
           command: ./gradlew check
       - save_cache:
