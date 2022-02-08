@@ -17,7 +17,9 @@ spring:
     password: mapping
 
   r2dbc:
-    url: r2dbc:postgresql://localhost:5432/mapping?sslmode=prefer
+    url: r2dbc:postgresql://localhost:5432/mapping
     username: mapping
     password: mapping
-
+    properties:
+      sslMode: DISABLE
+      sslRootCert:

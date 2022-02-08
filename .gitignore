@@ -70,3 +70,4 @@ ecr.repo
 #Helm
 **/Chart.lock
 sonar-project.properties
+helm_deploy/hmpps-nomis-visits-mapping-service/charts
