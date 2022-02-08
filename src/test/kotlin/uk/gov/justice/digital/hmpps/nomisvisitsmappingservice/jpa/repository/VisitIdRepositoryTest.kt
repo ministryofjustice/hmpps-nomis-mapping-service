@@ -7,16 +7,14 @@ import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
 import reactor.test.StepVerifier
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestBase
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.Repository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.MappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.VisitId
 
 @DataR2dbcTest
 @ActiveProfiles("test")
 @WithMockUser
-class VisitIdRepositoryTest : TestBase(){
+class VisitIdRepositoryTest : TestBase() {
   @Autowired
   lateinit var repository: VisitIdRepository
 
