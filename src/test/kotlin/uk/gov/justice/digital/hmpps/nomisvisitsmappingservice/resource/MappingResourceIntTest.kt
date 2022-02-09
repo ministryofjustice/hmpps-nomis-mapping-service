@@ -135,14 +135,14 @@ class MappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.get().uri("/prison/HEI/room/nomisRoomId/HEI-VISITS-SOC_VIS")
+      webTestClient.get().uri("/prison/HEI/room/nomis-room-id/HEI-VISITS-SOC_VIS")
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.get().uri("/prison/HEI/room/nomisRoomId/HEI-VISITS-SOC_VIS")
+      webTestClient.get().uri("/prison/HEI/room/nomis-room-id/HEI-VISITS-SOC_VIS")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -150,7 +150,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `create visit forbidden with wrong role`() {
-      webTestClient.get().uri("/prison/HEI/room/nomisRoomId/HEI-VISITS-SOC_VIS")
+      webTestClient.get().uri("/prison/HEI/room/nomis-room-id/HEI-VISITS-SOC_VIS")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -158,7 +158,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get room mapping success`() {
-      val mapping1 = webTestClient.get().uri("/prison/HEI/room/nomisRoomId/HEI-VISITS-SOC_VIS")
+      val mapping1 = webTestClient.get().uri("/prison/HEI/room/nomis-room-id/HEI-VISITS-SOC_VIS")
         .headers(setAuthorisation(roles = listOf("ROLE_READ_NOMIS")))
         .exchange()
         .expectStatus().isOk
@@ -173,7 +173,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `room mapping not found`() {
-      val error = webTestClient.get().uri("/prison/HEI/room/nomisRoomId/HEI-NOT_THERE")
+      val error = webTestClient.get().uri("/prison/HEI/room/nomis-room-id/HEI-NOT_THERE")
         .headers(setAuthorisation(roles = listOf("ROLE_READ_NOMIS")))
         .exchange()
         .expectStatus().isNotFound

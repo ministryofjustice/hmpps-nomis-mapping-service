@@ -121,7 +121,7 @@ class MappingResource(private val mappingService: MappingService) {
   ): Mono<MappingDto> = mappingService.getVisitMappingGivenVsipId(vsipId)
 
   @PreAuthorize("hasRole('ROLE_READ_NOMIS')")
-  @GetMapping("/prison/{prisonId}/room/nomisRoomId/{nomisRoomDescription}")
+  @GetMapping("/prison/{prisonId}/room/nomis-room-id/{nomisRoomDescription}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get room mapping",
