@@ -6,8 +6,10 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.MappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.RoomMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.MappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.VisitId
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.RoomIdRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.VisitIdRepository
 import javax.validation.ValidationException
 
@@ -16,6 +18,7 @@ import javax.validation.ValidationException
 class MappingService(
   private val visitIdRepository: VisitIdRepository,
   private val telemetryClient: TelemetryClient,
+  private val roomIdRepository: RoomIdRepository,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -51,6 +54,11 @@ class MappingService(
     visitIdRepository.findOneByVsipId(vsipId)
       .map { MappingDto(it.nomisId, vsipId, it.label, it.mappingType.name) }
       .switchIfEmpty(Mono.error(NotFoundException(("VSIP visit id=$vsipId"))))
+
+  fun getRoomMapping(prisonId: String, nomisRoomDescription: String): Mono<RoomMappingDto> =
+    roomIdRepository.findOneByPrisonIdAndNomisRoomDescription(prisonId, nomisRoomDescription)
+      .map { RoomMappingDto(it.vsipId, it.nomisRoomDescription, it.prisonId, it.isOpen) }
+      .switchIfEmpty(Mono.error(NotFoundException(("prison id=$prisonId, nomis room id=$nomisRoomDescription"))))
 }
 
 class NotFoundException(message: String) : RuntimeException(message)
