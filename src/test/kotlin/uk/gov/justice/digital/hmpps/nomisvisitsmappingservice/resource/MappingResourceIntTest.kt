@@ -10,6 +10,7 @@ import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.MappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.RoomMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.Repository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 
@@ -125,6 +126,61 @@ class MappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping2.vsipId).isEqualTo(vsipId)
       assertThat(mapping2.label).isEqualTo("2022-01-01")
       assertThat(mapping2.mappingType).isEqualTo("ONLINE")
+    }
+  }
+
+  @DisplayName("get room mapping")
+  @Nested
+  inner class GetRoomMappingTest {
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/prison/HEI/room/nomisRoomId/HEI-VISITS-SOC_VIS")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/prison/HEI/room/nomisRoomId/HEI-VISITS-SOC_VIS")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `create visit forbidden with wrong role`() {
+      webTestClient.get().uri("/prison/HEI/room/nomisRoomId/HEI-VISITS-SOC_VIS")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get room mapping success`() {
+      val mapping1 = webTestClient.get().uri("/prison/HEI/room/nomisRoomId/HEI-VISITS-SOC_VIS")
+        .headers(setAuthorisation(roles = listOf("ROLE_READ_NOMIS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody(RoomMappingDto::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(mapping1.nomisRoomDescription).isEqualTo("HEI-VISITS-SOC_VIS")
+      assertThat(mapping1.vsipId).isEqualTo("VSIP_SOC_VIS")
+      assertThat(mapping1.isOpen).isEqualTo(true)
+      assertThat(mapping1.prisonId).isEqualTo("HEI")
+    }
+
+    @Test
+    fun `room mapping not found`() {
+      val error = webTestClient.get().uri("/prison/HEI/room/nomisRoomId/HEI-NOT_THERE")
+        .headers(setAuthorisation(roles = listOf("ROLE_READ_NOMIS")))
+        .exchange()
+        .expectStatus().isNotFound
+        .expectBody(ErrorResponse::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(error.userMessage).isEqualTo("Not Found: prison id=HEI, nomis room id=HEI-NOT_THERE")
     }
   }
 }
