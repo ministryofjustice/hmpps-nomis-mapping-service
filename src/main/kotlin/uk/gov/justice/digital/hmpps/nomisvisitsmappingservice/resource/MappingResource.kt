@@ -130,7 +130,7 @@ class MappingResource(private val mappingService: MappingService) {
       ApiResponse(
         responseCode = "200",
         description = "Mapping Information Returned",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = MappingDto::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = RoomMappingDto::class))]
       ),
       ApiResponse(
         responseCode = "401",
