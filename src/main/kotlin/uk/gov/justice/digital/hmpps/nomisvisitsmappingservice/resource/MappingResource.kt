@@ -139,7 +139,7 @@ class MappingResource(private val mappingService: MappingService) {
       ),
       ApiResponse(
         responseCode = "404",
-        description = "NOMIS room id does not exist in the mapping table",
+        description = "NOMIS room description does not exist in the mapping table for the given prison",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
       ),
     ]

@@ -4,10 +4,10 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Visit creation request")
+@Schema(description = "Room mapping request")
 data class RoomMappingDto(
 
-  @Schema(description = "vsip room id", required = true)
+  @Schema(description = "VSIP room id", required = true)
   val vsipId: String,
 
   @Schema(description = "nomis room description (unique within prison)", required = true)
