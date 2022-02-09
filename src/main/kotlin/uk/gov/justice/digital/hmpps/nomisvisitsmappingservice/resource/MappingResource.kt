@@ -148,7 +148,7 @@ class MappingResource(private val mappingService: MappingService) {
     @Schema(description = "NOMIS prison Id", example = "MDI", required = true)
     @PathVariable
     prisonId: String,
-    @Schema(description = "NOMIS room Id", example = "LW01", required = true)
+    @Schema(description = "NOMIS room description", example = "HEI_LW01", required = true)
     @PathVariable
     nomisRoomDescription: String,
   ): Mono<RoomMappingDto> = mappingService.getRoomMapping(prisonId, nomisRoomDescription)
