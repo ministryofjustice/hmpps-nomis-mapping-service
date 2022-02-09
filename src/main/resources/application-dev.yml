@@ -24,3 +24,6 @@ spring:
     url: r2dbc:postgresql://localhost:5432/mapping?sslmode=prefer
     username: mapping
     password: mapping
+    properties:
+      sslMode: DISABLE
+      sslRootCert:

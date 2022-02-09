@@ -38,12 +38,14 @@ spring:
       pageable:
         max-page-size: 20000
 
-
   r2dbc:
-    url: r2dbc:postgresql://${DATABASE_ENDPOINT}/${DATABASE_NAME}?sslmode=verify-full
+    url: r2dbc:postgresql://${DATABASE_ENDPOINT}/${DATABASE_NAME}
     pool:
       max-create-connection-time: 500
       max-acquire-time: 1000
+    properties:
+      ssl: true
+      sslRootCert: /home/appuser/.postgresql/root.crt
 
 server:
   port: 8080
