@@ -190,14 +190,14 @@ class MappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.get().uri("/mapping")
+      webTestClient.delete().uri("/mapping")
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.get().uri("/mapping")
+      webTestClient.delete().uri("/mapping")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -205,7 +205,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `delete visit mappings forbidden with wrong role`() {
-      webTestClient.get().uri("/mapping")
+      webTestClient.delete().uri("/mapping")
         .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_NOMIS")))
         .exchange()
         .expectStatus().isForbidden
