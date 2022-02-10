@@ -204,7 +204,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `create visit forbidden with wrong role`() {
+    fun `delete visit mappings forbidden with wrong role`() {
       webTestClient.get().uri("/prison/HEI/room/nomis-room-id/HEI-VISITS-SOC_VIS")
         .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_NOMIS")))
         .exchange()
