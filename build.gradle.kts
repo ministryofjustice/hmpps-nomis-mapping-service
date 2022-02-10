@@ -10,7 +10,6 @@ dependencyCheck {
 }
 
 configurations {
-  implementation { exclude(module = "applicationinsights-spring-boot-starter") }
   implementation { exclude(module = "spring-boot-starter-web") }
   implementation { exclude(module = "spring-boot-starter-tomcat") }
   testImplementation { exclude(group = "org.junit.vintage") }
@@ -23,13 +22,12 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 
-  implementation("com.microsoft.azure:applicationinsights-core:2.6.4")
-
   implementation("org.flywaydb:flyway-core:8.4.4")
   implementation("com.vladmihalcea:hibernate-types-52:2.14.0")
   runtimeOnly("io.r2dbc:r2dbc-postgresql")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
   runtimeOnly("org.postgresql:postgresql:42.3.2")
+  implementation("io.opentelemetry:opentelemetry-api:1.11.0")
 
   implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.6")
   implementation("org.springdoc:springdoc-openapi-kotlin:1.6.6")
