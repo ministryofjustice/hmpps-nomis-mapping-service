@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  hmpps: ministryofjustice/hmpps@dev:e90610a
+  hmpps: ministryofjustice/hmpps@dev:4d8a433
 
 parameters:
   alerts-slack-channel:
@@ -17,14 +17,16 @@ jobs:
       name: hmpps/java_postgres
       jdk_tag: "17.0"
       postgres_tag: "14"
+      postgres_db: "mapping"
+      postgres_username: "mapping"
+      postgres_password: "mapping"
     steps:
       - checkout
       - restore_cache:
           keys:
             - gradle-{{ checksum "build.gradle.kts" }}
             - gradle-
-      - hmpps/wait_till_ready:
-          port: 5432
+      - hmpps/wait_till_ready_postgres
       - run:
           command: ./gradlew check
       - save_cache:
