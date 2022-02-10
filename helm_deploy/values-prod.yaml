@@ -6,7 +6,6 @@ generic-service:
     host: nomis-visits-mapping.hmpps.service.justice.gov.uk
 
   env:
-    APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
     API_BASE_URL_OAUTH: https://sign-in.hmpps.service.justice.gov.uk/auth
 
 # CloudPlatform AlertManager receiver to route promethues alerts to slack
