@@ -237,7 +237,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
       webTestClient.delete().uri("/mapping")
         .headers(setAuthorisation(roles = listOf("ROLE_ADMIN_NOMIS")))
         .exchange()
-        .expectStatus().isOk
+        .expectStatus().isNoContent
 
       webTestClient.get().uri("/mapping/nomisId/$nomisId")
         .headers(setAuthorisation(roles = listOf("ROLE_READ_NOMIS")))

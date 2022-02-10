@@ -156,13 +156,13 @@ class MappingResource(private val mappingService: MappingService) {
 
   @PreAuthorize("hasRole('ROLE_ADMIN_NOMIS')")
   @DeleteMapping("/mapping")
-  @ResponseStatus(HttpStatus.OK)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes visit id mappings",
     description = "Deletes all rows from the the visit id table",
     responses = [
       ApiResponse(
-        responseCode = "200",
+        responseCode = "204",
         description = "Visit id mappings deleted"
       ),
       ApiResponse(
