@@ -160,9 +160,6 @@ class MappingResource(private val mappingService: MappingService) {
   @Operation(
     summary = "Deletes visit id mappings",
     description = "Deletes all rows from the the visit id table",
-    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = MappingDto::class))]
-    ),
     responses = [
       ApiResponse(
         responseCode = "200",
