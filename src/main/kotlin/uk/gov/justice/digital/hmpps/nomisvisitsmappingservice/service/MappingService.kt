@@ -59,6 +59,8 @@ class MappingService(
     roomIdRepository.findOneByPrisonIdAndNomisRoomDescription(prisonId, nomisRoomDescription)
       .map { RoomMappingDto(it.vsipId, it.nomisRoomDescription, it.prisonId, it.isOpen) }
       .switchIfEmpty(Mono.error(NotFoundException(("prison id=$prisonId, nomis room id=$nomisRoomDescription"))))
+
+  fun deleteVisitMappings(): Mono<Void> = visitIdRepository.deleteAll()
 }
 
 class NotFoundException(message: String) : RuntimeException(message)
