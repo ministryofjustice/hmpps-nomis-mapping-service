@@ -183,4 +183,66 @@ class MappingResourceIntTest : IntegrationTestBase() {
       assertThat(error.userMessage).isEqualTo("Not Found: prison id=HEI, nomis room id=HEI-NOT_THERE")
     }
   }
+
+  @DisplayName("delete visit migration mapping")
+  @Nested
+  inner class DeleteMappingTest {
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.delete().uri("/mapping")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.delete().uri("/mapping")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `delete visit mappings forbidden with wrong role`() {
+      webTestClient.delete().uri("/mapping")
+        .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_NOMIS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `delete room mapping success`() {
+      webTestClient.post().uri("/mapping")
+        .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_NOMIS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            """{
+            "nomisId"     : $nomisId,
+            "vsipId"      : "$vsipId",
+            "label"       : "2022-01-01",
+            "mappingType" : "ONLINE"
+          }"""
+          )
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.get().uri("/mapping/nomisId/$nomisId")
+        .headers(setAuthorisation(roles = listOf("ROLE_READ_NOMIS")))
+        .exchange()
+        .expectStatus().isOk
+
+      webTestClient.delete().uri("/mapping")
+        .headers(setAuthorisation(roles = listOf("ROLE_ADMIN_NOMIS")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      webTestClient.get().uri("/mapping/nomisId/$nomisId")
+        .headers(setAuthorisation(roles = listOf("ROLE_READ_NOMIS")))
+        .exchange()
+        .expectStatus().isNotFound
+    }
+  }
 }

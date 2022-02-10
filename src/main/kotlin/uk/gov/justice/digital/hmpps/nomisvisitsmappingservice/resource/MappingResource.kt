@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -152,4 +153,25 @@ class MappingResource(private val mappingService: MappingService) {
     @PathVariable
     nomisRoomDescription: String,
   ): Mono<RoomMappingDto> = mappingService.getRoomMapping(prisonId, nomisRoomDescription)
+
+  @PreAuthorize("hasRole('ROLE_ADMIN_NOMIS')")
+  @DeleteMapping("/mapping")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes visit id mappings",
+    description = "Deletes all rows from the the visit id table",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Visit id mappings deleted"
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+    ]
+  )
+  fun deleteVisitIdMappings(): Mono<Void> =
+    mappingService.deleteVisitMappings()
 }
