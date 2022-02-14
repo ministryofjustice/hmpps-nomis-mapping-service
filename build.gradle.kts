@@ -22,6 +22,9 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.6.0")
+
   implementation("org.flywaydb:flyway-core:8.4.4")
   implementation("com.vladmihalcea:hibernate-types-52:2.14.0")
   runtimeOnly("io.r2dbc:r2dbc-postgresql")
@@ -45,6 +48,7 @@ dependencies {
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.testcontainers:postgresql:1.16.3")
   testImplementation("io.projectreactor:reactor-test")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.0")
 }
 
 java {

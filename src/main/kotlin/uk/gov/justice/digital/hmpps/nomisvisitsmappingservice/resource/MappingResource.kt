@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.MappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.RoomMappingDto
@@ -59,7 +58,7 @@ class MappingResource(private val mappingService: MappingService) {
       ),
     ]
   )
-  fun createMapping(@RequestBody @Valid createMappingRequest: MappingDto): Mono<Void> =
+  suspend fun createMapping(@RequestBody @Valid createMappingRequest: MappingDto) =
     mappingService.createVisitMapping(createMappingRequest)
 
   @PreAuthorize("hasRole('ROLE_READ_NOMIS')")
@@ -86,11 +85,11 @@ class MappingResource(private val mappingService: MappingService) {
       ),
     ]
   )
-  fun getVisitMappingGivenNomisId(
+  suspend fun getVisitMappingGivenNomisId(
     @Schema(description = "NOMIS Id", example = "12345", required = true)
     @PathVariable
     nomisId: Long,
-  ): Mono<MappingDto> = mappingService.getVisitMappingGivenNomisId(nomisId)
+  ): MappingDto = mappingService.getVisitMappingGivenNomisId(nomisId)
 
   @PreAuthorize("hasRole('ROLE_READ_NOMIS')")
   @GetMapping("/mapping/vsipId/{vsipId}")
@@ -116,10 +115,10 @@ class MappingResource(private val mappingService: MappingService) {
       ),
     ]
   )
-  fun getVisitMappingGivenVsipId(
+  suspend fun getVisitMappingGivenVsipId(
     @Schema(description = "VSIP Id", example = "12345", required = true)
     @PathVariable vsipId: String
-  ): Mono<MappingDto> = mappingService.getVisitMappingGivenVsipId(vsipId)
+  ): MappingDto = mappingService.getVisitMappingGivenVsipId(vsipId)
 
   @PreAuthorize("hasRole('ROLE_READ_NOMIS')")
   @GetMapping("/prison/{prisonId}/room/nomis-room-id/{nomisRoomDescription}")
@@ -145,14 +144,14 @@ class MappingResource(private val mappingService: MappingService) {
       ),
     ]
   )
-  fun getRoomMapping(
+  suspend fun getRoomMapping(
     @Schema(description = "NOMIS prison Id", example = "MDI", required = true)
     @PathVariable
     prisonId: String,
     @Schema(description = "NOMIS room description", example = "HEI_LW01", required = true)
     @PathVariable
     nomisRoomDescription: String,
-  ): Mono<RoomMappingDto> = mappingService.getRoomMapping(prisonId, nomisRoomDescription)
+  ): RoomMappingDto = mappingService.getRoomMapping(prisonId, nomisRoomDescription)
 
   @PreAuthorize("hasRole('ROLE_ADMIN_NOMIS')")
   @DeleteMapping("/mapping")
@@ -172,6 +171,5 @@ class MappingResource(private val mappingService: MappingService) {
       ),
     ]
   )
-  fun deleteVisitIdMappings(): Mono<Void> =
-    mappingService.deleteVisitMappings()
+  suspend fun deleteVisitIdMappings() = mappingService.deleteVisitMappings()
 }

@@ -4,7 +4,6 @@ import com.microsoft.applicationinsights.TelemetryClient
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.MappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.RoomMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.MappingType
@@ -25,42 +24,45 @@ class MappingService(
   }
 
   @Transactional
-  fun createVisitMapping(createMappingRequest: MappingDto): Mono<Void> =
+  suspend fun createVisitMapping(createMappingRequest: MappingDto) =
     with(createMappingRequest) {
-      visitIdRepository.findById(nomisId)
-        .doOnNext { throw ValidationException("Nomis visit id = $nomisId already exists") }
-        .thenMany(visitIdRepository.findOneByVsipId(vsipId))
-        .doOnNext { throw ValidationException("VSIP visit id=$vsipId already exists") }
-        .thenMany(visitIdRepository.save(VisitId(nomisId, vsipId, label, MappingType.valueOf(mappingType))))
-        .doOnComplete {
-          telemetryClient.trackEvent(
-            "visit-created",
-            mapOf(
-              "nomisVisitId" to nomisId.toString(),
-              "vsipVisitId" to vsipId,
-              "batchId" to label,
-            ),
-            null
-          )
-          log.debug("Mapping created with VSIP visit id = $vsipId, Nomis visit id = $nomisId")
-        }.then()
+      visitIdRepository.findById(nomisId)?.run {
+        throw ValidationException("Nomis visit id = $nomisId already exists")
+      }
+
+      visitIdRepository.findOneByVsipId(vsipId)?.run {
+        throw ValidationException("VSIP visit id=$vsipId already exists")
+      }
+
+      visitIdRepository.save(VisitId(nomisId, vsipId, label, MappingType.valueOf(mappingType)))
+      telemetryClient.trackEvent(
+        "visit-created",
+        mapOf(
+          "nomisVisitId" to nomisId.toString(),
+          "vsipVisitId" to vsipId,
+          "batchId" to label,
+        ),
+        null
+      )
+      log.debug("Mapping created with VSIP visit id = $vsipId, Nomis visit id = $nomisId")
     }
 
-  fun getVisitMappingGivenNomisId(nomisId: Long): Mono<MappingDto> =
-    visitIdRepository.findById(nomisId).map { MappingDto(nomisId, it.vsipId, it.label, it.mappingType.name) }
-      .switchIfEmpty(Mono.error(NotFoundException("NOMIS visit id=$nomisId")))
+  suspend fun getVisitMappingGivenNomisId(nomisId: Long): MappingDto =
+    visitIdRepository.findById(nomisId)
+      ?.let { MappingDto(nomisId, it.vsipId, it.label, it.mappingType.name) }
+      ?: throw NotFoundException("NOMIS visit id=$nomisId")
 
-  fun getVisitMappingGivenVsipId(vsipId: String): Mono<MappingDto> =
+  suspend fun getVisitMappingGivenVsipId(vsipId: String): MappingDto =
     visitIdRepository.findOneByVsipId(vsipId)
-      .map { MappingDto(it.nomisId, vsipId, it.label, it.mappingType.name) }
-      .switchIfEmpty(Mono.error(NotFoundException(("VSIP visit id=$vsipId"))))
+      ?.let { MappingDto(it.nomisId, vsipId, it.label, it.mappingType.name) }
+      ?: throw NotFoundException("VSIP visit id=$vsipId")
 
-  fun getRoomMapping(prisonId: String, nomisRoomDescription: String): Mono<RoomMappingDto> =
+  suspend fun getRoomMapping(prisonId: String, nomisRoomDescription: String): RoomMappingDto =
     roomIdRepository.findOneByPrisonIdAndNomisRoomDescription(prisonId, nomisRoomDescription)
-      .map { RoomMappingDto(it.vsipId, it.nomisRoomDescription, it.prisonId, it.isOpen) }
-      .switchIfEmpty(Mono.error(NotFoundException(("prison id=$prisonId, nomis room id=$nomisRoomDescription"))))
+      ?.let { RoomMappingDto(it.vsipId, it.nomisRoomDescription, it.prisonId, it.isOpen) }
+      ?: throw NotFoundException("prison id=$prisonId, nomis room id=$nomisRoomDescription")
 
-  fun deleteVisitMappings(): Mono<Void> = visitIdRepository.deleteAll()
+  suspend fun deleteVisitMappings() = visitIdRepository.deleteAll()
 }
 
 class NotFoundException(message: String) : RuntimeException(message)
