@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.DisplayName
@@ -34,8 +35,8 @@ class MappingResourceIntTest : IntegrationTestBase() {
   inner class CreateMappingTest {
 
     @AfterEach
-    internal fun deleteData() {
-      repository.deleteAll().block()
+    internal fun deleteData() = runBlocking {
+      repository.deleteAll()
     }
 
     @Test

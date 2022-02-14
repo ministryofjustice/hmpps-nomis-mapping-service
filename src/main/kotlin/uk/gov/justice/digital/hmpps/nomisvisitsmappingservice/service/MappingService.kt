@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service
 
 import com.microsoft.applicationinsights.TelemetryClient
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -27,15 +26,15 @@ class MappingService(
   @Transactional
   suspend fun createVisitMapping(createMappingRequest: MappingDto) =
     with(createMappingRequest) {
-      visitIdRepository.findById(nomisId).awaitFirstOrNull()?.run {
+      visitIdRepository.findById(nomisId)?.run {
         throw ValidationException("Nomis visit id = $nomisId already exists")
       }
 
-      visitIdRepository.findOneByVsipId(vsipId).awaitFirstOrNull()?.run {
+      visitIdRepository.findOneByVsipId(vsipId)?.run {
         throw ValidationException("VSIP visit id=$vsipId already exists")
       }
 
-      visitIdRepository.save(VisitId(nomisId, vsipId, label, MappingType.valueOf(mappingType))).awaitFirstOrNull()
+      visitIdRepository.save(VisitId(nomisId, vsipId, label, MappingType.valueOf(mappingType)))
       telemetryClient.trackEvent(
         "visit-created",
         mapOf(
@@ -49,20 +48,21 @@ class MappingService(
     }
 
   suspend fun getVisitMappingGivenNomisId(nomisId: Long): MappingDto =
-    visitIdRepository.findById(nomisId).map { MappingDto(nomisId, it.vsipId, it.label, it.mappingType.name) }
-      .awaitFirstOrNull() ?: throw NotFoundException("NOMIS visit id=$nomisId")
+    visitIdRepository.findById(nomisId)
+      ?.let { MappingDto(nomisId, it.vsipId, it.label, it.mappingType.name) }
+      ?: throw NotFoundException("NOMIS visit id=$nomisId")
 
   suspend fun getVisitMappingGivenVsipId(vsipId: String): MappingDto =
     visitIdRepository.findOneByVsipId(vsipId)
-      .map { MappingDto(it.nomisId, vsipId, it.label, it.mappingType.name) }
-      .awaitFirstOrNull() ?: throw NotFoundException("VSIP visit id=$vsipId")
+      ?.let { MappingDto(it.nomisId, vsipId, it.label, it.mappingType.name) }
+      ?: throw NotFoundException("VSIP visit id=$vsipId")
 
   suspend fun getRoomMapping(prisonId: String, nomisRoomDescription: String): RoomMappingDto =
     roomIdRepository.findOneByPrisonIdAndNomisRoomDescription(prisonId, nomisRoomDescription)
-      .map { RoomMappingDto(it.vsipId, it.nomisRoomDescription, it.prisonId, it.isOpen) }
-      .awaitFirstOrNull() ?: throw NotFoundException("prison id=$prisonId, nomis room id=$nomisRoomDescription")
+      ?.let { RoomMappingDto(it.vsipId, it.nomisRoomDescription, it.prisonId, it.isOpen) }
+      ?: throw NotFoundException("prison id=$prisonId, nomis room id=$nomisRoomDescription")
 
-  suspend fun deleteVisitMappings(): Void? = visitIdRepository.deleteAll().awaitFirstOrNull()
+  suspend fun deleteVisitMappings() = visitIdRepository.deleteAll()
 }
 
 class NotFoundException(message: String) : RuntimeException(message)
