@@ -32,7 +32,7 @@ class MappingResource(private val mappingService: MappingService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new visit",
-    description = "Creates a new visit and decrements the visit balance.",
+    description = "Creates a new visit and decrements the visit balance. Requires role UPDATE_MAPPING",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = MappingDto::class))]
     ),
@@ -53,12 +53,12 @@ class MappingResource(private val mappingService: MappingService) {
   suspend fun createMapping(@RequestBody @Valid createMappingRequest: MappingDto) =
     mappingService.createVisitMapping(createMappingRequest)
 
-  @PreAuthorize("hasRole('ROLE_READ_MAPPING')")
+  @PreAuthorize("hasAnyRole('ROLE_READ_MAPPING','ROLE_UPDATE_MAPPING','ROLE_ADMIN_MAPPING')")
   @GetMapping("/mapping/nomisId/{nomisId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by NOMIS id.",
+    description = "Retrieves a mapping by NOMIS id. Requires role READ_MAPPING, UPDATE_MAPPING or ADMIN_MAPPING",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -83,12 +83,12 @@ class MappingResource(private val mappingService: MappingService) {
     nomisId: Long,
   ): MappingDto = mappingService.getVisitMappingGivenNomisId(nomisId)
 
-  @PreAuthorize("hasRole('ROLE_READ_MAPPING')")
+  @PreAuthorize("hasAnyRole('ROLE_READ_MAPPING','ROLE_UPDATE_MAPPING','ROLE_ADMIN_MAPPING')")
   @GetMapping("/mapping/vsipId/{vsipId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by VSIP id.",
+    description = "Retrieves a mapping by VSIP id. Requires role READ_MAPPING, UPDATE_MAPPING or ADMIN_MAPPING",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -112,12 +112,12 @@ class MappingResource(private val mappingService: MappingService) {
     @PathVariable vsipId: String
   ): MappingDto = mappingService.getVisitMappingGivenVsipId(vsipId)
 
-  @PreAuthorize("hasRole('ROLE_READ_MAPPING')")
+  @PreAuthorize("hasAnyRole('ROLE_READ_MAPPING','ROLE_UPDATE_MAPPING','ROLE_ADMIN_MAPPING')")
   @GetMapping("/prison/{prisonId}/room/nomis-room-id/{nomisRoomDescription}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get room mapping",
-    description = "Retrieves a room mapping by NOMIS prison id and NOMIS room id.",
+    description = "Retrieves a room mapping by NOMIS prison id and NOMIS room id. Requires role READ_MAPPING, UPDATE_MAPPING or ADMIN_MAPPING",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -150,7 +150,7 @@ class MappingResource(private val mappingService: MappingService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes visit id mappings",
-    description = "Deletes all rows from the the visit id table",
+    description = "Deletes all rows from the the visit id table. Requires role ADMIN_MAPPING",
     responses = [
       ApiResponse(
         responseCode = "204",
