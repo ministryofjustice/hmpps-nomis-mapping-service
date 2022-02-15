@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
@@ -192,8 +191,6 @@ class MappingResource(private val mappingService: MappingService) {
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable migrationId: String
-  ): Page<MappingDto> {
-    return mappingService.getVisitMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
-      .awaitSingle()
-  }
+  ): Page<MappingDto> =
+    mappingService.getVisitMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 }
