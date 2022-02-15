@@ -174,7 +174,7 @@ class MappingResource(private val mappingService: MappingService) {
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get paged mappings by migration id",
-    description = "Retrieve all mappings for the given migration id (identifies a single migration run). Results are paged.",
+    description = "Retrieve all mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged.",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -188,7 +188,7 @@ class MappingResource(private val mappingService: MappingService) {
       )
     ]
   )
-  suspend fun getVisitMappingsByMigrationId(
+  suspend fun getMigratedVisitMappingsByMigrationId(
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable migrationId: String
