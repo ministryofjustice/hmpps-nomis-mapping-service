@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.byLessThan
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.DisplayName
@@ -15,6 +16,8 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.MappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.RoomMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.Repository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 private const val nomisId = 1234L
 private const val vsipId = "12345678"
@@ -235,6 +238,148 @@ class MappingResourceIntTest : IntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_MAPPING")))
         .exchange()
         .expectStatus().isOk
+    }
+  }
+
+  @DisplayName("GET /mapping/migrated/latest")
+  @Nested
+  inner class GeMappingMigratedLatestTest {
+
+    @AfterEach
+    internal fun deleteData() = runBlocking {
+      repository.deleteAll()
+    }
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/migrated/latest")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/migrated/latest")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get retrieves latest migrated mapping`() {
+
+      webTestClient.post().uri("/mapping")
+        .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_MAPPING")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createMapping(
+              vsipIdOverride = "10",
+              nomisIdOverride = 10,
+              label = "2022-01-01T00:00:00",
+              mappingType = "MIGRATED"
+            )
+          )
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping")
+        .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_MAPPING")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createMapping(
+              vsipIdOverride = "20",
+              nomisIdOverride = 20,
+              label = "2022-01-02T00:00:00",
+              mappingType = "MIGRATED"
+            )
+          )
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping")
+        .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_MAPPING")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createMapping(
+              vsipIdOverride = "1",
+              nomisIdOverride = 1,
+              label = "2022-01-02T10:00:00",
+              mappingType = "MIGRATED"
+            )
+          )
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping")
+        .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_MAPPING")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createMapping(
+              vsipIdOverride = "99",
+              nomisIdOverride = 199,
+              label = "whatever",
+              mappingType = "ONLINE"
+            )
+          )
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      val mapping = webTestClient.get().uri("/mapping/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody(MappingDto::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(mapping.nomisId).isEqualTo(1)
+      assertThat(mapping.vsipId).isEqualTo("1")
+      assertThat(mapping.label).isEqualTo("2022-01-02T10:00:00")
+      assertThat(mapping.mappingType).isEqualTo("MIGRATED")
+      assertThat(mapping.whenCreated).isCloseTo(LocalDateTime.now(), byLessThan(5, ChronoUnit.SECONDS))
+    }
+
+    @Test
+    fun `404 when no migrated mapping found`() {
+      webTestClient.post().uri("/mapping")
+        .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_MAPPING")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createMapping(
+              vsipIdOverride = "99",
+              nomisIdOverride = 199,
+              label = "whatever",
+              mappingType = "ONLINE"
+            )
+          )
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      val error = webTestClient.get().uri("/mapping/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+        .exchange()
+        .expectStatus().isNotFound
+        .expectBody(ErrorResponse::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(error.userMessage).isEqualTo("Not Found: No migrated mapping found")
     }
   }
 
@@ -473,8 +618,22 @@ class MappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `get visit mappings by migration id success`() {
 
-        (1L..4L).forEach { postCreateMappingRequest(vsipIdOverride = it.toString(), nomisIdOverride = it, label = "2022-01-01", mappingType = "MIGRATED") }
-        (5L..9L).forEach { postCreateMappingRequest(vsipIdOverride = it.toString(), nomisIdOverride = it, label = "2099-01-01", mappingType = "MIGRATED") }
+        (1L..4L).forEach {
+          postCreateMappingRequest(
+            vsipIdOverride = it.toString(),
+            nomisIdOverride = it,
+            label = "2022-01-01",
+            mappingType = "MIGRATED"
+          )
+        }
+        (5L..9L).forEach {
+          postCreateMappingRequest(
+            vsipIdOverride = it.toString(),
+            nomisIdOverride = it,
+            label = "2099-01-01",
+            mappingType = "MIGRATED"
+          )
+        }
         postCreateMappingRequest(nomisIdOverride = 12, vsipIdOverride = "12", mappingType = "ONLINE")
 
         webTestClient.get().uri("/mapping/migration-id/2022-01-01")
@@ -493,7 +652,14 @@ class MappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `get visit mappings by migration id - no records exist`() {
 
-        (1L..4L).forEach { postCreateMappingRequest(vsipIdOverride = it.toString(), nomisIdOverride = it, label = "2022-01-01", mappingType = "MIGRATED") }
+        (1L..4L).forEach {
+          postCreateMappingRequest(
+            vsipIdOverride = it.toString(),
+            nomisIdOverride = it,
+            label = "2022-01-01",
+            mappingType = "MIGRATED"
+          )
+        }
 
         webTestClient.get().uri("/mapping/migration-id/2044-01-01")
           .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
@@ -507,7 +673,14 @@ class MappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `can request a different page size`() {
 
-        (1L..6L).forEach { postCreateMappingRequest(vsipIdOverride = it.toString(), nomisIdOverride = it, label = "2022-01-01", mappingType = "MIGRATED") }
+        (1L..6L).forEach {
+          postCreateMappingRequest(
+            vsipIdOverride = it.toString(),
+            nomisIdOverride = it,
+            label = "2022-01-01",
+            mappingType = "MIGRATED"
+          )
+        }
         webTestClient.get().uri {
           it.path("/mapping/migration-id/2022-01-01")
             .queryParam("size", "2")
@@ -527,7 +700,14 @@ class MappingResourceIntTest : IntegrationTestBase() {
 
       @Test
       fun `can request a different page`() {
-        (1L..3L).forEach { postCreateMappingRequest(vsipIdOverride = it.toString(), nomisIdOverride = it, label = "2022-01-01", mappingType = "MIGRATED") }
+        (1L..3L).forEach {
+          postCreateMappingRequest(
+            vsipIdOverride = it.toString(),
+            nomisIdOverride = it,
+            label = "2022-01-01",
+            mappingType = "MIGRATED"
+          )
+        }
         webTestClient.get().uri {
           it.path("/mapping/migration-id/2022-01-01")
             .queryParam("size", "2")

@@ -55,12 +55,12 @@ class MappingService(
 
   suspend fun getVisitMappingGivenNomisId(nomisId: Long): MappingDto =
     visitIdRepository.findById(nomisId)
-      ?.let { MappingDto(nomisId, it.vsipId, it.label, it.mappingType.name) }
+      ?.let { MappingDto(it) }
       ?: throw NotFoundException("NOMIS visit id=$nomisId")
 
   suspend fun getVisitMappingGivenVsipId(vsipId: String): MappingDto =
     visitIdRepository.findOneByVsipId(vsipId)
-      ?.let { MappingDto(it.nomisId, vsipId, it.label, it.mappingType.name) }
+      ?.let { MappingDto(it) }
       ?: throw NotFoundException("VSIP visit id=$vsipId")
 
   suspend fun getRoomMapping(prisonId: String, nomisRoomDescription: String): RoomMappingDto =
@@ -96,6 +96,11 @@ class MappingService(
         pageRequest, count.await()
       )
     }
+
+  suspend fun getVisitMappingForLatestMigrated(): MappingDto =
+    visitIdRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(MappingType.MIGRATED)
+      ?.let { MappingDto(it) }
+      ?: throw NotFoundException("No migrated mapping found")
 }
 
 class NotFoundException(message: String) : RuntimeException(message)

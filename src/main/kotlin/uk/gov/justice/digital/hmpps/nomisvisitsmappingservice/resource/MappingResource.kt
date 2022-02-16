@@ -116,6 +116,32 @@ class MappingResource(private val mappingService: MappingService) {
   ): MappingDto = mappingService.getVisitMappingGivenVsipId(vsipId)
 
   @PreAuthorize("hasAnyRole('ROLE_READ_MAPPING','ROLE_UPDATE_MAPPING','ROLE_ADMIN_MAPPING')")
+  @GetMapping("/mapping/migrated/latest")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(
+    summary = "get the latest mapping for a migration",
+    description = "Requires role READ_MAPPING, UPDATE_MAPPING or ADMIN_MAPPING",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = MappingDto::class))]
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "No mappings found at all for any migration",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+    ]
+  )
+  suspend fun getLatestMigratedVisitMapping(): MappingDto = mappingService.getVisitMappingForLatestMigrated()
+
+  @PreAuthorize("hasAnyRole('ROLE_READ_MAPPING','ROLE_UPDATE_MAPPING','ROLE_ADMIN_MAPPING')")
   @GetMapping("/prison/{prisonId}/room/nomis-room-id/{nomisRoomDescription}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
