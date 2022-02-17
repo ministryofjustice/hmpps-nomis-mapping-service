@@ -62,7 +62,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
       .expectStatus().isCreated
   }
 
-  @DisplayName("Create id mapping")
+  @DisplayName("POST /mapping")
   @Nested
   inner class CreateMappingTest {
 
@@ -157,7 +157,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("get NOMIS id mapping")
+  @DisplayName("GET /mapping/nomisId/{nomisId}")
   @Nested
   inner class GetNomisMappingTest {
 
@@ -383,7 +383,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("get VSIP id mapping")
+  @DisplayName("GET /mapping/vsipId/{vsipId}")
   @Nested
   inner class GetVsipMappingTest {
 
@@ -467,7 +467,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("get room mapping")
+  @DisplayName("GET /prison/{prisonId}/room/nomis-room-id/{roomId}")
   @Nested
   inner class GetRoomMappingTest {
 
@@ -522,7 +522,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("delete visit migration mapping")
+  @DisplayName("DELETE /mapping")
   @Nested
   inner class DeleteMappingTest {
 
@@ -582,149 +582,150 @@ class MappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isNotFound
     }
+  }
 
-    @DisplayName("get visit mapping by migration id")
-    @Nested
-    inner class GetVisitMappingByMigrationIdTest {
+  @DisplayName("GET /mapping/migration-id/{migrationId}")
+  @Nested
+  inner class GetVisitMappingByMigrationIdTest {
 
-      @AfterEach
-      internal fun deleteData() = runBlocking {
-        repository.deleteAll()
+    @AfterEach
+    internal fun deleteData() = runBlocking {
+      repository.deleteAll()
+    }
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/migration-id/2022-01-01T00:00:00")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/migration-id/2022-01-01T00:00:00")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get visit mappings by migration id forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/migration-id/2022-01-01T00:00:00")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get visit mappings by migration id success`() {
+
+      (1L..4L).forEach {
+        postCreateMappingRequest(
+          vsipIdOverride = it.toString(),
+          nomisIdOverride = it,
+          label = "2022-01-01",
+          mappingType = "MIGRATED"
+        )
       }
-
-      @Test
-      fun `access forbidden when no authority`() {
-        webTestClient.get().uri("/mapping/migration-id/2022-01-01T00:00:00")
-          .exchange()
-          .expectStatus().isUnauthorized
+      (5L..9L).forEach {
+        postCreateMappingRequest(
+          vsipIdOverride = it.toString(),
+          nomisIdOverride = it,
+          label = "2099-01-01",
+          mappingType = "MIGRATED"
+        )
       }
+      postCreateMappingRequest(nomisIdOverride = 12, vsipIdOverride = "12", mappingType = "ONLINE")
 
-      @Test
-      fun `access forbidden when no role`() {
-        webTestClient.get().uri("/mapping/migration-id/2022-01-01T00:00:00")
-          .headers(setAuthorisation(roles = listOf()))
-          .exchange()
-          .expectStatus().isForbidden
-      }
-
-      @Test
-      fun `get visit mappings by migration id forbidden with wrong role`() {
-        webTestClient.get().uri("/mapping/migration-id/2022-01-01T00:00:00")
-          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
-          .exchange()
-          .expectStatus().isForbidden
-      }
-
-      @Test
-      fun `get visit mappings by migration id success`() {
-
-        (1L..4L).forEach {
-          postCreateMappingRequest(
-            vsipIdOverride = it.toString(),
-            nomisIdOverride = it,
-            label = "2022-01-01",
-            mappingType = "MIGRATED"
+      webTestClient.get().uri("/mapping/migration-id/2022-01-01")
+        .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(4)
+        .jsonPath("$.content..nomisId").value(
+          Matchers.contains(
+            1, 2, 3, 4
           )
-        }
-        (5L..9L).forEach {
-          postCreateMappingRequest(
-            vsipIdOverride = it.toString(),
-            nomisIdOverride = it,
-            label = "2099-01-01",
-            mappingType = "MIGRATED"
-          )
-        }
-        postCreateMappingRequest(nomisIdOverride = 12, vsipIdOverride = "12", mappingType = "ONLINE")
+        )
+        .jsonPath("$.content[0].whenCreated").isNotEmpty
+    }
 
-        webTestClient.get().uri("/mapping/migration-id/2022-01-01")
-          .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("totalElements").isEqualTo(4)
-          .jsonPath("$.content..nomisId").value(
-            Matchers.contains(
-              1, 2, 3, 4
-            )
-          )
+    @Test
+    fun `get visit mappings by migration id - no records exist`() {
+
+      (1L..4L).forEach {
+        postCreateMappingRequest(
+          vsipIdOverride = it.toString(),
+          nomisIdOverride = it,
+          label = "2022-01-01",
+          mappingType = "MIGRATED"
+        )
       }
 
-      @Test
-      fun `get visit mappings by migration id - no records exist`() {
+      webTestClient.get().uri("/mapping/migration-id/2044-01-01")
+        .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(0)
+        .jsonPath("content").isEmpty
+    }
 
-        (1L..4L).forEach {
-          postCreateMappingRequest(
-            vsipIdOverride = it.toString(),
-            nomisIdOverride = it,
-            label = "2022-01-01",
-            mappingType = "MIGRATED"
-          )
-        }
+    @Test
+    fun `can request a different page size`() {
 
-        webTestClient.get().uri("/mapping/migration-id/2044-01-01")
-          .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("totalElements").isEqualTo(0)
-          .jsonPath("content").isEmpty
+      (1L..6L).forEach {
+        postCreateMappingRequest(
+          vsipIdOverride = it.toString(),
+          nomisIdOverride = it,
+          label = "2022-01-01",
+          mappingType = "MIGRATED"
+        )
       }
-
-      @Test
-      fun `can request a different page size`() {
-
-        (1L..6L).forEach {
-          postCreateMappingRequest(
-            vsipIdOverride = it.toString(),
-            nomisIdOverride = it,
-            label = "2022-01-01",
-            mappingType = "MIGRATED"
-          )
-        }
-        webTestClient.get().uri {
-          it.path("/mapping/migration-id/2022-01-01")
-            .queryParam("size", "2")
-            .queryParam("sort", "nomisId,asc")
-            .build()
-        }
-          .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("totalElements").isEqualTo(6)
-          .jsonPath("numberOfElements").isEqualTo(2)
-          .jsonPath("number").isEqualTo(0)
-          .jsonPath("totalPages").isEqualTo(3)
-          .jsonPath("size").isEqualTo(2)
+      webTestClient.get().uri {
+        it.path("/mapping/migration-id/2022-01-01")
+          .queryParam("size", "2")
+          .queryParam("sort", "nomisId,asc")
+          .build()
       }
+        .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(6)
+        .jsonPath("numberOfElements").isEqualTo(2)
+        .jsonPath("number").isEqualTo(0)
+        .jsonPath("totalPages").isEqualTo(3)
+        .jsonPath("size").isEqualTo(2)
+    }
 
-      @Test
-      fun `can request a different page`() {
-        (1L..3L).forEach {
-          postCreateMappingRequest(
-            vsipIdOverride = it.toString(),
-            nomisIdOverride = it,
-            label = "2022-01-01",
-            mappingType = "MIGRATED"
-          )
-        }
-        webTestClient.get().uri {
-          it.path("/mapping/migration-id/2022-01-01")
-            .queryParam("size", "2")
-            .queryParam("page", "1")
-            .queryParam("sort", "nomisId,asc")
-            .build()
-        }
-          .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("totalElements").isEqualTo(3)
-          .jsonPath("numberOfElements").isEqualTo(1)
-          .jsonPath("number").isEqualTo(1)
-          .jsonPath("totalPages").isEqualTo(2)
-          .jsonPath("size").isEqualTo(2)
+    @Test
+    fun `can request a different page`() {
+      (1L..3L).forEach {
+        postCreateMappingRequest(
+          vsipIdOverride = it.toString(),
+          nomisIdOverride = it,
+          label = "2022-01-01",
+          mappingType = "MIGRATED"
+        )
       }
+      webTestClient.get().uri {
+        it.path("/mapping/migration-id/2022-01-01")
+          .queryParam("size", "2")
+          .queryParam("page", "1")
+          .queryParam("sort", "nomisId,asc")
+          .build()
+      }
+        .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(3)
+        .jsonPath("numberOfElements").isEqualTo(1)
+        .jsonPath("number").isEqualTo(1)
+        .jsonPath("totalPages").isEqualTo(2)
+        .jsonPath("size").isEqualTo(2)
     }
   }
 }

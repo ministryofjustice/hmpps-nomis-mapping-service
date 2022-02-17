@@ -85,14 +85,7 @@ class MappingService(
       }
 
       PageImpl(
-        visits.await().toList().map { mapping ->
-          MappingDto(
-            mapping.nomisId,
-            mapping.vsipId,
-            mapping.label,
-            mapping.mappingType.name
-          )
-        },
+        visits.await().toList().map { MappingDto(it) },
         pageRequest, count.await()
       )
     }
