@@ -43,7 +43,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
     mappingType: String = "ONLINE"
   ) {
     webTestClient.post().uri("/mapping")
-      .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_MAPPING")))
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         BodyInserters.fromValue(
@@ -100,7 +100,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
 
       assertThat(
         webTestClient.post().uri("/mapping")
-          .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_MAPPING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(createMapping().copy(vsipId = "other")))
           .exchange()
@@ -113,7 +113,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create mapping success`() {
       webTestClient.post().uri("/mapping")
-        .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -129,7 +129,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       val mapping1 = webTestClient.get().uri("/mapping/nomisId/$nomisId")
-        .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
         .expectBody(MappingDto::class.java)
@@ -141,7 +141,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping1.mappingType).isEqualTo("ONLINE")
 
       val mapping2 = webTestClient.get().uri("/mapping/vsipId/$vsipId")
-        .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
         .expectBody(MappingDto::class.java)
@@ -190,14 +190,14 @@ class MappingResourceIntTest : IntegrationTestBase() {
     fun `get mapping success`() {
 
       webTestClient.post().uri("/mapping")
-        .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createMapping()))
         .exchange()
         .expectStatus().isCreated
 
       val mapping = webTestClient.get().uri("/mapping/nomisId/$nomisId")
-        .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
         .expectBody(MappingDto::class.java)
@@ -212,7 +212,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `mapping not found`() {
       val error = webTestClient.get().uri("/mapping/nomisId/99999")
-        .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody(ErrorResponse::class.java)
@@ -225,14 +225,14 @@ class MappingResourceIntTest : IntegrationTestBase() {
     fun `get mapping success with update role`() {
 
       webTestClient.post().uri("/mapping")
-        .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createMapping()))
         .exchange()
         .expectStatus().isCreated
 
       webTestClient.get().uri("/mapping/nomisId/$nomisId")
-        .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
     }
@@ -274,14 +274,14 @@ class MappingResourceIntTest : IntegrationTestBase() {
     fun `get mapping success`() {
 
       webTestClient.post().uri("/mapping")
-        .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createMapping()))
         .exchange()
         .expectStatus().isCreated
 
       val mapping = webTestClient.get().uri("/mapping/vsipId/$vsipId")
-        .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
         .expectBody(MappingDto::class.java)
@@ -296,7 +296,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `mapping not found`() {
       val error = webTestClient.get().uri("/mapping/vsipId/NOT_THERE")
-        .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody(ErrorResponse::class.java)
@@ -309,14 +309,14 @@ class MappingResourceIntTest : IntegrationTestBase() {
     fun `get mapping success with update role`() {
 
       webTestClient.post().uri("/mapping")
-        .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createMapping()))
         .exchange()
         .expectStatus().isCreated
 
       webTestClient.get().uri("/mapping/vsipId/$vsipId")
-        .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
     }
@@ -352,7 +352,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get room mapping success`() {
       val mapping1 = webTestClient.get().uri("/prison/HEI/room/nomis-room-id/HEI-VISITS-SOC_VIS")
-        .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
         .expectBody(RoomMappingDto::class.java)
@@ -367,7 +367,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `room mapping not found`() {
       val error = webTestClient.get().uri("/prison/HEI/room/nomis-room-id/HEI-NOT_THERE")
-        .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody(ErrorResponse::class.java)
@@ -399,7 +399,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `access forbidden with wrong role`() {
       webTestClient.delete().uri("/mapping")
-        .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isForbidden
     }
@@ -407,7 +407,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `delete visit mapping success`() {
       webTestClient.post().uri("/mapping")
-        .headers(setAuthorisation(roles = listOf("ROLE_UPDATE_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -423,17 +423,17 @@ class MappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.get().uri("/mapping/nomisId/$nomisId")
-        .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
 
       webTestClient.delete().uri("/mapping")
-        .headers(setAuthorisation(roles = listOf("ROLE_ADMIN_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isNoContent
 
       webTestClient.get().uri("/mapping/nomisId/$nomisId")
-        .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isNotFound
     }
@@ -478,7 +478,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
         postCreateMappingRequest(nomisIdOverride = 12, vsipIdOverride = "12", mappingType = "ONLINE")
 
         webTestClient.get().uri("/mapping/migration-id/2022-01-01")
-          .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -496,7 +496,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
         (1L..4L).forEach { postCreateMappingRequest(vsipIdOverride = it.toString(), nomisIdOverride = it, label = "2022-01-01", mappingType = "MIGRATED") }
 
         webTestClient.get().uri("/mapping/migration-id/2044-01-01")
-          .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -514,7 +514,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
             .queryParam("sort", "nomisId,asc")
             .build()
         }
-          .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -535,7 +535,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
             .queryParam("sort", "nomisId,asc")
             .build()
         }
-          .headers(setAuthorisation(roles = listOf("ROLE_READ_MAPPING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
