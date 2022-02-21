@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
@@ -31,7 +30,7 @@ import javax.validation.Valid
 @RequestMapping("/", produces = [MediaType.APPLICATION_JSON_VALUE])
 class MappingResource(private val mappingService: MappingService) {
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @PreAuthorize("hasRole('ROLE_UPDATE_MAPPING')")
   @PostMapping("/mapping")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -57,7 +56,7 @@ class MappingResource(private val mappingService: MappingService) {
   suspend fun createMapping(@RequestBody @Valid createMappingRequest: MappingDto) =
     mappingService.createVisitMapping(createMappingRequest)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @PreAuthorize("hasAnyRole('ROLE_READ_MAPPING','ROLE_UPDATE_MAPPING','ROLE_ADMIN_MAPPING')")
   @GetMapping("/mapping/nomisId/{nomisId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
@@ -87,7 +86,7 @@ class MappingResource(private val mappingService: MappingService) {
     nomisId: Long,
   ): MappingDto = mappingService.getVisitMappingGivenNomisId(nomisId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @PreAuthorize("hasAnyRole('ROLE_READ_MAPPING','ROLE_UPDATE_MAPPING','ROLE_ADMIN_MAPPING')")
   @GetMapping("/mapping/vsipId/{vsipId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
@@ -116,7 +115,33 @@ class MappingResource(private val mappingService: MappingService) {
     @PathVariable vsipId: String
   ): MappingDto = mappingService.getVisitMappingGivenVsipId(vsipId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @PreAuthorize("hasAnyRole('ROLE_READ_MAPPING','ROLE_UPDATE_MAPPING','ROLE_ADMIN_MAPPING')")
+  @GetMapping("/mapping/migrated/latest")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(
+    summary = "get the latest mapping for a migration",
+    description = "Requires role READ_MAPPING, UPDATE_MAPPING or ADMIN_MAPPING",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = MappingDto::class))]
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "No mappings found at all for any migration",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+    ]
+  )
+  suspend fun getLatestMigratedVisitMapping(): MappingDto = mappingService.getVisitMappingForLatestMigrated()
+
+  @PreAuthorize("hasAnyRole('ROLE_READ_MAPPING','ROLE_UPDATE_MAPPING','ROLE_ADMIN_MAPPING')")
   @GetMapping("/prison/{prisonId}/room/nomis-room-id/{nomisRoomDescription}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
@@ -149,7 +174,7 @@ class MappingResource(private val mappingService: MappingService) {
     nomisRoomDescription: String,
   ): RoomMappingDto = mappingService.getRoomMapping(prisonId, nomisRoomDescription)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @PreAuthorize("hasRole('ROLE_ADMIN_MAPPING')")
   @DeleteMapping("/mapping")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
@@ -169,7 +194,7 @@ class MappingResource(private val mappingService: MappingService) {
   )
   suspend fun deleteVisitIdMappings() = mappingService.deleteVisitMappings()
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @PreAuthorize("hasRole('ROLE_READ_MAPPING')")
   @GetMapping("/mapping/migration-id/{migrationId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
@@ -192,8 +217,6 @@ class MappingResource(private val mappingService: MappingService) {
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable migrationId: String
-  ): Page<MappingDto> {
-    return mappingService.getVisitMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
-      .awaitSingle()
-  }
+  ): Page<MappingDto> =
+    mappingService.getVisitMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 }
