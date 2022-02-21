@@ -544,7 +544,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `access forbidden with wrong role`() {
       webTestClient.delete().uri("/mapping")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
     }
