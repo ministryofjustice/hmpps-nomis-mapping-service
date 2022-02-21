@@ -30,7 +30,7 @@ import javax.validation.Valid
 @RequestMapping("/", produces = [MediaType.APPLICATION_JSON_VALUE])
 class MappingResource(private val mappingService: MappingService) {
 
-  @PreAuthorize("hasRole('ROLE_UPDATE_MAPPING')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
   @PostMapping("/mapping")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -56,7 +56,7 @@ class MappingResource(private val mappingService: MappingService) {
   suspend fun createMapping(@RequestBody @Valid createMappingRequest: MappingDto) =
     mappingService.createVisitMapping(createMappingRequest)
 
-  @PreAuthorize("hasAnyRole('ROLE_READ_MAPPING','ROLE_UPDATE_MAPPING','ROLE_ADMIN_MAPPING')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
   @GetMapping("/mapping/nomisId/{nomisId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
@@ -86,7 +86,7 @@ class MappingResource(private val mappingService: MappingService) {
     nomisId: Long,
   ): MappingDto = mappingService.getVisitMappingGivenNomisId(nomisId)
 
-  @PreAuthorize("hasAnyRole('ROLE_READ_MAPPING','ROLE_UPDATE_MAPPING','ROLE_ADMIN_MAPPING')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
   @GetMapping("/mapping/vsipId/{vsipId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
@@ -115,7 +115,7 @@ class MappingResource(private val mappingService: MappingService) {
     @PathVariable vsipId: String
   ): MappingDto = mappingService.getVisitMappingGivenVsipId(vsipId)
 
-  @PreAuthorize("hasAnyRole('ROLE_READ_MAPPING','ROLE_UPDATE_MAPPING','ROLE_ADMIN_MAPPING')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
   @GetMapping("/mapping/migrated/latest")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
@@ -141,7 +141,7 @@ class MappingResource(private val mappingService: MappingService) {
   )
   suspend fun getLatestMigratedVisitMapping(): MappingDto = mappingService.getVisitMappingForLatestMigrated()
 
-  @PreAuthorize("hasAnyRole('ROLE_READ_MAPPING','ROLE_UPDATE_MAPPING','ROLE_ADMIN_MAPPING')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
   @GetMapping("/prison/{prisonId}/room/nomis-room-id/{nomisRoomDescription}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
@@ -174,7 +174,7 @@ class MappingResource(private val mappingService: MappingService) {
     nomisRoomDescription: String,
   ): RoomMappingDto = mappingService.getRoomMapping(prisonId, nomisRoomDescription)
 
-  @PreAuthorize("hasRole('ROLE_ADMIN_MAPPING')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
   @DeleteMapping("/mapping")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
@@ -194,7 +194,7 @@ class MappingResource(private val mappingService: MappingService) {
   )
   suspend fun deleteVisitIdMappings() = mappingService.deleteVisitMappings()
 
-  @PreAuthorize("hasRole('ROLE_READ_MAPPING')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
   @GetMapping("/mapping/migration-id/{migrationId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
