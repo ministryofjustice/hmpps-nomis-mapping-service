@@ -7,6 +7,10 @@ WORKDIR /app
 ADD . .
 RUN ./gradlew assemble -Dorg.gradle.daemon=false
 
+# Grab AWS RDS Root cert
+RUN apt-get update && apt-get install -y curl
+RUN curl https://s3.amazonaws.com/rds-downloads/rds-ca-2019-root.pem  > root.crt
+
 FROM openjdk:17-slim
 LABEL maintainer="HMPPS Digital Studio <info@digital.justice.gov.uk>"
 
@@ -23,17 +27,16 @@ RUN ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezo
 RUN addgroup --gid 2000 --system appgroup && \
     adduser --uid 2000 --system appuser --gid 2000
 
-# Install AWS RDS Root cert
-RUN mkdir /home/appuser/.postgresql \
-  && curl https://s3.amazonaws.com/rds-downloads/rds-ca-2019-root.pem \
-    > /home/appuser/.postgresql/root.crt
+# Install AWS RDS Root cert into Java truststore
+RUN mkdir /home/appuser/.postgresql
+COPY --from=builder --chown=appuser:appgroup /app/root.crt /home/appuser/.postgresql/root.crt
 
 WORKDIR /app
 
 COPY --from=builder --chown=appuser:appgroup /app/build/libs/hmpps-nomis-visits-mapping-service*.jar /app/app.jar
 COPY --from=builder --chown=appuser:appgroup /app/build/libs/applicationinsights-agent*.jar /app/agent.jar
-COPY --from=builder --chown=appuser:appgroup /app/applicationinsights.dev.json /app
 COPY --from=builder --chown=appuser:appgroup /app/applicationinsights.json /app
+COPY --from=builder --chown=appuser:appgroup /app/applicationinsights.dev.json /app
 
 USER 2000
 
