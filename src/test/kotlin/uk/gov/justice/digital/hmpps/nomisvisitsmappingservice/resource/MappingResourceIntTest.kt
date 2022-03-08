@@ -554,16 +554,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
       webTestClient.post().uri("/mapping")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .contentType(MediaType.APPLICATION_JSON)
-        .body(
-          BodyInserters.fromValue(
-            """{
-            "nomisId"     : $nomisId,
-            "vsipId"      : "$vsipId",
-            "label"       : "2022-01-01",
-            "mappingType" : "ONLINE"
-          }"""
-          )
-        )
+        .body(BodyInserters.fromValue(createMapping()))
         .exchange()
         .expectStatus().isCreated
 
@@ -582,6 +573,46 @@ class MappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isNotFound
     }
+  }
+
+  @Test
+  fun `delete visit mappings - migrated mappings only`() {
+    webTestClient.post().uri("/mapping")
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(BodyInserters.fromValue(createMapping()))
+      .exchange()
+      .expectStatus().isCreated
+
+    webTestClient.post().uri("/mapping")
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        BodyInserters.fromValue(
+          createMapping(
+            nomisIdOverride = 222,
+            vsipIdOverride = "333",
+            mappingType = "MIGRATED"
+          )
+        )
+      )
+      .exchange()
+      .expectStatus().isCreated
+
+    webTestClient.delete().uri("/mapping?onlyMigrated=true")
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+      .exchange()
+      .expectStatus().isNoContent
+
+    webTestClient.get().uri("/mapping/nomisId/$nomisId")
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+      .exchange()
+      .expectStatus().isOk
+
+    webTestClient.get().uri("/mapping/nomisId/222")
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+      .exchange()
+      .expectStatus().isNotFound
   }
 
   @DisplayName("GET /mapping/migration-id/{migrationId}")
