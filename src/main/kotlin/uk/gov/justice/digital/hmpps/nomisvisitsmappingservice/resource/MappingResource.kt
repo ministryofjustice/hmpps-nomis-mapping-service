@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
@@ -192,7 +194,15 @@ class MappingResource(private val mappingService: MappingService) {
       ),
     ]
   )
-  suspend fun deleteVisitIdMappings() = mappingService.deleteVisitMappings()
+  suspend fun deleteVisitIdMappings(
+    @RequestParam(value = "onlyMigrated", required = false, defaultValue = "false")
+    @Parameter(
+      description = "if true delete mapping entries created by the migration process only (synchronisation records are unaffected)",
+      example = "true"
+    ) onlyMigrated: Boolean
+  ) = mappingService.deleteVisitMappings(
+    onlyMigrated
+  )
 
   @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
   @GetMapping("/mapping/migration-id/{migrationId}")

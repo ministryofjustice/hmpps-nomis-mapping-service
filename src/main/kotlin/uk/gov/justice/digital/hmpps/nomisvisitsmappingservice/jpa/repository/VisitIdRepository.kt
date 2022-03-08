@@ -13,4 +13,5 @@ interface VisitIdRepository : CoroutineCrudRepository<VisitId, Long> {
   suspend fun findFirstByMappingTypeOrderByWhenCreatedDesc(mappingType: MappingType): VisitId?
   suspend fun countAllByLabelAndMappingType(label: String, mappingType: MappingType): Long
   fun findAllByLabelAndMappingTypeOrderByLabelDesc(label: String, mappingType: MappingType, pageable: Pageable): Flow<VisitId>
+  suspend fun deleteByMappingTypeEquals(mappingType: MappingType): VisitId?
 }

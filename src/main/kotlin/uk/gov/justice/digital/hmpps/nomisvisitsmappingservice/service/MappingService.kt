@@ -68,7 +68,12 @@ class MappingService(
       ?.let { RoomMappingDto(it.vsipId, it.nomisRoomDescription, it.prisonId, it.isOpen) }
       ?: throw NotFoundException("prison id=$prisonId, nomis room id=$nomisRoomDescription")
 
-  suspend fun deleteVisitMappings() = visitIdRepository.deleteAll()
+  suspend fun deleteVisitMappings(onlyMigrated: Boolean) =
+    onlyMigrated.takeIf { it }?.apply {
+      visitIdRepository.deleteByMappingTypeEquals(MappingType.MIGRATED)
+    } ?: run {
+      visitIdRepository.deleteAll()
+    }
 
   suspend fun getVisitMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<MappingDto> =
     coroutineScope {
