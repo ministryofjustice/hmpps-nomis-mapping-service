@@ -1,7 +1,7 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.1.2"
-  kotlin("plugin.spring") version "1.6.10"
-  kotlin("plugin.jpa") version "1.6.10"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.1.3"
+  kotlin("plugin.spring") version "1.6.20"
+  kotlin("plugin.jpa") version "1.6.20"
   idea
 }
 
@@ -22,19 +22,19 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.6.0")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.6.1")
 
-  implementation("org.flywaydb:flyway-core:8.5.5")
-  implementation("com.vladmihalcea:hibernate-types-52:2.14.1")
+  implementation("org.flywaydb:flyway-core:8.5.7")
+  implementation("com.vladmihalcea:hibernate-types-52:2.15.2")
   runtimeOnly("io.r2dbc:r2dbc-postgresql")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
   runtimeOnly("org.postgresql:postgresql:42.3.3")
-  implementation("io.opentelemetry:opentelemetry-api:1.12.0")
+  implementation("io.opentelemetry:opentelemetry-api:1.13.0")
 
-  implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.6")
-  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.6")
-  implementation("org.springdoc:springdoc-openapi-security:1.6.6")
+  implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.7")
+  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.7")
+  implementation("org.springdoc:springdoc-openapi-security:1.6.7")
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.2")
 
@@ -45,11 +45,11 @@ dependencies {
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
   testImplementation("org.mockito:mockito-inline:4.4.0")
-  testImplementation("io.swagger.parser.v3:swagger-parser:2.0.31")
+  testImplementation("io.swagger.parser.v3:swagger-parser:2.0.32")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.testcontainers:postgresql:1.16.3")
   testImplementation("io.projectreactor:reactor-test")
-  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.0")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.1")
 }
 
 java {
