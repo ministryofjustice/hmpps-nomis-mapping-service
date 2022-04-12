@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.1.3"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.1.4-beta"
   kotlin("plugin.spring") version "1.6.20"
   kotlin("plugin.jpa") version "1.6.20"
   idea
@@ -26,7 +26,7 @@ dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.6.1")
 
   implementation("org.flywaydb:flyway-core:8.5.7")
-  implementation("com.vladmihalcea:hibernate-types-52:2.15.2")
+  implementation("com.vladmihalcea:hibernate-types-52:2.16.0")
   runtimeOnly("io.r2dbc:r2dbc-postgresql")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
   runtimeOnly("org.postgresql:postgresql:42.3.3")
@@ -47,7 +47,7 @@ dependencies {
   testImplementation("org.mockito:mockito-inline:4.4.0")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.0.32")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.testcontainers:postgresql:1.16.3")
+  testImplementation("org.testcontainers:postgresql:1.17.0")
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.1")
 }
