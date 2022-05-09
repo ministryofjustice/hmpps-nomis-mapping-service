@@ -1,7 +1,8 @@
 version: 2.1
 
 orbs:
-  hmpps: ministryofjustice/hmpps@3.14
+  hmpps: ministryofjustice/hmpps@dev:alpha
+  mem: circleci/rememborb@0.0.2
 
 parameters:
   alerts-slack-channel:
@@ -37,6 +38,49 @@ jobs:
           path: build/test-results
       - store_artifacts:
           path: build/reports/tests
+  build_docker:
+    executor:
+      name: hmpps/default
+      tag: "3.10"
+    steps:
+      - checkout
+      - setup_remote_docker:
+         docker_layer_caching: true
+         version: "20.10.11"
+      - hmpps/create_app_version
+      - run:
+          name: Create IMAGE_NAME env var
+          command: |
+            IMAGE_NAME="quay.io/hmpps/${CIRCLE_PROJECT_REPONAME}"
+            echo "export IMAGE_NAME=$IMAGE_NAME" >> $BASH_ENV
+      - mem/remember:
+          env_var: IMAGE_NAME
+          value: "${IMAGE_NAME}"
+      - run:
+          name: Setup buildx
+          command: |
+            docker context create multi-arch-build
+            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+            docker run --rm --privileged tonistiigi/binfmt --install all
+            docker buildx create --use multi-arch-build --platform linux/arm64,linux/amd64
+      - run:
+          name: Build container image
+          no_output_timeout: "30m"
+          command: |
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              --progress plain \
+              --pull \
+              --rm=false . \
+              --build-arg BUILD_NUMBER=$APP_VERSION \
+              --build-arg GIT_REF=$CIRCLE_SHA1 \
+              --tag "${IMAGE_NAME}:${APP_VERSION}" \
+              --label "maintainer=dps-hmpps@digital.justice.gov.uk" \
+              --label "app.version=${APP_VERSION}" \
+              --label "build.version=${APP_VERSION}" \
+              --label "build.number=${CIRCLE_BUILD_NUM}" \
+              --label "build.url=${CIRCLE_BUILD_URL}" \
+              --label "build.gitref=${CIRCLE_SHA1}"
 
 workflows:
   version: 2
@@ -48,21 +92,11 @@ workflows:
               ignore: /.*/
       - hmpps/helm_lint:
           name: helm_lint
-      - hmpps/build_docker:
-          name: build_docker
-          filters:
-            branches:
-              only:
-                - main
+      - build_docker
       - hmpps/deploy_env:
           name: deploy_dev
           env: "dev"
-          jira_update: true
           context: hmpps-common-vars
-          filters:
-            branches:
-              only:
-                - main
           requires:
             - validate
             - build_docker

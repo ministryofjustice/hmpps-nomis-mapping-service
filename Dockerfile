@@ -1,11 +1,17 @@
-FROM openjdk:17-slim AS builder
+FROM openjdk:17 AS builder
 
 ARG BUILD_NUMBER
 ENV BUILD_NUMBER ${BUILD_NUMBER:-1_0_0}
 
 WORKDIR /app
 ADD . .
-RUN ./gradlew assemble -Dorg.gradle.daemon=false
+RUN /app/gradlew --no-daemon assemble
+
+# Fix buildx issues on arm64
+RUN ln -s /usr/bin/dpkg-split /usr/sbin/
+RUN ln -s /usr/bin/dpkg-deb /usr/sbin/
+RUN ln -s /bin/rm /usr/sbin/
+RUN ln -s /bin/tar /usr/sbin/
 
 # Grab AWS RDS Root cert
 RUN apt-get update && apt-get install -y curl
@@ -16,6 +22,12 @@ LABEL maintainer="HMPPS Digital Studio <info@digital.justice.gov.uk>"
 
 ARG BUILD_NUMBER
 ENV BUILD_NUMBER ${BUILD_NUMBER:-1_0_0}
+
+# Fix buildx issues on arm64
+RUN ln -s /usr/bin/dpkg-split /usr/sbin/
+RUN ln -s /usr/bin/dpkg-deb /usr/sbin/
+RUN ln -s /bin/rm /usr/sbin/
+RUN ln -s /bin/tar /usr/sbin/
 
 RUN apt-get update && \
     apt-get -y upgrade && \
