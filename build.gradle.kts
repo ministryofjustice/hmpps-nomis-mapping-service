@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.1.6"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.1.7-beta"
   kotlin("plugin.spring") version "1.6.21"
   kotlin("plugin.jpa") version "1.6.21"
   idea
@@ -25,18 +25,18 @@ dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.6.1")
 
-  implementation("org.flywaydb:flyway-core:8.5.9")
-  implementation("com.vladmihalcea:hibernate-types-52:2.16.1")
+  implementation("org.flywaydb:flyway-core:8.5.11")
+  implementation("com.vladmihalcea:hibernate-types-52:2.16.2")
   runtimeOnly("io.r2dbc:r2dbc-postgresql")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
-  runtimeOnly("org.postgresql:postgresql:42.3.4")
-  implementation("io.opentelemetry:opentelemetry-api:1.13.0")
+  runtimeOnly("org.postgresql:postgresql:42.3.5")
+  implementation("io.opentelemetry:opentelemetry-api:1.14.0")
 
   implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.8")
   implementation("org.springdoc:springdoc-openapi-kotlin:1.6.8")
   implementation("org.springdoc:springdoc-openapi-security:1.6.8")
 
-  implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.2")
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3")
 
   implementation("com.zaxxer:HikariCP:5.0.1")
 
