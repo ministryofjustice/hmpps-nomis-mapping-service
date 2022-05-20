@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.1.7-beta"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.2.0-beta"
   kotlin("plugin.spring") version "1.6.21"
   kotlin("plugin.jpa") version "1.6.21"
   idea
@@ -47,7 +47,7 @@ dependencies {
   testImplementation("org.mockito:mockito-inline:4.5.1")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.0.32")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.testcontainers:postgresql:1.17.1")
+  testImplementation("org.testcontainers:postgresql:1.17.2")
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.1")
 }
