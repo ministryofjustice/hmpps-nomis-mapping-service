@@ -27,7 +27,7 @@ dependencies {
 
   implementation("org.flywaydb:flyway-core:8.5.11")
   implementation("com.vladmihalcea:hibernate-types-52:2.16.2")
-  runtimeOnly("io.r2dbc:r2dbc-postgresql:0.8.12.RELEASE")
+  runtimeOnly("org.postgresql:r2dbc-postgresql:0.9.1.RELEASE")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
   runtimeOnly("org.postgresql:postgresql:42.3.6")
   implementation("io.opentelemetry:opentelemetry-api:1.14.0")
@@ -37,8 +37,6 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-security:1.6.8")
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3")
-
-  implementation("com.zaxxer:HikariCP:5.0.1")
 
   developmentOnly("org.springframework.boot:spring-boot-devtools")
 
