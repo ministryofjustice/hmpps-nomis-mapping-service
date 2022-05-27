@@ -68,6 +68,7 @@ class MappingService(
       ?.let { RoomMappingDto(it.vsipId, it.nomisRoomDescription, it.prisonId, it.isOpen) }
       ?: throw NotFoundException("prison id=$prisonId, nomis room id=$nomisRoomDescription")
 
+  @Transactional
   suspend fun deleteVisitMappings(onlyMigrated: Boolean) =
     onlyMigrated.takeIf { it }?.apply {
       visitIdRepository.deleteByMappingTypeEquals(MappingType.MIGRATED)
