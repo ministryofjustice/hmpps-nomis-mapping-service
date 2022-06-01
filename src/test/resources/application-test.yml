@@ -12,19 +12,12 @@ api:
 
 spring:
   flyway:
-    url: jdbc:postgresql://localhost:5432/mapping?sslmode=prefer
-    user: mapping
-    password: mapping
+    enabled: true
 
-  r2dbc:
-    url: r2dbc:postgresql://localhost:5432/mapping
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mapping?sslmode=prefer
     username: mapping
     password: mapping
-    properties:
-      sslMode: DISABLE
-      sslRootCert:
 
-logging:
-  level:
-    io.r2dbc.postgresql.QUERY: DEBUG # for queries
-    io.r2dbc.postgresql.PARAM: INFO # for parameters
+  jpa:
+    show-sql: true

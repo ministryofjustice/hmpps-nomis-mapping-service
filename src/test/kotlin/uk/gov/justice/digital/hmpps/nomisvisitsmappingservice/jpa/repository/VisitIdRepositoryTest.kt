@@ -1,29 +1,38 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository
 
-import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager
+import org.springframework.context.annotation.Import
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestBase
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.MappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.VisitId
 
-@DataR2dbcTest
+@DataJpaTest
 @ActiveProfiles("test")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(AuthenticationFacade::class)
 @WithMockUser
 class VisitIdRepositoryTest : TestBase() {
   @Autowired
   lateinit var repository: VisitIdRepository
 
+  @Autowired
+  lateinit var entityManager: TestEntityManager
+
   @Test
-  fun saveVisitId(): Unit = runBlocking {
+  fun saveVisitId() {
 
     repository.save(VisitId(123, "123", "TIMESTAMP", MappingType.MIGRATED))
+    entityManager.flush()
 
-    val persistedVisitId = repository.findById(123L) ?: throw RuntimeException("123L not found")
+    val persistedVisitId = repository.findById(123L).orElseThrow()
     with(persistedVisitId) {
       assertThat(nomisId).isEqualTo(123)
       assertThat(vsipId).isEqualTo("123")

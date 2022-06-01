@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
-import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.byLessThan
 import org.hamcrest.Matchers
@@ -67,7 +66,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
   inner class CreateMappingTest {
 
     @AfterEach
-    internal fun deleteData() = runBlocking {
+    internal fun deleteData() {
       repository.deleteAll()
     }
 
@@ -162,7 +161,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
   inner class GetNomisMappingTest {
 
     @AfterEach
-    internal fun deleteData() = runBlocking {
+    internal fun deleteData() {
       repository.deleteAll()
     }
 
@@ -246,7 +245,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
   inner class GeMappingMigratedLatestTest {
 
     @AfterEach
-    internal fun deleteData() = runBlocking {
+    internal fun deleteData() {
       repository.deleteAll()
     }
 
@@ -388,7 +387,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
   inner class GetVsipMappingTest {
 
     @AfterEach
-    internal fun deleteData() = runBlocking {
+    internal fun deleteData() {
       repository.deleteAll()
     }
 
@@ -620,7 +619,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
   inner class GetVisitMappingByMigrationIdTest {
 
     @AfterEach
-    internal fun deleteData() = runBlocking {
+    internal fun deleteData() {
       repository.deleteAll()
     }
 
