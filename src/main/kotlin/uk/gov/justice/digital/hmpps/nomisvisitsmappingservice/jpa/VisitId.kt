@@ -1,11 +1,12 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa
 
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.data.annotation.Id
-import org.springframework.data.annotation.Transient
-import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
+import javax.persistence.Entity
+import javax.persistence.EnumType
+import javax.persistence.Enumerated
+import javax.persistence.Id
 
+@Entity
 data class VisitId(
   @Id
   val nomisId: Long,
@@ -17,15 +18,12 @@ data class VisitId(
    */
   val label: String? = null,
 
+  @Enumerated(EnumType.STRING)
   val mappingType: MappingType,
 
-  @Transient
-  @Value("false")
-  val new: Boolean = true,
+  val whenCreated: LocalDateTime? = LocalDateTime.now()
 
-  val whenCreated: LocalDateTime? = null
-
-) : Persistable<Long> {
+) {
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -39,10 +37,6 @@ data class VisitId(
   override fun hashCode(): Int {
     return nomisId.hashCode()
   }
-
-  override fun isNew(): Boolean = new
-
-  override fun getId(): Long = nomisId
 }
 
 enum class MappingType {

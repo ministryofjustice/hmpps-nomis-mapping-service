@@ -1,9 +1,10 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa
 
-import org.springframework.data.annotation.Id
+import javax.persistence.Entity
+import javax.persistence.Id
 
+@Entity
 data class RoomId(
-
   @Id
   val id: Long,
 
