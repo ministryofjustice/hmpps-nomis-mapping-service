@@ -503,7 +503,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
         .returnResult().responseBody!!
 
       assertThat(mapping1.nomisRoomDescription).isEqualTo("HEI-VISITS-SOC_VIS")
-      assertThat(mapping1.vsipId).isEqualTo("VSIP_SOC_VIS")
+      assertThat(mapping1.vsipId).isEqualTo("Visits Main Room")
       assertThat(mapping1.isOpen).isEqualTo(true)
       assertThat(mapping1.prisonId).isEqualTo("HEI")
     }
