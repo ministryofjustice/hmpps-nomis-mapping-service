@@ -55,7 +55,7 @@ class MappingResource(private val mappingService: MappingService) {
       ),
     ]
   )
-  fun createMapping(@RequestBody @Valid createMappingRequest: MappingDto) =
+  suspend fun createMapping(@RequestBody @Valid createMappingRequest: MappingDto) =
     mappingService.createVisitMapping(createMappingRequest)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
@@ -82,7 +82,7 @@ class MappingResource(private val mappingService: MappingService) {
       ),
     ]
   )
-  fun getVisitMappingGivenNomisId(
+  suspend fun getVisitMappingGivenNomisId(
     @Schema(description = "NOMIS Id", example = "12345", required = true)
     @PathVariable
     nomisId: Long,
@@ -112,7 +112,7 @@ class MappingResource(private val mappingService: MappingService) {
       ),
     ]
   )
-  fun getVisitMappingGivenVsipId(
+  suspend fun getVisitMappingGivenVsipId(
     @Schema(description = "VSIP Id", example = "12345", required = true)
     @PathVariable vsipId: String
   ): MappingDto = mappingService.getVisitMappingGivenVsipId(vsipId)
@@ -141,7 +141,7 @@ class MappingResource(private val mappingService: MappingService) {
       ),
     ]
   )
-  fun getLatestMigratedVisitMapping(): MappingDto = mappingService.getVisitMappingForLatestMigrated()
+  suspend fun getLatestMigratedVisitMapping(): MappingDto = mappingService.getVisitMappingForLatestMigrated()
 
   @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
   @GetMapping("/prison/{prisonId}/room/nomis-room-id/{nomisRoomDescription}")
@@ -167,7 +167,7 @@ class MappingResource(private val mappingService: MappingService) {
       ),
     ]
   )
-  fun getRoomMapping(
+  suspend fun getRoomMapping(
     @Schema(description = "NOMIS prison Id", example = "MDI", required = true)
     @PathVariable
     prisonId: String,
@@ -194,7 +194,7 @@ class MappingResource(private val mappingService: MappingService) {
       ),
     ]
   )
-  fun deleteVisitIdMappings(
+  suspend fun deleteVisitIdMappings(
     @RequestParam(value = "onlyMigrated", required = false, defaultValue = "false")
     @Parameter(
       description = "if true delete mapping entries created by the migration process only (synchronisation records are unaffected)",
@@ -223,7 +223,7 @@ class MappingResource(private val mappingService: MappingService) {
       )
     ]
   )
-  fun getMigratedVisitMappingsByMigrationId(
+  suspend fun getMigratedVisitMappingsByMigrationId(
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable migrationId: String

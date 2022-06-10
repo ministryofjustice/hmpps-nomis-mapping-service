@@ -10,28 +10,33 @@ dependencyCheck {
 }
 
 configurations {
+  implementation { exclude(module = "spring-boot-starter-web") }
+  implementation { exclude(module = "spring-boot-starter-tomcat") }
   testImplementation { exclude(group = "org.junit.vintage") }
 }
 
 dependencies {
   implementation("org.springframework.boot:spring-boot-starter-webflux")
-  implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+  implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.6.1")
+
   implementation("org.flywaydb:flyway-core:8.5.12")
   implementation("com.vladmihalcea:hibernate-types-52:2.16.2")
+  runtimeOnly("org.postgresql:r2dbc-postgresql:0.9.1.RELEASE")
+  runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
   runtimeOnly("org.postgresql:postgresql:42.3.6")
   implementation("io.opentelemetry:opentelemetry-api:1.14.0")
 
-  implementation("org.springdoc:springdoc-openapi-ui:1.6.9")
+  implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.9")
   implementation("org.springdoc:springdoc-openapi-kotlin:1.6.9")
   implementation("org.springdoc:springdoc-openapi-security:1.6.9")
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3")
-
-  implementation("com.zaxxer:HikariCP:5.0.1")
 
   developmentOnly("org.springframework.boot:spring-boot-devtools")
 
@@ -41,6 +46,8 @@ dependencies {
   testImplementation("io.swagger.parser.v3:swagger-parser:2.0.33")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.testcontainers:postgresql:1.17.2")
+  testImplementation("io.projectreactor:reactor-test")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.1")
 }
 
 java {

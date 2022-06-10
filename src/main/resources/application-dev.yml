@@ -12,16 +12,18 @@ api:
       oauth: http://localhost:9090/auth
 
 spring:
-  flyway:
-    enabled: true
-
   devtools:
     add-properties: true
 
-  datasource:
+  flyway:
     url: jdbc:postgresql://localhost:5432/mapping?sslmode=prefer
-    username: mapping
+    user: mapping
     password: mapping
 
-  jpa:
-    show-sql: true
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/mapping?sslmode=prefer
+    username: mapping
+    password: mapping
+    properties:
+      sslMode: DISABLE
+      sslRootCert:

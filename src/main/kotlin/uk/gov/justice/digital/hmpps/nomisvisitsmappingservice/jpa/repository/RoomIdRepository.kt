@@ -1,8 +1,10 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository
 
-import org.springframework.data.repository.CrudRepository
+import org.springframework.data.repository.kotlin.CoroutineCrudRepository
+import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.RoomId
 
-interface RoomIdRepository : CrudRepository<RoomId, Long> {
-  fun findOneByPrisonIdAndNomisRoomDescription(prisonId: String, nomisRoomDescription: String): RoomId?
+@Repository
+interface RoomIdRepository : CoroutineCrudRepository<RoomId, Long> {
+  suspend fun findOneByPrisonIdAndNomisRoomDescription(prisonId: String, nomisRoomDescription: String): RoomId?
 }
