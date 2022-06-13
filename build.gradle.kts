@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.2.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.2.2"
   kotlin("plugin.spring") version "1.6.21"
   kotlin("plugin.jpa") version "1.6.21"
   idea
@@ -22,8 +22,8 @@ dependencies {
 
   implementation("org.flywaydb:flyway-core:8.5.12")
   implementation("com.vladmihalcea:hibernate-types-52:2.16.2")
-  runtimeOnly("org.postgresql:postgresql:42.3.6")
-  implementation("io.opentelemetry:opentelemetry-api:1.14.0")
+  runtimeOnly("org.postgresql:postgresql:42.4.0")
+  implementation("io.opentelemetry:opentelemetry-api:1.15.0")
 
   implementation("org.springdoc:springdoc-openapi-ui:1.6.9")
   implementation("org.springdoc:springdoc-openapi-kotlin:1.6.9")
