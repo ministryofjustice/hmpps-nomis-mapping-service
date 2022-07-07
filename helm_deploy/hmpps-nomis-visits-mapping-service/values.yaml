@@ -54,3 +54,4 @@ generic-service:
 
 generic-prometheus-alerts:
   targetApplication: hmpps-nomis-visits-mapping-service
+  alertSeverity: syscon
