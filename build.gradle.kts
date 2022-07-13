@@ -1,7 +1,7 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.4.0-beta"
-  kotlin("plugin.spring") version "1.7.10"
-  kotlin("plugin.jpa") version "1.7.10"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.3.2"
+  kotlin("plugin.spring") version "1.7.0"
+  kotlin("plugin.jpa") version "1.7.0"
   idea
 }
 
@@ -31,7 +31,7 @@ dependencies {
   runtimeOnly("org.postgresql:r2dbc-postgresql:0.9.1.RELEASE")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
   runtimeOnly("org.postgresql:postgresql:42.4.0")
-  implementation("io.opentelemetry:opentelemetry-api:1.16.0")
+  implementation("io.opentelemetry:opentelemetry-api:1.15.0")
 
   implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.9")
   implementation("org.springdoc:springdoc-openapi-kotlin:1.6.9")
