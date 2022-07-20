@@ -19,9 +19,10 @@ generic-service:
 
   ingress:
     enabled: true
+    v1_2_enabled: true
+    v0_47_enabled: true
     host: app-hostname.local    # override per environment
     tlsSecretName: hmpps-nomis-visits-mapping-service-cert
-    contextColour: green
 
   # Environment variables to load into the deployment
   env:
