@@ -10,8 +10,8 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.MappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.RoomMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.VisitMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.MappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.VisitId
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.RoomIdRepository
@@ -20,7 +20,7 @@ import javax.validation.ValidationException
 
 @Service
 @Transactional(readOnly = true)
-class MappingService(
+class VisitMappingService(
   private val visitIdRepository: VisitIdRepository,
   private val telemetryClient: TelemetryClient,
   private val roomIdRepository: RoomIdRepository,
@@ -30,7 +30,7 @@ class MappingService(
   }
 
   @Transactional
-  suspend fun createVisitMapping(createMappingRequest: MappingDto) =
+  suspend fun createVisitMapping(createMappingRequest: VisitMappingDto) =
     with(createMappingRequest) {
       visitIdRepository.findById(nomisId)?.run {
         throw ValidationException("Nomis visit id = $nomisId already exists")
@@ -53,14 +53,14 @@ class MappingService(
       log.debug("Mapping created with VSIP visit id = $vsipId, Nomis visit id = $nomisId")
     }
 
-  suspend fun getVisitMappingGivenNomisId(nomisId: Long): MappingDto =
+  suspend fun getVisitMappingGivenNomisId(nomisId: Long): VisitMappingDto =
     visitIdRepository.findById(nomisId)
-      ?.let { MappingDto(it) }
+      ?.let { VisitMappingDto(it) }
       ?: throw NotFoundException("NOMIS visit id=$nomisId")
 
-  suspend fun getVisitMappingGivenVsipId(vsipId: String): MappingDto =
+  suspend fun getVisitMappingGivenVsipId(vsipId: String): VisitMappingDto =
     visitIdRepository.findOneByVsipId(vsipId)
-      ?.let { MappingDto(it) }
+      ?.let { VisitMappingDto(it) }
       ?: throw NotFoundException("VSIP visit id=$vsipId")
 
   suspend fun getRoomMapping(prisonId: String, nomisRoomDescription: String): RoomMappingDto =
@@ -76,7 +76,7 @@ class MappingService(
       visitIdRepository.deleteAll()
     }
 
-  suspend fun getVisitMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<MappingDto> =
+  suspend fun getVisitMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<VisitMappingDto> =
     coroutineScope {
       val visits = async {
         visitIdRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
@@ -91,15 +91,13 @@ class MappingService(
       }
 
       PageImpl(
-        visits.await().toList().map { MappingDto(it) },
+        visits.await().toList().map { VisitMappingDto(it) },
         pageRequest, count.await()
       )
     }
 
-  suspend fun getVisitMappingForLatestMigrated(): MappingDto =
+  suspend fun getVisitMappingForLatestMigrated(): VisitMappingDto =
     visitIdRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(MappingType.MIGRATED)
-      ?.let { MappingDto(it) }
+      ?.let { VisitMappingDto(it) }
       ?: throw NotFoundException("No migrated mapping found")
 }
-
-class NotFoundException(message: String) : RuntimeException(message)

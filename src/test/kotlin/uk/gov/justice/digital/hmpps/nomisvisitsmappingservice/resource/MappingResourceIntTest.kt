@@ -12,8 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.MappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.RoomMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.VisitMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.Repository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import java.time.LocalDateTime
@@ -27,7 +27,7 @@ private fun createMapping(
   vsipIdOverride: String = vsipId,
   label: String = "2022-01-01",
   mappingType: String = "ONLINE"
-): MappingDto = MappingDto(
+): VisitMappingDto = VisitMappingDto(
   nomisId = nomisIdOverride,
   vsipId = vsipIdOverride,
   label = label,
@@ -135,7 +135,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
-        .expectBody(MappingDto::class.java)
+        .expectBody(VisitMappingDto::class.java)
         .returnResult().responseBody!!
 
       assertThat(mapping1.nomisId).isEqualTo(nomisId)
@@ -147,7 +147,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
-        .expectBody(MappingDto::class.java)
+        .expectBody(VisitMappingDto::class.java)
         .returnResult().responseBody!!
 
       assertThat(mapping2.nomisId).isEqualTo(nomisId)
@@ -203,7 +203,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
-        .expectBody(MappingDto::class.java)
+        .expectBody(VisitMappingDto::class.java)
         .returnResult().responseBody!!
 
       assertThat(mapping.nomisId).isEqualTo(nomisId)
@@ -344,7 +344,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
-        .expectBody(MappingDto::class.java)
+        .expectBody(VisitMappingDto::class.java)
         .returnResult().responseBody!!
 
       assertThat(mapping.nomisId).isEqualTo(1)
@@ -429,7 +429,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
-        .expectBody(MappingDto::class.java)
+        .expectBody(VisitMappingDto::class.java)
         .returnResult().responseBody!!
 
       assertThat(mapping.nomisId).isEqualTo(nomisId)
