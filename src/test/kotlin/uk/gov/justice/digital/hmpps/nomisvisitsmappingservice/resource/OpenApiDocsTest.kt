@@ -73,13 +73,13 @@ class OpenApiDocsTest : IntegrationTestBase() {
       .exchange()
       .expectStatus().isOk
       .expectBody()
-      .jsonPath("$.components.schemas.MappingDto.properties.whenCreated.example").isEqualTo("2021-07-05T10:35:17")
-      .jsonPath("$.components.schemas.MappingDto.properties.whenCreated.description")
+      .jsonPath("$.components.schemas.VisitMappingDto.properties.whenCreated.example").isEqualTo("2021-07-05T10:35:17")
+      .jsonPath("$.components.schemas.VisitMappingDto.properties.whenCreated.description")
       .isEqualTo("Date time the mapping was created")
-      .jsonPath("$.components.schemas.MappingDto.properties.whenCreated.type").isEqualTo("string")
-      .jsonPath("$.components.schemas.MappingDto.properties.whenCreated.pattern")
+      .jsonPath("$.components.schemas.VisitMappingDto.properties.whenCreated.type").isEqualTo("string")
+      .jsonPath("$.components.schemas.VisitMappingDto.properties.whenCreated.pattern")
       .isEqualTo("""^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}${'$'}""")
-      .jsonPath("$.components.schemas.MappingDto.properties.whenCreated.format").doesNotExist()
+      .jsonPath("$.components.schemas.VisitMappingDto.properties.whenCreated.format").doesNotExist()
   }
 
   @Test

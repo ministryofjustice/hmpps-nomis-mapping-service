@@ -22,30 +22,29 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.RoomMappingDto
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.VisitMappingDto
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.VisitMappingService
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.IncentiveMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.IncentiveMappingService
 import javax.validation.Valid
 
 @RestController
 @Validated
 @RequestMapping("/", produces = [MediaType.APPLICATION_JSON_VALUE])
-class MappingResource(private val mappingService: VisitMappingService) {
+class IncentiveMappingResource(private val mappingService: IncentiveMappingService) {
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
-  @PostMapping("/mapping")
+  @PreAuthorize("hasRole('ROLE_NOMIS_INCENTIVES')")
+  @PostMapping("/mapping/incentives")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
-    summary = "Creates a new visit",
-    description = "Creates a new visit and decrements the visit balance. Requires role UPDATE_MAPPING",
+    summary = "Creates a new incentive mapping",
+    description = "Creates a mapping between nomis Incentive ids and Incentive service id. Requires ROLE_NOMIS_INCENTIVES",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))]
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = IncentiveMappingDto::class))]
     ),
     responses = [
-      ApiResponse(responseCode = "201", description = "Visit mapping entry created"),
+      ApiResponse(responseCode = "201", description = "Incentive mapping entry created"),
       ApiResponse(
         responseCode = "400",
-        description = "Nomis or VSIP ids already exist",
+        description = "Nomis or Incentive ids already exist",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
       ),
       ApiResponse(
@@ -55,20 +54,20 @@ class MappingResource(private val mappingService: VisitMappingService) {
       ),
     ]
   )
-  suspend fun createMapping(@RequestBody @Valid createMappingRequest: VisitMappingDto) =
-    mappingService.createVisitMapping(createMappingRequest)
+  suspend fun createMapping(@RequestBody @Valid createMappingRequest: IncentiveMappingDto) =
+    mappingService.createIncentiveMapping(createMappingRequest)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
-  @GetMapping("/mapping/nomisId/{nomisId}")
+  @PreAuthorize("hasRole('ROLE_NOMIS_INCENTIVES')")
+  @GetMapping("/mapping/incentives/nomis-booking-id/{bookingId}/nomis-incentive-sequence/{incentiveSequence}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by NOMIS id. Requires role READ_MAPPING, UPDATE_MAPPING or ADMIN_MAPPING",
+    description = "Retrieves a mapping by NOMIS id. Requires role ROLE_NOMIS_INCENTIVES",
     responses = [
       ApiResponse(
         responseCode = "200",
         description = "Mapping Information Returned",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = IncentiveMappingDto::class))]
       ),
       ApiResponse(
         responseCode = "401",
@@ -77,28 +76,31 @@ class MappingResource(private val mappingService: VisitMappingService) {
       ),
       ApiResponse(
         responseCode = "404",
-        description = "NOMIS id does not exist in mapping table",
+        description = "NOMIS incentive id does not exist in mapping table",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
       ),
     ]
   )
-  suspend fun getVisitMappingGivenNomisId(
-    @Schema(description = "NOMIS Id", example = "12345", required = true)
+  suspend fun getIncentiveMappingGivenNomisId(
+    @Schema(description = "NOMIS booking ID", example = "12345", required = true)
     @PathVariable
-    nomisId: Long,
-  ): VisitMappingDto = mappingService.getVisitMappingGivenNomisId(nomisId)
+    bookingId: Long,
+    @Schema(description = "NOMIS incentive sequence", example = "2", required = true)
+    @PathVariable
+    incentiveSequence: Long,
+  ): IncentiveMappingDto = mappingService.getIncentiveMappingByNomisId(bookingId, incentiveSequence)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
-  @GetMapping("/mapping/vsipId/{vsipId}")
+  @PreAuthorize("hasRole('ROLE_NOMIS_INCENTIVES')")
+  @GetMapping("/mapping/incentives/incentive-id/{incentiveId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by VSIP id. Requires role READ_MAPPING, UPDATE_MAPPING or ADMIN_MAPPING",
+    description = "Retrieves a mapping by Incentive id. Requires role ROLE_NOMIS_INCENTIVES",
     responses = [
       ApiResponse(
         responseCode = "200",
         description = "Mapping Information Returned",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = IncentiveMappingDto::class))]
       ),
       ApiResponse(
         responseCode = "401",
@@ -112,13 +114,13 @@ class MappingResource(private val mappingService: VisitMappingService) {
       ),
     ]
   )
-  suspend fun getVisitMappingGivenVsipId(
-    @Schema(description = "VSIP Id", example = "12345", required = true)
-    @PathVariable vsipId: String
-  ): VisitMappingDto = mappingService.getVisitMappingGivenVsipId(vsipId)
+  suspend fun getIncentiveMappingGivenIncentiveId(
+    @Schema(description = "Incentive Id", example = "12345", required = true)
+    @PathVariable incentiveId: Long
+  ): IncentiveMappingDto = mappingService.getIncentiveMappingByIncentiveId(incentiveId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
-  @GetMapping("/mapping/migrated/latest")
+  @PreAuthorize("hasRole('ROLE_NOMIS_INCENTIVES')")
+  @GetMapping("/mapping/incentives/migrated/latest")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get the latest mapping for a migration",
@@ -127,7 +129,7 @@ class MappingResource(private val mappingService: VisitMappingService) {
       ApiResponse(
         responseCode = "200",
         description = "Mapping Information Returned",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = IncentiveMappingDto::class))]
       ),
       ApiResponse(
         responseCode = "401",
@@ -141,51 +143,18 @@ class MappingResource(private val mappingService: VisitMappingService) {
       ),
     ]
   )
-  suspend fun getLatestMigratedVisitMapping(): VisitMappingDto = mappingService.getVisitMappingForLatestMigrated()
+  suspend fun getLatestMigratedIncentiveMapping(): IncentiveMappingDto = mappingService.getIncentiveMappingForLatestMigrated()
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
-  @GetMapping("/prison/{prisonId}/room/nomis-room-id/{nomisRoomDescription}")
-  @ResponseStatus(HttpStatus.OK)
-  @Operation(
-    summary = "get room mapping",
-    description = "Retrieves a room mapping by NOMIS prison id and NOMIS room id. Requires role READ_MAPPING, UPDATE_MAPPING or ADMIN_MAPPING",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Mapping Information Returned",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = RoomMappingDto::class))]
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      ),
-      ApiResponse(
-        responseCode = "404",
-        description = "NOMIS room description does not exist in the mapping table for the given prison",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      ),
-    ]
-  )
-  suspend fun getRoomMapping(
-    @Schema(description = "NOMIS prison Id", example = "MDI", required = true)
-    @PathVariable
-    prisonId: String,
-    @Schema(description = "NOMIS room description", example = "HEI_LW01", required = true)
-    @PathVariable
-    nomisRoomDescription: String,
-  ): RoomMappingDto = mappingService.getRoomMapping(prisonId, nomisRoomDescription)
-
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
-  @DeleteMapping("/mapping")
+  @PreAuthorize("hasRole('ROLE_NOMIS_INCENTIVES')")
+  @DeleteMapping("/mapping/incentives")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
-    summary = "Deletes visit id mappings",
-    description = "Deletes all rows from the the visit id table. Requires role ADMIN_MAPPING",
+    summary = "Deletes incentive mappings",
+    description = "Deletes all rows from the the incentive mapping table. Requires role ADMIN_MAPPING",
     responses = [
       ApiResponse(
         responseCode = "204",
-        description = "Visit id mappings deleted"
+        description = "Incentive mappings deleted"
       ),
       ApiResponse(
         responseCode = "401",
@@ -200,12 +169,12 @@ class MappingResource(private val mappingService: VisitMappingService) {
       description = "if true delete mapping entries created by the migration process only (synchronisation records are unaffected)",
       example = "true"
     ) onlyMigrated: Boolean
-  ) = mappingService.deleteVisitMappings(
+  ) = mappingService.deleteIncentiveMappings(
     onlyMigrated
   )
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
-  @GetMapping("/mapping/migration-id/{migrationId}")
+  @PreAuthorize("hasRole('ROLE_NOMIS_INCENTIVES')")
+  @GetMapping("/mapping/incentives/migration-id/{migrationId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get paged mappings by migration id",
@@ -214,7 +183,7 @@ class MappingResource(private val mappingService: VisitMappingService) {
       ApiResponse(
         responseCode = "200",
         description = "Mapping page returned",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = IncentiveMappingDto::class))]
       ),
       ApiResponse(
         responseCode = "401",
@@ -227,6 +196,6 @@ class MappingResource(private val mappingService: VisitMappingService) {
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable migrationId: String
-  ): Page<VisitMappingDto> =
-    mappingService.getVisitMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<IncentiveMappingDto> =
+    mappingService.getIncentiveMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 }

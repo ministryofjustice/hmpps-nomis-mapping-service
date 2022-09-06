@@ -10,7 +10,7 @@ import javax.validation.constraints.Size
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "NOMIS to VSIP Visit Id mapping")
-data class MappingDto(
+data class VisitMappingDto(
 
   @Schema(description = "nomis visit id", required = true)
   @NotNull
