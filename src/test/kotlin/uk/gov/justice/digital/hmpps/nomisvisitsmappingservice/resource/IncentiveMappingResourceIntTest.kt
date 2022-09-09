@@ -105,7 +105,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `create when mapping for incentive id already exists`() {
+    fun `create when mapping for incentive id already exists for another IEP`() {
       postCreateIncentiveMappingRequest()
 
       assertThat(
@@ -118,6 +118,43 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
           .expectBody(ErrorResponse::class.java)
           .returnResult().responseBody?.userMessage
       ).isEqualTo("Validation failure: Incentive mapping id = 4444 already exists")
+    }
+
+    @Test
+    internal fun `create mapping succeeds when the same mapping already exists for the same IEP`() {
+      webTestClient.post().uri("/mapping/incentives")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            """{
+            "nomisBookingId"     : $bookingId,
+            "nomisIncentiveSequence"     : $sequence,
+            "incentiveId"      : $incentiveId,
+            "label"       : "2022-01-01",
+            "mappingType" : "INCENTIVE_CREATED"
+          }"""
+          )
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping/incentives")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            """{
+            "nomisBookingId"     : $bookingId,
+            "nomisIncentiveSequence"     : $sequence,
+            "incentiveId"      : $incentiveId,
+            "label"       : "2022-01-01",
+            "mappingType" : "INCENTIVE_CREATED"
+          }"""
+          )
+        )
+        .exchange()
+        .expectStatus().isCreated
     }
 
     @Test

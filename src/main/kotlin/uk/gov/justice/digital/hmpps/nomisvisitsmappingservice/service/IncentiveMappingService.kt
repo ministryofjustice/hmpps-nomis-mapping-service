@@ -32,6 +32,10 @@ class IncentiveMappingService(
     with(createMappingRequest) {
       log.debug("creating incentive $createMappingRequest")
       incentiveMappingRepository.findById(incentiveId)?.run {
+        if (this@run.nomisBookingId == this@with.nomisBookingId && this@run.nomisIncentiveSequence == this@with.nomisIncentiveSequence) {
+          log.debug("Incentive mapping already exists for nomisBookingId: $nomisBookingId and nomisIncentiveSequence: $nomisIncentiveSequence: $incentiveId so not creating. All OK")
+          return
+        }
         throw ValidationException("Incentive mapping id = $incentiveId already exists")
       }
 
