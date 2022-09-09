@@ -98,7 +98,7 @@ class MappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `create when mapping already exists`() {
+    fun `create when mapping fails when already exists for another visit`() {
       postCreateMappingRequest()
 
       assertThat(
@@ -111,6 +111,41 @@ class MappingResourceIntTest : IntegrationTestBase() {
           .expectBody(ErrorResponse::class.java)
           .returnResult().responseBody?.userMessage
       ).isEqualTo("Validation failure: Nomis visit id = 1234 already exists")
+    }
+
+    @Test
+    fun `create will succeed when mapping already exists for same visit ids`() {
+      webTestClient.post().uri("/mapping")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            """{
+            "nomisId"     : $nomisId,
+            "vsipId"      : "$vsipId",
+            "label"       : "2022-01-01",
+            "mappingType" : "ONLINE"
+          }"""
+          )
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            """{
+            "nomisId"     : $nomisId,
+            "vsipId"      : "$vsipId",
+            "label"       : "2022-01-01",
+            "mappingType" : "ONLINE"
+          }"""
+          )
+        )
+        .exchange()
+        .expectStatus().isCreated
     }
 
     @Test

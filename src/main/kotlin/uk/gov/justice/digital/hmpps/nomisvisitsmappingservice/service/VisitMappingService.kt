@@ -33,6 +33,10 @@ class VisitMappingService(
   suspend fun createVisitMapping(createMappingRequest: VisitMappingDto) =
     with(createMappingRequest) {
       visitIdRepository.findById(nomisId)?.run {
+        if (this@run.vsipId == this@with.vsipId) {
+          log.debug("Visit mapping already exists for nomisId: $nomisId and vsipId: $vsipId so not creating. All OK")
+          return
+        }
         throw ValidationException("Nomis visit id = $nomisId already exists")
       }
 
