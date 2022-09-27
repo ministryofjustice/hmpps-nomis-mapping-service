@@ -30,10 +30,10 @@ import javax.validation.Valid
 @RestController
 @Validated
 @RequestMapping("/", produces = [MediaType.APPLICATION_JSON_VALUE])
-class MappingResource(private val mappingService: VisitMappingService) {
+class VisitMappingResource(private val mappingService: VisitMappingService) {
 
   @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
-  @PostMapping("/mapping")
+  @PostMapping(path = ["/mapping", "/mapping/visits"])
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new visit",
@@ -59,7 +59,7 @@ class MappingResource(private val mappingService: VisitMappingService) {
     mappingService.createVisitMapping(createMappingRequest)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
-  @GetMapping("/mapping/nomisId/{nomisId}")
+  @GetMapping(path = ["/mapping/nomisId/{nomisId}", "/mapping/visits/nomisId/{nomisId}"])
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
@@ -89,7 +89,7 @@ class MappingResource(private val mappingService: VisitMappingService) {
   ): VisitMappingDto = mappingService.getVisitMappingGivenNomisId(nomisId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
-  @GetMapping("/mapping/vsipId/{vsipId}")
+  @GetMapping(path = ["/mapping/vsipId/{vsipId}", "/mapping/visits/vsipId/{vsipId}"])
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
@@ -118,7 +118,7 @@ class MappingResource(private val mappingService: VisitMappingService) {
   ): VisitMappingDto = mappingService.getVisitMappingGivenVsipId(vsipId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
-  @GetMapping("/mapping/migrated/latest")
+  @GetMapping(path = ["/mapping/migrated/latest", "/mapping/visits/migrated/latest"])
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get the latest mapping for a migration",
@@ -177,7 +177,7 @@ class MappingResource(private val mappingService: VisitMappingService) {
   ): RoomMappingDto = mappingService.getRoomMapping(prisonId, nomisRoomDescription)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
-  @DeleteMapping("/mapping")
+  @DeleteMapping(path = ["/mapping", "/mapping/visits"])
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes visit id mappings",
@@ -205,7 +205,7 @@ class MappingResource(private val mappingService: VisitMappingService) {
   )
 
   @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
-  @GetMapping("/mapping/migration-id/{migrationId}")
+  @GetMapping(path = ["/mapping/migration-id/{migrationId}", "/mapping/visits/migration-id/{migrationId}"])
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get paged mappings by migration id",

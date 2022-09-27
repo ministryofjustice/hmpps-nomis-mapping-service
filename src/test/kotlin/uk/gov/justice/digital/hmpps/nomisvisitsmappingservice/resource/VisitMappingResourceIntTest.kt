@@ -34,7 +34,7 @@ private fun createMapping(
   mappingType = mappingType,
 )
 
-class MappingResourceIntTest : IntegrationTestBase() {
+class VisitMappingResourceIntTest : IntegrationTestBase() {
 
   @Autowired
   lateinit var repository: Repository
@@ -189,6 +189,53 @@ class MappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping2.vsipId).isEqualTo(vsipId)
       assertThat(mapping2.label).isEqualTo("2022-01-01")
       assertThat(mapping2.mappingType).isEqualTo("ONLINE")
+    }
+
+    @Nested
+    @DisplayName("/mapping/visits")
+    inner class VisitPath {
+      @Test
+      fun `create mapping success`() {
+        webTestClient.post().uri("/mapping/visits")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              """{
+            "nomisId"     : $nomisId,
+            "vsipId"      : "$vsipId",
+            "label"       : "2022-01-01",
+            "mappingType" : "ONLINE"
+          }"""
+            )
+          )
+          .exchange()
+          .expectStatus().isCreated
+
+        val mapping1 = webTestClient.get().uri("/mapping/visits/nomisId/$nomisId")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody(VisitMappingDto::class.java)
+          .returnResult().responseBody!!
+
+        assertThat(mapping1.nomisId).isEqualTo(nomisId)
+        assertThat(mapping1.vsipId).isEqualTo(vsipId)
+        assertThat(mapping1.label).isEqualTo("2022-01-01")
+        assertThat(mapping1.mappingType).isEqualTo("ONLINE")
+
+        val mapping2 = webTestClient.get().uri("/mapping/visits/vsipId/$vsipId")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody(VisitMappingDto::class.java)
+          .returnResult().responseBody!!
+
+        assertThat(mapping2.nomisId).isEqualTo(nomisId)
+        assertThat(mapping2.vsipId).isEqualTo(vsipId)
+        assertThat(mapping2.label).isEqualTo("2022-01-01")
+        assertThat(mapping2.mappingType).isEqualTo("ONLINE")
+      }
     }
   }
 
@@ -387,6 +434,91 @@ class MappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping.label).isEqualTo("2022-01-02T10:00:00")
       assertThat(mapping.mappingType).isEqualTo("MIGRATED")
       assertThat(mapping.whenCreated).isCloseTo(LocalDateTime.now(), byLessThan(5, ChronoUnit.SECONDS))
+    }
+
+    @Nested
+    @DisplayName("/mapping/visits/migrated/latest")
+    inner class VisitPath {
+      @Test
+      fun `get retrieves latest migrated mapping`() {
+
+        webTestClient.post().uri("/mapping/visits")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              createMapping(
+                vsipIdOverride = "10",
+                nomisIdOverride = 10,
+                label = "2022-01-01T00:00:00",
+                mappingType = "MIGRATED"
+              )
+            )
+          )
+          .exchange()
+          .expectStatus().isCreated
+
+        webTestClient.post().uri("/mapping/visits")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              createMapping(
+                vsipIdOverride = "20",
+                nomisIdOverride = 20,
+                label = "2022-01-02T00:00:00",
+                mappingType = "MIGRATED"
+              )
+            )
+          )
+          .exchange()
+          .expectStatus().isCreated
+
+        webTestClient.post().uri("/mapping/visits")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              createMapping(
+                vsipIdOverride = "1",
+                nomisIdOverride = 1,
+                label = "2022-01-02T10:00:00",
+                mappingType = "MIGRATED"
+              )
+            )
+          )
+          .exchange()
+          .expectStatus().isCreated
+
+        webTestClient.post().uri("/mapping/visits")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              createMapping(
+                vsipIdOverride = "99",
+                nomisIdOverride = 199,
+                label = "whatever",
+                mappingType = "ONLINE"
+              )
+            )
+          )
+          .exchange()
+          .expectStatus().isCreated
+
+        val mapping = webTestClient.get().uri("/mapping/visits/migrated/latest")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody(VisitMappingDto::class.java)
+          .returnResult().responseBody!!
+
+        assertThat(mapping.nomisId).isEqualTo(1)
+        assertThat(mapping.vsipId).isEqualTo("1")
+        assertThat(mapping.label).isEqualTo("2022-01-02T10:00:00")
+        assertThat(mapping.mappingType).isEqualTo("MIGRATED")
+        assertThat(mapping.whenCreated).isCloseTo(LocalDateTime.now(), byLessThan(5, ChronoUnit.SECONDS))
+      }
     }
 
     @Test
@@ -608,6 +740,35 @@ class MappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isNotFound
     }
+
+    @Nested
+    @DisplayName("/mapping/visits")
+    inner class VisitPath {
+      @Test
+      fun `delete visit mapping success`() {
+        webTestClient.post().uri("/mapping/visits")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(createMapping()))
+          .exchange()
+          .expectStatus().isCreated
+
+        webTestClient.get().uri("/mapping/visits/nomisId/$nomisId")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+          .exchange()
+          .expectStatus().isOk
+
+        webTestClient.delete().uri("/mapping/visits")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        webTestClient.get().uri("/mapping/visits/nomisId/$nomisId")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
   }
 
   @Test
@@ -715,6 +876,31 @@ class MappingResourceIntTest : IntegrationTestBase() {
           )
         )
         .jsonPath("$.content[0].whenCreated").isNotEmpty
+    }
+
+    @Nested
+    @DisplayName("/mapping/visits/migration-id/{migrationId}")
+    inner class VisitPath {
+      @Test
+      fun `get visit mappings by migration id - no records exist`() {
+
+        (1L..4L).forEach {
+          postCreateMappingRequest(
+            vsipIdOverride = it.toString(),
+            nomisIdOverride = it,
+            label = "2022-01-01",
+            mappingType = "MIGRATED"
+          )
+        }
+
+        webTestClient.get().uri("/mapping/visits/migration-id/2044-01-01")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("totalElements").isEqualTo(0)
+          .jsonPath("content").isEmpty
+      }
     }
 
     @Test
