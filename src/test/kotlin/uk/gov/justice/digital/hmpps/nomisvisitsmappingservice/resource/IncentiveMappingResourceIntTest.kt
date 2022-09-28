@@ -653,7 +653,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.get().uri("/mapping/migration-id/2022-01-01T00:00:00")
+      webTestClient.get().uri("/mapping/incentives/migration-id/2022-01-01T00:00:00")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -661,7 +661,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get incentive mappings by migration id forbidden with wrong role`() {
-      webTestClient.get().uri("/mapping/migration-id/2022-01-01T00:00:00")
+      webTestClient.get().uri("/mapping/incentives/migration-id/2022-01-01T00:00:00")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
