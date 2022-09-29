@@ -16,7 +16,7 @@ class InfoTest : IntegrationTestBase() {
       .expectStatus()
       .isOk
       .expectBody()
-      .jsonPath("build.name").isEqualTo("hmpps-nomis-visits-mapping-service")
+      .jsonPath("build.name").isEqualTo("hmpps-nomis-mapping-service")
   }
 
   @Test

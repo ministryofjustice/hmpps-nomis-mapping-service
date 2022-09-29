@@ -1,10 +1,10 @@
 info.app:
-  name: Nomis Visits Mapping Service
+  name: Nomis Mapping Service
   version: 1.0
 
 spring:
   application:
-    name: hmpps-nomis-visits-mapping-service
+    name: hmpps-nomis-mapping-service
   codec:
     max-in-memory-size: 10MB
 

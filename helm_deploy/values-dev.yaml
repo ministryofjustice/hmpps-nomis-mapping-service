@@ -1,5 +1,5 @@
 ---
-# Per environment values which override defaults in hmpps-nomis-visits-mapping-service/values.yaml
+# Per environment values which override defaults in hmpps-nomis-mapping-service/values.yaml
 
 generic-service:
   replicaCount: 2

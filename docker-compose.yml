@@ -1,11 +1,11 @@
 version: "3"
 services:
-  hmpps-nomis-visits-mapping-service:
+  hmpps-nomis-mapping-service:
     build:
       context: .
     networks:
       - hmpps
-    container_name: hmpps-nomis-visits-mapping-service
+    container_name: hmpps-nomis-mapping-service
     ports:
       - "8081:8080"
     healthcheck:
