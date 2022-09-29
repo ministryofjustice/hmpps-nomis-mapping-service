@@ -1,6 +1,6 @@
 ---
 generic-service:
-  nameOverride: hmpps-nomis-visits-mapping-service
+  nameOverride: hmpps-nomis-mapping-service
 
   replicaCount: 4
 
@@ -13,7 +13,7 @@ generic-service:
       memory: 2048Mi
 
   image:
-    repository: quay.io/hmpps/hmpps-nomis-visits-mapping-service
+    repository: quay.io/hmpps/hmpps-nomis-mapping-service
     tag: app_version    # override at deployment time
     port: 8080
 
@@ -54,5 +54,5 @@ generic-service:
     cloudplatform-live-3: "35.177.252.54/32"
 
 generic-prometheus-alerts:
-  targetApplication: hmpps-nomis-visits-mapping-service
+  targetApplication: hmpps-nomis-mapping-service
   alertSeverity: syscon

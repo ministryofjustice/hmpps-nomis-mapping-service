@@ -1,1 +1,1 @@
-rootProject.name = "hmpps-nomis-visits-mapping-service"
+rootProject.name = "hmpps-nomis-mapping-service"
