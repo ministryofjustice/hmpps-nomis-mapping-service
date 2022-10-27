@@ -113,4 +113,6 @@ class IncentiveMappingService(
     incentiveMappingRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(MappingType.MIGRATED)
       ?.let { IncentiveMappingDto(it) }
       ?: throw NotFoundException("No migrated mapping found")
+
+  suspend fun deleteIncentiveMapping(incentiveId: Long) = incentiveMappingRepository.deleteById(incentiveId)
 }
