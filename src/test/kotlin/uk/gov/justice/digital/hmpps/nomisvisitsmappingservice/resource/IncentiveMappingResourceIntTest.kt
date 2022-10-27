@@ -71,7 +71,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
   @DisplayName("POST /mapping/incentives")
   @Nested
-  inner class createIncentiveMappingTest {
+  inner class CreateIncentiveMappingTest {
 
     @AfterEach
     internal fun deleteData() = runBlocking {
@@ -543,7 +543,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
   @DisplayName("DELETE /mapping/incentives")
   @Nested
-  inner class DeleteMappingTest {
+  inner class DeleteMappingsTest {
 
     @Test
     fun `access forbidden when no authority`() {
@@ -592,47 +592,136 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isNotFound
     }
-  }
 
-  @Test
-  fun `delete incentive mappings - migrated mappings only`() {
-    webTestClient.post().uri("/mapping/incentives")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(BodyInserters.fromValue(createIncentiveMapping()))
-      .exchange()
-      .expectStatus().isCreated
+    @Test
+    fun `delete incentive mappings - migrated mappings only`() {
+      webTestClient.post().uri("/mapping/incentives")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createIncentiveMapping()))
+        .exchange()
+        .expectStatus().isCreated
 
-    webTestClient.post().uri("/mapping/incentives")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(
-        BodyInserters.fromValue(
-          createIncentiveMapping(
-            nomisBookingId = 333,
-            nomisIncentiveSequence = 2,
-            incentiveServiceId = 222,
-            mappingType = MIGRATED.name
+      webTestClient.post().uri("/mapping/incentives")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createIncentiveMapping(
+              nomisBookingId = 333,
+              nomisIncentiveSequence = 2,
+              incentiveServiceId = 222,
+              mappingType = MIGRATED.name
+            )
           )
         )
-      )
-      .exchange()
-      .expectStatus().isCreated
+        .exchange()
+        .expectStatus().isCreated
 
-    webTestClient.delete().uri("/mapping/incentives?onlyMigrated=true")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
-      .exchange()
-      .expectStatus().isNoContent
+      webTestClient.delete().uri("/mapping/incentives?onlyMigrated=true")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .exchange()
+        .expectStatus().isNoContent
 
-    webTestClient.get().uri("/mapping/incentives/nomis-booking-id/$bookingId/nomis-incentive-sequence/$sequence")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
-      .exchange()
-      .expectStatus().isOk
+      webTestClient.get().uri("/mapping/incentives/nomis-booking-id/$bookingId/nomis-incentive-sequence/$sequence")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .exchange()
+        .expectStatus().isOk
 
-    webTestClient.get().uri("/mapping/incentives/incentive-id/222")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
-      .exchange()
-      .expectStatus().isNotFound
+      webTestClient.get().uri("/mapping/incentives/incentive-id/222")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .exchange()
+        .expectStatus().isNotFound
+    }
+  }
+
+  @DisplayName("DELETE /mapping/incentives/incentive-id/{incentiveId}")
+  @Nested
+  inner class DeleteMappingTest {
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.delete().uri("/mapping/incentives/incentive-id/999")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.delete().uri("/mapping/incentives/incentive-id/999")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.delete().uri("/mapping/incentives/incentive-id/999")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `delete specific mapping success`() {
+      // create mapping
+      webTestClient.post().uri("/mapping/incentives")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createIncentiveMapping()))
+        .exchange()
+        .expectStatus().isCreated
+
+      // it is present after creation by incentive id
+      webTestClient.get().uri("/mapping/incentives/incentive-id/$incentiveId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .exchange()
+        .expectStatus().isOk
+      // it is also present after creation by nomis id
+      webTestClient.get().uri("/mapping/incentives/nomis-booking-id/$bookingId/nomis-incentive-sequence/$sequence")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .exchange()
+        .expectStatus().isOk
+
+      // delete mapping
+      webTestClient.delete().uri("/mapping/incentives/incentive-id/$incentiveId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      // no longer present by incentive id
+      webTestClient.get().uri("/mapping/incentives/incentive-id/$incentiveId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .exchange()
+        .expectStatus().isNotFound
+      // and also no longer present by incentive id
+      webTestClient.get().uri("/mapping/incentives/nomis-booking-id/$bookingId/nomis-incentive-sequence/$sequence")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .exchange()
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    internal fun `delete is idempotent`() {
+      // create mapping
+      webTestClient.post().uri("/mapping/incentives")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createIncentiveMapping()))
+        .exchange()
+        .expectStatus().isCreated
+
+      // delete mapping
+      webTestClient.delete().uri("/mapping/incentives/incentive-id/$incentiveId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .exchange()
+        .expectStatus().isNoContent
+      // delete mapping second time still returns success
+      webTestClient.delete().uri("/mapping/incentives/incentive-id/$incentiveId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .exchange()
+        .expectStatus().isNoContent
+    }
   }
 
   @DisplayName("GET /mapping/incentives/migration-id/{migrationId}")
