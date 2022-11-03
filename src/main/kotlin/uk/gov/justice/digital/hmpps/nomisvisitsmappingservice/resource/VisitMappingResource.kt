@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.CreateRoomMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.RoomMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.VisitMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.VisitMappingService
@@ -37,7 +38,7 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new visit",
-    description = "Creates a new visit and decrements the visit balance. Requires role UPDATE_MAPPING",
+    description = "Creates a new visit and decrements the visit balance. Requires role NOMIS_VISITS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))]
     ),
@@ -63,7 +64,7 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by NOMIS id. Requires role READ_MAPPING, UPDATE_MAPPING or ADMIN_MAPPING",
+    description = "Retrieves a mapping by NOMIS id. Requires role NOMIS_VISITS",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -93,7 +94,7 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by VSIP id. Requires role READ_MAPPING, UPDATE_MAPPING or ADMIN_MAPPING",
+    description = "Retrieves a mapping by VSIP id. Requires role NOMIS_VISITS",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -122,7 +123,7 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get the latest mapping for a migration",
-    description = "Requires role READ_MAPPING, UPDATE_MAPPING or ADMIN_MAPPING",
+    description = "Requires role NOMIS_VISITS",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -148,7 +149,7 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get room mapping",
-    description = "Retrieves a room mapping by NOMIS prison id and NOMIS room id. Requires role READ_MAPPING, UPDATE_MAPPING or ADMIN_MAPPING",
+    description = "Retrieves a room mapping by NOMIS prison id and NOMIS room id. Requires role NOMIS_VISITS",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -177,11 +178,94 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
   ): RoomMappingDto = mappingService.getRoomMapping(prisonId, nomisRoomDescription)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @GetMapping("/prison/{prisonId}/room-mappings")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(
+    summary = "get room mappings for a prison",
+    description = "Retrieves  room mappings associated with a NOMIS prison id. Requires role NOMIS_VISITS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping list Returned"
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+    ]
+  )
+  suspend fun getRoomMappings(
+    @Schema(description = "NOMIS prison Id", example = "MDI", required = true)
+    @PathVariable
+    prisonId: String,
+  ): List<RoomMappingDto> = mappingService.getRoomMappings(prisonId)
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @PostMapping("/prison/{prisonId}/room-mappings")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates a new room mapping",
+    description = "Creates a new room mapping. Requires role NOMIS_VISITS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))]
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Visit mapping entry created"),
+      ApiResponse(
+        responseCode = "400",
+        description = "mapping for this nomis room and prison already exists",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+    ]
+  )
+  suspend fun createRoomMapping(
+    @Schema(description = "NOMIS prison Id", example = "MDI", required = true)
+    @PathVariable
+    prisonId: String,
+    @RequestBody @Valid createMappingRequest: CreateRoomMappingDto
+  ) =
+    mappingService.createRoomMapping(prisonId, createMappingRequest)
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @DeleteMapping("/prison/{prisonId}/room-mappings/nomis-room-id/{nomisRoomDescription}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes a room mapping",
+    description = "Removes room mapping given the prison and nomis room description. Requires role NOMIS_VISITS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))]
+    ),
+    responses = [
+      ApiResponse(responseCode = "204", description = "Visit room mapping deleted"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+    ]
+  )
+  suspend fun deleteRoomMapping(
+    @Schema(description = "NOMIS prison Id", example = "MDI", required = true)
+    @PathVariable
+    prisonId: String,
+    @Schema(description = "NOMIS room description", example = "MDI", required = true)
+    @PathVariable
+    nomisRoomDescription: String
+  ) =
+    mappingService.deleteRoomMapping(prisonId, nomisRoomDescription)
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
   @DeleteMapping("/mapping/visits")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes visit id mappings",
-    description = "Deletes all rows from the the visit id table. Requires role ADMIN_MAPPING",
+    description = "Deletes all rows from the the visit id table. Requires role NOMIS_VISITS",
     responses = [
       ApiResponse(
         responseCode = "204",

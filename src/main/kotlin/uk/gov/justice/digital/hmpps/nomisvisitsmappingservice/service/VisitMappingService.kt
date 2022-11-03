@@ -10,9 +10,11 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.CreateRoomMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.RoomMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.VisitMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.MappingType
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.RoomId
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.VisitId
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.RoomIdRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.VisitIdRepository
@@ -104,4 +106,57 @@ class VisitMappingService(
     visitIdRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(MappingType.MIGRATED)
       ?.let { VisitMappingDto(it) }
       ?: throw NotFoundException("No migrated mapping found")
+
+  suspend fun getRoomMappings(prisonId: String): List<RoomMappingDto> =
+    roomIdRepository.findByPrisonIdOrderByNomisRoomDescription(prisonId).map {
+      RoomMappingDto(it.vsipId, it.nomisRoomDescription, it.prisonId, it.isOpen)
+    }
+
+  suspend fun createRoomMapping(prisonId: String, createRoomMappingDto: CreateRoomMappingDto) {
+
+    roomIdRepository.findOneByPrisonIdAndNomisRoomDescription(prisonId, createRoomMappingDto.nomisRoomDescription)
+      ?.run {
+        throw ValidationException("Visit room mapping for prison $prisonId and nomis room = ${createRoomMappingDto.nomisRoomDescription} already exists")
+      }
+
+    roomIdRepository.save(
+      RoomId(
+        nomisRoomDescription = createRoomMappingDto.nomisRoomDescription,
+        vsipId = createRoomMappingDto.vsipId,
+        isOpen = createRoomMappingDto.isOpen,
+        prisonId = prisonId
+      )
+    )
+    telemetryClient.trackEvent(
+      "visit-room-mapping-created",
+      mapOf(
+        "prisonId" to prisonId,
+        "nomisRoomDescription" to createRoomMappingDto.nomisRoomDescription,
+        "vsipRoomDescription" to createRoomMappingDto.vsipId,
+        "isOpen" to createRoomMappingDto.isOpen.toString(),
+      ),
+      null
+    )
+    log.debug(
+      "Room Mapping created with VSIP visit description = ${createRoomMappingDto.vsipId}, Nomis room description = " +
+        "${createRoomMappingDto.nomisRoomDescription}, open = ${createRoomMappingDto.isOpen}, prison = $prisonId"
+    )
+  }
+
+  suspend fun deleteRoomMapping(prisonId: String, nomisRoomDescription: String) {
+    roomIdRepository.findOneByPrisonIdAndNomisRoomDescription(prisonId, nomisRoomDescription)?.run {
+      roomIdRepository.deleteById(this.id)
+      telemetryClient.trackEvent(
+        "visit-room-mapping-deleted",
+        mapOf(
+          "prisonId" to prisonId,
+          "nomisRoomDescription" to nomisRoomDescription,
+        ),
+        null
+      )
+      log.debug(
+        "Room Mapping deleted, Nomis room description = $nomisRoomDescription, prison = $prisonId"
+      )
+    }
+  }
 }
