@@ -265,7 +265,7 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes visit id mappings",
-    description = "Deletes all rows from the the visit id table. Requires role ADMIN_MAPPING",
+    description = "Deletes all rows from the the visit id table. Requires role NOMIS_VISITS",
     responses = [
       ApiResponse(
         responseCode = "204",
