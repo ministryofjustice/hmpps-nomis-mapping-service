@@ -116,7 +116,7 @@ class VisitMappingService(
 
     roomIdRepository.findOneByPrisonIdAndNomisRoomDescription(prisonId, createRoomMappingDto.nomisRoomDescription)
       ?.run {
-        throw ValidationException("VSIP visit id=$vsipId already exists")
+        throw ValidationException("Visit room mapping for prison $prisonId and nomis room = ${createRoomMappingDto.nomisRoomDescription} already exists")
       }
 
     roomIdRepository.save(

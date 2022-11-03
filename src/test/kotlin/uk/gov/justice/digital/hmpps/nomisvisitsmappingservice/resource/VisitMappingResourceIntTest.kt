@@ -660,12 +660,21 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `post room mapping success`() {
+    fun `create room mapping success`() {
       webTestClient.post().uri("/prison/HEI/room-mappings")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .body(BodyInserters.fromValue(createRoomMapping()))
         .exchange()
         .expectStatus().isCreated
+    }
+
+    @Test
+    fun `create room mapping rejects duplicate`() {
+      webTestClient.post().uri("/prison/HEI/room-mappings")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .body(BodyInserters.fromValue(createRoomMapping(nomisRoomDescriptionOverride = "HEI-VISITS")))
+        .exchange()
+        .expectStatus().isBadRequest
     }
   }
 
