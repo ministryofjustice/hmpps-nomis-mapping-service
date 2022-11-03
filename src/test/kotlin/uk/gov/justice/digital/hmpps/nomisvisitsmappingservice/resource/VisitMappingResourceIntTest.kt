@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.CreateRoomMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.RoomMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.VisitMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.Repository
@@ -32,6 +33,16 @@ private fun createMapping(
   vsipId = vsipIdOverride,
   label = label,
   mappingType = mappingType,
+)
+
+private fun createRoomMapping(
+  nomisRoomDescriptionOverride: String = "HEI-VISITS-SOC_VIS_TEST",
+  vsipIdOverride: String = "Visits Main Room",
+  isOpenOverride: Boolean = true
+): CreateRoomMappingDto = CreateRoomMappingDto(
+  nomisRoomDescription = nomisRoomDescriptionOverride,
+  vsipId = vsipIdOverride,
+  isOpen = isOpenOverride,
 )
 
 class VisitMappingResourceIntTest : IntegrationTestBase() {
@@ -554,6 +565,176 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .returnResult().responseBody!!
 
       assertThat(error.userMessage).isEqualTo("Not Found: prison id=HEI, nomis room id=HEI-NOT_THERE")
+    }
+  }
+
+  @DisplayName("GET /prison/{prisonId}/room-mappings")
+  @Nested
+  inner class GetRoomMappingsTest {
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/prison/HEI/room-mappings")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/prison/HEI/room-mappings")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.get().uri("/prison/HEI/room-mappings")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get room mapping success`() {
+      webTestClient.get().uri("/prison/HEI/room-mappings")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.length()").isEqualTo(17)
+        .jsonPath("$[0].prisonId").isEqualTo("HEI")
+        .jsonPath("$[0].nomisRoomDescription").isEqualTo("HEI-FAMILYTIME")
+        .jsonPath("$[0].vsipId").isEqualTo("Visits Main Room")
+        .jsonPath("$[0].isOpen").isEqualTo(true)
+        .returnResult().responseBody!!
+    }
+
+    @Test
+    fun `room mappings not found`() {
+      webTestClient.get().uri("/prison/JJJ/room-mappings")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.length()").isEqualTo(0)
+        .returnResult().responseBody!!
+    }
+  }
+
+  @DisplayName("POST /prison/{prisonId}/room-mappings")
+  @Nested
+  inner class CreateRoomMappingTest {
+
+    @AfterEach
+    internal fun deleteData() {
+      webTestClient.delete().uri("/prison/HEI/room-mappings/nomis-room-id/HEI-VISITS-SOC_VIS_TEST")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .exchange()
+    }
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.post().uri("/prison/HEI/room-mappings")
+        .body(BodyInserters.fromValue(createRoomMapping()))
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.post().uri("/prison/HEI/room-mappings")
+        .headers(setAuthorisation(roles = listOf()))
+        .body(BodyInserters.fromValue(createRoomMapping()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.post().uri("/prison/HEI/room-mappings")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .body(BodyInserters.fromValue(createRoomMapping()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `post room mapping success`() {
+      webTestClient.post().uri("/prison/HEI/room-mappings")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .body(BodyInserters.fromValue(createRoomMapping()))
+        .exchange()
+        .expectStatus().isCreated
+    }
+
+    @Test
+    fun `prison not found`() {
+      webTestClient.post().uri("/prison/JJJ/room-mappings")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .body(BodyInserters.fromValue(createRoomMapping()))
+        .exchange()
+        .expectStatus().isCreated
+    }
+  }
+
+  @DisplayName("DELETE /prison/{prisonId}/room-mappings/nomis-room-id/{nomisRoomDescription}")
+  @Nested
+  inner class DeleteRoomMappingTest {
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.delete().uri("/prison/HEI/room-mappings/nomis-room-id/HEI-VISITS-SOC_VIS")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.delete().uri("/prison/HEI/room-mappings/nomis-room-id/HEI-VISITS-SOC_VIS")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.delete().uri("/prison/HEI/room-mappings/nomis-room-id/HEI-VISITS-SOC_VIS")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `delete room mapping success`() {
+      webTestClient.post().uri("/prison/HEI/room-mappings")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .body(BodyInserters.fromValue(createRoomMapping(nomisRoomDescriptionOverride = "ROOM_TO_BE_DELETED")))
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.get().uri("/prison/HEI/room/nomis-room-id/ROOM_TO_BE_DELETED")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .exchange()
+        .expectStatus().isOk
+
+      webTestClient.delete().uri("/prison/HEI/room-mappings/nomis-room-id/ROOM_TO_BE_DELETED")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      webTestClient.get().uri("/prison/HEI/room/nomis-room-id/ROOM_TO_BE_DELETED")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .exchange()
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `delete nonexistent room - no error`() {
+      webTestClient.delete().uri("/prison/HEI/room-mappings/nomis-room-id/NONEXISTENT_ROOM")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .exchange()
+        .expectStatus().isNoContent
     }
   }
 

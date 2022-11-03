@@ -5,7 +5,7 @@ import org.springframework.data.annotation.Id
 data class RoomId(
 
   @Id
-  val id: Long,
+  val id: Long = 0,
 
   val nomisRoomDescription: String,
 
