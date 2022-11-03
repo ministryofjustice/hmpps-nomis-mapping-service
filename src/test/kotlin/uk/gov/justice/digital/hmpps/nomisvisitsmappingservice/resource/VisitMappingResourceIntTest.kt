@@ -667,15 +667,6 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
     }
-
-    @Test
-    fun `prison not found`() {
-      webTestClient.post().uri("/prison/JJJ/room-mappings")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
-        .body(BodyInserters.fromValue(createRoomMapping()))
-        .exchange()
-        .expectStatus().isCreated
-    }
   }
 
   @DisplayName("DELETE /prison/{prisonId}/room-mappings/nomis-room-id/{nomisRoomDescription}")

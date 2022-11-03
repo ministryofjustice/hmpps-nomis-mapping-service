@@ -227,7 +227,8 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
   suspend fun createRoomMapping(
     @Schema(description = "NOMIS prison Id", example = "MDI", required = true)
     @PathVariable
-    prisonId: String, @RequestBody @Valid createMappingRequest: CreateRoomMappingDto
+    prisonId: String,
+    @RequestBody @Valid createMappingRequest: CreateRoomMappingDto
   ) =
     mappingService.createRoomMapping(prisonId, createMappingRequest)
 
