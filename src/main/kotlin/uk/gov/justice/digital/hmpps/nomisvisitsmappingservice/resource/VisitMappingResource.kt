@@ -208,7 +208,7 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     summary = "Creates a new room mapping",
     description = "Creates a new room mapping. Requires role NOMIS_VISITS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))]
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = CreateRoomMappingDto::class))]
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Visit mapping entry created"),
