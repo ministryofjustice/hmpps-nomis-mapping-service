@@ -3,7 +3,7 @@
 
 generic-service:
   ingress:
-    host: nomis-visits-mapping.hmpps.service.justice.gov.uk
+    host: nomis-sync-prisoner-mapping.hmpps.service.justice.gov.uk
 
   env:
     API_BASE_URL_OAUTH: https://sign-in.hmpps.service.justice.gov.uk/auth
@@ -26,4 +26,4 @@ generic-service:
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
 generic-prometheus-alerts:
   rdsAlertsDatabases:
-    cloud-platform-2115ccde9317737c: "visits mapping"
+    cloud-platform-2115ccde9317737c: "Nomis mapping"

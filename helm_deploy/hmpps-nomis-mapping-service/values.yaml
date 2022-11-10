@@ -22,7 +22,7 @@ generic-service:
     v1_2_enabled: true
     v0_47_enabled: false
     host: app-hostname.local    # override per environment
-    tlsSecretName: hmpps-nomis-visits-mapping-service-cert
+    tlsSecretName: hmpps-nomis-mapping-service-cert
 
   # Environment variables to load into the deployment
   env:

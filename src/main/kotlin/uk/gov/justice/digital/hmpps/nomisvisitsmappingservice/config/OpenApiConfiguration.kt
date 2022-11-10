@@ -23,16 +23,16 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
   fun customOpenAPI(): OpenAPI = OpenAPI()
     .servers(
       listOf(
-        Server().url("https://nomis-visits-mapping.hmpps.service.justice.gov.uk").description("Prod"),
-        Server().url("https://nomis-visits-mapping-preprod.hmpps.service.justice.gov.uk").description("PreProd"),
-        Server().url("https://nomis-visits-mapping-dev.hmpps.service.justice.gov.uk").description("Development"),
+        Server().url("https://nomis-sync-prisoner-mapping.hmpps.service.justice.gov.uk").description("Prod"),
+        Server().url("https://nomis-sync-prisoner-mapping-preprod.hmpps.service.justice.gov.uk").description("PreProd"),
+        Server().url("https://nomis-sync-prisoner-mapping-dev.hmpps.service.justice.gov.uk").description("Development"),
         Server().url("http://localhost:8080").description("Local"),
       )
     )
     .info(
-      Info().title("NOMIS Visits Mapping Service")
+      Info().title("NOMIS Mapping Service")
         .version(version)
-        .description("Manages mapping information between VSIP and NOMIS")
+        .description("Manages mapping information between DPS services and NOMIS")
         .contact(Contact().name("HMPPS Digital Studio").email("feedback@digital.justice.gov.uk"))
     )
     .components(
