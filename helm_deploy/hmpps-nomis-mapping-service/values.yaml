@@ -33,7 +33,7 @@ generic-service:
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
 
   namespace_secrets:
-    hmpps-nomis-visits-mapping-service:
+    hmpps-nomis-mapping-service:
       APPINSIGHTS_INSTRUMENTATIONKEY: "APPINSIGHTS_INSTRUMENTATIONKEY"
     dps-rds-instance-output:
       SPRING_FLYWAY_USER: "database_username"
