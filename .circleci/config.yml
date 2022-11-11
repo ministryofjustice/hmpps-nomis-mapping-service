@@ -78,7 +78,7 @@ workflows:
           jira_env_type: staging
           context:
             - hmpps-common-vars
-            - hmpps-nomis-visits-mapping-service-preprod
+            - hmpps-nomis-mapping-service-preprod
           requires:
             - request-preprod-approval
       - request-prod-approval:
@@ -94,7 +94,7 @@ workflows:
           slack_channel_name: << pipeline.parameters.releases-slack-channel >>
           context:
             - hmpps-common-vars
-            - hmpps-nomis-visits-mapping-service-prod
+            - hmpps-nomis-mapping-service-prod
           requires:
             - request-prod-approval
 
