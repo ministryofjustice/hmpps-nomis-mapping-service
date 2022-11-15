@@ -1,7 +1,7 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.5.7"
-  kotlin("plugin.spring") version "1.7.20"
-  kotlin("plugin.jpa") version "1.7.20"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.6.0-beta"
+  kotlin("plugin.spring") version "1.7.21"
+  kotlin("plugin.jpa") version "1.7.21"
   idea
 }
 
@@ -28,23 +28,23 @@ dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.6.4")
 
   implementation("org.flywaydb:flyway-core")
-  runtimeOnly("org.postgresql:r2dbc-postgresql:0.9.2.RELEASE")
+  runtimeOnly("org.postgresql:r2dbc-postgresql:1.0.0.RELEASE")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
   runtimeOnly("org.postgresql:postgresql:42.5.0")
-  implementation("io.opentelemetry:opentelemetry-api:1.19.0")
+  implementation("io.opentelemetry:opentelemetry-api:1.20.0")
 
   implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.12")
   implementation("org.springdoc:springdoc-openapi-kotlin:1.6.12")
   implementation("org.springdoc:springdoc-openapi-security:1.6.12")
 
-  implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.4")
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
   developmentOnly("org.springframework.boot:spring-boot-devtools")
 
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
-  testImplementation("org.mockito:mockito-inline:4.8.1")
-  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.7")
+  testImplementation("org.mockito:mockito-inline:4.9.0")
+  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.8")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.testcontainers:postgresql:1.17.5")
   testImplementation("io.projectreactor:reactor-test")
