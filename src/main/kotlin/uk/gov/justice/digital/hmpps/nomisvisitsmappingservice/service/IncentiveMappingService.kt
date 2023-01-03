@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service
 
 import com.microsoft.applicationinsights.TelemetryClient
+import jakarta.validation.ValidationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
@@ -15,7 +16,6 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncentiveMappi
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncentiveMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.MappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.IncentiveMappingRepository
-import javax.validation.ValidationException
 
 @Service
 @Transactional(readOnly = true)

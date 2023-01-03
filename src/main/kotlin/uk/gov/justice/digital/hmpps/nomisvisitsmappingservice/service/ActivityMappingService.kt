@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service
 
 import com.microsoft.applicationinsights.TelemetryClient
+import jakarta.validation.ValidationException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -8,7 +9,6 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.ActivityMappi
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivityMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivityMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.ActivityMappingRepository
-import javax.validation.ValidationException
 
 @Service
 @Transactional(readOnly = true)
