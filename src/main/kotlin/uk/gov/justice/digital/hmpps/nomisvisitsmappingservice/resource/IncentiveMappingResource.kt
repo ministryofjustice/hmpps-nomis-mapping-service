@@ -119,7 +119,7 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
       ),
       ApiResponse(
         responseCode = "404",
-        description = "VSIP id does not exist in mapping table",
+        description = "Incentive id does not exist in mapping table",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
       ),
     ]

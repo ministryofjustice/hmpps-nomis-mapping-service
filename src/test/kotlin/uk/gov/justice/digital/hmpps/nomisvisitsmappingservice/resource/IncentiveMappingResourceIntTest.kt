@@ -96,7 +96,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `create visit forbidden with wrong role`() {
+    fun `create forbidden with wrong role`() {
       webTestClient.post().uri("/mapping/incentives")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .body(BodyInserters.fromValue(createIncentiveMapping()))
@@ -456,9 +456,9 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("GET /mapping/vsipId/{vsipId}")
+  @DisplayName("GET /mapping/incentives/incentive/{incentiveId}")
   @Nested
-  inner class GetVsipMappingTest {
+  inner class GetIncentiveMappingTest {
 
     @AfterEach
     internal fun deleteData() = runBlocking {
@@ -569,7 +569,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `delete visit mapping success`() {
+    fun `delete mapping success`() {
       webTestClient.post().uri("/mapping/incentives")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -694,7 +694,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
         .exchange()
         .expectStatus().isNotFound
-      // and also no longer present by incentive id
+      // and also no longer present by nomis id
       webTestClient.get().uri("/mapping/incentives/nomis-booking-id/$bookingId/nomis-incentive-sequence/$sequence")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
         .exchange()
@@ -726,7 +726,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
   @DisplayName("GET /mapping/incentives/migration-id/{migrationId}")
   @Nested
-  inner class GetVisitMappingByMigrationIdTest {
+  inner class GetMappingByMigrationIdTest {
 
     @AfterEach
     internal fun deleteData() = runBlocking {
