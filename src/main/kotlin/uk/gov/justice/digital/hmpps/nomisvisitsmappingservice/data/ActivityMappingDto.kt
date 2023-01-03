@@ -9,7 +9,7 @@ import javax.validation.constraints.NotNull
 import javax.validation.constraints.Size
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "NOMIS to Incentive mapping")
+@Schema(description = "NOMIS to Activity schedule mapping")
 data class ActivityMappingDto(
 
   @Schema(description = "Activity schedule id", required = true)

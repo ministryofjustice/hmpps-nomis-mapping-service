@@ -90,7 +90,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `create when mapping for activity id already exists for another IEP`() {
+    fun `create when mapping for activity id already exists for another activity schedule`() {
       postCreateMappingRequest()
 
       assertThat(
@@ -106,7 +106,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    internal fun `create mapping succeeds when the same mapping already exists for the same IEP`() {
+    internal fun `create mapping succeeds when the same mapping already exists for the same activity schedule`() {
       webTestClient.post().uri("/mapping/activities")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
         .contentType(MediaType.APPLICATION_JSON)
