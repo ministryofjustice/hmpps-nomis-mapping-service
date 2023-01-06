@@ -1,7 +1,7 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.7.4"
-  kotlin("plugin.spring") version "1.7.22"
-  kotlin("plugin.jpa") version "1.7.22"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.8.0"
+  kotlin("plugin.spring") version "1.8.0"
+  kotlin("plugin.jpa") version "1.8.0"
   idea
 }
 
@@ -36,9 +36,9 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql:42.5.1")
   implementation("io.opentelemetry:opentelemetry-api:1.21.0")
 
-  implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.13")
-  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.13")
-  implementation("org.springdoc:springdoc-openapi-security:1.6.13")
+  implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.14")
+  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.14")
+  implementation("org.springdoc:springdoc-openapi-security:1.6.14")
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
@@ -46,7 +46,7 @@ dependencies {
 
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
-  testImplementation("org.mockito:mockito-inline:4.9.0")
+  testImplementation("org.mockito:mockito-inline:4.11.0")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.9")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.testcontainers:postgresql:1.17.6")
