@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
@@ -26,7 +27,6 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.CreateRoomMap
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.RoomMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.VisitMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.VisitMappingService
-import javax.validation.Valid
 
 @RestController
 @Validated

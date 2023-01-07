@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository
 
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest
@@ -17,6 +18,11 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.VisitId
 class VisitIdRepositoryTest : TestBase() {
   @Autowired
   lateinit var repository: VisitIdRepository
+
+  @BeforeEach
+  fun removeVisitId(): Unit = runBlocking {
+    repository.deleteById(123)
+  }
 
   @Test
   fun saveVisitId(): Unit = runBlocking {
