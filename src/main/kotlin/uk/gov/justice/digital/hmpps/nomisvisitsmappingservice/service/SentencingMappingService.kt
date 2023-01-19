@@ -114,5 +114,6 @@ class SentencingMappingService(
       ?.let { SentenceAdjustmentMappingDto(it) }
       ?: throw NotFoundException("No migrated mapping found")
 
+  @Transactional
   suspend fun deleteSentenceAdjustmentMapping(sentenceAdjustmentId: Long) = sentenceAdjustmentRepository.deleteById(sentenceAdjustmentId)
 }
