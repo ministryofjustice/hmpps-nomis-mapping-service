@@ -91,7 +91,7 @@ class SentencingMappingService(
 
   suspend fun getSentenceAdjustmentMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<SentenceAdjustmentMappingDto> =
     coroutineScope {
-      val incentiveMapping = async {
+      val sentenceAdjustmentMapping = async {
         sentenceAdjustmentRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
           label = migrationId,
           MIGRATED,
@@ -104,7 +104,7 @@ class SentencingMappingService(
       }
 
       PageImpl(
-        incentiveMapping.await().toList().map { SentenceAdjustmentMappingDto(it) },
+        sentenceAdjustmentMapping.await().toList().map { SentenceAdjustmentMappingDto(it) },
         pageRequest, count.await()
       )
     }
