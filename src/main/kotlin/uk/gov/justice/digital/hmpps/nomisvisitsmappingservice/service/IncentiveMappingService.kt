@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.IncentiveMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncentiveMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncentiveMappingType
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.MappingType
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncentiveMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.IncentiveMappingRepository
 
 @Service
@@ -84,7 +84,7 @@ class IncentiveMappingService(
   @Transactional
   suspend fun deleteIncentiveMappings(onlyMigrated: Boolean) =
     onlyMigrated.takeIf { it }?.apply {
-      incentiveMappingRepository.deleteByMappingTypeEquals(MappingType.MIGRATED)
+      incentiveMappingRepository.deleteByMappingTypeEquals(MIGRATED)
     } ?: run {
       incentiveMappingRepository.deleteAll()
     }
@@ -94,13 +94,13 @@ class IncentiveMappingService(
       val incentiveMapping = async {
         incentiveMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
           label = migrationId,
-          MappingType.MIGRATED,
+          MIGRATED,
           pageRequest
         )
       }
 
       val count = async {
-        incentiveMappingRepository.countAllByLabelAndMappingType(migrationId, mappingType = MappingType.MIGRATED)
+        incentiveMappingRepository.countAllByLabelAndMappingType(migrationId, mappingType = MIGRATED)
       }
 
       PageImpl(
@@ -110,7 +110,7 @@ class IncentiveMappingService(
     }
 
   suspend fun getIncentiveMappingForLatestMigrated(): IncentiveMappingDto =
-    incentiveMappingRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(MappingType.MIGRATED)
+    incentiveMappingRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(MIGRATED)
       ?.let { IncentiveMappingDto(it) }
       ?: throw NotFoundException("No migrated mapping found")
 

@@ -9,16 +9,34 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.server.ServerWebInputException
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
 @RestControllerAdvice
-class NomisVisitsMappingServiceExceptionHandler {
+class NomisMappingServiceExceptionHandler {
   @ExceptionHandler(AccessDeniedException::class)
   fun handleAccessDeniedException(e: AccessDeniedException): ResponseEntity<ErrorResponse> {
     log.debug("Forbidden (403) returned with message {}", e.message)
     return ResponseEntity
       .status(HttpStatus.FORBIDDEN)
       .body(ErrorResponse(status = (HttpStatus.FORBIDDEN.value())))
+  }
+
+  // handles kotlin exceptions when parsing request objects and hitting non-nullable fields
+  // The useful property name is in the nested exception
+  @ExceptionHandler(ServerWebInputException::class)
+  fun handleSpring400Exception(e: ServerWebInputException): ResponseEntity<ErrorResponse> {
+    log.info("Validation exception: {}", e.message)
+    val message = e.cause?.message ?: e.message
+    return ResponseEntity
+      .status(BAD_REQUEST)
+      .body(
+        ErrorResponse(
+          status = BAD_REQUEST,
+          userMessage = "Validation failure: $message",
+          developerMessage = message
+        )
+      )
   }
 
   @ExceptionHandler(ValidationException::class)
