@@ -38,7 +38,12 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     summary = "Creates a new sentence adjustment mapping",
     description = "Creates a mapping between nomis sentence adjustment ids and Sentencing service id. Requires ROLE_NOMIS_SENTENCING",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = SentenceAdjustmentMappingDto::class))]
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = SentenceAdjustmentMappingDto::class)
+        )
+      ]
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Sentence adjustment mapping entry created"),
@@ -58,7 +63,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     mappingService.createSentenceAdjustmentMapping(createMappingRequest)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
-  @GetMapping("/mapping/sentence-adjustments/nomis-sentence-adjustment-id/{nomisSentenceAdjustmentId}")
+  @GetMapping("/mapping/sentence-adjustments/nomis-adjustment-id/{nomisAdjustmentId}/nomis-adjustment-type/{nomisAdjustmentType}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
@@ -87,10 +92,19 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     ]
   )
   suspend fun getSentenceAdjustmentMappingGivenNomisId(
-    @Schema(description = "NOMIS Sentence Adjustment Id", example = "12345", required = true)
+    @Schema(description = "NOMIS Adjustment Id", example = "12345", required = true)
     @PathVariable
-    nomisSentenceAdjustmentId: Long,
-  ): SentenceAdjustmentMappingDto = mappingService.getSentenceAdjustmentMappingByNomisId(nomisSentenceAdjustmentId)
+    nomisAdjustmentId: Long,
+    @Schema(
+      description = "NOMIS Adjustment Type",
+      example = "SENTENCE",
+      required = true,
+      allowableValues = ["SENTENCE", "BOOKING"]
+    )
+    @PathVariable
+    nomisAdjustmentType: String,
+  ): SentenceAdjustmentMappingDto =
+    mappingService.getSentenceAdjustmentMappingByNomisId(nomisAdjustmentId, nomisAdjustmentType)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
   @GetMapping("/mapping/sentence-adjustments/sentence-adjustment-id/{sentenceAdjustmentId}")
