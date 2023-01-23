@@ -51,7 +51,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
     label: String = "2022-01-01",
     mappingType: String = NOMIS_CREATED.name
   ) {
-    webTestClient.post().uri("/mapping/sentence-adjustments")
+    webTestClient.post().uri("/mapping/sentencing/adjustments")
       .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(
@@ -69,7 +69,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       .expectStatus().isCreated
   }
 
-  @DisplayName("POST /mapping/sentence-adjustments")
+  @DisplayName("POST /mapping/sentencing/adjustments")
   @Nested
   inner class CreateSentenceAdjustmentMappingTest {
 
@@ -80,7 +80,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .body(BodyInserters.fromValue(createSentenceAdjustmentMapping()))
         .exchange()
         .expectStatus().isUnauthorized
@@ -88,7 +88,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf()))
         .body(BodyInserters.fromValue(createSentenceAdjustmentMapping()))
         .exchange()
@@ -97,7 +97,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `create forbidden with wrong role`() {
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .body(BodyInserters.fromValue(createSentenceAdjustmentMapping()))
         .exchange()
@@ -109,7 +109,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       postCreateSentenceAdjustmentMappingRequest()
 
       assertThat(
-        webTestClient.post().uri("/mapping/sentence-adjustments")
+        webTestClient.post().uri("/mapping/sentencing/adjustments")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(createSentenceAdjustmentMapping().copy(nomisAdjustmentId = 21)))
@@ -122,7 +122,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     internal fun `create mapping does not error when the same mapping already exists for the same adjustment`() {
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
@@ -139,7 +139,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
@@ -162,7 +162,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       postCreateSentenceAdjustmentMappingRequest()
 
       assertThat(
-        webTestClient.post().uri("/mapping/sentence-adjustments")
+        webTestClient.post().uri("/mapping/sentencing/adjustments")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(createSentenceAdjustmentMapping().copy(sentenceAdjustmentId = 99)))
@@ -175,7 +175,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `create mapping success`() {
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
@@ -193,7 +193,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       val mapping1 =
-        webTestClient.get().uri("/mapping/sentence-adjustments/nomis-adjustment-id/$nomisAdjustId/nomis-adjustment-type/$nomisAdjustType")
+        webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
           .exchange()
           .expectStatus().isOk
@@ -206,7 +206,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping1.label).isEqualTo("2022-01-01")
       assertThat(mapping1.mappingType).isEqualTo("SENTENCING_CREATED")
 
-      val mapping2 = webTestClient.get().uri("/mapping/sentence-adjustments/sentence-adjustment-id/$sentenceAdjustId")
+      val mapping2 = webTestClient.get().uri("/mapping/sentencing/adjustments/sentence-adjustment-id/$sentenceAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isOk
@@ -223,7 +223,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create rejects bad filter data - missing mapping type`() {
       assertThat(
-        webTestClient.post().uri("/mapping/sentence-adjustments")
+        webTestClient.post().uri("/mapping/sentencing/adjustments")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -246,7 +246,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create rejects bad filter data - mapping max 20`() {
       assertThat(
-        webTestClient.post().uri("/mapping/sentence-adjustments")
+        webTestClient.post().uri("/mapping/sentencing/adjustments")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -270,7 +270,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create rejects bad filter data - sentence adjustment property must be present (Long)`() {
       assertThat(
-        webTestClient.post().uri("/mapping/sentence-adjustments")
+        webTestClient.post().uri("/mapping/sentencing/adjustments")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -291,7 +291,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("GET /mapping/sentence-adjustments/nomis-adjustment-id/{nomisAdjustId}/nomis-adjustment-type/{nomisAdjustType}")
+  @DisplayName("GET /mapping/sentencing/adjustments/nomis-adjustment-id/{nomisAdjustId}/nomis-adjustment-type/{nomisAdjustType}")
   @Nested
   inner class GetNomisMappingTest {
 
@@ -302,14 +302,14 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.get().uri("/mapping/sentence-adjustments/nomis-adjustment-id/$nomisAdjustId/nomis-adjustment-type/$nomisAdjustType")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.get().uri("/mapping/sentence-adjustments/nomis-adjustment-id/$nomisAdjustId/nomis-adjustment-type/$nomisAdjustType")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -317,7 +317,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden with wrong role`() {
-      webTestClient.get().uri("/mapping/sentence-adjustments/nomis-adjustment-id/$nomisAdjustId/nomis-adjustment-type/$nomisAdjustType")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -326,7 +326,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success`() {
 
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createSentenceAdjustmentMapping()))
@@ -334,7 +334,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       val mapping =
-        webTestClient.get().uri("/mapping/sentence-adjustments/nomis-adjustment-id/$nomisAdjustId/nomis-adjustment-type/$nomisAdjustType")
+        webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
           .exchange()
           .expectStatus().isOk
@@ -350,7 +350,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `mapping not found`() {
-      val error = webTestClient.get().uri("/mapping/sentence-adjustments/sentence-adjustment-id/99999")
+      val error = webTestClient.get().uri("/mapping/sentencing/adjustments/sentence-adjustment-id/99999")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isNotFound
@@ -363,21 +363,21 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success with update role`() {
 
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createSentenceAdjustmentMapping()))
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.get().uri("/mapping/sentence-adjustments/nomis-adjustment-id/$nomisAdjustId/nomis-adjustment-type/$nomisAdjustType")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isOk
     }
   }
 
-  @DisplayName("GET /mapping/sentence-adjustments/migrated/latest")
+  @DisplayName("GET /mapping/sentencing/adjustments/migrated/latest")
   @Nested
   inner class GeMappingMigratedLatestTest {
 
@@ -388,14 +388,14 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.get().uri("/mapping/sentence-adjustments/migrated/latest")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/migrated/latest")
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.get().uri("/mapping/sentence-adjustments/migrated/latest")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/migrated/latest")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -403,7 +403,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden with wrong role`() {
-      webTestClient.get().uri("/mapping/sentence-adjustments/migrated/latest")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/migrated/latest")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -412,7 +412,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get retrieves latest migrated mapping`() {
 
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
@@ -429,7 +429,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
@@ -446,7 +446,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
@@ -463,7 +463,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
@@ -480,7 +480,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      val mapping = webTestClient.get().uri("/mapping/sentence-adjustments/migrated/latest")
+      val mapping = webTestClient.get().uri("/mapping/sentencing/adjustments/migrated/latest")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isOk
@@ -498,7 +498,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `404 when no migrated mapping found`() {
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
@@ -515,7 +515,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      val error = webTestClient.get().uri("/mapping/sentence-adjustments/migrated/latest")
+      val error = webTestClient.get().uri("/mapping/sentencing/adjustments/migrated/latest")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isNotFound
@@ -526,7 +526,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("GET /mapping/sentence-adjustments/sentence-adjustment-id/{sentenceAdjustId}")
+  @DisplayName("GET /mapping/sentencing/adjustments/sentence-adjustment-id/{sentenceAdjustId}")
   @Nested
   inner class GetSentenceAdjustmentMappingTest {
 
@@ -537,14 +537,14 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.get().uri("/mapping/sentence-adjustments/sentence-adjustment-id/$sentenceAdjustId")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/sentence-adjustment-id/$sentenceAdjustId")
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.get().uri("/mapping/sentence-adjustments/sentence-adjustment-id/$sentenceAdjustId")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/sentence-adjustment-id/$sentenceAdjustId")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -552,7 +552,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden with wrong role`() {
-      webTestClient.get().uri("/mapping/sentence-adjustments/sentence-adjustment-id/$sentenceAdjustId")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/sentence-adjustment-id/$sentenceAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -561,14 +561,14 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success`() {
 
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createSentenceAdjustmentMapping()))
         .exchange()
         .expectStatus().isCreated
 
-      val mapping = webTestClient.get().uri("/mapping/sentence-adjustments/sentence-adjustment-id/$sentenceAdjustId")
+      val mapping = webTestClient.get().uri("/mapping/sentencing/adjustments/sentence-adjustment-id/$sentenceAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isOk
@@ -584,7 +584,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `mapping not found`() {
-      val error = webTestClient.get().uri("/mapping/sentence-adjustments/sentence-adjustment-id/765")
+      val error = webTestClient.get().uri("/mapping/sentencing/adjustments/sentence-adjustment-id/765")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isNotFound
@@ -597,34 +597,34 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success with update role`() {
 
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createSentenceAdjustmentMapping()))
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.get().uri("/mapping/sentence-adjustments/sentence-adjustment-id/$sentenceAdjustId")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/sentence-adjustment-id/$sentenceAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isOk
     }
   }
 
-  @DisplayName("DELETE /mapping/sentence-adjustments")
+  @DisplayName("DELETE /mapping/sentencing/adjustments")
   @Nested
   inner class DeleteMappingsTest {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.delete().uri("/mapping/sentence-adjustments")
+      webTestClient.delete().uri("/mapping/sentencing/adjustments")
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.delete().uri("/mapping/sentence-adjustments")
+      webTestClient.delete().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -632,7 +632,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden with wrong role`() {
-      webTestClient.delete().uri("/mapping/sentence-adjustments")
+      webTestClient.delete().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -640,24 +640,24 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `delete mapping success`() {
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createSentenceAdjustmentMapping()))
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.get().uri("/mapping/sentence-adjustments/nomis-adjustment-id/$nomisAdjustId/nomis-adjustment-type/$nomisAdjustType")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isOk
 
-      webTestClient.delete().uri("/mapping/sentence-adjustments")
+      webTestClient.delete().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isNoContent
 
-      webTestClient.get().uri("/mapping/sentence-adjustments/nomis-adjustment-id/$nomisAdjustId/nomis-adjustment-type/$nomisAdjustType")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isNotFound
@@ -665,14 +665,14 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `delete incentive mappings - migrated mappings only`() {
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createSentenceAdjustmentMapping()))
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
@@ -688,37 +688,37 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.delete().uri("/mapping/sentence-adjustments?onlyMigrated=true")
+      webTestClient.delete().uri("/mapping/sentencing/adjustments?onlyMigrated=true")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isNoContent
 
-      webTestClient.get().uri("/mapping/sentence-adjustments/nomis-adjustment-id/$nomisAdjustId/nomis-adjustment-type/$nomisAdjustType")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isOk
 
-      webTestClient.get().uri("/mapping/sentence-adjustments/sentence-adjustment-id/222/nomis-adjustment-type/$nomisAdjustType")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/sentence-adjustment-id/222")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isNotFound
     }
   }
 
-  @DisplayName("DELETE /mapping/sentence-adjustments/sentence-adjustment-id/{sentenceAdjustId}")
+  @DisplayName("DELETE /mapping/sentencing/adjustments/sentence-adjustment-id/{sentenceAdjustId}")
   @Nested
   inner class DeleteMappingTest {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.delete().uri("/mapping/sentence-adjustments/sentence-adjustment-id/999")
+      webTestClient.delete().uri("/mapping/sentencing/adjustments/sentence-adjustment-id/999")
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.delete().uri("/mapping/sentence-adjustments/sentence-adjustment-id/999")
+      webTestClient.delete().uri("/mapping/sentencing/adjustments/sentence-adjustment-id/999")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -726,7 +726,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden with wrong role`() {
-      webTestClient.delete().uri("/mapping/sentence-adjustments/sentence-adjustment-id/999")
+      webTestClient.delete().uri("/mapping/sentencing/adjustments/sentence-adjustment-id/999")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -735,7 +735,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `delete specific mapping success`() {
       // create mapping
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createSentenceAdjustmentMapping()))
@@ -743,29 +743,29 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       // it is present after creation by incentive id
-      webTestClient.get().uri("/mapping/sentence-adjustments/sentence-adjustment-id/$sentenceAdjustId")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/sentence-adjustment-id/$sentenceAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isOk
       // it is also present after creation by nomis id
-      webTestClient.get().uri("/mapping/sentence-adjustments/nomis-adjustment-id/$nomisAdjustId/nomis-adjustment-type/$nomisAdjustType")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isOk
 
       // delete mapping
-      webTestClient.delete().uri("/mapping/sentence-adjustments/sentence-adjustment-id/$sentenceAdjustId")
+      webTestClient.delete().uri("/mapping/sentencing/adjustments/sentence-adjustment-id/$sentenceAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isNoContent
 
       // no longer present by incentive id
-      webTestClient.get().uri("/mapping/sentence-adjustments/sentence-adjustment-id/$sentenceAdjustId")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/sentence-adjustment-id/$sentenceAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isNotFound
       // and also no longer present by nomis id
-      webTestClient.get().uri("/mapping/sentence-adjustments/nomis-adjustment-id/$nomisAdjustId/nomis-adjustment-type/$nomisAdjustType")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isNotFound
@@ -774,7 +774,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
     @Test
     internal fun `delete is idempotent`() {
       // create mapping
-      webTestClient.post().uri("/mapping/sentence-adjustments")
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createSentenceAdjustmentMapping()))
@@ -782,19 +782,19 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       // delete mapping
-      webTestClient.delete().uri("/mapping/sentence-adjustments/sentence-adjustment-id/$sentenceAdjustId")
+      webTestClient.delete().uri("/mapping/sentencing/adjustments/sentence-adjustment-id/$sentenceAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isNoContent
       // delete mapping second time still returns success
-      webTestClient.delete().uri("/mapping/sentence-adjustments/sentence-adjustment-id/$sentenceAdjustId")
+      webTestClient.delete().uri("/mapping/sentencing/adjustments/sentence-adjustment-id/$sentenceAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isNoContent
     }
   }
 
-  @DisplayName("GET /mapping/sentence-adjustments/migration-id/{migrationId}")
+  @DisplayName("GET /mapping/sentencing/adjustments/migration-id/{migrationId}")
   @Nested
   inner class GetMappingByMigrationIdTest {
 
@@ -805,14 +805,14 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.get().uri("/mapping/sentence-adjustments/migration-id/2022-01-01T00:00:00")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/migration-id/2022-01-01T00:00:00")
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.get().uri("/mapping/sentence-adjustments/migration-id/2022-01-01T00:00:00")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/migration-id/2022-01-01T00:00:00")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -820,7 +820,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get sentence adjustment mappings by migration id forbidden with wrong role`() {
-      webTestClient.get().uri("/mapping/sentence-adjustments/migration-id/2022-01-01T00:00:00")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/migration-id/2022-01-01T00:00:00")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -853,7 +853,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         sentenceAdjustmentId = 12, mappingType = SENTENCING_CREATED.name
       )
 
-      webTestClient.get().uri("/mapping/sentence-adjustments/migration-id/2022-01-01")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/migration-id/2022-01-01")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isOk
@@ -880,7 +880,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         )
       }
 
-      webTestClient.get().uri("/mapping/sentence-adjustments/migration-id/2044-01-01")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/migration-id/2044-01-01")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isOk
@@ -902,7 +902,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         )
       }
       webTestClient.get().uri {
-        it.path("/mapping/sentence-adjustments/migration-id/2022-01-01")
+        it.path("/mapping/sentencing/adjustments/migration-id/2022-01-01")
           .queryParam("size", "2")
           .queryParam("sort", "nomisAdjustmentId,asc")
           .build()
@@ -930,7 +930,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         )
       }
       webTestClient.get().uri {
-        it.path("/mapping/sentence-adjustments/migration-id/2022-01-01")
+        it.path("/mapping/sentencing/adjustments/migration-id/2022-01-01")
           .queryParam("size", "2")
           .queryParam("page", "1")
           .queryParam("sort", "nomisAdjustmentId,asc")

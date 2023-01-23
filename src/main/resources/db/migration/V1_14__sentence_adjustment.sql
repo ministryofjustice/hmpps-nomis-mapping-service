@@ -1,3 +1,4 @@
+truncate table sentence_adjustment_mapping;
 alter table sentence_adjustment_mapping drop column nomis_sentence_adjustment_id;
 
 alter table sentence_adjustment_mapping add column nomis_adjustment_id     bigint       not null;
