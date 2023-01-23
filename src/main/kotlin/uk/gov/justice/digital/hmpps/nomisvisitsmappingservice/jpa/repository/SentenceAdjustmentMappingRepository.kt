@@ -9,7 +9,10 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentencingMapp
 
 @Repository
 interface SentenceAdjustmentMappingRepository : CoroutineCrudRepository<SentenceAdjustmentMapping, Long> {
-  suspend fun findOneByNomisSentenceAdjustmentId(nomisSentenceAdjustmentId: Long): SentenceAdjustmentMapping?
+  suspend fun findOneByNomisAdjustmentIdAndNomisAdjustmentType(
+    nomisAdjustmentId: Long,
+    nomisAdjustmentType: String
+  ): SentenceAdjustmentMapping?
   suspend fun findFirstByMappingTypeOrderByWhenCreatedDesc(mappingType: SentencingMappingType): SentenceAdjustmentMapping?
   suspend fun countAllByLabelAndMappingType(label: String, mappingType: SentencingMappingType): Long
   fun findAllByLabelAndMappingTypeOrderByLabelDesc(label: String, mappingType: SentencingMappingType, pageable: Pageable): Flow<SentenceAdjustmentMapping>

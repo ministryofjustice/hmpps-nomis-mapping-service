@@ -32,13 +32,18 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.Sentencing
 class SentencingMappingResource(private val mappingService: SentencingMappingService) {
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
-  @PostMapping("/mapping/sentence-adjustments")
+  @PostMapping("/mapping/sentencing/adjustments")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new sentence adjustment mapping",
     description = "Creates a mapping between nomis sentence adjustment ids and Sentencing service id. Requires ROLE_NOMIS_SENTENCING",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = SentenceAdjustmentMappingDto::class))]
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = SentenceAdjustmentMappingDto::class)
+        )
+      ]
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Sentence adjustment mapping entry created"),
@@ -58,7 +63,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     mappingService.createSentenceAdjustmentMapping(createMappingRequest)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
-  @GetMapping("/mapping/sentence-adjustments/nomis-sentence-adjustment-id/{nomisSentenceAdjustmentId}")
+  @GetMapping("/mapping/sentencing/adjustments/nomis-adjustment-type/{nomisAdjustmentType}/nomis-adjustment-id/{nomisAdjustmentId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
@@ -87,13 +92,22 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     ]
   )
   suspend fun getSentenceAdjustmentMappingGivenNomisId(
-    @Schema(description = "NOMIS Sentence Adjustment Id", example = "12345", required = true)
+    @Schema(description = "NOMIS Adjustment Id", example = "12345", required = true)
     @PathVariable
-    nomisSentenceAdjustmentId: Long,
-  ): SentenceAdjustmentMappingDto = mappingService.getSentenceAdjustmentMappingByNomisId(nomisSentenceAdjustmentId)
+    nomisAdjustmentId: Long,
+    @Schema(
+      description = "NOMIS Adjustment Type",
+      example = "SENTENCE",
+      required = true,
+      allowableValues = ["SENTENCE", "BOOKING"]
+    )
+    @PathVariable
+    nomisAdjustmentType: String,
+  ): SentenceAdjustmentMappingDto =
+    mappingService.getSentenceAdjustmentMappingByNomisId(nomisAdjustmentId, nomisAdjustmentType)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
-  @GetMapping("/mapping/sentence-adjustments/sentence-adjustment-id/{sentenceAdjustmentId}")
+  @GetMapping("/mapping/sentencing/adjustments/sentence-adjustment-id/{sentenceAdjustmentId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
@@ -127,7 +141,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
   ): SentenceAdjustmentMappingDto = mappingService.getSentenceAdjustmentMappingBySentencingId(sentenceAdjustmentId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
-  @GetMapping("/mapping/sentence-adjustments/migrated/latest")
+  @GetMapping("/mapping/sentencing/adjustments/migrated/latest")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get the latest mapping for a migration",
@@ -159,7 +173,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     mappingService.getSentenceAdjustmentMappingForLatestMigrated()
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
-  @DeleteMapping("/mapping/sentence-adjustments")
+  @DeleteMapping("/mapping/sentencing/adjustments")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes sentence adjustment mappings",
@@ -187,7 +201,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
   )
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
-  @DeleteMapping("/mapping/sentence-adjustments/sentence-adjustment-id/{sentenceAdjustmentId}")
+  @DeleteMapping("/mapping/sentencing/adjustments/sentence-adjustment-id/{sentenceAdjustmentId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a specific Sentence Adjustment mapping by sentence adjustment Id",
@@ -210,7 +224,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
   ) = mappingService.deleteSentenceAdjustmentMapping(sentenceAdjustmentId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
-  @GetMapping("/mapping/sentence-adjustments/migration-id/{migrationId}")
+  @GetMapping("/mapping/sentencing/adjustments/migration-id/{migrationId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get paged mappings by migration id",

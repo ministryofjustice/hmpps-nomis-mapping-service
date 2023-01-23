@@ -11,8 +11,11 @@ import java.time.LocalDateTime
 @Schema(description = "NOMIS to Sentencing mapping")
 data class SentenceAdjustmentMappingDto(
 
-  @Schema(description = "NOMIS Sentence Adjustment id", required = true)
-  val nomisSentenceAdjustmentId: Long,
+  @Schema(description = "NOMIS Adjustment id", required = true)
+  val nomisAdjustmentId: Long,
+
+  @Schema(description = "NOMIS Adjustment type", required = true, allowableValues = ["SENTENCE", "BOOKING"])
+  val nomisAdjustmentType: String,
 
   @Schema(description = "Sentence Adjustment id", required = true)
   val sentenceAdjustmentId: Long,
@@ -31,7 +34,8 @@ data class SentenceAdjustmentMappingDto(
 ) {
   constructor(mapping: SentenceAdjustmentMapping) : this(
     sentenceAdjustmentId = mapping.sentenceAdjustmentId,
-    nomisSentenceAdjustmentId = mapping.nomisSentenceAdjustmentId,
+    nomisAdjustmentId = mapping.nomisAdjustmentId,
+    nomisAdjustmentType = mapping.nomisAdjustmentType,
     label = mapping.label,
     mappingType = mapping.mappingType.name,
     whenCreated = mapping.whenCreated
