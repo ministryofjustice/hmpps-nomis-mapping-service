@@ -13,7 +13,7 @@ data class SentenceAdjustmentMapping(
 
   val nomisAdjustmentId: Long,
 
-  val nomisAdjustmentType: String,
+  val nomisAdjustmentCategory: String,
 
   /**
    * ISO timestamp of batch job if a migration

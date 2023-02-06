@@ -63,7 +63,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     mappingService.createSentenceAdjustmentMapping(createMappingRequest)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
-  @GetMapping("/mapping/sentencing/adjustments/nomis-adjustment-type/{nomisAdjustmentType}/nomis-adjustment-id/{nomisAdjustmentId}")
+  @GetMapping("/mapping/sentencing/adjustments/nomis-adjustment-category/{nomisAdjustmentCategory}/nomis-adjustment-id/{nomisAdjustmentId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
@@ -99,12 +99,12 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
       description = "NOMIS Adjustment Type",
       example = "SENTENCE",
       required = true,
-      allowableValues = ["SENTENCE", "BOOKING"]
+      allowableValues = ["SENTENCE", "KEY-DATE"]
     )
     @PathVariable
-    nomisAdjustmentType: String,
+    nomisAdjustmentCategory: String,
   ): SentenceAdjustmentMappingDto =
-    mappingService.getSentenceAdjustmentMappingByNomisId(nomisAdjustmentId, nomisAdjustmentType)
+    mappingService.getSentenceAdjustmentMappingByNomisId(nomisAdjustmentId, nomisAdjustmentCategory)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
   @GetMapping("/mapping/sentencing/adjustments/sentence-adjustment-id/{sentenceAdjustmentId}")

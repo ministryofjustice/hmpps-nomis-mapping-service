@@ -27,18 +27,18 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
   lateinit var repository: SentenceAdjustmentMappingRepository
 
   private val nomisAdjustId = 1234L
-  private val nomisAdjustType = "SENTENCE"
+  private val nomisAdjustCategory = "SENTENCE"
   private val sentenceAdjustId = 4444L
 
   private fun createSentenceAdjustmentMapping(
     nomisAdjustmentId: Long = nomisAdjustId,
-    nomisAdjustmentType: String = nomisAdjustType,
+    nomisAdjustmentCategory: String = nomisAdjustCategory,
     sentenceAdjustmentId: Long = sentenceAdjustId,
     label: String = "2022-01-01",
     mappingType: String = NOMIS_CREATED.name
   ): SentenceAdjustmentMappingDto = SentenceAdjustmentMappingDto(
     nomisAdjustmentId = nomisAdjustmentId,
-    nomisAdjustmentType = nomisAdjustmentType,
+    nomisAdjustmentCategory = nomisAdjustmentCategory,
     sentenceAdjustmentId = sentenceAdjustmentId,
     label = label,
     mappingType = mappingType
@@ -46,7 +46,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
   private fun postCreateSentenceAdjustmentMappingRequest(
     nomisAdjustmentId: Long = 1234L,
-    nomisAdjustmentType: String = "SENTENCE",
+    nomisAdjustmentCategory: String = "SENTENCE",
     sentenceAdjustmentId: Long = 4444L,
     label: String = "2022-01-01",
     mappingType: String = NOMIS_CREATED.name
@@ -58,7 +58,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         BodyInserters.fromValue(
           createSentenceAdjustmentMapping(
             nomisAdjustmentId = nomisAdjustmentId,
-            nomisAdjustmentType = nomisAdjustmentType,
+            nomisAdjustmentCategory = nomisAdjustmentCategory,
             sentenceAdjustmentId = sentenceAdjustmentId,
             label = label,
             mappingType = mappingType
@@ -117,7 +117,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isBadRequest
           .expectBody(ErrorResponse::class.java)
           .returnResult().responseBody?.userMessage
-      ).isEqualTo("Validation failure: Sentence adjustment mapping nomisAdjustmentId = 1234 with nomisAdjustmentType = SENTENCE and sentenceAdjustmentId = 4444 already exists")
+      ).isEqualTo("Validation failure: Sentence adjustment mapping nomisAdjustmentId = 1234 with nomisAdjustmentCategory = SENTENCE and sentenceAdjustmentId = 4444 already exists")
     }
 
     @Test
@@ -129,7 +129,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             """{
             "nomisAdjustmentId"         : $nomisAdjustId,
-            "nomisAdjustmentType"       : "$nomisAdjustType",
+            "nomisAdjustmentCategory"       : "$nomisAdjustCategory",
             "sentenceAdjustmentId"      : $sentenceAdjustId,
             "label"                     : "2022-01-01",
             "mappingType"               : "SENTENCING_CREATED"
@@ -146,7 +146,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             """{
             "nomisAdjustmentId"         : $nomisAdjustId,
-            "nomisAdjustmentType"       : "$nomisAdjustType",
+            "nomisAdjustmentCategory"       : "$nomisAdjustCategory",
             "sentenceAdjustmentId"      : $sentenceAdjustId,
             "label"                     : "2022-01-01",
             "mappingType"               : "SENTENCING_CREATED"
@@ -170,7 +170,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isBadRequest
           .expectBody(ErrorResponse::class.java)
           .returnResult().responseBody?.userMessage
-      ).isEqualTo("Validation failure: Sentence adjustment mapping nomisAdjustmentId = 1234 with nomisAdjustmentType = SENTENCE and sentenceAdjustmentId = 4444 already exists")
+      ).isEqualTo("Validation failure: Sentence adjustment mapping nomisAdjustmentId = 1234 with nomisAdjustmentCategory = SENTENCE and sentenceAdjustmentId = 4444 already exists")
     }
 
     @Test
@@ -182,7 +182,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             """{
             "nomisAdjustmentId"         : $nomisAdjustId,
-            "nomisAdjustmentType"       : "$nomisAdjustType",
+            "nomisAdjustmentCategory"       : "$nomisAdjustCategory",
             "sentenceAdjustmentId"      : $sentenceAdjustId,
             "label"       : "2022-01-01",
             "mappingType" : "SENTENCING_CREATED"
@@ -193,7 +193,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       val mapping1 =
-        webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
+        webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-category/$nomisAdjustCategory/nomis-adjustment-id/$nomisAdjustId")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
           .exchange()
           .expectStatus().isOk
@@ -201,7 +201,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
           .returnResult().responseBody!!
 
       assertThat(mapping1.nomisAdjustmentId).isEqualTo(nomisAdjustId)
-      assertThat(mapping1.nomisAdjustmentType).isEqualTo(nomisAdjustType)
+      assertThat(mapping1.nomisAdjustmentCategory).isEqualTo(nomisAdjustCategory)
       assertThat(mapping1.sentenceAdjustmentId).isEqualTo(sentenceAdjustId)
       assertThat(mapping1.label).isEqualTo("2022-01-01")
       assertThat(mapping1.mappingType).isEqualTo("SENTENCING_CREATED")
@@ -214,7 +214,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .returnResult().responseBody!!
 
       assertThat(mapping2.nomisAdjustmentId).isEqualTo(nomisAdjustId)
-      assertThat(mapping2.nomisAdjustmentType).isEqualTo(nomisAdjustType)
+      assertThat(mapping2.nomisAdjustmentCategory).isEqualTo(nomisAdjustCategory)
       assertThat(mapping2.sentenceAdjustmentId).isEqualTo(sentenceAdjustId)
       assertThat(mapping2.label).isEqualTo("2022-01-01")
       assertThat(mapping2.mappingType).isEqualTo("SENTENCING_CREATED")
@@ -230,7 +230,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
             BodyInserters.fromValue(
               """{
             "nomisAdjustmentId"         : $nomisAdjustId,
-            "nomisAdjustmentType"       : "$nomisAdjustType",
+            "nomisAdjustmentCategory"       : "$nomisAdjustCategory",
             "label"       : "2022-01-01",
             "sentenceAdjustmentId" : $sentenceAdjustId
           }"""
@@ -253,7 +253,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
             BodyInserters.fromValue(
               """{
             "nomisAdjustmentId"         : $nomisAdjustId,
-            "nomisAdjustmentType"       : "$nomisAdjustType",
+            "nomisAdjustmentCategory"       : "$nomisAdjustCategory",
             "label"       : "2022-01-01",
             "sentenceAdjustmentId" : $sentenceAdjustId,
             "mappingType" : "MASSIVELY_LONG_PROPERTY_SENTENCING_CREATED"
@@ -277,7 +277,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
             BodyInserters.fromValue(
               """{
             "nomisAdjustmentId"         : $nomisAdjustId,
-            "nomisAdjustmentType"       : "$nomisAdjustType",
+            "nomisAdjustmentCategory"       : "$nomisAdjustCategory",
             "label"       : "2022-01-01",
             "mappingType" : "SENTENCING_CREATED"
           }"""
@@ -291,7 +291,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("GET /mapping/sentencing/adjustments/nomis-adjustment-id/{nomisAdjustId}/nomis-adjustment-type/{nomisAdjustType}")
+  @DisplayName("GET /mapping/sentencing/adjustments/nomis-adjustment-id/{nomisAdjustId}/nomis-adjustment-category/{nomisAdjustCategory}")
   @Nested
   inner class GetNomisMappingTest {
 
@@ -302,14 +302,14 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-category/$nomisAdjustCategory/nomis-adjustment-id/$nomisAdjustId")
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-category/$nomisAdjustCategory/nomis-adjustment-id/$nomisAdjustId")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -317,7 +317,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden with wrong role`() {
-      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-category/$nomisAdjustCategory/nomis-adjustment-id/$nomisAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -334,7 +334,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       val mapping =
-        webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
+        webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-category/$nomisAdjustCategory/nomis-adjustment-id/$nomisAdjustId")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
           .exchange()
           .expectStatus().isOk
@@ -342,7 +342,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
           .returnResult().responseBody!!
 
       assertThat(mapping.nomisAdjustmentId).isEqualTo(nomisAdjustId)
-      assertThat(mapping.nomisAdjustmentType).isEqualTo(nomisAdjustType)
+      assertThat(mapping.nomisAdjustmentCategory).isEqualTo(nomisAdjustCategory)
       assertThat(mapping.sentenceAdjustmentId).isEqualTo(sentenceAdjustId)
       assertThat(mapping.label).isEqualTo("2022-01-01")
       assertThat(mapping.mappingType).isEqualTo(NOMIS_CREATED.name)
@@ -370,7 +370,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-category/$nomisAdjustCategory/nomis-adjustment-id/$nomisAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isOk
@@ -419,7 +419,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             createSentenceAdjustmentMapping(
               nomisAdjustmentId = 10,
-              nomisAdjustmentType = "SENTENCE",
+              nomisAdjustmentCategory = "SENTENCE",
               sentenceAdjustmentId = 10,
               label = "2022-01-01T00:00:00",
               mappingType = "MIGRATED"
@@ -436,7 +436,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             createSentenceAdjustmentMapping(
               nomisAdjustmentId = 20,
-              nomisAdjustmentType = "SENTENCE",
+              nomisAdjustmentCategory = "SENTENCE",
               sentenceAdjustmentId = 20,
               label = "2022-01-02T00:00:00",
               mappingType = "MIGRATED"
@@ -453,7 +453,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             createSentenceAdjustmentMapping(
               nomisAdjustmentId = 1,
-              nomisAdjustmentType = "SENTENCE",
+              nomisAdjustmentCategory = "SENTENCE",
               sentenceAdjustmentId = 1,
               label = "2022-01-02T10:00:00",
               mappingType = MIGRATED.name
@@ -470,7 +470,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             createSentenceAdjustmentMapping(
               nomisAdjustmentId = 99,
-              nomisAdjustmentType = "SENTENCE",
+              nomisAdjustmentCategory = "SENTENCE",
               sentenceAdjustmentId = 199,
               label = "whatever",
               mappingType = SENTENCING_CREATED.name
@@ -488,7 +488,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .returnResult().responseBody!!
 
       assertThat(mapping.nomisAdjustmentId).isEqualTo(1)
-      assertThat(mapping.nomisAdjustmentType).isEqualTo("SENTENCE")
+      assertThat(mapping.nomisAdjustmentCategory).isEqualTo("SENTENCE")
       assertThat(mapping.sentenceAdjustmentId).isEqualTo(1)
       assertThat(mapping.label).isEqualTo("2022-01-02T10:00:00")
       assertThat(mapping.mappingType).isEqualTo("MIGRATED")
@@ -505,7 +505,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             createSentenceAdjustmentMapping(
               nomisAdjustmentId = 77,
-              nomisAdjustmentType = "SENTENCE",
+              nomisAdjustmentCategory = "SENTENCE",
               sentenceAdjustmentId = 77,
               label = "whatever",
               mappingType = SENTENCING_CREATED.name
@@ -576,7 +576,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .returnResult().responseBody!!
 
       assertThat(mapping.nomisAdjustmentId).isEqualTo(nomisAdjustId)
-      assertThat(mapping.nomisAdjustmentType).isEqualTo(nomisAdjustType)
+      assertThat(mapping.nomisAdjustmentCategory).isEqualTo(nomisAdjustCategory)
       assertThat(mapping.sentenceAdjustmentId).isEqualTo(sentenceAdjustId)
       assertThat(mapping.label).isEqualTo("2022-01-01")
       assertThat(mapping.mappingType).isEqualTo(NOMIS_CREATED.name)
@@ -647,7 +647,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-category/$nomisAdjustCategory/nomis-adjustment-id/$nomisAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isOk
@@ -657,7 +657,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isNoContent
 
-      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-category/$nomisAdjustCategory/nomis-adjustment-id/$nomisAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isNotFound
@@ -679,7 +679,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             createSentenceAdjustmentMapping(
               nomisAdjustmentId = 333,
-              nomisAdjustmentType = "SENTENCE",
+              nomisAdjustmentCategory = "SENTENCE",
               sentenceAdjustmentId = 222,
               mappingType = MIGRATED.name
             )
@@ -693,12 +693,12 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isNoContent
 
-      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-category/$nomisAdjustCategory/nomis-adjustment-id/$nomisAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isOk
 
-      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/sentence-adjustment-id/222")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-category/$nomisAdjustCategory/sentence-adjustment-id/222")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isNotFound
@@ -748,7 +748,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isOk
       // it is also present after creation by nomis id
-      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-category/$nomisAdjustCategory/nomis-adjustment-id/$nomisAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isOk
@@ -765,7 +765,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isNotFound
       // and also no longer present by nomis id
-      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-type/$nomisAdjustType/nomis-adjustment-id/$nomisAdjustId")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-category/$nomisAdjustCategory/nomis-adjustment-id/$nomisAdjustId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isNotFound
@@ -832,7 +832,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       (1L..4L).forEach {
         postCreateSentenceAdjustmentMappingRequest(
           nomisAdjustmentId = it,
-          nomisAdjustmentType = "SENTENCE",
+          nomisAdjustmentCategory = "SENTENCE",
           sentenceAdjustmentId = it,
           label = "2022-01-01",
           mappingType = "MIGRATED"
@@ -841,7 +841,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       (5L..9L).forEach {
         postCreateSentenceAdjustmentMappingRequest(
           nomisAdjustmentId = it,
-          nomisAdjustmentType = "SENTENCE",
+          nomisAdjustmentCategory = "SENTENCE",
           sentenceAdjustmentId = it,
           label = "2099-01-01",
           mappingType = "MIGRATED"
@@ -849,7 +849,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       }
       postCreateSentenceAdjustmentMappingRequest(
         nomisAdjustmentId = 12,
-        nomisAdjustmentType = "SENTENCE",
+        nomisAdjustmentCategory = "SENTENCE",
         sentenceAdjustmentId = 12, mappingType = SENTENCING_CREATED.name
       )
 
@@ -873,7 +873,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       (1L..4L).forEach {
         postCreateSentenceAdjustmentMappingRequest(
           nomisAdjustmentId = it,
-          nomisAdjustmentType = "SENTENCE",
+          nomisAdjustmentCategory = "SENTENCE",
           sentenceAdjustmentId = it,
           label = "2022-01-01",
           mappingType = "MIGRATED"
@@ -895,7 +895,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       (1L..6L).forEach {
         postCreateSentenceAdjustmentMappingRequest(
           nomisAdjustmentId = it,
-          nomisAdjustmentType = "SENTENCE",
+          nomisAdjustmentCategory = "SENTENCE",
           sentenceAdjustmentId = it,
           label = "2022-01-01",
           mappingType = "MIGRATED"
@@ -923,7 +923,7 @@ class SentenceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       (1L..3L).forEach {
         postCreateSentenceAdjustmentMappingRequest(
           nomisAdjustmentId = it,
-          nomisAdjustmentType = "SENTENCE",
+          nomisAdjustmentCategory = "SENTENCE",
           sentenceAdjustmentId = it,
           label = "2022-01-01",
           mappingType = "MIGRATED"
