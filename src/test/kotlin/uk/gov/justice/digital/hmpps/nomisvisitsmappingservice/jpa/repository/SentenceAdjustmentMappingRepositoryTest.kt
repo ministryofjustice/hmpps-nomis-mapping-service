@@ -27,7 +27,7 @@ class SentenceAdjustmentMappingRepositoryTest : TestBase() {
       SentenceAdjustmentMapping(
         sentenceAdjustmentId = 123,
         nomisAdjustmentId = 456,
-        nomisAdjustmentType = "SENTENCE",
+        nomisAdjustmentCategory = "SENTENCE",
         label = "TIMESTAMP",
         mappingType = MIGRATED
       )
@@ -37,16 +37,16 @@ class SentenceAdjustmentMappingRepositoryTest : TestBase() {
     with(persistedSentenceAdjustmentMappingBySentenceAdjustmentId) {
       assertThat(sentenceAdjustmentId).isEqualTo(123L)
       assertThat(nomisAdjustmentId).isEqualTo(456L)
-      assertThat(nomisAdjustmentType).isEqualTo("SENTENCE")
+      assertThat(nomisAdjustmentCategory).isEqualTo("SENTENCE")
       assertThat(label).isEqualTo("TIMESTAMP")
       assertThat(mappingType).isEqualTo(MIGRATED)
     }
 
-    val persistedSentenceAdjustmentMappingByNomisId = repository.findOneByNomisAdjustmentIdAndNomisAdjustmentType(456L, "SENTENCE") ?: throw RuntimeException("456L not found")
+    val persistedSentenceAdjustmentMappingByNomisId = repository.findOneByNomisAdjustmentIdAndNomisAdjustmentCategory(456L, "SENTENCE") ?: throw RuntimeException("456L not found")
     with(persistedSentenceAdjustmentMappingByNomisId) {
       assertThat(sentenceAdjustmentId).isEqualTo(123L)
       assertThat(nomisAdjustmentId).isEqualTo(456L)
-      assertThat(nomisAdjustmentType).isEqualTo("SENTENCE")
+      assertThat(nomisAdjustmentCategory).isEqualTo("SENTENCE")
       assertThat(label).isEqualTo("TIMESTAMP")
       assertThat(mappingType).isEqualTo(MIGRATED)
     }

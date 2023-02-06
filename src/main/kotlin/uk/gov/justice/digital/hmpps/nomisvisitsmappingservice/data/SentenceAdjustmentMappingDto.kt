@@ -14,8 +14,8 @@ data class SentenceAdjustmentMappingDto(
   @Schema(description = "NOMIS Adjustment id", required = true)
   val nomisAdjustmentId: Long,
 
-  @Schema(description = "NOMIS Adjustment type", required = true, allowableValues = ["SENTENCE", "BOOKING"])
-  val nomisAdjustmentType: String,
+  @Schema(description = "NOMIS Adjustment category", required = true, allowableValues = ["SENTENCE", "KEY-DATE"])
+  val nomisAdjustmentCategory: String,
 
   @Schema(description = "Sentence Adjustment id", required = true)
   val sentenceAdjustmentId: Long,
@@ -35,7 +35,7 @@ data class SentenceAdjustmentMappingDto(
   constructor(mapping: SentenceAdjustmentMapping) : this(
     sentenceAdjustmentId = mapping.sentenceAdjustmentId,
     nomisAdjustmentId = mapping.nomisAdjustmentId,
-    nomisAdjustmentType = mapping.nomisAdjustmentType,
+    nomisAdjustmentCategory = mapping.nomisAdjustmentCategory,
     label = mapping.label,
     mappingType = mapping.mappingType.name,
     whenCreated = mapping.whenCreated

@@ -1,0 +1,1 @@
+alter table sentence_adjustment_mapping rename column nomis_adjustment_type to nomis_adjustment_category;
