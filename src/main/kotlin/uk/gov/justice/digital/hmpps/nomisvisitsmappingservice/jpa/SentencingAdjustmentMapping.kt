@@ -6,10 +6,10 @@ import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 
-data class SentenceAdjustmentMapping(
+data class SentencingAdjustmentMapping(
 
   @Id
-  val sentenceAdjustmentId: Long,
+  val adjustmentId: String,
 
   val nomisAdjustmentId: Long,
 
@@ -28,24 +28,24 @@ data class SentenceAdjustmentMapping(
 
   val whenCreated: LocalDateTime? = null
 
-) : Persistable<Long> {
+) : Persistable<String> {
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is SentenceAdjustmentMapping) return false
+    if (other !is SentencingAdjustmentMapping) return false
 
-    if (sentenceAdjustmentId != other.sentenceAdjustmentId) return false
+    if (adjustmentId != other.adjustmentId) return false
 
     return true
   }
 
   override fun hashCode(): Int {
-    return sentenceAdjustmentId.hashCode()
+    return adjustmentId.hashCode()
   }
 
   override fun isNew(): Boolean = new
 
-  override fun getId(): Long = sentenceAdjustmentId
+  override fun getId(): String = adjustmentId
 }
 
 enum class SentencingMappingType {

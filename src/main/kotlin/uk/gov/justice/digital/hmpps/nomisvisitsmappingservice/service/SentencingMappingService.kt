@@ -11,8 +11,8 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.SentenceAdjustmentMappingDto
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentenceAdjustmentMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.SentencingAdjustmentMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentencingAdjustmentMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentencingMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentencingMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.SentenceAdjustmentMappingRepository
@@ -27,14 +27,14 @@ class SentencingMappingService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun alreadyExistsMessage(nomisId: Long, nomisCategory: String, id: Long) =
-    "Sentence adjustment mapping nomisAdjustmentId = $nomisId with nomisAdjustmentCategory = $nomisCategory and sentenceAdjustmentId = $id already exists"
+  fun alreadyExistsMessage(nomisId: Long, nomisCategory: String, id: String) =
+    "Sentence adjustment mapping nomisAdjustmentId = $nomisId with nomisAdjustmentCategory = $nomisCategory and adjustmentId = $id already exists"
 
   @Transactional
-  suspend fun createSentenceAdjustmentMapping(createMappingRequest: SentenceAdjustmentMappingDto) =
+  suspend fun createSentenceAdjustmentMapping(createMappingRequest: SentencingAdjustmentMappingDto) =
     with(createMappingRequest) {
       log.debug("creating sentence adjustment $createMappingRequest")
-      sentenceAdjustmentRepository.findById(sentenceAdjustmentId)?.run {
+      sentenceAdjustmentRepository.findById(adjustmentId)?.run {
         if (this@run.nomisAdjustmentId == this@with.nomisAdjustmentId &&
           this@run.nomisAdjustmentCategory == this@with.nomisAdjustmentCategory
         ) {
@@ -42,7 +42,7 @@ class SentencingMappingService(
             alreadyExistsMessage(
               nomisAdjustmentId,
               nomisAdjustmentCategory,
-              sentenceAdjustmentId
+              adjustmentId
             ) + "so not creating. All OK"
           )
           return
@@ -51,7 +51,7 @@ class SentencingMappingService(
         throw ValidationException(
           alreadyExistsMessage(
             nomisAdjustmentId,
-            nomisAdjustmentCategory, sentenceAdjustmentId
+            nomisAdjustmentCategory, adjustmentId
           )
         )
       }
@@ -64,14 +64,14 @@ class SentencingMappingService(
           alreadyExistsMessage(
             this@with.nomisAdjustmentId,
             this@with.nomisAdjustmentCategory,
-            sentenceAdjustmentId
+            adjustmentId
           )
         )
       }
 
       sentenceAdjustmentRepository.save(
-        SentenceAdjustmentMapping(
-          sentenceAdjustmentId = sentenceAdjustmentId,
+        SentencingAdjustmentMapping(
+          adjustmentId = adjustmentId,
           nomisAdjustmentId = nomisAdjustmentId,
           nomisAdjustmentCategory = nomisAdjustmentCategory,
           label = label,
@@ -81,7 +81,7 @@ class SentencingMappingService(
       telemetryClient.trackEvent(
         "sentence-adjustment-mapping-created",
         mapOf(
-          "sentenceAdjustmentId" to sentenceAdjustmentId.toString(),
+          "sentenceAdjustmentId" to adjustmentId.toString(),
           "nomisAdjustmentId" to nomisAdjustmentId.toString(),
           "nomisAdjustmentCategory" to nomisAdjustmentCategory,
           "batchId" to label,
@@ -93,18 +93,18 @@ class SentencingMappingService(
   suspend fun getSentenceAdjustmentMappingByNomisId(
     nomisAdjustmentId: Long,
     nomisAdjustmentCategory: String
-  ): SentenceAdjustmentMappingDto =
+  ): SentencingAdjustmentMappingDto =
     sentenceAdjustmentRepository.findOneByNomisAdjustmentIdAndNomisAdjustmentCategory(
       nomisAdjustmentId = nomisAdjustmentId,
       nomisAdjustmentCategory = nomisAdjustmentCategory,
     )
-      ?.let { SentenceAdjustmentMappingDto(it) }
+      ?.let { SentencingAdjustmentMappingDto(it) }
       ?: throw NotFoundException("Sentence adjustment with nomisAdjustmentId = $nomisAdjustmentId  nomisAdjustmentCategory $nomisAdjustmentCategory not found")
 
-  suspend fun getSentenceAdjustmentMappingBySentencingId(sentenceAdjustmentId: Long): SentenceAdjustmentMappingDto =
-    sentenceAdjustmentRepository.findById(sentenceAdjustmentId)
-      ?.let { SentenceAdjustmentMappingDto(it) }
-      ?: throw NotFoundException("Sentencing sentenceAdjustmentId id=$sentenceAdjustmentId")
+  suspend fun getSentencingAdjustmentMappingByAdjustmentId(adjustmentId: String): SentencingAdjustmentMappingDto =
+    sentenceAdjustmentRepository.findById(adjustmentId)
+      ?.let { SentencingAdjustmentMappingDto(it) }
+      ?: throw NotFoundException("Sentencing adjustmentId id=$adjustmentId")
 
   @Transactional
   suspend fun deleteSentenceAdjustmentMappings(onlyMigrated: Boolean) =
@@ -117,7 +117,7 @@ class SentencingMappingService(
   suspend fun getSentenceAdjustmentMappingsByMigrationId(
     pageRequest: Pageable,
     migrationId: String
-  ): Page<SentenceAdjustmentMappingDto> =
+  ): Page<SentencingAdjustmentMappingDto> =
     coroutineScope {
       val sentenceAdjustmentMapping = async {
         sentenceAdjustmentRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
@@ -132,17 +132,17 @@ class SentencingMappingService(
       }
 
       PageImpl(
-        sentenceAdjustmentMapping.await().toList().map { SentenceAdjustmentMappingDto(it) },
+        sentenceAdjustmentMapping.await().toList().map { SentencingAdjustmentMappingDto(it) },
         pageRequest, count.await()
       )
     }
 
-  suspend fun getSentenceAdjustmentMappingForLatestMigrated(): SentenceAdjustmentMappingDto =
+  suspend fun getSentencingAdjustmentMappingForLatestMigrated(): SentencingAdjustmentMappingDto =
     sentenceAdjustmentRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(MIGRATED)
-      ?.let { SentenceAdjustmentMappingDto(it) }
+      ?.let { SentencingAdjustmentMappingDto(it) }
       ?: throw NotFoundException("No migrated mapping found")
 
   @Transactional
-  suspend fun deleteSentenceAdjustmentMapping(sentenceAdjustmentId: Long) =
-    sentenceAdjustmentRepository.deleteById(sentenceAdjustmentId)
+  suspend fun deleteSentencingAdjustmentMapping(adjustmentId: String) =
+    sentenceAdjustmentRepository.deleteById(adjustmentId)
 }

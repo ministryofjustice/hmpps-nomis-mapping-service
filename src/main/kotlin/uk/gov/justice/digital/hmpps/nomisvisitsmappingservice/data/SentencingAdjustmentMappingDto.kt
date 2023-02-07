@@ -4,12 +4,12 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentenceAdjustmentMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentencingAdjustmentMapping
 import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "NOMIS to Sentencing mapping")
-data class SentenceAdjustmentMappingDto(
+data class SentencingAdjustmentMappingDto(
 
   @Schema(description = "NOMIS Adjustment id", required = true)
   val nomisAdjustmentId: Long,
@@ -17,8 +17,8 @@ data class SentenceAdjustmentMappingDto(
   @Schema(description = "NOMIS Adjustment category", required = true, allowableValues = ["SENTENCE", "KEY-DATE"])
   val nomisAdjustmentCategory: String,
 
-  @Schema(description = "Sentence Adjustment id", required = true)
-  val sentenceAdjustmentId: Long,
+  @Schema(description = "Adjustment id from sentencing service", required = true)
+  val adjustmentId: String,
 
   @Schema(description = "Label (a timestamp for migrated ids)")
   @field:Size(max = 20)
@@ -32,8 +32,8 @@ data class SentenceAdjustmentMappingDto(
   @Schema(description = "Date time the mapping was created")
   val whenCreated: LocalDateTime? = null
 ) {
-  constructor(mapping: SentenceAdjustmentMapping) : this(
-    sentenceAdjustmentId = mapping.sentenceAdjustmentId,
+  constructor(mapping: SentencingAdjustmentMapping) : this(
+    adjustmentId = mapping.adjustmentId,
     nomisAdjustmentId = mapping.nomisAdjustmentId,
     nomisAdjustmentCategory = mapping.nomisAdjustmentCategory,
     label = mapping.label,

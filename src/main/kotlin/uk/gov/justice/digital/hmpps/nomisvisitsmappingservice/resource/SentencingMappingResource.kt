@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.SentenceAdjustmentMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.SentencingAdjustmentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.SentencingMappingService
 
 @RestController
@@ -41,7 +41,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = SentenceAdjustmentMappingDto::class)
+          schema = Schema(implementation = SentencingAdjustmentMappingDto::class)
         )
       ]
     ),
@@ -59,7 +59,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
       ),
     ]
   )
-  suspend fun createMapping(@RequestBody @Valid createMappingRequest: SentenceAdjustmentMappingDto) =
+  suspend fun createMapping(@RequestBody @Valid createMappingRequest: SentencingAdjustmentMappingDto) =
     mappingService.createSentenceAdjustmentMapping(createMappingRequest)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
@@ -75,7 +75,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = SentenceAdjustmentMappingDto::class)
+            schema = Schema(implementation = SentencingAdjustmentMappingDto::class)
           )
         ]
       ),
@@ -103,11 +103,11 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     )
     @PathVariable
     nomisAdjustmentCategory: String,
-  ): SentenceAdjustmentMappingDto =
+  ): SentencingAdjustmentMappingDto =
     mappingService.getSentenceAdjustmentMappingByNomisId(nomisAdjustmentId, nomisAdjustmentCategory)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
-  @GetMapping("/mapping/sentencing/adjustments/sentence-adjustment-id/{sentenceAdjustmentId}")
+  @GetMapping("/mapping/sentencing/adjustments/adjustment-id/{adjustmentId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
@@ -119,7 +119,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = SentenceAdjustmentMappingDto::class)
+            schema = Schema(implementation = SentencingAdjustmentMappingDto::class)
           )
         ]
       ),
@@ -135,10 +135,10 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
       ),
     ]
   )
-  suspend fun getSentenceAdjustmentMapping(
+  suspend fun getSentencingAdjustmentMapping(
     @Schema(description = "Sentence Adjustment Id", example = "12345", required = true)
-    @PathVariable sentenceAdjustmentId: Long
-  ): SentenceAdjustmentMappingDto = mappingService.getSentenceAdjustmentMappingBySentencingId(sentenceAdjustmentId)
+    @PathVariable adjustmentId: String
+  ): SentencingAdjustmentMappingDto = mappingService.getSentencingAdjustmentMappingByAdjustmentId(adjustmentId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
   @GetMapping("/mapping/sentencing/adjustments/migrated/latest")
@@ -153,7 +153,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = SentenceAdjustmentMappingDto::class)
+            schema = Schema(implementation = SentencingAdjustmentMappingDto::class)
           )
         ]
       ),
@@ -169,8 +169,8 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
       ),
     ]
   )
-  suspend fun getLatestMigratedSentenceAdjustmentMapping(): SentenceAdjustmentMappingDto =
-    mappingService.getSentenceAdjustmentMappingForLatestMigrated()
+  suspend fun getLatestMigratedSentenceAdjustmentMapping(): SentencingAdjustmentMappingDto =
+    mappingService.getSentencingAdjustmentMappingForLatestMigrated()
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
   @DeleteMapping("/mapping/sentencing/adjustments")
@@ -201,7 +201,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
   )
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
-  @DeleteMapping("/mapping/sentencing/adjustments/sentence-adjustment-id/{sentenceAdjustmentId}")
+  @DeleteMapping("/mapping/sentencing/adjustments/adjustment-id/{adjustmentId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a specific Sentence Adjustment mapping by sentence adjustment Id",
@@ -220,8 +220,8 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
   )
   suspend fun deleteSentenceAdjustmentMapping(
     @Schema(description = "Sentence Adjustment Id (from sentencing domain)", example = "12345", required = true)
-    @PathVariable sentenceAdjustmentId: Long
-  ) = mappingService.deleteSentenceAdjustmentMapping(sentenceAdjustmentId)
+    @PathVariable adjustmentId: String
+  ) = mappingService.deleteSentencingAdjustmentMapping(adjustmentId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
   @GetMapping("/mapping/sentencing/adjustments/migration-id/{migrationId}")
@@ -236,7 +236,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = SentenceAdjustmentMappingDto::class)
+            schema = Schema(implementation = SentencingAdjustmentMappingDto::class)
           )
         ]
       ),
@@ -251,6 +251,6 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable migrationId: String
-  ): Page<SentenceAdjustmentMappingDto> =
+  ): Page<SentencingAdjustmentMappingDto> =
     mappingService.getSentenceAdjustmentMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 }
