@@ -4,23 +4,23 @@ import kotlinx.coroutines.flow.Flow
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.stereotype.Repository
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentenceAdjustmentMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentencingAdjustmentMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentencingMappingType
 
 @Repository
-interface SentenceAdjustmentMappingRepository : CoroutineCrudRepository<SentenceAdjustmentMapping, Long> {
+interface SentenceAdjustmentMappingRepository : CoroutineCrudRepository<SentencingAdjustmentMapping, String> {
   suspend fun findOneByNomisAdjustmentIdAndNomisAdjustmentCategory(
     nomisAdjustmentId: Long,
     nomisAdjustmentCategory: String
-  ): SentenceAdjustmentMapping?
+  ): SentencingAdjustmentMapping?
 
-  suspend fun findFirstByMappingTypeOrderByWhenCreatedDesc(mappingType: SentencingMappingType): SentenceAdjustmentMapping?
+  suspend fun findFirstByMappingTypeOrderByWhenCreatedDesc(mappingType: SentencingMappingType): SentencingAdjustmentMapping?
   suspend fun countAllByLabelAndMappingType(label: String, mappingType: SentencingMappingType): Long
   fun findAllByLabelAndMappingTypeOrderByLabelDesc(
     label: String,
     mappingType: SentencingMappingType,
     pageable: Pageable
-  ): Flow<SentenceAdjustmentMapping>
+  ): Flow<SentencingAdjustmentMapping>
 
-  suspend fun deleteByMappingTypeEquals(mappingType: SentencingMappingType): SentenceAdjustmentMapping?
+  suspend fun deleteByMappingTypeEquals(mappingType: SentencingMappingType): SentencingAdjustmentMapping?
 }
