@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service
 
 import com.microsoft.applicationinsights.TelemetryClient
-import jakarta.validation.ValidationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
@@ -16,6 +15,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentencingAdju
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentencingMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentencingMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.SentenceAdjustmentMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource.DuplicateAdjustmentException
 
 @Service
 @Transactional(readOnly = true)
@@ -27,8 +27,11 @@ class SentencingMappingService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun alreadyExistsMessage(nomisId: Long, nomisCategory: String, id: String) =
-    "Sentence adjustment mapping nomisAdjustmentId = $nomisId with nomisAdjustmentCategory = $nomisCategory and adjustmentId = $id already exists"
+  fun alreadyExistsMessage(
+    duplicateMapping: SentencingAdjustmentMappingDto,
+    existingMapping: SentencingAdjustmentMappingDto
+  ) =
+    "Sentence adjustment mapping already exists. \nExisting mapping: $existingMapping\nDuplicate mapping: $duplicateMapping"
 
   @Transactional
   suspend fun createSentenceAdjustmentMapping(createMappingRequest: SentencingAdjustmentMappingDto) =
@@ -39,20 +42,18 @@ class SentencingMappingService(
           this@run.nomisAdjustmentCategory == this@with.nomisAdjustmentCategory
         ) {
           log.debug(
-            alreadyExistsMessage(
-              nomisAdjustmentId,
-              nomisAdjustmentCategory,
-              adjustmentId
-            ) + "so not creating. All OK"
+            "Not creating. All OK: " +
+              alreadyExistsMessage(
+                duplicateMapping = createMappingRequest, existingMapping = SentencingAdjustmentMappingDto(this@run)
+              )
           )
           return
         }
-
-        throw ValidationException(
-          alreadyExistsMessage(
-            nomisAdjustmentId,
-            nomisAdjustmentCategory, adjustmentId
-          )
+        throw DuplicateAdjustmentException(
+          messageIn = alreadyExistsMessage(
+            duplicateMapping = createMappingRequest, existingMapping = SentencingAdjustmentMappingDto(this@run)
+          ),
+          duplicateMapping = createMappingRequest, existingMapping = SentencingAdjustmentMappingDto(this@run),
         )
       }
 
@@ -60,12 +61,12 @@ class SentencingMappingService(
         nomisAdjustmentId = nomisAdjustmentId,
         nomisAdjustmentCategory = nomisAdjustmentCategory
       )?.run {
-        throw ValidationException(
-          alreadyExistsMessage(
-            this@with.nomisAdjustmentId,
-            this@with.nomisAdjustmentCategory,
-            adjustmentId
-          )
+        throw DuplicateAdjustmentException(
+          messageIn = alreadyExistsMessage(
+            duplicateMapping = createMappingRequest, existingMapping = SentencingAdjustmentMappingDto(this@run)
+          ),
+          duplicateMapping = createMappingRequest,
+          existingMapping = SentencingAdjustmentMappingDto(this)
         )
       }
 
@@ -81,7 +82,7 @@ class SentencingMappingService(
       telemetryClient.trackEvent(
         "sentence-adjustment-mapping-created",
         mapOf(
-          "sentenceAdjustmentId" to adjustmentId.toString(),
+          "sentenceAdjustmentId" to adjustmentId,
           "nomisAdjustmentId" to nomisAdjustmentId.toString(),
           "nomisAdjustmentCategory" to nomisAdjustmentCategory,
           "batchId" to label,

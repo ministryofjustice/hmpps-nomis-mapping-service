@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateAdjustmentErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.SentencingAdjustmentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
@@ -108,16 +109,36 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
     fun `create when mapping for sentence adjustment id already exists for another mapping`() {
       postCreateSentenceAdjustmentMappingRequest()
 
-      assertThat(
-        webTestClient.post().uri("/mapping/sentencing/adjustments")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(createSentenceAdjustmentMapping().copy(nomisAdjustmentId = 21)))
-          .exchange()
-          .expectStatus().isBadRequest
-          .expectBody(ErrorResponse::class.java)
-          .returnResult().responseBody?.userMessage
-      ).isEqualTo("Validation failure: Sentence adjustment mapping nomisAdjustmentId = 1234 with nomisAdjustmentCategory = SENTENCE and adjustmentId = 4444 already exists")
+      val responseBody = webTestClient.post().uri("/mapping/sentencing/adjustments")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createSentenceAdjustmentMapping().copy(nomisAdjustmentId = 21)))
+        .exchange()
+        .expectStatus().isEqualTo(409)
+        .expectBody(DuplicateAdjustmentErrorResponse::class.java)
+        .returnResult().responseBody
+
+      with(responseBody!!) {
+        assertThat(userMessage).contains("Conflict: Sentence adjustment mapping already exists. \nExisting mapping: SentencingAdjustmentMappingDto(nomisAdjustmentId=1234, nomisAdjustmentCategory=SENTENCE, adjustmentId=4444, label=2022-01-01, mappingType=NOMIS_CREATED")
+        assertThat(userMessage).contains("Duplicate mapping: SentencingAdjustmentMappingDto(nomisAdjustmentId=21, nomisAdjustmentCategory=SENTENCE, adjustmentId=4444, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null)")
+        assertThat(errorCode).isEqualTo(1409)
+      }
+
+      val existingAdjustment = responseBody.moreInfo?.existingAdjustment!!
+      with(existingAdjustment) {
+        assertThat(adjustmentId).isEqualTo("4444")
+        assertThat(nomisAdjustmentId).isEqualTo(1234)
+        assertThat(nomisAdjustmentCategory).isEqualTo("SENTENCE")
+        assertThat(mappingType).isEqualTo("NOMIS_CREATED")
+      }
+
+      val duplicateAdjustment = responseBody.moreInfo?.duplicateAdjustment!!
+      with(duplicateAdjustment) {
+        assertThat(adjustmentId).isEqualTo("4444")
+        assertThat(nomisAdjustmentId).isEqualTo(21)
+        assertThat(nomisAdjustmentCategory).isEqualTo("SENTENCE")
+        assertThat(mappingType).isEqualTo("NOMIS_CREATED")
+      }
     }
 
     @Test
@@ -161,16 +182,36 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
     fun `create when mapping for nomis ids already exists`() {
       postCreateSentenceAdjustmentMappingRequest()
 
-      assertThat(
-        webTestClient.post().uri("/mapping/sentencing/adjustments")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(createSentenceAdjustmentMapping().copy(adjustmentId = "99")))
-          .exchange()
-          .expectStatus().isBadRequest
-          .expectBody(ErrorResponse::class.java)
-          .returnResult().responseBody?.userMessage
-      ).isEqualTo("Validation failure: Sentence adjustment mapping nomisAdjustmentId = 1234 with nomisAdjustmentCategory = SENTENCE and adjustmentId = 4444 already exists")
+      val responseBody = webTestClient.post().uri("/mapping/sentencing/adjustments")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createSentenceAdjustmentMapping().copy(adjustmentId = "99")))
+        .exchange()
+        .expectStatus().isEqualTo(409)
+        .expectBody(DuplicateAdjustmentErrorResponse::class.java)
+        .returnResult().responseBody
+
+      with(responseBody!!) {
+        assertThat(userMessage).contains("Conflict: Sentence adjustment mapping already exists. \nExisting mapping: SentencingAdjustmentMappingDto(nomisAdjustmentId=1234, nomisAdjustmentCategory=SENTENCE, adjustmentId=4444, label=2022-01-01, mappingType=NOMIS_CREATED")
+        assertThat(userMessage).contains("Duplicate mapping: SentencingAdjustmentMappingDto(nomisAdjustmentId=1234, nomisAdjustmentCategory=SENTENCE, adjustmentId=99, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null)")
+        assertThat(errorCode).isEqualTo(1409)
+      }
+
+      val existingAdjustment = responseBody.moreInfo?.existingAdjustment!!
+      with(existingAdjustment) {
+        assertThat(adjustmentId).isEqualTo("4444")
+        assertThat(nomisAdjustmentId).isEqualTo(1234)
+        assertThat(nomisAdjustmentCategory).isEqualTo("SENTENCE")
+        assertThat(mappingType).isEqualTo("NOMIS_CREATED")
+      }
+
+      val duplicateAdjustment = responseBody.moreInfo?.duplicateAdjustment!!
+      with(duplicateAdjustment) {
+        assertThat(adjustmentId).isEqualTo("99")
+        assertThat(nomisAdjustmentId).isEqualTo(1234)
+        assertThat(nomisAdjustmentCategory).isEqualTo("SENTENCE")
+        assertThat(mappingType).isEqualTo("NOMIS_CREATED")
+      }
     }
 
     @Test

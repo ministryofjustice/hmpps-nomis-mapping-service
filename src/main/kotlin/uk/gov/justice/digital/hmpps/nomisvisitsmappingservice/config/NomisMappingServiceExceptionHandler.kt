@@ -4,12 +4,15 @@ import jakarta.validation.ValidationException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.BAD_REQUEST
+import org.springframework.http.HttpStatus.CONFLICT
 import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.server.ServerWebInputException
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.SentencingAdjustmentMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource.DuplicateAdjustmentException
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
 @RestControllerAdvice
@@ -53,6 +56,23 @@ class NomisMappingServiceExceptionHandler {
       )
   }
 
+  @ExceptionHandler(DuplicateAdjustmentException::class)
+  fun handleDuplicateAdjustmentException(e: DuplicateAdjustmentException): ResponseEntity<ErrorResponse> {
+    log.error("Duplicate adjustment exception: {}", e.message)
+    return ResponseEntity
+      .status(CONFLICT)
+      .body(
+        DuplicateAdjustmentErrorResponse(
+          moreInfo = DuplicateAdjustmentErrorContent(
+            duplicateAdjustment = e.duplicateMapping,
+            existingAdjustment = e.existingMapping
+          ),
+          userMessage = "Conflict: ${e.message}",
+          developerMessage = e.message
+        )
+      )
+  }
+
   @ExceptionHandler(NotFoundException::class)
   fun handleNotFoundException(e: Exception): ResponseEntity<ErrorResponse?>? {
     log.info("Not Found: {}", e.message)
@@ -86,18 +106,28 @@ class NomisMappingServiceExceptionHandler {
   }
 }
 
-data class ErrorResponse(
+open class ErrorResponse(
   val status: Int,
   val errorCode: Int? = null,
   val userMessage: String? = null,
   val developerMessage: String? = null,
-  val moreInfo: String? = null
 ) {
   constructor(
     status: HttpStatus,
     errorCode: Int? = null,
     userMessage: String? = null,
     developerMessage: String? = null,
-    moreInfo: String? = null
-  ) : this(status.value(), errorCode, userMessage, developerMessage, moreInfo)
+
+  ) : this(status.value(), errorCode, userMessage, developerMessage)
 }
+
+class DuplicateAdjustmentErrorResponse(
+  val moreInfo: DuplicateAdjustmentErrorContent? = null,
+  userMessage: String?,
+  developerMessage: String?
+) : ErrorResponse(status = 409, errorCode = 1409, userMessage = userMessage, developerMessage = developerMessage)
+
+data class DuplicateAdjustmentErrorContent(
+  val duplicateAdjustment: SentencingAdjustmentMappingDto,
+  val existingAdjustment: SentencingAdjustmentMappingDto,
+)
