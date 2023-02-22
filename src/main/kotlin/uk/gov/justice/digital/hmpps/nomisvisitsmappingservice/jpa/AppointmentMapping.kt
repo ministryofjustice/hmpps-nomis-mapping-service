@@ -12,8 +12,6 @@ data class AppointmentMapping(
 
   val nomisEventId: Long,
 
-  val mappingType: AppointmentMappingType,
-
   @Transient
   @Value("false")
   val new: Boolean = true,
@@ -36,8 +34,4 @@ data class AppointmentMapping(
   override fun isNew(): Boolean = new
 
   override fun getId(): Long = appointmentInstanceId
-}
-
-enum class AppointmentMappingType {
-  APPOINTMENT_CREATED, NOMIS_CREATED
 }

@@ -12,7 +12,6 @@ import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AppointmentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AppointmentMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AppointmentMappingRepository
 
 private const val NOMIS_EVENT_ID = 1234L
@@ -26,17 +25,14 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
   private fun createMapping(
     nomisId: Long = NOMIS_EVENT_ID,
     appointmentId: Long = APPOINTMENT_INSTANCE_ID,
-    mappingType: String = AppointmentMappingType.NOMIS_CREATED.name
   ): AppointmentMappingDto = AppointmentMappingDto(
     nomisEventId = nomisId,
     appointmentInstanceId = appointmentId,
-    mappingType = mappingType
   )
 
   private fun postCreateMappingRequest(
     nomisId: Long = NOMIS_EVENT_ID,
     appointmentId: Long = APPOINTMENT_INSTANCE_ID,
-    mappingType: String = AppointmentMappingType.NOMIS_CREATED.name
   ) {
     webTestClient.post().uri("/mapping/appointments")
       .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
@@ -46,7 +42,6 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
           createMapping(
             nomisId = nomisId,
             appointmentId = appointmentId,
-            mappingType = mappingType
           )
         )
       )
@@ -180,7 +175,6 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
 
       assertThat(mapping2.nomisEventId).isEqualTo(NOMIS_EVENT_ID)
       assertThat(mapping2.appointmentInstanceId).isEqualTo(APPOINTMENT_INSTANCE_ID)
-      assertThat(mapping2.mappingType).isEqualTo("APPOINTMENT_CREATED")
     }
   }
 
@@ -237,7 +231,6 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
 
       assertThat(mapping.nomisEventId).isEqualTo(NOMIS_EVENT_ID)
       assertThat(mapping.appointmentInstanceId).isEqualTo(APPOINTMENT_INSTANCE_ID)
-      assertThat(mapping.mappingType).isEqualTo(AppointmentMappingType.NOMIS_CREATED.name)
     }
 
     @Test

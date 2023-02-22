@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AppointmentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AppointmentMapping
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AppointmentMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AppointmentMappingRepository
 
 @Service
@@ -42,7 +41,6 @@ class AppointmentMappingService(
         AppointmentMapping(
           appointmentInstanceId = appointmentInstanceId,
           nomisEventId = nomisEventId,
-          mappingType = AppointmentMappingType.valueOf(mappingType)
         )
       )
       telemetryClient.trackEvent(
