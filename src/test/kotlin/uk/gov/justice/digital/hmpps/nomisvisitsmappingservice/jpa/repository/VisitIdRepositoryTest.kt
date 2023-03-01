@@ -26,7 +26,6 @@ class VisitIdRepositoryTest : TestBase() {
 
   @Test
   fun saveVisitId(): Unit = runBlocking {
-
     repository.save(VisitId(123, "123", "TIMESTAMP", MappingType.MIGRATED))
 
     val persistedVisitId = repository.findById(123L) ?: throw RuntimeException("123L not found")

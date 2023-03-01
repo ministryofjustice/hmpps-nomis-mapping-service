@@ -42,25 +42,28 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = SentencingAdjustmentMappingDto::class)
-        )
-      ]
+          schema = Schema(implementation = SentencingAdjustmentMappingDto::class),
+        ),
+      ],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Sentence adjustment mapping entry created"),
       ApiResponse(
         responseCode = "400",
         description = "Nomis or Sentencing ids already exist",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
-  suspend fun createMapping(@RequestBody @Valid createMappingRequest: SentencingAdjustmentMappingDto) =
+  suspend fun createMapping(
+    @RequestBody @Valid
+    createMappingRequest: SentencingAdjustmentMappingDto,
+  ) =
     mappingService.createSentenceAdjustmentMapping(createMappingRequest)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
@@ -76,19 +79,19 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = SentencingAdjustmentMappingDto::class)
-          )
-        ]
+            schema = Schema(implementation = SentencingAdjustmentMappingDto::class),
+          ),
+        ],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "NOMIS sentence adjustment id does not exist in mapping table",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "409",
@@ -96,11 +99,11 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = DuplicateAdjustmentErrorResponse::class)
-          )
-        ]
+            schema = Schema(implementation = DuplicateAdjustmentErrorResponse::class),
+          ),
+        ],
       ),
-    ]
+    ],
   )
   suspend fun getSentenceAdjustmentMappingGivenNomisId(
     @Schema(description = "NOMIS Adjustment Id", example = "12345", required = true)
@@ -110,7 +113,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
       description = "NOMIS Adjustment Type",
       example = "SENTENCE",
       required = true,
-      allowableValues = ["SENTENCE", "KEY-DATE"]
+      allowableValues = ["SENTENCE", "KEY-DATE"],
     )
     @PathVariable
     nomisAdjustmentCategory: String,
@@ -130,25 +133,26 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = SentencingAdjustmentMappingDto::class)
-          )
-        ]
+            schema = Schema(implementation = SentencingAdjustmentMappingDto::class),
+          ),
+        ],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "sentence adjustment id does not exist in mapping table",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun getSentencingAdjustmentMapping(
     @Schema(description = "Sentence Adjustment Id", example = "12345", required = true)
-    @PathVariable adjustmentId: String
+    @PathVariable
+    adjustmentId: String,
   ): SentencingAdjustmentMappingDto = mappingService.getSentencingAdjustmentMappingByAdjustmentId(adjustmentId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
@@ -164,21 +168,21 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = SentencingAdjustmentMappingDto::class)
-          )
-        ]
+            schema = Schema(implementation = SentencingAdjustmentMappingDto::class),
+          ),
+        ],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "No mappings found at all for any migration",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun getLatestMigratedSentenceAdjustmentMapping(): SentencingAdjustmentMappingDto =
     mappingService.getSentencingAdjustmentMappingForLatestMigrated()
@@ -192,23 +196,24 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     responses = [
       ApiResponse(
         responseCode = "204",
-        description = "sentence adjustment mappings deleted"
+        description = "sentence adjustment mappings deleted",
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun deleteSentenceAdjustmentMappings(
     @RequestParam(value = "onlyMigrated", required = false, defaultValue = "false")
     @Parameter(
       description = "if true delete mapping entries created by the migration process only (synchronisation records are unaffected)",
-      example = "true"
-    ) onlyMigrated: Boolean
+      example = "true",
+    )
+    onlyMigrated: Boolean,
   ) = mappingService.deleteSentenceAdjustmentMappings(
-    onlyMigrated
+    onlyMigrated,
   )
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
@@ -220,18 +225,19 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     responses = [
       ApiResponse(
         responseCode = "204",
-        description = "Sentence Adjustment mapping deleted"
+        description = "Sentence Adjustment mapping deleted",
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun deleteSentenceAdjustmentMapping(
     @Schema(description = "Sentence Adjustment Id (from sentencing domain)", example = "12345", required = true)
-    @PathVariable adjustmentId: String
+    @PathVariable
+    adjustmentId: String,
   ) = mappingService.deleteSentencingAdjustmentMapping(adjustmentId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
@@ -247,21 +253,22 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = SentencingAdjustmentMappingDto::class)
-          )
-        ]
+            schema = Schema(implementation = SentencingAdjustmentMappingDto::class),
+          ),
+        ],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      )
-    ]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
   )
   suspend fun getMigratedSentenceAdjustmentMappingsByMigrationId(
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
-    @PathVariable migrationId: String
+    @PathVariable
+    migrationId: String,
   ): Page<SentencingAdjustmentMappingDto> =
     mappingService.getSentenceAdjustmentMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 }
@@ -269,5 +276,5 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
 class DuplicateAdjustmentException(
   val duplicateMapping: SentencingAdjustmentMappingDto,
   val existingMapping: SentencingAdjustmentMappingDto,
-  val messageIn: String?
+  val messageIn: String?,
 ) : RuntimeException(messageIn)

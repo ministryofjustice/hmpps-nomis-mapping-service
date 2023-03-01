@@ -36,13 +36,13 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
     nomisAdjustmentCategory: String = nomisAdjustCategory,
     adjustmentId: String = adjustId,
     label: String = "2022-01-01",
-    mappingType: String = NOMIS_CREATED.name
+    mappingType: String = NOMIS_CREATED.name,
   ): SentencingAdjustmentMappingDto = SentencingAdjustmentMappingDto(
     nomisAdjustmentId = nomisAdjustmentId,
     nomisAdjustmentCategory = nomisAdjustmentCategory,
     adjustmentId = adjustmentId,
     label = label,
-    mappingType = mappingType
+    mappingType = mappingType,
   )
 
   private fun postCreateSentenceAdjustmentMappingRequest(
@@ -50,7 +50,7 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
     nomisAdjustmentCategory: String = "SENTENCE",
     adjustmentId: String = "4444",
     label: String = "2022-01-01",
-    mappingType: String = NOMIS_CREATED.name
+    mappingType: String = NOMIS_CREATED.name,
   ) {
     webTestClient.post().uri("/mapping/sentencing/adjustments")
       .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
@@ -62,9 +62,9 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
             nomisAdjustmentCategory = nomisAdjustmentCategory,
             adjustmentId = adjustmentId,
             label = label,
-            mappingType = mappingType
-          )
-        )
+            mappingType = mappingType,
+          ),
+        ),
       )
       .exchange()
       .expectStatus().isCreated
@@ -154,8 +154,8 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
             "adjustmentId"      : "$adjustId",
             "label"                     : "2022-01-01",
             "mappingType"               : "SENTENCING_CREATED"
-          }"""
-          )
+          }""",
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -171,8 +171,8 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
             "adjustmentId"      : "$adjustId",
             "label"                     : "2022-01-01",
             "mappingType"               : "SENTENCING_CREATED"
-          }"""
-          )
+          }""",
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -227,8 +227,8 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
             "adjustmentId"      : "$adjustId",
             "label"       : "2022-01-01",
             "mappingType" : "SENTENCING_CREATED"
-          }"""
-          )
+          }""",
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -274,13 +274,13 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
             "nomisAdjustmentCategory"       : "$nomisAdjustCategory",
             "label"       : "2022-01-01",
             "adjustmentId" : "$adjustId"
-          }"""
-            )
+          }""",
+            ),
           )
           .exchange()
           .expectStatus().isBadRequest
           .expectBody(ErrorResponse::class.java)
-          .returnResult().responseBody?.userMessage
+          .returnResult().responseBody?.userMessage,
       ).contains("missing (therefore NULL) value for creator parameter mappingType which is a non-nullable type")
     }
 
@@ -298,13 +298,13 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
             "label"       : "2022-01-01",
             "adjustmentId" : "$adjustId",
             "mappingType" : "MASSIVELY_LONG_PROPERTY_SENTENCING_CREATED"
-          }"""
-            )
+          }""",
+            ),
           )
           .exchange()
           .expectStatus().isBadRequest
           .expectBody(ErrorResponse::class.java)
-          .returnResult().responseBody?.userMessage
+          .returnResult().responseBody?.userMessage,
       ).contains("mappingType has a maximum length of 20")
     }
 
@@ -321,13 +321,13 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
             "nomisAdjustmentCategory"       : "$nomisAdjustCategory",
             "label"       : "2022-01-01",
             "mappingType" : "SENTENCING_CREATED"
-          }"""
-            )
+          }""",
+            ),
           )
           .exchange()
           .expectStatus().isBadRequest
           .expectBody(ErrorResponse::class.java)
-          .returnResult().responseBody?.userMessage
+          .returnResult().responseBody?.userMessage,
       )
         .contains("Validation failure: JSON decoding error")
         .contains("adjustmentId")
@@ -368,7 +368,6 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success`() {
-
       webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -405,7 +404,6 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success with update role`() {
-
       webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -454,7 +452,6 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get retrieves latest migrated mapping`() {
-
       webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -465,9 +462,9 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
               nomisAdjustmentCategory = "SENTENCE",
               adjustmentId = "10",
               label = "2022-01-01T00:00:00",
-              mappingType = "MIGRATED"
-            )
-          )
+              mappingType = "MIGRATED",
+            ),
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -482,9 +479,9 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
               nomisAdjustmentCategory = "SENTENCE",
               adjustmentId = "20",
               label = "2022-01-02T00:00:00",
-              mappingType = "MIGRATED"
-            )
-          )
+              mappingType = "MIGRATED",
+            ),
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -499,9 +496,9 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
               nomisAdjustmentCategory = "SENTENCE",
               adjustmentId = "1",
               label = "2022-01-02T10:00:00",
-              mappingType = MIGRATED.name
-            )
-          )
+              mappingType = MIGRATED.name,
+            ),
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -516,9 +513,9 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
               nomisAdjustmentCategory = "SENTENCE",
               adjustmentId = "199",
               label = "whatever",
-              mappingType = SENTENCING_CREATED.name
-            )
-          )
+              mappingType = SENTENCING_CREATED.name,
+            ),
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -551,9 +548,9 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
               nomisAdjustmentCategory = "SENTENCE",
               adjustmentId = "77",
               label = "whatever",
-              mappingType = SENTENCING_CREATED.name
-            )
-          )
+              mappingType = SENTENCING_CREATED.name,
+            ),
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -603,7 +600,6 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success`() {
-
       webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -639,7 +635,6 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success with update role`() {
-
       webTestClient.post().uri("/mapping/sentencing/adjustments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -724,9 +719,9 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
               nomisAdjustmentId = 333,
               nomisAdjustmentCategory = "SENTENCE",
               adjustmentId = "222",
-              mappingType = MIGRATED.name
-            )
-          )
+              mappingType = MIGRATED.name,
+            ),
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -871,14 +866,13 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get sentence adjustment mappings by migration id success`() {
-
       (1L..4L).forEach {
         postCreateSentenceAdjustmentMappingRequest(
           nomisAdjustmentId = it,
           nomisAdjustmentCategory = "SENTENCE",
           adjustmentId = "$it",
           label = "2022-01-01",
-          mappingType = "MIGRATED"
+          mappingType = "MIGRATED",
         )
       }
       (5L..9L).forEach {
@@ -887,13 +881,14 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
           nomisAdjustmentCategory = "SENTENCE",
           adjustmentId = "$it",
           label = "2099-01-01",
-          mappingType = "MIGRATED"
+          mappingType = "MIGRATED",
         )
       }
       postCreateSentenceAdjustmentMappingRequest(
         nomisAdjustmentId = 12,
         nomisAdjustmentCategory = "SENTENCE",
-        adjustmentId = "12", mappingType = SENTENCING_CREATED.name
+        adjustmentId = "12",
+        mappingType = SENTENCING_CREATED.name,
       )
 
       webTestClient.get().uri("/mapping/sentencing/adjustments/migration-id/2022-01-01")
@@ -904,22 +899,24 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .jsonPath("totalElements").isEqualTo(4)
         .jsonPath("$.content..nomisAdjustmentId").value(
           Matchers.contains(
-            1, 2, 3, 4
-          )
+            1,
+            2,
+            3,
+            4,
+          ),
         )
         .jsonPath("$.content[0].whenCreated").isNotEmpty
     }
 
     @Test
     fun `get sentence adjustment mappings by migration id - no records exist`() {
-
       (1L..4L).forEach {
         postCreateSentenceAdjustmentMappingRequest(
           nomisAdjustmentId = it,
           nomisAdjustmentCategory = "SENTENCE",
           adjustmentId = "$it",
           label = "2022-01-01",
-          mappingType = "MIGRATED"
+          mappingType = "MIGRATED",
         )
       }
 
@@ -934,14 +931,13 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `can request a different page size`() {
-
       (1L..6L).forEach {
         postCreateSentenceAdjustmentMappingRequest(
           nomisAdjustmentId = it,
           nomisAdjustmentCategory = "SENTENCE",
           adjustmentId = "$it",
           label = "2022-01-01",
-          mappingType = "MIGRATED"
+          mappingType = "MIGRATED",
         )
       }
       webTestClient.get().uri {
@@ -969,7 +965,7 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
           nomisAdjustmentCategory = "SENTENCE",
           adjustmentId = "$it",
           label = "2022-01-01",
-          mappingType = "MIGRATED"
+          mappingType = "MIGRATED",
         )
       }
       webTestClient.get().uri {

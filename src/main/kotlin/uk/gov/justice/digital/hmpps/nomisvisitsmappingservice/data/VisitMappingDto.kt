@@ -31,13 +31,13 @@ data class VisitMappingDto(
   val mappingType: String,
 
   @Schema(description = "Date time the mapping was created")
-  val whenCreated: LocalDateTime? = null
+  val whenCreated: LocalDateTime? = null,
 ) {
   constructor(visitId: VisitId) : this(
     nomisId = visitId.nomisId,
     vsipId = visitId.vsipId,
     label = visitId.label,
     mappingType = visitId.mappingType.name,
-    whenCreated = visitId.whenCreated
+    whenCreated = visitId.whenCreated,
   )
 }

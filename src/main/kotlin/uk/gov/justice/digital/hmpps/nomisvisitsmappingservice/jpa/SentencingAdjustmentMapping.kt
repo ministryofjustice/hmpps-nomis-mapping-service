@@ -26,7 +26,7 @@ data class SentencingAdjustmentMapping(
   @Value("false")
   val new: Boolean = true,
 
-  val whenCreated: LocalDateTime? = null
+  val whenCreated: LocalDateTime? = null,
 
 ) : Persistable<String> {
 

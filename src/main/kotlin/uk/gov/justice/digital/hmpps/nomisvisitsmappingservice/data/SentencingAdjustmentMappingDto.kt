@@ -30,7 +30,7 @@ data class SentencingAdjustmentMappingDto(
   val mappingType: String,
 
   @Schema(description = "Date time the mapping was created")
-  val whenCreated: LocalDateTime? = null
+  val whenCreated: LocalDateTime? = null,
 ) {
   constructor(mapping: SentencingAdjustmentMapping) : this(
     adjustmentId = mapping.adjustmentId,
@@ -38,6 +38,6 @@ data class SentencingAdjustmentMappingDto(
     nomisAdjustmentCategory = mapping.nomisAdjustmentCategory,
     label = mapping.label,
     mappingType = mapping.mappingType.name,
-    whenCreated = mapping.whenCreated
+    whenCreated = mapping.whenCreated,
   )
 }

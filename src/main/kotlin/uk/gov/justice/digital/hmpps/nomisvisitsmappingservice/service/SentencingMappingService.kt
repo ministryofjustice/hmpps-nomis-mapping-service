@@ -29,7 +29,7 @@ class SentencingMappingService(
 
   fun alreadyExistsMessage(
     duplicateMapping: SentencingAdjustmentMappingDto,
-    existingMapping: SentencingAdjustmentMappingDto
+    existingMapping: SentencingAdjustmentMappingDto,
   ) =
     "Sentence adjustment mapping already exists. \nExisting mapping: $existingMapping\nDuplicate mapping: $duplicateMapping"
 
@@ -44,29 +44,33 @@ class SentencingMappingService(
           log.debug(
             "Not creating. All OK: " +
               alreadyExistsMessage(
-                duplicateMapping = createMappingRequest, existingMapping = SentencingAdjustmentMappingDto(this@run)
-              )
+                duplicateMapping = createMappingRequest,
+                existingMapping = SentencingAdjustmentMappingDto(this@run),
+              ),
           )
           return
         }
         throw DuplicateAdjustmentException(
           messageIn = alreadyExistsMessage(
-            duplicateMapping = createMappingRequest, existingMapping = SentencingAdjustmentMappingDto(this@run)
+            duplicateMapping = createMappingRequest,
+            existingMapping = SentencingAdjustmentMappingDto(this@run),
           ),
-          duplicateMapping = createMappingRequest, existingMapping = SentencingAdjustmentMappingDto(this@run),
+          duplicateMapping = createMappingRequest,
+          existingMapping = SentencingAdjustmentMappingDto(this@run),
         )
       }
 
       sentenceAdjustmentRepository.findOneByNomisAdjustmentIdAndNomisAdjustmentCategory(
         nomisAdjustmentId = nomisAdjustmentId,
-        nomisAdjustmentCategory = nomisAdjustmentCategory
+        nomisAdjustmentCategory = nomisAdjustmentCategory,
       )?.run {
         throw DuplicateAdjustmentException(
           messageIn = alreadyExistsMessage(
-            duplicateMapping = createMappingRequest, existingMapping = SentencingAdjustmentMappingDto(this@run)
+            duplicateMapping = createMappingRequest,
+            existingMapping = SentencingAdjustmentMappingDto(this@run),
           ),
           duplicateMapping = createMappingRequest,
-          existingMapping = SentencingAdjustmentMappingDto(this)
+          existingMapping = SentencingAdjustmentMappingDto(this),
         )
       }
 
@@ -76,8 +80,8 @@ class SentencingMappingService(
           nomisAdjustmentId = nomisAdjustmentId,
           nomisAdjustmentCategory = nomisAdjustmentCategory,
           label = label,
-          mappingType = SentencingMappingType.valueOf(mappingType)
-        )
+          mappingType = SentencingMappingType.valueOf(mappingType),
+        ),
       )
       telemetryClient.trackEvent(
         "sentence-adjustment-mapping-created",
@@ -87,13 +91,13 @@ class SentencingMappingService(
           "nomisAdjustmentCategory" to nomisAdjustmentCategory,
           "batchId" to label,
         ),
-        null
+        null,
       )
     }
 
   suspend fun getSentenceAdjustmentMappingByNomisId(
     nomisAdjustmentId: Long,
-    nomisAdjustmentCategory: String
+    nomisAdjustmentCategory: String,
   ): SentencingAdjustmentMappingDto =
     sentenceAdjustmentRepository.findOneByNomisAdjustmentIdAndNomisAdjustmentCategory(
       nomisAdjustmentId = nomisAdjustmentId,
@@ -117,14 +121,14 @@ class SentencingMappingService(
 
   suspend fun getSentenceAdjustmentMappingsByMigrationId(
     pageRequest: Pageable,
-    migrationId: String
+    migrationId: String,
   ): Page<SentencingAdjustmentMappingDto> =
     coroutineScope {
       val sentenceAdjustmentMapping = async {
         sentenceAdjustmentRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
           label = migrationId,
           MIGRATED,
-          pageRequest
+          pageRequest,
         )
       }
 
@@ -134,7 +138,8 @@ class SentencingMappingService(
 
       PageImpl(
         sentenceAdjustmentMapping.await().toList().map { SentencingAdjustmentMappingDto(it) },
-        pageRequest, count.await()
+        pageRequest,
+        count.await(),
       )
     }
 

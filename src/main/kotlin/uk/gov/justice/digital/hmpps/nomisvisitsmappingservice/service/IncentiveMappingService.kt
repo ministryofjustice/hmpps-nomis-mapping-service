@@ -41,7 +41,7 @@ class IncentiveMappingService(
 
       incentiveMappingRepository.findOneByNomisBookingIdAndNomisIncentiveSequence(
         bookingId = nomisBookingId,
-        incentiveSequence = nomisIncentiveSequence
+        incentiveSequence = nomisIncentiveSequence,
       )?.run {
         throw ValidationException("Incentive with bookingId=$nomisBookingId and incentiveSequence=$nomisIncentiveSequence already exists")
       }
@@ -52,8 +52,8 @@ class IncentiveMappingService(
           nomisBookingId = nomisBookingId,
           nomisIncentiveSequence = nomisIncentiveSequence,
           label = label,
-          mappingType = IncentiveMappingType.valueOf(mappingType)
-        )
+          mappingType = IncentiveMappingType.valueOf(mappingType),
+        ),
       )
       telemetryClient.trackEvent(
         "incentive-mapping-created",
@@ -63,7 +63,7 @@ class IncentiveMappingService(
           "incentiveId" to incentiveId.toString(),
           "batchId" to label,
         ),
-        null
+        null,
       )
       log.debug("Mapping created with Incentive id = $incentiveId, bookingId=$nomisBookingId and incentiveSequence=$nomisIncentiveSequence")
     }
@@ -71,7 +71,7 @@ class IncentiveMappingService(
   suspend fun getIncentiveMappingByNomisId(nomisBookingId: Long, nomisIncentiveSequence: Long): IncentiveMappingDto =
     incentiveMappingRepository.findOneByNomisBookingIdAndNomisIncentiveSequence(
       bookingId = nomisBookingId,
-      incentiveSequence = nomisIncentiveSequence
+      incentiveSequence = nomisIncentiveSequence,
     )
       ?.let { IncentiveMappingDto(it) }
       ?: throw NotFoundException("Incentive with bookingId=$nomisBookingId and incentiveSequence=$nomisIncentiveSequence not found")
@@ -95,7 +95,7 @@ class IncentiveMappingService(
         incentiveMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
           label = migrationId,
           MIGRATED,
-          pageRequest
+          pageRequest,
         )
       }
 
@@ -105,7 +105,8 @@ class IncentiveMappingService(
 
       PageImpl(
         incentiveMapping.await().toList().map { IncentiveMappingDto(it) },
-        pageRequest, count.await()
+        pageRequest,
+        count.await(),
       )
     }
 

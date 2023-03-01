@@ -22,15 +22,14 @@ class IncentiveMappingRepositoryTest : TestBase() {
 
   @Test
   fun saveIncentiveMapping(): Unit = runBlocking {
-
     repository.save(
       IncentiveMapping(
         incentiveId = 123,
         nomisBookingId = 456,
         nomisIncentiveSequence = 3,
         label = "TIMESTAMP",
-        mappingType = MIGRATED
-      )
+        mappingType = MIGRATED,
+      ),
     )
 
     val persistedIncentiveMappingByIncentiveId = repository.findById(123L) ?: throw RuntimeException("123L not found")

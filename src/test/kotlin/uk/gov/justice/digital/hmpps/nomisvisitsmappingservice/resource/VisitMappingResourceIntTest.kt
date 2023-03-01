@@ -27,7 +27,7 @@ private fun createMapping(
   nomisIdOverride: Long = nomisId,
   vsipIdOverride: String = vsipId,
   label: String = "2022-01-01",
-  mappingType: String = "ONLINE"
+  mappingType: String = "ONLINE",
 ): VisitMappingDto = VisitMappingDto(
   nomisId = nomisIdOverride,
   vsipId = vsipIdOverride,
@@ -38,7 +38,7 @@ private fun createMapping(
 private fun createRoomMapping(
   nomisRoomDescriptionOverride: String = "HEI-VISITS-SOC_VIS_TEST",
   vsipIdOverride: String = "Visits Main Room",
-  isOpenOverride: Boolean = true
+  isOpenOverride: Boolean = true,
 ): CreateRoomMappingDto = CreateRoomMappingDto(
   nomisRoomDescription = nomisRoomDescriptionOverride,
   vsipId = vsipIdOverride,
@@ -54,7 +54,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
     nomisIdOverride: Long = nomisId,
     vsipIdOverride: String = vsipId,
     label: String = "2022-01-01",
-    mappingType: String = "ONLINE"
+    mappingType: String = "ONLINE",
   ) {
     webTestClient.post().uri("/mapping/visits")
       .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
@@ -65,9 +65,9 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
             vsipIdOverride = vsipIdOverride,
             nomisIdOverride = nomisIdOverride,
             label = label,
-            mappingType = mappingType
-          )
-        )
+            mappingType = mappingType,
+          ),
+        ),
       )
       .exchange()
       .expectStatus().isCreated
@@ -120,7 +120,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isBadRequest
           .expectBody(ErrorResponse::class.java)
-          .returnResult().responseBody?.userMessage
+          .returnResult().responseBody?.userMessage,
       ).isEqualTo("Validation failure: Nomis visit id = 1234 already exists")
     }
 
@@ -136,8 +136,8 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
             "vsipId"      : "$vsipId",
             "label"       : "2022-01-01",
             "mappingType" : "ONLINE"
-          }"""
-          )
+          }""",
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -152,8 +152,8 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
             "vsipId"      : "$vsipId",
             "label"       : "2022-01-01",
             "mappingType" : "ONLINE"
-          }"""
-          )
+          }""",
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -171,8 +171,8 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
             "vsipId"      : "$vsipId",
             "label"       : "2022-01-01",
             "mappingType" : "ONLINE"
-          }"""
-          )
+          }""",
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -237,7 +237,6 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success`() {
-
       webTestClient.post().uri("/mapping/visits")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -272,7 +271,6 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success with update role`() {
-
       webTestClient.post().uri("/mapping/visits")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -321,7 +319,6 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get retrieves latest migrated mapping`() {
-
       webTestClient.post().uri("/mapping/visits")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -331,9 +328,9 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
               vsipIdOverride = "10",
               nomisIdOverride = 10,
               label = "2022-01-01T00:00:00",
-              mappingType = "MIGRATED"
-            )
-          )
+              mappingType = "MIGRATED",
+            ),
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -347,9 +344,9 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
               vsipIdOverride = "20",
               nomisIdOverride = 20,
               label = "2022-01-02T00:00:00",
-              mappingType = "MIGRATED"
-            )
-          )
+              mappingType = "MIGRATED",
+            ),
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -363,9 +360,9 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
               vsipIdOverride = "1",
               nomisIdOverride = 1,
               label = "2022-01-02T10:00:00",
-              mappingType = "MIGRATED"
-            )
-          )
+              mappingType = "MIGRATED",
+            ),
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -379,9 +376,9 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
               vsipIdOverride = "99",
               nomisIdOverride = 199,
               label = "whatever",
-              mappingType = "ONLINE"
-            )
-          )
+              mappingType = "ONLINE",
+            ),
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -411,9 +408,9 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
               vsipIdOverride = "99",
               nomisIdOverride = 199,
               label = "whatever",
-              mappingType = "ONLINE"
-            )
-          )
+              mappingType = "ONLINE",
+            ),
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -463,7 +460,6 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success`() {
-
       webTestClient.post().uri("/mapping/visits")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -498,7 +494,6 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success with update role`() {
-
       webTestClient.post().uri("/mapping/visits")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -808,9 +803,9 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
           createMapping(
             nomisIdOverride = 222,
             vsipIdOverride = "333",
-            mappingType = "MIGRATED"
-          )
-        )
+            mappingType = "MIGRATED",
+          ),
+        ),
       )
       .exchange()
       .expectStatus().isCreated
@@ -865,13 +860,12 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get visit mappings by migration id success`() {
-
       (1L..4L).forEach {
         postCreateMappingRequest(
           vsipIdOverride = it.toString(),
           nomisIdOverride = it,
           label = "2022-01-01",
-          mappingType = "MIGRATED"
+          mappingType = "MIGRATED",
         )
       }
       (5L..9L).forEach {
@@ -879,7 +873,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
           vsipIdOverride = it.toString(),
           nomisIdOverride = it,
           label = "2099-01-01",
-          mappingType = "MIGRATED"
+          mappingType = "MIGRATED",
         )
       }
       postCreateMappingRequest(nomisIdOverride = 12, vsipIdOverride = "12", mappingType = "ONLINE")
@@ -892,21 +886,23 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .jsonPath("totalElements").isEqualTo(4)
         .jsonPath("$.content..nomisId").value(
           Matchers.contains(
-            1, 2, 3, 4
-          )
+            1,
+            2,
+            3,
+            4,
+          ),
         )
         .jsonPath("$.content[0].whenCreated").isNotEmpty
     }
 
     @Test
     fun `get visit mappings by migration id - no records exist`() {
-
       (1L..4L).forEach {
         postCreateMappingRequest(
           vsipIdOverride = it.toString(),
           nomisIdOverride = it,
           label = "2022-01-01",
-          mappingType = "MIGRATED"
+          mappingType = "MIGRATED",
         )
       }
 
@@ -921,13 +917,12 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `can request a different page size`() {
-
       (1L..6L).forEach {
         postCreateMappingRequest(
           vsipIdOverride = it.toString(),
           nomisIdOverride = it,
           label = "2022-01-01",
-          mappingType = "MIGRATED"
+          mappingType = "MIGRATED",
         )
       }
       webTestClient.get().uri {
@@ -954,7 +949,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
           vsipIdOverride = it.toString(),
           nomisIdOverride = it,
           label = "2022-01-01",
-          mappingType = "MIGRATED"
+          mappingType = "MIGRATED",
         )
       }
       webTestClient.get().uri {
