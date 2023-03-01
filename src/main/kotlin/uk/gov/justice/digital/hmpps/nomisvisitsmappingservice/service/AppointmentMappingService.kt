@@ -41,7 +41,7 @@ class AppointmentMappingService(
         AppointmentMapping(
           appointmentInstanceId = appointmentInstanceId,
           nomisEventId = nomisEventId,
-        )
+        ),
       )
       telemetryClient.trackEvent(
         "appointment-mapping-created",
@@ -49,7 +49,7 @@ class AppointmentMappingService(
           "nomisEventId" to nomisEventId.toString(),
           "appointmentInstanceId" to appointmentInstanceId.toString(),
         ),
-        null
+        null,
       )
       log.debug("Mapping created with appointmentInstanceId = $appointmentInstanceId, nomisEventId = $nomisEventId")
     }

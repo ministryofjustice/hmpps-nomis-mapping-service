@@ -33,23 +33,26 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
     summary = "Creates a new appointment mapping",
     description = "Creates a mapping between nomis id and Appointment instance id. Requires NOMIS_APPOINTMENTS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = AppointmentMappingDto::class))]
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = AppointmentMappingDto::class))],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Mapping entry created"),
       ApiResponse(
         responseCode = "400",
         description = "Nomis or appointment instance ids already exist",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
-  suspend fun createMapping(@RequestBody @Valid createMappingRequest: AppointmentMappingDto) =
+  suspend fun createMapping(
+    @RequestBody @Valid
+    createMappingRequest: AppointmentMappingDto,
+  ) =
     mappingService.createMapping(createMappingRequest)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_APPOINTMENTS')")
@@ -65,25 +68,26 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = AppointmentMappingDto::class)
-          )
-        ]
+            schema = Schema(implementation = AppointmentMappingDto::class),
+          ),
+        ],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "Id does not exist in mapping table",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun getMappingGivenId(
     @Schema(description = "Appointment instance Id", example = "12345", required = true)
-    @PathVariable appointmentInstanceId: Long
+    @PathVariable
+    appointmentInstanceId: Long,
   ): AppointmentMappingDto = mappingService.getMappingById(appointmentInstanceId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_APPOINTMENTS')")
@@ -95,17 +99,18 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
     responses = [
       ApiResponse(
         responseCode = "204",
-        description = "Mapping deleted"
+        description = "Mapping deleted",
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun deleteMapping(
     @Schema(description = "Appointment instance Id", example = "12345", required = true)
-    @PathVariable id: Long
+    @PathVariable
+    id: Long,
   ) = mappingService.deleteMapping(id)
 }

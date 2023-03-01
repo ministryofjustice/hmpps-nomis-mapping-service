@@ -42,8 +42,8 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
           createMapping(
             nomisId = nomisId,
             appointmentId = appointmentId,
-          )
-        )
+          ),
+        ),
       )
       .exchange()
       .expectStatus().isCreated
@@ -96,7 +96,7 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isBadRequest
           .expectBody(ErrorResponse::class.java)
-          .returnResult().responseBody?.userMessage
+          .returnResult().responseBody?.userMessage,
       ).isEqualTo("Validation failure: Appointment mapping id = 4444 already exists")
     }
 
@@ -111,8 +111,8 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
             "nomisEventId"          : $NOMIS_EVENT_ID,
             "appointmentInstanceId" : $APPOINTMENT_INSTANCE_ID,
             "mappingType"           : "APPOINTMENT_CREATED"
-          }"""
-          )
+          }""",
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -126,8 +126,8 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
             "nomisEventId"          : $NOMIS_EVENT_ID,
             "appointmentInstanceId" : $APPOINTMENT_INSTANCE_ID,
             "mappingType"           : "APPOINTMENT_CREATED"
-          }"""
-          )
+          }""",
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -145,7 +145,7 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isBadRequest
           .expectBody(ErrorResponse::class.java)
-          .returnResult().responseBody?.userMessage
+          .returnResult().responseBody?.userMessage,
       ).isEqualTo("Validation failure: Appointment with Nomis id=1234 already exists")
     }
 
@@ -160,8 +160,8 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
             "nomisEventId"          : $NOMIS_EVENT_ID,
             "appointmentInstanceId" : $APPOINTMENT_INSTANCE_ID,
             "mappingType"           : "APPOINTMENT_CREATED"
-          }"""
-          )
+          }""",
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -214,7 +214,6 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success`() {
-
       webTestClient.post().uri("/mapping/appointments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -246,7 +245,6 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success with update role`() {
-
       webTestClient.post().uri("/mapping/appointments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
         .contentType(MediaType.APPLICATION_JSON)

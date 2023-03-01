@@ -37,8 +37,8 @@ class NomisMappingServiceExceptionHandler {
         ErrorResponse(
           status = BAD_REQUEST,
           userMessage = "Validation failure: $message",
-          developerMessage = message
-        )
+          developerMessage = message,
+        ),
       )
   }
 
@@ -51,8 +51,8 @@ class NomisMappingServiceExceptionHandler {
         ErrorResponse(
           status = BAD_REQUEST,
           userMessage = "Validation failure: ${e.message}",
-          developerMessage = e.message
-        )
+          developerMessage = e.message,
+        ),
       )
   }
 
@@ -65,11 +65,11 @@ class NomisMappingServiceExceptionHandler {
         DuplicateAdjustmentErrorResponse(
           moreInfo = DuplicateAdjustmentErrorContent(
             duplicateAdjustment = e.duplicateMapping,
-            existingAdjustment = e.existingMapping
+            existingAdjustment = e.existingMapping,
           ),
           userMessage = "Conflict: ${e.message}",
-          developerMessage = e.message
-        )
+          developerMessage = e.message,
+        ),
       )
   }
 
@@ -82,8 +82,8 @@ class NomisMappingServiceExceptionHandler {
         ErrorResponse(
           status = HttpStatus.NOT_FOUND,
           userMessage = "Not Found: ${e.message}",
-          developerMessage = e.message
-        )
+          developerMessage = e.message,
+        ),
       )
   }
 
@@ -96,8 +96,8 @@ class NomisMappingServiceExceptionHandler {
         ErrorResponse(
           status = INTERNAL_SERVER_ERROR,
           userMessage = "Unexpected error: ${e.message}",
-          developerMessage = e.message
-        )
+          developerMessage = e.message,
+        ),
       )
   }
 
@@ -124,7 +124,7 @@ open class ErrorResponse(
 class DuplicateAdjustmentErrorResponse(
   val moreInfo: DuplicateAdjustmentErrorContent? = null,
   userMessage: String?,
-  developerMessage: String?
+  developerMessage: String?,
 ) : ErrorResponse(status = 409, errorCode = 1409, userMessage = userMessage, developerMessage = developerMessage)
 
 data class DuplicateAdjustmentErrorContent(

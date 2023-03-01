@@ -35,13 +35,13 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     nomisIncentiveSequence: Long = sequence,
     incentiveServiceId: Long = incentiveId,
     label: String = "2022-01-01",
-    mappingType: String = NOMIS_CREATED.name
+    mappingType: String = NOMIS_CREATED.name,
   ): IncentiveMappingDto = IncentiveMappingDto(
     nomisBookingId = nomisBookingId,
     nomisIncentiveSequence = nomisIncentiveSequence,
     incentiveId = incentiveServiceId,
     label = label,
-    mappingType = mappingType
+    mappingType = mappingType,
   )
 
   private fun postCreateIncentiveMappingRequest(
@@ -49,7 +49,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     nomisIncentiveSequence: Long = 1,
     incentiveId: Long = 4444L,
     label: String = "2022-01-01",
-    mappingType: String = NOMIS_CREATED.name
+    mappingType: String = NOMIS_CREATED.name,
   ) {
     webTestClient.post().uri("/mapping/incentives")
       .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
@@ -61,9 +61,9 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
             nomisIncentiveSequence = nomisIncentiveSequence,
             incentiveServiceId = incentiveId,
             label = label,
-            mappingType = mappingType
-          )
-        )
+            mappingType = mappingType,
+          ),
+        ),
       )
       .exchange()
       .expectStatus().isCreated
@@ -116,7 +116,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isBadRequest
           .expectBody(ErrorResponse::class.java)
-          .returnResult().responseBody?.userMessage
+          .returnResult().responseBody?.userMessage,
       ).isEqualTo("Validation failure: Incentive mapping id = 4444 already exists")
     }
 
@@ -133,8 +133,8 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
             "incentiveId"      : $incentiveId,
             "label"       : "2022-01-01",
             "mappingType" : "INCENTIVE_CREATED"
-          }"""
-          )
+          }""",
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -150,8 +150,8 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
             "incentiveId"      : $incentiveId,
             "label"       : "2022-01-01",
             "mappingType" : "INCENTIVE_CREATED"
-          }"""
-          )
+          }""",
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -169,7 +169,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isBadRequest
           .expectBody(ErrorResponse::class.java)
-          .returnResult().responseBody?.userMessage
+          .returnResult().responseBody?.userMessage,
       ).isEqualTo("Validation failure: Incentive with bookingId=1234 and incentiveSequence=1 already exists")
     }
 
@@ -186,8 +186,8 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
             "incentiveId"      : $incentiveId,
             "label"       : "2022-01-01",
             "mappingType" : "INCENTIVE_CREATED"
-          }"""
-          )
+          }""",
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -255,7 +255,6 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success`() {
-
       webTestClient.post().uri("/mapping/incentives")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -292,7 +291,6 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success with update role`() {
-
       webTestClient.post().uri("/mapping/incentives")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -341,7 +339,6 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get retrieves latest migrated mapping`() {
-
       webTestClient.post().uri("/mapping/incentives")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -352,9 +349,9 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
               nomisIncentiveSequence = 2,
               incentiveServiceId = 10,
               label = "2022-01-01T00:00:00",
-              mappingType = "MIGRATED"
-            )
-          )
+              mappingType = "MIGRATED",
+            ),
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -369,9 +366,9 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
               nomisIncentiveSequence = 2,
               incentiveServiceId = 20,
               label = "2022-01-02T00:00:00",
-              mappingType = "MIGRATED"
-            )
-          )
+              mappingType = "MIGRATED",
+            ),
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -386,9 +383,9 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
               nomisIncentiveSequence = 1,
               incentiveServiceId = 1,
               label = "2022-01-02T10:00:00",
-              mappingType = MIGRATED.name
-            )
-          )
+              mappingType = MIGRATED.name,
+            ),
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -403,9 +400,9 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
               nomisIncentiveSequence = 2,
               incentiveServiceId = 199,
               label = "whatever",
-              mappingType = INCENTIVE_CREATED.name
-            )
-          )
+              mappingType = INCENTIVE_CREATED.name,
+            ),
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -438,9 +435,9 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
               nomisIncentiveSequence = 7,
               incentiveServiceId = 77,
               label = "whatever",
-              mappingType = INCENTIVE_CREATED.name
-            )
-          )
+              mappingType = INCENTIVE_CREATED.name,
+            ),
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -490,7 +487,6 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success`() {
-
       webTestClient.post().uri("/mapping/incentives")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -526,7 +522,6 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success with update role`() {
-
       webTestClient.post().uri("/mapping/incentives")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -611,9 +606,9 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
               nomisBookingId = 333,
               nomisIncentiveSequence = 2,
               incentiveServiceId = 222,
-              mappingType = MIGRATED.name
-            )
-          )
+              mappingType = MIGRATED.name,
+            ),
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -758,13 +753,12 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get incentive mappings by migration id success`() {
-
       (1L..4L).forEach {
         postCreateIncentiveMappingRequest(
           nomisBookingId = it,
           incentiveId = it,
           label = "2022-01-01",
-          mappingType = "MIGRATED"
+          mappingType = "MIGRATED",
         )
       }
       (5L..9L).forEach {
@@ -772,13 +766,14 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
           nomisBookingId = it,
           incentiveId = it,
           label = "2099-01-01",
-          mappingType = "MIGRATED"
+          mappingType = "MIGRATED",
         )
       }
       postCreateIncentiveMappingRequest(
         nomisBookingId = 12,
         nomisIncentiveSequence = 1,
-        incentiveId = 12, mappingType = INCENTIVE_CREATED.name
+        incentiveId = 12,
+        mappingType = INCENTIVE_CREATED.name,
       )
 
       webTestClient.get().uri("/mapping/incentives/migration-id/2022-01-01")
@@ -789,21 +784,23 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
         .jsonPath("totalElements").isEqualTo(4)
         .jsonPath("$.content..nomisBookingId").value(
           Matchers.contains(
-            1, 2, 3, 4
-          )
+            1,
+            2,
+            3,
+            4,
+          ),
         )
         .jsonPath("$.content[0].whenCreated").isNotEmpty
     }
 
     @Test
     fun `get incentive mappings by migration id - no records exist`() {
-
       (1L..4L).forEach {
         postCreateIncentiveMappingRequest(
           nomisBookingId = it,
           incentiveId = it,
           label = "2022-01-01",
-          mappingType = "MIGRATED"
+          mappingType = "MIGRATED",
         )
       }
 
@@ -818,13 +815,12 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `can request a different page size`() {
-
       (1L..6L).forEach {
         postCreateIncentiveMappingRequest(
           nomisBookingId = it,
           incentiveId = it,
           label = "2022-01-01",
-          mappingType = "MIGRATED"
+          mappingType = "MIGRATED",
         )
       }
       webTestClient.get().uri {
@@ -851,7 +847,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
           nomisBookingId = it,
           incentiveId = it,
           label = "2022-01-01",
-          mappingType = "MIGRATED"
+          mappingType = "MIGRATED",
         )
       }
       webTestClient.get().uri {

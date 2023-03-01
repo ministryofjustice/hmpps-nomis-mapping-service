@@ -22,7 +22,7 @@ class ResourceServerConfiguration {
         it.pathMatchers(
           "/webjars/**", "/favicon.ico", "/csrf",
           "/health/**", "/info", "/h2-console/**",
-          "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"
+          "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
         ).permitAll()
           .anyExchange().authenticated()
       }
