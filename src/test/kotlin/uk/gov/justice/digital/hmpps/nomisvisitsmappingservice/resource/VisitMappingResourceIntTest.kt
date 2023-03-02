@@ -673,10 +673,14 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
       webTestClient.post().uri("/prison/FGF/room-mappings")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .contentType(MediaType.APPLICATION_JSON)
-        .body(BodyInserters.fromValue("""{
+        .body(
+          BodyInserters.fromValue(
+            """{
             "nomisRoomDescription"     : "nomisroom",
             "vsipId"      : "vsiproom"
-          }"""))
+          }"""
+          )
+        )
         .exchange()
         .expectStatus().isCreated
 
