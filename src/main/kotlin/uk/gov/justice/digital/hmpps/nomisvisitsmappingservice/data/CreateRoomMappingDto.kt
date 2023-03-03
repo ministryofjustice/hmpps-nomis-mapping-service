@@ -13,6 +13,6 @@ data class CreateRoomMappingDto(
   @Schema(description = "nomis room description (unique within prison)", required = true)
   val nomisRoomDescription: String,
 
-  @Schema(description = "open or closed indicator", required = true)
-  val isOpen: Boolean,
+  @Schema(description = "open or closed indicator, default is false")
+  val isOpen: Boolean = false,
 )

@@ -669,6 +669,31 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `create room mapping allows isOpen flag to be omitted `() {
+      webTestClient.post().uri("/prison/FGF/room-mappings")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            """{
+            "nomisRoomDescription"     : "nomisroom",
+            "vsipId"      : "vsiproom"
+          }"""
+          )
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.get().uri("/prison/FGF/room-mappings")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("$.length()").isEqualTo(1)
+        .jsonPath("$[0].isOpen").isEqualTo(false)
+    }
+
+    @Test
     fun `create room mapping rejects duplicate`() {
       webTestClient.post().uri("/prison/HEI/room-mappings")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
