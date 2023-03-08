@@ -673,8 +673,8 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
             """{
             "nomisRoomDescription"     : "nomisroom",
             "vsipId"      : "vsiproom"
-          }"""
-          )
+          }""",
+          ),
         )
         .exchange()
         .expectStatus().isCreated
