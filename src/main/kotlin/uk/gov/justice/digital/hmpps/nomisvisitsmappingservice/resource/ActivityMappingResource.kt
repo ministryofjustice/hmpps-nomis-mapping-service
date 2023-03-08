@@ -33,23 +33,26 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
     summary = "Creates a new activity mapping",
     description = "Creates a mapping between nomis id and Activity service id. Requires NOMIS_ACTIVITIES",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = ActivityMappingDto::class))]
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = ActivityMappingDto::class))],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Mapping entry created"),
       ApiResponse(
         responseCode = "400",
         description = "Nomis or activity schedule ids already exist",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
-  suspend fun createMapping(@RequestBody @Valid createMappingRequest: ActivityMappingDto) =
+  suspend fun createMapping(
+    @RequestBody @Valid
+    createMappingRequest: ActivityMappingDto,
+  ) =
     mappingService.createMapping(createMappingRequest)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
@@ -65,25 +68,26 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = ActivityMappingDto::class)
-          )
-        ]
+            schema = Schema(implementation = ActivityMappingDto::class),
+          ),
+        ],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "Id does not exist in mapping table",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun getMappingGivenId(
     @Schema(description = "Activity schedule Id", example = "12345", required = true)
-    @PathVariable activityScheduleId: Long
+    @PathVariable
+    activityScheduleId: Long,
   ): ActivityMappingDto = mappingService.getMappingById(activityScheduleId)
 
 //  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
@@ -115,17 +119,18 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
     responses = [
       ApiResponse(
         responseCode = "204",
-        description = "Mapping deleted"
+        description = "Mapping deleted",
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun deleteMapping(
     @Schema(description = "Activity schedule Id", example = "12345", required = true)
-    @PathVariable id: Long
+    @PathVariable
+    id: Long,
   ) = mappingService.deleteMapping(id)
 }

@@ -16,7 +16,7 @@ data class AppointmentMappingDto(
   val nomisEventId: Long,
 
   @Schema(description = "Date-time the mapping was created")
-  val whenCreated: LocalDateTime? = null
+  val whenCreated: LocalDateTime? = null,
 ) {
   constructor(mapping: AppointmentMapping) : this(
     appointmentInstanceId = mapping.appointmentInstanceId,

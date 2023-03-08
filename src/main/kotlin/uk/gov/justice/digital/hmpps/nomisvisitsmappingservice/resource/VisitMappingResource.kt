@@ -40,23 +40,26 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     summary = "Creates a new visit",
     description = "Creates a new visit and decrements the visit balance. Requires role NOMIS_VISITS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))]
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Visit mapping entry created"),
       ApiResponse(
         responseCode = "400",
         description = "Nomis or VSIP ids already exist",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
-  suspend fun createMapping(@RequestBody @Valid createMappingRequest: VisitMappingDto) =
+  suspend fun createMapping(
+    @RequestBody @Valid
+    createMappingRequest: VisitMappingDto,
+  ) =
     mappingService.createVisitMapping(createMappingRequest)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
@@ -69,19 +72,19 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
       ApiResponse(
         responseCode = "200",
         description = "Mapping Information Returned",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "NOMIS id does not exist in mapping table",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun getVisitMappingGivenNomisId(
     @Schema(description = "NOMIS Id", example = "12345", required = true)
@@ -99,23 +102,24 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
       ApiResponse(
         responseCode = "200",
         description = "Mapping Information Returned",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "VSIP id does not exist in mapping table",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun getVisitMappingGivenVsipId(
     @Schema(description = "VSIP Id", example = "12345", required = true)
-    @PathVariable vsipId: String
+    @PathVariable
+    vsipId: String,
   ): VisitMappingDto = mappingService.getVisitMappingGivenVsipId(vsipId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
@@ -128,19 +132,19 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
       ApiResponse(
         responseCode = "200",
         description = "Mapping Information Returned",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "No mappings found at all for any migration",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun getLatestMigratedVisitMapping(): VisitMappingDto = mappingService.getVisitMappingForLatestMigrated()
 
@@ -154,19 +158,19 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
       ApiResponse(
         responseCode = "200",
         description = "Mapping Information Returned",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = RoomMappingDto::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = RoomMappingDto::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "NOMIS room description does not exist in the mapping table for the given prison",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun getRoomMapping(
     @Schema(description = "NOMIS prison Id", example = "MDI", required = true)
@@ -186,14 +190,14 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Mapping list Returned"
+        description = "Mapping list Returned",
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun getRoomMappings(
     @Schema(description = "NOMIS prison Id", example = "MDI", required = true)
@@ -208,27 +212,28 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     summary = "Creates a new room mapping",
     description = "Creates a new room mapping. Requires role NOMIS_VISITS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = CreateRoomMappingDto::class))]
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = CreateRoomMappingDto::class))],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Visit mapping entry created"),
       ApiResponse(
         responseCode = "400",
         description = "mapping for this nomis room and prison already exists",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun createRoomMapping(
     @Schema(description = "NOMIS prison Id", example = "MDI", required = true)
     @PathVariable
     prisonId: String,
-    @RequestBody @Valid createMappingRequest: CreateRoomMappingDto
+    @RequestBody @Valid
+    createMappingRequest: CreateRoomMappingDto,
   ) =
     mappingService.createRoomMapping(prisonId, createMappingRequest)
 
@@ -239,16 +244,16 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     summary = "Deletes a room mapping",
     description = "Removes room mapping given the prison and nomis room description. Requires role NOMIS_VISITS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))]
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))],
     ),
     responses = [
       ApiResponse(responseCode = "204", description = "Visit room mapping deleted"),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun deleteRoomMapping(
     @Schema(description = "NOMIS prison Id", example = "MDI", required = true)
@@ -256,7 +261,7 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     prisonId: String,
     @Schema(description = "NOMIS room description", example = "MDI", required = true)
     @PathVariable
-    nomisRoomDescription: String
+    nomisRoomDescription: String,
   ) =
     mappingService.deleteRoomMapping(prisonId, nomisRoomDescription)
 
@@ -269,23 +274,24 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     responses = [
       ApiResponse(
         responseCode = "204",
-        description = "Visit id mappings deleted"
+        description = "Visit id mappings deleted",
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun deleteVisitIdMappings(
     @RequestParam(value = "onlyMigrated", required = false, defaultValue = "false")
     @Parameter(
       description = "if true delete mapping entries created by the migration process only (synchronisation records are unaffected)",
-      example = "true"
-    ) onlyMigrated: Boolean
+      example = "true",
+    )
+    onlyMigrated: Boolean,
   ) = mappingService.deleteVisitMappings(
-    onlyMigrated
+    onlyMigrated,
   )
 
   @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
@@ -298,19 +304,20 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
       ApiResponse(
         responseCode = "200",
         description = "Mapping page returned",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      )
-    ]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
   )
   suspend fun getMigratedVisitMappingsByMigrationId(
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
-    @PathVariable migrationId: String
+    @PathVariable
+    migrationId: String,
   ): Page<VisitMappingDto> =
     mappingService.getVisitMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 }

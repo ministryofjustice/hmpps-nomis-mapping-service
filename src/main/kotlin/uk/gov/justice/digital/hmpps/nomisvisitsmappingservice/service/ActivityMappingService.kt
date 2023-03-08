@@ -42,8 +42,8 @@ class ActivityMappingService(
         ActivityMapping(
           activityScheduleId = activityScheduleId,
           nomisCourseActivityId = nomisCourseActivityId,
-          mappingType = ActivityMappingType.valueOf(mappingType)
-        )
+          mappingType = ActivityMappingType.valueOf(mappingType),
+        ),
       )
       telemetryClient.trackEvent(
         "activity-mapping-created",
@@ -51,7 +51,7 @@ class ActivityMappingService(
           "nomisCourseActivityId" to nomisCourseActivityId.toString(),
           "activityScheduleId" to activityScheduleId.toString(),
         ),
-        null
+        null,
       )
       log.debug("Mapping created with activityScheduleId = $activityScheduleId, nomisCourseActivityId = $nomisCourseActivityId")
     }

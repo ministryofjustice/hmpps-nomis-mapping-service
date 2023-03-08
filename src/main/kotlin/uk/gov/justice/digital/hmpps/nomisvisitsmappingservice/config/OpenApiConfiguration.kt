@@ -27,13 +27,13 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
         Server().url("https://nomis-sync-prisoner-mapping-preprod.hmpps.service.justice.gov.uk").description("PreProd"),
         Server().url("https://nomis-sync-prisoner-mapping-dev.hmpps.service.justice.gov.uk").description("Development"),
         Server().url("http://localhost:8080").description("Local"),
-      )
+      ),
     )
     .info(
       Info().title("NOMIS Mapping Service")
         .version(version)
         .description("Manages mapping information between DPS services and NOMIS")
-        .contact(Contact().name("HMPPS Digital Studio").email("feedback@digital.justice.gov.uk"))
+        .contact(Contact().name("HMPPS Digital Studio").email("feedback@digital.justice.gov.uk")),
     )
     .components(
       Components().addSecuritySchemes(
@@ -43,8 +43,8 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
           .scheme("bearer")
           .bearerFormat("JWT")
           .`in`(SecurityScheme.In.HEADER)
-          .name("Authorization")
-      )
+          .name("Authorization"),
+      ),
     )
     .addSecurityItem(SecurityRequirement().addList("bearer-jwt", listOf("read", "write")))
 
@@ -61,7 +61,7 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
               .example("2021-07-05T10:35:17")
               .pattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$")
               .description(propertySchema.description)
-              .required(propertySchema.required)
+              .required(propertySchema.required),
           )
         }
       }

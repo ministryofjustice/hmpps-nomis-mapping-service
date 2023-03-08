@@ -54,7 +54,7 @@ class VisitMappingService(
           "vsipVisitId" to vsipId,
           "batchId" to label,
         ),
-        null
+        null,
       )
       log.debug("Mapping created with VSIP visit id = $vsipId, Nomis visit id = $nomisId")
     }
@@ -88,7 +88,7 @@ class VisitMappingService(
         visitIdRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
           label = migrationId,
           MappingType.MIGRATED,
-          pageRequest
+          pageRequest,
         )
       }
 
@@ -98,7 +98,8 @@ class VisitMappingService(
 
       PageImpl(
         visits.await().toList().map { VisitMappingDto(it) },
-        pageRequest, count.await()
+        pageRequest,
+        count.await(),
       )
     }
 
@@ -113,7 +114,6 @@ class VisitMappingService(
     }
 
   suspend fun createRoomMapping(prisonId: String, createRoomMappingDto: CreateRoomMappingDto) {
-
     roomIdRepository.findOneByPrisonIdAndNomisRoomDescription(prisonId, createRoomMappingDto.nomisRoomDescription)
       ?.run {
         throw ValidationException("Visit room mapping for prison $prisonId and nomis room = ${createRoomMappingDto.nomisRoomDescription} already exists")
@@ -124,8 +124,8 @@ class VisitMappingService(
         nomisRoomDescription = createRoomMappingDto.nomisRoomDescription,
         vsipId = createRoomMappingDto.vsipId,
         isOpen = createRoomMappingDto.isOpen,
-        prisonId = prisonId
-      )
+        prisonId = prisonId,
+      ),
     )
     telemetryClient.trackEvent(
       "visit-room-mapping-created",
@@ -135,11 +135,11 @@ class VisitMappingService(
         "vsipRoomDescription" to createRoomMappingDto.vsipId,
         "isOpen" to createRoomMappingDto.isOpen.toString(),
       ),
-      null
+      null,
     )
     log.debug(
       "Room Mapping created with VSIP visit description = ${createRoomMappingDto.vsipId}, Nomis room description = " +
-        "${createRoomMappingDto.nomisRoomDescription}, open = ${createRoomMappingDto.isOpen}, prison = $prisonId"
+        "${createRoomMappingDto.nomisRoomDescription}, open = ${createRoomMappingDto.isOpen}, prison = $prisonId",
     )
   }
 
@@ -152,10 +152,10 @@ class VisitMappingService(
           "prisonId" to prisonId,
           "nomisRoomDescription" to nomisRoomDescription,
         ),
-        null
+        null,
       )
       log.debug(
-        "Room Mapping deleted, Nomis room description = $nomisRoomDescription, prison = $prisonId"
+        "Room Mapping deleted, Nomis room description = $nomisRoomDescription, prison = $prisonId",
       )
     }
   }

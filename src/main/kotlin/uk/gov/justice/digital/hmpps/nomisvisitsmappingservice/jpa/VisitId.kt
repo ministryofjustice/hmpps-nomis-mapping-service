@@ -23,7 +23,7 @@ data class VisitId(
   @Value("false")
   val new: Boolean = true,
 
-  val whenCreated: LocalDateTime? = null
+  val whenCreated: LocalDateTime? = null,
 
 ) : Persistable<Long> {
 

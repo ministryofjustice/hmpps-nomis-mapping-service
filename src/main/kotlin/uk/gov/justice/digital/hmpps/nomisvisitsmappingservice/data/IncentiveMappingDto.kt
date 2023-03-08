@@ -34,7 +34,7 @@ data class IncentiveMappingDto(
   val mappingType: String,
 
   @Schema(description = "Date time the mapping was created")
-  val whenCreated: LocalDateTime? = null
+  val whenCreated: LocalDateTime? = null,
 ) {
   constructor(mapping: IncentiveMapping) : this(
     incentiveId = mapping.incentiveId,
@@ -42,6 +42,6 @@ data class IncentiveMappingDto(
     nomisIncentiveSequence = mapping.nomisIncentiveSequence,
     label = mapping.label,
     mappingType = mapping.mappingType.name,
-    whenCreated = mapping.whenCreated
+    whenCreated = mapping.whenCreated,
   )
 }

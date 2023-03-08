@@ -38,23 +38,26 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
     summary = "Creates a new incentive mapping",
     description = "Creates a mapping between nomis Incentive ids and Incentive service id. Requires ROLE_NOMIS_INCENTIVES",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = IncentiveMappingDto::class))]
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = IncentiveMappingDto::class))],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Incentive mapping entry created"),
       ApiResponse(
         responseCode = "400",
         description = "Nomis or Incentive ids already exist",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
-  suspend fun createMapping(@RequestBody @Valid createMappingRequest: IncentiveMappingDto) =
+  suspend fun createMapping(
+    @RequestBody @Valid
+    createMappingRequest: IncentiveMappingDto,
+  ) =
     mappingService.createIncentiveMapping(createMappingRequest)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_INCENTIVES')")
@@ -70,21 +73,21 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = IncentiveMappingDto::class)
-          )
-        ]
+            schema = Schema(implementation = IncentiveMappingDto::class),
+          ),
+        ],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "NOMIS incentive id does not exist in mapping table",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun getIncentiveMappingGivenNomisId(
     @Schema(description = "NOMIS booking ID", example = "12345", required = true)
@@ -108,25 +111,26 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = IncentiveMappingDto::class)
-          )
-        ]
+            schema = Schema(implementation = IncentiveMappingDto::class),
+          ),
+        ],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "Incentive id does not exist in mapping table",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun getIncentiveMappingGivenIncentiveId(
     @Schema(description = "Incentive Id", example = "12345", required = true)
-    @PathVariable incentiveId: Long
+    @PathVariable
+    incentiveId: Long,
   ): IncentiveMappingDto = mappingService.getIncentiveMappingByIncentiveId(incentiveId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_INCENTIVES')")
@@ -142,21 +146,21 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = IncentiveMappingDto::class)
-          )
-        ]
+            schema = Schema(implementation = IncentiveMappingDto::class),
+          ),
+        ],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "No mappings found at all for any migration",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun getLatestMigratedIncentiveMapping(): IncentiveMappingDto =
     mappingService.getIncentiveMappingForLatestMigrated()
@@ -170,23 +174,24 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
     responses = [
       ApiResponse(
         responseCode = "204",
-        description = "Incentive mappings deleted"
+        description = "Incentive mappings deleted",
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun deleteIncentiveMappings(
     @RequestParam(value = "onlyMigrated", required = false, defaultValue = "false")
     @Parameter(
       description = "if true delete mapping entries created by the migration process only (synchronisation records are unaffected)",
-      example = "true"
-    ) onlyMigrated: Boolean
+      example = "true",
+    )
+    onlyMigrated: Boolean,
   ) = mappingService.deleteIncentiveMappings(
-    onlyMigrated
+    onlyMigrated,
   )
 
   @PreAuthorize("hasRole('ROLE_NOMIS_INCENTIVES')")
@@ -198,18 +203,19 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
     responses = [
       ApiResponse(
         responseCode = "204",
-        description = "Incentive mapping deleted"
+        description = "Incentive mapping deleted",
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun deleteIncentiveMapping(
     @Schema(description = "Incentive Id", example = "12345", required = true)
-    @PathVariable incentiveId: Long
+    @PathVariable
+    incentiveId: Long,
   ) = mappingService.deleteIncentiveMapping(incentiveId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_INCENTIVES')")
@@ -225,21 +231,22 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = IncentiveMappingDto::class)
-          )
-        ]
+            schema = Schema(implementation = IncentiveMappingDto::class),
+          ),
+        ],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      )
-    ]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
   )
   suspend fun getMigratedVisitMappingsByMigrationId(
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
-    @PathVariable migrationId: String
+    @PathVariable
+    migrationId: String,
   ): Page<IncentiveMappingDto> =
     mappingService.getIncentiveMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 }

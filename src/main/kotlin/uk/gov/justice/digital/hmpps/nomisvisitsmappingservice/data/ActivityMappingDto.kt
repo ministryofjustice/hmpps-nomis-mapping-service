@@ -26,7 +26,7 @@ data class ActivityMappingDto(
   val mappingType: String,
 
   @Schema(description = "Date-time the mapping was created")
-  val whenCreated: LocalDateTime? = null
+  val whenCreated: LocalDateTime? = null,
 ) {
   constructor(mapping: ActivityMapping) : this(
     activityScheduleId = mapping.activityScheduleId,

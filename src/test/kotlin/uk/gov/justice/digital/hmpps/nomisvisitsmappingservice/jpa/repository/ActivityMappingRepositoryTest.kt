@@ -22,13 +22,12 @@ class ActivityMappingRepositoryTest : TestBase() {
 
   @Test
   fun saveMapping(): Unit = runBlocking {
-
     repository.save(
       ActivityMapping(
         activityScheduleId = 123,
         nomisCourseActivityId = 456,
-        mappingType = ActivityMappingType.ACTIVITY_CREATED
-      )
+        mappingType = ActivityMappingType.ACTIVITY_CREATED,
+      ),
     )
 
     val persistedMappingById = repository.findById(123L) ?: throw RuntimeException("123L not found")

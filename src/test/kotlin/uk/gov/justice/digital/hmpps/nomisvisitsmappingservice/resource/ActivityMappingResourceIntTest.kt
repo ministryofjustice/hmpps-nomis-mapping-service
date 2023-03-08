@@ -26,17 +26,17 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
   private fun createMapping(
     nomisId: Long = nomisCourseActivityId,
     activityId: Long = activityScheduleId,
-    mappingType: String = ActivityMappingType.NOMIS_CREATED.name
+    mappingType: String = ActivityMappingType.NOMIS_CREATED.name,
   ): ActivityMappingDto = ActivityMappingDto(
     nomisCourseActivityId = nomisId,
     activityScheduleId = activityId,
-    mappingType = mappingType
+    mappingType = mappingType,
   )
 
   private fun postCreateMappingRequest(
     nomisId: Long = nomisCourseActivityId,
     activityId: Long = activityScheduleId,
-    mappingType: String = ActivityMappingType.NOMIS_CREATED.name
+    mappingType: String = ActivityMappingType.NOMIS_CREATED.name,
   ) {
     webTestClient.post().uri("/mapping/activities")
       .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
@@ -46,9 +46,9 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
           createMapping(
             nomisId = nomisId,
             activityId = activityId,
-            mappingType = mappingType
-          )
-        )
+            mappingType = mappingType,
+          ),
+        ),
       )
       .exchange()
       .expectStatus().isCreated
@@ -101,7 +101,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isBadRequest
           .expectBody(ErrorResponse::class.java)
-          .returnResult().responseBody?.userMessage
+          .returnResult().responseBody?.userMessage,
       ).isEqualTo("Validation failure: Activity mapping id = 4444 already exists")
     }
 
@@ -116,8 +116,8 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
             "nomisCourseActivityId" : $nomisCourseActivityId,
             "activityScheduleId"    : $activityScheduleId,
             "mappingType"           : "ACTIVITY_CREATED"
-          }"""
-          )
+          }""",
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -131,8 +131,8 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
             "nomisCourseActivityId" : $nomisCourseActivityId,
             "activityScheduleId"    : $activityScheduleId,
             "mappingType"           : "ACTIVITY_CREATED"
-          }"""
-          )
+          }""",
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -150,7 +150,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isBadRequest
           .expectBody(ErrorResponse::class.java)
-          .returnResult().responseBody?.userMessage
+          .returnResult().responseBody?.userMessage,
       ).isEqualTo("Validation failure: Activity with Nomis id=1234 already exists")
     }
 
@@ -165,8 +165,8 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
             "nomisCourseActivityId" : $nomisCourseActivityId,
             "activityScheduleId"    : $activityScheduleId,
             "mappingType"           : "ACTIVITY_CREATED"
-          }"""
-          )
+          }""",
+          ),
         )
         .exchange()
         .expectStatus().isCreated
@@ -231,7 +231,6 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success`() {
-
       webTestClient.post().uri("/mapping/activities")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -265,7 +264,6 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success with update role`() {
-
       webTestClient.post().uri("/mapping/activities")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
         .contentType(MediaType.APPLICATION_JSON)

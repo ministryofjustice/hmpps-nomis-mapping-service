@@ -22,15 +22,14 @@ class SentencingAdjustmentMappingRepositoryTest : TestBase() {
 
   @Test
   fun saveSentenceAdjustmentMapping(): Unit = runBlocking {
-
     repository.save(
       SentencingAdjustmentMapping(
         adjustmentId = "123",
         nomisAdjustmentId = 456,
         nomisAdjustmentCategory = "SENTENCE",
         label = "TIMESTAMP",
-        mappingType = MIGRATED
-      )
+        mappingType = MIGRATED,
+      ),
     )
 
     val persistedSentenceAdjustmentMappingBySentenceAdjustmentId = repository.findById("123") ?: throw RuntimeException("123L not found")
