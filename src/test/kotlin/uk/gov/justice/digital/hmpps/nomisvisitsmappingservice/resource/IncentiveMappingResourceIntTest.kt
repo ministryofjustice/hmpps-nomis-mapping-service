@@ -9,8 +9,10 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.IncentiveMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.IncentiveRepository
@@ -105,22 +107,6 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `create when mapping for incentive id already exists for another IEP`() {
-      postCreateIncentiveMappingRequest()
-
-      assertThat(
-        webTestClient.post().uri("/mapping/incentives")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(createIncentiveMapping().copy(nomisBookingId = 21)))
-          .exchange()
-          .expectStatus().isBadRequest
-          .expectBody(ErrorResponse::class.java)
-          .returnResult().responseBody?.userMessage,
-      ).isEqualTo("Validation failure: Incentive mapping id = 4444 already exists")
-    }
-
-    @Test
     internal fun `create mapping succeeds when the same mapping already exists for the same IEP`() {
       webTestClient.post().uri("/mapping/incentives")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
@@ -161,16 +147,74 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     fun `create when mapping for nomis ids already exists`() {
       postCreateIncentiveMappingRequest()
 
-      assertThat(
+      val responseBody =
         webTestClient.post().uri("/mapping/incentives")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(createIncentiveMapping().copy(incentiveId = 99)))
           .exchange()
-          .expectStatus().isBadRequest
-          .expectBody(ErrorResponse::class.java)
-          .returnResult().responseBody?.userMessage,
-      ).isEqualTo("Validation failure: Incentive with bookingId=1234 and incentiveSequence=1 already exists")
+          .expectStatus().isEqualTo(409)
+          .expectBody(object : ParameterizedTypeReference<DuplicateMappingErrorResponse<IncentiveMappingDto>>() {})
+          .returnResult().responseBody
+
+      with(responseBody!!) {
+        assertThat(userMessage).contains("Conflict: Incentive mapping already exists. \nExisting mapping: IncentiveMappingDto(nomisBookingId=1234, nomisIncentiveSequence=1, incentiveId=4444, label=2022-01-01, mappingType=NOMIS_CREATED")
+        assertThat(userMessage).contains("Duplicate mapping: IncentiveMappingDto(nomisBookingId=1234, nomisIncentiveSequence=1, incentiveId=99, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null")
+        assertThat(errorCode).isEqualTo(1409)
+      }
+
+      val existingIncentive = responseBody.moreInfo?.existing!!
+      with(existingIncentive) {
+        assertThat(incentiveId).isEqualTo(4444)
+        assertThat(nomisBookingId).isEqualTo(1234)
+        assertThat(nomisIncentiveSequence).isEqualTo(1)
+        assertThat(mappingType).isEqualTo("NOMIS_CREATED")
+      }
+
+      val duplicateIncentive = responseBody.moreInfo?.duplicate!!
+      with(duplicateIncentive) {
+        assertThat(incentiveId).isEqualTo(99)
+        assertThat(nomisBookingId).isEqualTo(1234)
+        assertThat(nomisIncentiveSequence).isEqualTo(1)
+        assertThat(mappingType).isEqualTo("NOMIS_CREATED")
+      }
+    }
+
+    @Test
+    fun `create when mapping for incentive id already exists for another IEP`() {
+      postCreateIncentiveMappingRequest()
+
+      val responseBody =
+        webTestClient.post().uri("/mapping/incentives")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(createIncentiveMapping().copy(nomisBookingId = 21)))
+          .exchange()
+          .expectStatus().isEqualTo(409)
+          .expectBody(object : ParameterizedTypeReference<DuplicateMappingErrorResponse<IncentiveMappingDto>>() {})
+          .returnResult().responseBody
+
+      with(responseBody!!) {
+        assertThat(userMessage).contains("Conflict: Incentive mapping already exists. \nExisting mapping: IncentiveMappingDto(nomisBookingId=1234, nomisIncentiveSequence=1, incentiveId=4444, label=2022-01-01, mappingType=NOMIS_CREATED")
+        assertThat(userMessage).contains("Duplicate mapping: IncentiveMappingDto(nomisBookingId=21, nomisIncentiveSequence=1, incentiveId=4444, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null")
+        assertThat(errorCode).isEqualTo(1409)
+      }
+
+      val existingIncentive = responseBody.moreInfo?.existing!!
+      with(existingIncentive) {
+        assertThat(incentiveId).isEqualTo(4444)
+        assertThat(nomisBookingId).isEqualTo(1234)
+        assertThat(nomisIncentiveSequence).isEqualTo(1)
+        assertThat(mappingType).isEqualTo("NOMIS_CREATED")
+      }
+
+      val duplicateIncentive = responseBody.moreInfo?.duplicate!!
+      with(duplicateIncentive) {
+        assertThat(incentiveId).isEqualTo(4444)
+        assertThat(nomisBookingId).isEqualTo(21)
+        assertThat(nomisIncentiveSequence).isEqualTo(1)
+        assertThat(mappingType).isEqualTo("NOMIS_CREATED")
+      }
     }
 
     @Test
