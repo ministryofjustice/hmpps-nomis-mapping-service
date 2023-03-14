@@ -11,8 +11,6 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.server.ServerWebInputException
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.SentencingAdjustmentMappingDto
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource.DuplicateAdjustmentException
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
 @RestControllerAdvice
@@ -56,16 +54,16 @@ class NomisMappingServiceExceptionHandler {
       )
   }
 
-  @ExceptionHandler(DuplicateAdjustmentException::class)
-  fun handleDuplicateAdjustmentException(e: DuplicateAdjustmentException): ResponseEntity<ErrorResponse> {
+  @ExceptionHandler(DuplicateMappingException::class)
+  fun handleDuplicateAdjustmentException(e: DuplicateMappingException): ResponseEntity<ErrorResponse> {
     log.error("Duplicate adjustment exception: {}", e.message)
     return ResponseEntity
       .status(CONFLICT)
       .body(
-        DuplicateAdjustmentErrorResponse(
-          moreInfo = DuplicateAdjustmentErrorContent(
-            duplicateAdjustment = e.duplicateMapping,
-            existingAdjustment = e.existingMapping,
+        DuplicateMappingErrorResponse(
+          moreInfo = DuplicateMappingErrorContent(
+            duplicate = e.duplicate,
+            existing = e.existing,
           ),
           userMessage = "Conflict: ${e.message}",
           developerMessage = e.message,
@@ -121,13 +119,19 @@ open class ErrorResponse(
   ) : this(status.value(), errorCode, userMessage, developerMessage)
 }
 
-class DuplicateAdjustmentErrorResponse(
-  val moreInfo: DuplicateAdjustmentErrorContent? = null,
+class DuplicateMappingErrorResponse<MAPPING>(
+  val moreInfo: DuplicateMappingErrorContent<MAPPING>? = null,
   userMessage: String?,
   developerMessage: String?,
 ) : ErrorResponse(status = 409, errorCode = 1409, userMessage = userMessage, developerMessage = developerMessage)
 
-data class DuplicateAdjustmentErrorContent(
-  val duplicateAdjustment: SentencingAdjustmentMappingDto,
-  val existingAdjustment: SentencingAdjustmentMappingDto,
+data class DuplicateMappingErrorContent<MAPPING>(
+  val duplicate: MAPPING,
+  val existing: MAPPING,
 )
+
+class DuplicateMappingException(
+  val duplicate: Any,
+  val existing: Any,
+  val messageIn: String?,
+) : RuntimeException(messageIn)

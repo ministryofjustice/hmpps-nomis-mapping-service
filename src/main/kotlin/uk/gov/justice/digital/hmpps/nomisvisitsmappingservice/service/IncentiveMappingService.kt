@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service
 
 import com.microsoft.applicationinsights.TelemetryClient
-import jakarta.validation.ValidationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
@@ -11,6 +10,7 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.IncentiveMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncentiveMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncentiveMappingType
@@ -27,23 +27,51 @@ class IncentiveMappingService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
+  fun alreadyExistsMessage(
+    duplicateMapping: IncentiveMappingDto,
+    existingMapping: IncentiveMappingDto,
+  ) =
+    "Incentive mapping already exists. \nExisting mapping: $existingMapping\nDuplicate mapping: $duplicateMapping"
+
   @Transactional
   suspend fun createIncentiveMapping(createMappingRequest: IncentiveMappingDto) =
     with(createMappingRequest) {
       log.debug("creating incentive $createMappingRequest")
       incentiveMappingRepository.findById(incentiveId)?.run {
-        if (this@run.nomisBookingId == this@with.nomisBookingId && this@run.nomisIncentiveSequence == this@with.nomisIncentiveSequence) {
-          log.debug("Incentive mapping already exists for nomisBookingId: $nomisBookingId and nomisIncentiveSequence: $nomisIncentiveSequence: $incentiveId so not creating. All OK")
+        if (this@run.nomisBookingId == this@with.nomisBookingId &&
+          this@run.nomisIncentiveSequence == this@with.nomisIncentiveSequence
+        ) {
+          log.debug(
+            "Not creating. All OK: " +
+              alreadyExistsMessage(
+                duplicateMapping = createMappingRequest,
+                existingMapping = IncentiveMappingDto(this@run),
+              ),
+          )
           return
         }
-        throw ValidationException("Incentive mapping id = $incentiveId already exists")
+        throw DuplicateMappingException(
+          messageIn = alreadyExistsMessage(
+            duplicateMapping = createMappingRequest,
+            existingMapping = IncentiveMappingDto(this@run),
+          ),
+          duplicate = createMappingRequest,
+          existing = IncentiveMappingDto(this@run),
+        )
       }
 
       incentiveMappingRepository.findOneByNomisBookingIdAndNomisIncentiveSequence(
         bookingId = nomisBookingId,
         incentiveSequence = nomisIncentiveSequence,
       )?.run {
-        throw ValidationException("Incentive with bookingId=$nomisBookingId and incentiveSequence=$nomisIncentiveSequence already exists")
+        throw DuplicateMappingException(
+          messageIn = alreadyExistsMessage(
+            duplicateMapping = createMappingRequest,
+            existingMapping = IncentiveMappingDto(this@run),
+          ),
+          duplicate = createMappingRequest,
+          existing = IncentiveMappingDto(this),
+        )
       }
 
       incentiveMappingRepository.save(

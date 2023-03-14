@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateAdjustmentErrorResponse
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.SentencingAdjustmentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.SentencingMappingService
@@ -95,11 +95,11 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
       ),
       ApiResponse(
         responseCode = "409",
-        description = "Indicates a duplicate adjustment has been rejected. If Error code = 1409 the body will return a DuplicateAdjustmentErrorResponse",
+        description = "Indicates a duplicate adjustment has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = DuplicateAdjustmentErrorResponse::class),
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
           ),
         ],
       ),
@@ -272,9 +272,3 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
   ): Page<SentencingAdjustmentMappingDto> =
     mappingService.getSentenceAdjustmentMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 }
-
-class DuplicateAdjustmentException(
-  val duplicateMapping: SentencingAdjustmentMappingDto,
-  val existingMapping: SentencingAdjustmentMappingDto,
-  val messageIn: String?,
-) : RuntimeException(messageIn)

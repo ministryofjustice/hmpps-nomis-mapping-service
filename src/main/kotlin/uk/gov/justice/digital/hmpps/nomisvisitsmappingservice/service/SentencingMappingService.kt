@@ -10,12 +10,12 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.SentencingAdjustmentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentencingAdjustmentMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentencingMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentencingMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.SentenceAdjustmentMappingRepository
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource.DuplicateAdjustmentException
 
 @Service
 @Transactional(readOnly = true)
@@ -50,13 +50,13 @@ class SentencingMappingService(
           )
           return
         }
-        throw DuplicateAdjustmentException(
+        throw DuplicateMappingException(
           messageIn = alreadyExistsMessage(
             duplicateMapping = createMappingRequest,
             existingMapping = SentencingAdjustmentMappingDto(this@run),
           ),
-          duplicateMapping = createMappingRequest,
-          existingMapping = SentencingAdjustmentMappingDto(this@run),
+          duplicate = createMappingRequest,
+          existing = SentencingAdjustmentMappingDto(this@run),
         )
       }
 
@@ -64,13 +64,13 @@ class SentencingMappingService(
         nomisAdjustmentId = nomisAdjustmentId,
         nomisAdjustmentCategory = nomisAdjustmentCategory,
       )?.run {
-        throw DuplicateAdjustmentException(
+        throw DuplicateMappingException(
           messageIn = alreadyExistsMessage(
             duplicateMapping = createMappingRequest,
             existingMapping = SentencingAdjustmentMappingDto(this@run),
           ),
-          duplicateMapping = createMappingRequest,
-          existingMapping = SentencingAdjustmentMappingDto(this),
+          duplicate = createMappingRequest,
+          existing = SentencingAdjustmentMappingDto(this),
         )
       }
 

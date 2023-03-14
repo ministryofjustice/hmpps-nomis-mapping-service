@@ -9,9 +9,10 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateAdjustmentErrorResponse
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.SentencingAdjustmentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
@@ -115,7 +116,7 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .body(BodyInserters.fromValue(createSentenceAdjustmentMapping().copy(nomisAdjustmentId = 21)))
         .exchange()
         .expectStatus().isEqualTo(409)
-        .expectBody(DuplicateAdjustmentErrorResponse::class.java)
+        .expectBody(object : ParameterizedTypeReference<DuplicateMappingErrorResponse<SentencingAdjustmentMappingDto>>() {})
         .returnResult().responseBody
 
       with(responseBody!!) {
@@ -124,7 +125,7 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         assertThat(errorCode).isEqualTo(1409)
       }
 
-      val existingAdjustment = responseBody.moreInfo?.existingAdjustment!!
+      val existingAdjustment = responseBody.moreInfo?.existing!!
       with(existingAdjustment) {
         assertThat(adjustmentId).isEqualTo("4444")
         assertThat(nomisAdjustmentId).isEqualTo(1234)
@@ -132,7 +133,7 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         assertThat(mappingType).isEqualTo("NOMIS_CREATED")
       }
 
-      val duplicateAdjustment = responseBody.moreInfo?.duplicateAdjustment!!
+      val duplicateAdjustment = responseBody.moreInfo?.duplicate!!
       with(duplicateAdjustment) {
         assertThat(adjustmentId).isEqualTo("4444")
         assertThat(nomisAdjustmentId).isEqualTo(21)
@@ -188,7 +189,7 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .body(BodyInserters.fromValue(createSentenceAdjustmentMapping().copy(adjustmentId = "99")))
         .exchange()
         .expectStatus().isEqualTo(409)
-        .expectBody(DuplicateAdjustmentErrorResponse::class.java)
+        .expectBody(object : ParameterizedTypeReference<DuplicateMappingErrorResponse<SentencingAdjustmentMappingDto>>() {})
         .returnResult().responseBody
 
       with(responseBody!!) {
@@ -197,7 +198,7 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         assertThat(errorCode).isEqualTo(1409)
       }
 
-      val existingAdjustment = responseBody.moreInfo?.existingAdjustment!!
+      val existingAdjustment = responseBody.moreInfo?.existing!!
       with(existingAdjustment) {
         assertThat(adjustmentId).isEqualTo("4444")
         assertThat(nomisAdjustmentId).isEqualTo(1234)
@@ -205,7 +206,7 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         assertThat(mappingType).isEqualTo("NOMIS_CREATED")
       }
 
-      val duplicateAdjustment = responseBody.moreInfo?.duplicateAdjustment!!
+      val duplicateAdjustment = responseBody.moreInfo?.duplicate!!
       with(duplicateAdjustment) {
         assertThat(adjustmentId).isEqualTo("99")
         assertThat(nomisAdjustmentId).isEqualTo(1234)
