@@ -9,8 +9,10 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.CreateRoomMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.RoomMappingDto
@@ -109,19 +111,37 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `create when mapping fails when already exists for another visit`() {
+    fun `create mapping returns duplicate error details when visit id already exists for another mapping`() {
       postCreateMappingRequest()
 
-      assertThat(
-        webTestClient.post().uri("/mapping/visits")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(createMapping().copy(vsipId = "other")))
-          .exchange()
-          .expectStatus().isBadRequest
-          .expectBody(ErrorResponse::class.java)
-          .returnResult().responseBody?.userMessage,
-      ).isEqualTo("Validation failure: Nomis visit id = 1234 already exists")
+      val responseBody = webTestClient.post().uri("/mapping/visits")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createMapping().copy(vsipId = "other")))
+        .exchange()
+        .expectStatus().isEqualTo(409)
+        .expectBody(object : ParameterizedTypeReference<DuplicateMappingErrorResponse<VisitMappingDto>>() {})
+        .returnResult().responseBody
+
+      with(responseBody!!) {
+        assertThat(userMessage).contains("Conflict: Visit mapping already exists. \nExisting mapping: VisitMappingDto(nomisId=1234, vsipId=12345678, label=2022-01-01, mappingType=ONLINE")
+        assertThat(userMessage).contains("Duplicate mapping: VisitMappingDto(nomisId=1234, vsipId=other, label=2022-01-01, mappingType=ONLINE, whenCreated=null)")
+        assertThat(errorCode).isEqualTo(1409)
+      }
+
+      val existingVisit = responseBody.moreInfo?.existing!!
+      with(existingVisit) {
+        assertThat(vsipId).isEqualTo("12345678")
+        assertThat(nomisId).isEqualTo(1234)
+        assertThat(mappingType).isEqualTo("ONLINE")
+      }
+
+      val duplicateVisit = responseBody.moreInfo?.duplicate!!
+      with(duplicateVisit) {
+        assertThat(vsipId).isEqualTo("other")
+        assertThat(nomisId).isEqualTo(1234)
+        assertThat(mappingType).isEqualTo("ONLINE")
+      }
     }
 
     @Test

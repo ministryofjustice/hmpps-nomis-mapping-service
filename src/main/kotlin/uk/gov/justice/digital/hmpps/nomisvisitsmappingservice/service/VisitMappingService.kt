@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.CreateRoomMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.RoomMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.VisitMappingDto
@@ -31,6 +32,12 @@ class VisitMappingService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
+  fun alreadyExistsMessage(
+    duplicateMapping: VisitMappingDto,
+    existingMapping: VisitMappingDto,
+  ) =
+    "Visit mapping already exists. \nExisting mapping: $existingMapping\nDuplicate mapping: $duplicateMapping"
+
   @Transactional
   suspend fun createVisitMapping(createMappingRequest: VisitMappingDto) =
     with(createMappingRequest) {
@@ -39,11 +46,25 @@ class VisitMappingService(
           log.debug("Visit mapping already exists for nomisId: $nomisId and vsipId: $vsipId so not creating. All OK")
           return
         }
-        throw ValidationException("Nomis visit id = $nomisId already exists")
+        throw DuplicateMappingException(
+          messageIn = alreadyExistsMessage(
+            duplicateMapping = createMappingRequest,
+            existingMapping = VisitMappingDto(this@run),
+          ),
+          duplicate = createMappingRequest,
+          existing = VisitMappingDto(this@run),
+        )
       }
 
       visitIdRepository.findOneByVsipId(vsipId)?.run {
-        throw ValidationException("VSIP visit id=$vsipId already exists")
+        throw DuplicateMappingException(
+          messageIn = alreadyExistsMessage(
+            duplicateMapping = createMappingRequest,
+            existingMapping = VisitMappingDto(this@run),
+          ),
+          duplicate = createMappingRequest,
+          existing = VisitMappingDto(this),
+        )
       }
 
       visitIdRepository.save(VisitId(nomisId, vsipId, label, MappingType.valueOf(mappingType)))

@@ -55,13 +55,13 @@ class NomisMappingServiceExceptionHandler {
   }
 
   @ExceptionHandler(DuplicateMappingException::class)
-  fun handleDuplicateAdjustmentException(e: DuplicateMappingException): ResponseEntity<ErrorResponse> {
-    log.error("Duplicate adjustment exception: {}", e.message)
+  fun handleDuplicateException(e: DuplicateMappingException): ResponseEntity<ErrorResponse> {
+    log.error("Duplicate mapping exception: {}", e.message)
     return ResponseEntity
       .status(CONFLICT)
       .body(
         DuplicateMappingErrorResponse(
-          moreInfo = DuplicateMappingErrorContent(
+          moreInfo = DuplicateErrorContent(
             duplicate = e.duplicate,
             existing = e.existing,
           ),
@@ -120,12 +120,12 @@ open class ErrorResponse(
 }
 
 class DuplicateMappingErrorResponse<MAPPING>(
-  val moreInfo: DuplicateMappingErrorContent<MAPPING>? = null,
+  val moreInfo: DuplicateErrorContent<MAPPING>? = null,
   userMessage: String?,
   developerMessage: String?,
 ) : ErrorResponse(status = 409, errorCode = 1409, userMessage = userMessage, developerMessage = developerMessage)
 
-data class DuplicateMappingErrorContent<MAPPING>(
+data class DuplicateErrorContent<MAPPING>(
   val duplicate: MAPPING,
   val existing: MAPPING,
 )

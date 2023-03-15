@@ -58,6 +58,16 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
         description = "Unauthorized to access this endpoint",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate sentencing adjustment mapping has been rejected. If Error code = 409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
     ],
   )
   suspend fun createMapping(
