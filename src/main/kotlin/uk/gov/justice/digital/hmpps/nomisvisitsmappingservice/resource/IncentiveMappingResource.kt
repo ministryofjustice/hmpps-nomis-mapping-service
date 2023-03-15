@@ -53,6 +53,16 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
         description = "Unauthorized to access this endpoint",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate incentive has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
     ],
   )
   suspend fun createMapping(
@@ -87,16 +97,6 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
         responseCode = "404",
         description = "NOMIS incentive id does not exist in mapping table",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "409",
-        description = "Indicates a duplicate incentive has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
-          ),
-        ],
       ),
     ],
   )
