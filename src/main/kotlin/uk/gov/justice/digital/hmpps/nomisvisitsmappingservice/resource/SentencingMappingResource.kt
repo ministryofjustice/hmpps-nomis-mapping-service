@@ -60,7 +60,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
       ),
       ApiResponse(
         responseCode = "409",
-        description = "Indicates a duplicate sentencing adjustment mapping has been rejected. If Error code = 409 the body will return a DuplicateErrorResponse",
+        description = "Indicates a duplicate sentencing adjustment mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
         content = [
           Content(
             mediaType = "application/json",
