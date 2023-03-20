@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AppointmentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.AppointmentMappingService
@@ -33,7 +34,12 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
     summary = "Creates a new appointment mapping",
     description = "Creates a mapping between nomis id and Appointment instance id. Requires NOMIS_APPOINTMENTS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = AppointmentMappingDto::class))],
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = AppointmentMappingDto::class),
+        ),
+      ],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Mapping entry created"),
@@ -46,6 +52,16 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate incentive has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
       ),
     ],
   )

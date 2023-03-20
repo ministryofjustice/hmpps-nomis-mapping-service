@@ -1,10 +1,10 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service
 
 import com.microsoft.applicationinsights.TelemetryClient
-import jakarta.validation.ValidationException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AppointmentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AppointmentMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AppointmentMappingRepository
@@ -19,22 +19,48 @@ class AppointmentMappingService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
+  fun alreadyExistsMessage(
+    duplicateMapping: AppointmentMappingDto,
+    existingMapping: AppointmentMappingDto,
+  ) =
+    "Appointment mapping already exists. \nExisting mapping: $existingMapping\nDuplicate mapping: $duplicateMapping"
+
   @Transactional
   suspend fun createMapping(createMappingRequest: AppointmentMappingDto) =
     with(createMappingRequest) {
       log.debug("creating appointment $createMappingRequest")
       appointmentMappingRepository.findById(appointmentInstanceId)?.run {
         if (this@run.nomisEventId == this@with.nomisEventId) {
-          log.debug("Appointment mapping already exists for nomisBookingId: $nomisEventId : $appointmentInstanceId so not creating. All OK")
+          log.debug(
+            "Not creating. All OK: " +
+              alreadyExistsMessage(
+                duplicateMapping = createMappingRequest,
+                existingMapping = AppointmentMappingDto(this@run),
+              ),
+          )
           return
         }
-        throw ValidationException("Appointment mapping id = $appointmentInstanceId already exists")
+        throw DuplicateMappingException(
+          messageIn = alreadyExistsMessage(
+            duplicateMapping = createMappingRequest,
+            existingMapping = AppointmentMappingDto(this@run),
+          ),
+          duplicate = createMappingRequest,
+          existing = AppointmentMappingDto(this@run),
+        )
       }
 
       appointmentMappingRepository.findOneByNomisEventId(
         nomisEventId = nomisEventId,
       )?.run {
-        throw ValidationException("Appointment with Nomis id=$nomisEventId already exists")
+        throw DuplicateMappingException(
+          messageIn = alreadyExistsMessage(
+            duplicateMapping = createMappingRequest,
+            existingMapping = AppointmentMappingDto(this@run),
+          ),
+          duplicate = createMappingRequest,
+          existing = AppointmentMappingDto(this),
+        )
       }
 
       appointmentMappingRepository.save(

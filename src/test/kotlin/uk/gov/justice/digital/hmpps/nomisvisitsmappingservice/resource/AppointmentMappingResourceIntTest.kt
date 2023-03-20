@@ -7,9 +7,10 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AppointmentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AppointmentMappingRepository
@@ -88,16 +89,33 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
     fun `create when mapping for appointment id already exists for another appointment instance`() {
       postCreateMappingRequest()
 
-      assertThat(
+      val responseBody =
         webTestClient.post().uri("/mapping/appointments")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(createMapping().copy(nomisEventId = 21)))
           .exchange()
-          .expectStatus().isBadRequest
-          .expectBody(ErrorResponse::class.java)
-          .returnResult().responseBody?.userMessage,
-      ).isEqualTo("Validation failure: Appointment mapping id = 4444 already exists")
+          .expectStatus().isEqualTo(409)
+          .expectBody(object : ParameterizedTypeReference<DuplicateMappingErrorResponse<AppointmentMappingDto>>() {})
+          .returnResult().responseBody
+
+      with(responseBody!!) {
+        assertThat(userMessage).contains("Conflict: Appointment mapping already exists. \nExisting mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=1234, whenCreated=null")
+        assertThat(userMessage).contains("Duplicate mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=21, whenCreated=null)")
+        assertThat(errorCode).isEqualTo(1409)
+      }
+
+      val existing = responseBody.moreInfo?.existing!!
+      with(existing) {
+        assertThat(appointmentInstanceId).isEqualTo(4444)
+        assertThat(nomisEventId).isEqualTo(1234)
+      }
+
+      val duplicate = responseBody.moreInfo?.duplicate!!
+      with(duplicate) {
+        assertThat(appointmentInstanceId).isEqualTo(4444)
+        assertThat(nomisEventId).isEqualTo(21)
+      }
     }
 
     @Test
@@ -137,16 +155,33 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
     fun `create when mapping for nomis ids already exists`() {
       postCreateMappingRequest()
 
-      assertThat(
+      val responseBody =
         webTestClient.post().uri("/mapping/appointments")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(createMapping().copy(appointmentInstanceId = 99)))
           .exchange()
-          .expectStatus().isBadRequest
-          .expectBody(ErrorResponse::class.java)
-          .returnResult().responseBody?.userMessage,
-      ).isEqualTo("Validation failure: Appointment with Nomis id=1234 already exists")
+          .expectStatus().isEqualTo(409)
+          .expectBody(object : ParameterizedTypeReference<DuplicateMappingErrorResponse<AppointmentMappingDto>>() {})
+          .returnResult().responseBody
+
+      with(responseBody!!) {
+        assertThat(userMessage).contains("Conflict: Appointment mapping already exists. \nExisting mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=1234, whenCreated=null")
+        assertThat(userMessage).contains("Duplicate mapping: AppointmentMappingDto(appointmentInstanceId=99, nomisEventId=1234, whenCreated=null)")
+        assertThat(errorCode).isEqualTo(1409)
+      }
+
+      val existing = responseBody.moreInfo?.existing!!
+      with(existing) {
+        assertThat(appointmentInstanceId).isEqualTo(4444)
+        assertThat(nomisEventId).isEqualTo(1234)
+      }
+
+      val duplicate = responseBody.moreInfo?.duplicate!!
+      with(duplicate) {
+        assertThat(appointmentInstanceId).isEqualTo(99)
+        assertThat(nomisEventId).isEqualTo(1234)
+      }
     }
 
     @Test
