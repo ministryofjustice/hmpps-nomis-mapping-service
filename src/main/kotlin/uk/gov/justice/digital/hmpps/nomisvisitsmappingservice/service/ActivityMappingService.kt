@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service
 
 import com.microsoft.applicationinsights.TelemetryClient
 import jakarta.validation.ValidationException
+import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -62,4 +63,7 @@ class ActivityMappingService(
       ?: throw NotFoundException("Activity schedule id=$id")
 
   suspend fun deleteMapping(id: Long) = activityMappingRepository.deleteById(id)
+
+  suspend fun getAllMappings(): List<ActivityMappingDto> =
+    activityMappingRepository.findAll().toList().map { ActivityMappingDto(it) }
 }

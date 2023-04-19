@@ -133,4 +133,23 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
     @PathVariable
     id: Long,
   ) = mappingService.deleteMapping(id)
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @GetMapping("/mapping/activities")
+  @Operation(
+    summary = "Get all activities mappings",
+    description = "Get all the mapping table rows. Should only be used in dev (in pre/prod this could return excessive data). Requires role NOMIS_ACTIVITIES",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Success",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getAllMappings() = mappingService.getAllMappings()
 }
