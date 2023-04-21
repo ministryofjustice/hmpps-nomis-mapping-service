@@ -12,6 +12,13 @@ data class AppointmentMapping(
 
   val nomisEventId: Long,
 
+  /**
+   * ISO timestamp of batch job if a migration
+   */
+  val label: String? = null,
+
+  val mappingType: AppointmentMappingType,
+
   @Transient
   @Value("false")
   val new: Boolean = true,
@@ -22,9 +29,7 @@ data class AppointmentMapping(
     if (this === other) return true
     if (other !is AppointmentMapping) return false
 
-    if (appointmentInstanceId != other.appointmentInstanceId) return false
-
-    return true
+    return appointmentInstanceId == other.appointmentInstanceId
   }
 
   override fun hashCode(): Int {
@@ -34,4 +39,8 @@ data class AppointmentMapping(
   override fun isNew(): Boolean = new
 
   override fun getId(): Long = appointmentInstanceId
+}
+
+enum class AppointmentMappingType {
+  MIGRATED, APPOINTMENT_CREATED
 }
