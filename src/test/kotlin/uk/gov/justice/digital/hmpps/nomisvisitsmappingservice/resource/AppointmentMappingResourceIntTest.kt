@@ -100,8 +100,8 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
           .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Appointment mapping already exists. \nExisting mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=1234, whenCreated=null")
-        assertThat(userMessage).contains("Duplicate mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=21, whenCreated=null)")
+        assertThat(userMessage).contains("Conflict: Appointment mapping already exists. \nExisting mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=1234, label=null, mappingType=APPOINTMENT_CREATED, whenCreated=null")
+        assertThat(userMessage).contains("Duplicate mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=21, label=null, mappingType=null, whenCreated=null)")
         assertThat(errorCode).isEqualTo(1409)
       }
 
@@ -127,8 +127,7 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             """{
             "nomisEventId"          : $NOMIS_EVENT_ID,
-            "appointmentInstanceId" : $APPOINTMENT_INSTANCE_ID,
-            "mappingType"           : "APPOINTMENT_CREATED"
+            "appointmentInstanceId" : $APPOINTMENT_INSTANCE_ID
           }""",
           ),
         )
@@ -142,8 +141,7 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             """{
             "nomisEventId"          : $NOMIS_EVENT_ID,
-            "appointmentInstanceId" : $APPOINTMENT_INSTANCE_ID,
-            "mappingType"           : "APPOINTMENT_CREATED"
+            "appointmentInstanceId" : $APPOINTMENT_INSTANCE_ID
           }""",
           ),
         )
@@ -166,8 +164,8 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
           .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Appointment mapping already exists. \nExisting mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=1234, whenCreated=null")
-        assertThat(userMessage).contains("Duplicate mapping: AppointmentMappingDto(appointmentInstanceId=99, nomisEventId=1234, whenCreated=null)")
+        assertThat(userMessage).contains("Conflict: Appointment mapping already exists. \nExisting mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=1234, label=null, mappingType=APPOINTMENT_CREATED, whenCreated=null")
+        assertThat(userMessage).contains("Duplicate mapping: AppointmentMappingDto(appointmentInstanceId=99, nomisEventId=1234, label=null, mappingType=null, whenCreated=null)")
         assertThat(errorCode).isEqualTo(1409)
       }
 
@@ -185,7 +183,7 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `create mapping success`() {
+    fun `create mapping success - APPOINTMENT_CREATED`() {
       webTestClient.post().uri("/mapping/appointments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -193,8 +191,7 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             """{
             "nomisEventId"          : $NOMIS_EVENT_ID,
-            "appointmentInstanceId" : $APPOINTMENT_INSTANCE_ID,
-            "mappingType"           : "APPOINTMENT_CREATED"
+            "appointmentInstanceId" : $APPOINTMENT_INSTANCE_ID
           }""",
           ),
         )
@@ -210,6 +207,38 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
 
       assertThat(mapping2.nomisEventId).isEqualTo(NOMIS_EVENT_ID)
       assertThat(mapping2.appointmentInstanceId).isEqualTo(APPOINTMENT_INSTANCE_ID)
+      assertThat(mapping2.mappingType).isEqualTo("APPOINTMENT_CREATED")
+    }
+
+    @Test
+    fun `create mapping success - MIGRATED`() {
+      webTestClient.post().uri("/mapping/appointments")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            """{
+            "nomisEventId"          : $NOMIS_EVENT_ID,
+            "appointmentInstanceId" : $APPOINTMENT_INSTANCE_ID,
+            "label"                 : "2023-04-20",
+            "mappingType"           : "MIGRATED"
+          }""",
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      val mapping2 = webTestClient.get().uri("/mapping/appointments/appointment-instance-id/$APPOINTMENT_INSTANCE_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody(AppointmentMappingDto::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(mapping2.nomisEventId).isEqualTo(NOMIS_EVENT_ID)
+      assertThat(mapping2.appointmentInstanceId).isEqualTo(APPOINTMENT_INSTANCE_ID)
+      assertThat(mapping2.label).isEqualTo("2023-04-20")
+      assertThat(mapping2.mappingType).isEqualTo("MIGRATED")
     }
   }
 

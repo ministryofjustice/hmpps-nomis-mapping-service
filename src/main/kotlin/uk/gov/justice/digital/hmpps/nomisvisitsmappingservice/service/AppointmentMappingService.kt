@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AppointmentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AppointmentMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AppointmentMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AppointmentMappingRepository
 
 @Service
@@ -28,7 +29,7 @@ class AppointmentMappingService(
   @Transactional
   suspend fun createMapping(createMappingRequest: AppointmentMappingDto) =
     with(createMappingRequest) {
-      log.debug("creating appointment $createMappingRequest")
+      log.debug("creating appointment {}", createMappingRequest)
       appointmentMappingRepository.findById(appointmentInstanceId)?.run {
         if (this@run.nomisEventId == this@with.nomisEventId) {
           log.debug(
@@ -50,9 +51,7 @@ class AppointmentMappingService(
         )
       }
 
-      appointmentMappingRepository.findOneByNomisEventId(
-        nomisEventId = nomisEventId,
-      )?.run {
+      appointmentMappingRepository.findOneByNomisEventId(nomisEventId)?.run {
         throw DuplicateMappingException(
           messageIn = alreadyExistsMessage(
             duplicateMapping = createMappingRequest,
@@ -67,6 +66,8 @@ class AppointmentMappingService(
         AppointmentMapping(
           appointmentInstanceId = appointmentInstanceId,
           nomisEventId = nomisEventId,
+          label = label,
+          mappingType = AppointmentMappingType.valueOf(mappingType ?: "APPOINTMENT_CREATED"),
         ),
       )
       telemetryClient.trackEvent(
