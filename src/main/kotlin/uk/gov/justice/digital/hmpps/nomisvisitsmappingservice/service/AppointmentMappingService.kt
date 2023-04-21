@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service
 
 import com.microsoft.applicationinsights.TelemetryClient
+import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -88,4 +89,7 @@ class AppointmentMappingService(
 
   @Transactional
   suspend fun deleteMapping(id: Long) = appointmentMappingRepository.deleteById(id)
+
+  suspend fun getAllMappings(): List<AppointmentMappingDto> =
+    appointmentMappingRepository.findAll().toList().map { AppointmentMappingDto(it) }
 }

@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivityMapping
 import java.time.LocalDateTime
@@ -13,16 +12,14 @@ import java.time.LocalDateTime
 data class ActivityMappingDto(
 
   @Schema(description = "Activity schedule id", required = true)
-  @NotNull
   val activityScheduleId: Long,
 
   @Schema(description = "NOMIS course activity id", required = true)
-  @NotNull
   val nomisCourseActivityId: Long,
 
   @Schema(description = "Mapping type", allowableValues = ["NOMIS_CREATED", "ACTIVITY_CREATED"], required = true)
-  @NotBlank
-  @Size(max = 20)
+  @field:NotBlank
+  @field:Size(max = 20, message = "mappingType has a maximum length of 20")
   val mappingType: String,
 
   @Schema(description = "Date-time the mapping was created")

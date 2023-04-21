@@ -17,11 +17,11 @@ data class AppointmentMappingDto(
   val nomisEventId: Long,
 
   @Schema(description = "Label (a timestamp for migrated ids)")
-  @Size(max = 20)
+  @field:Size(max = 20)
   val label: String? = null,
 
   @Schema(description = "Mapping type", allowableValues = ["MIGRATED", "APPOINTMENT_CREATED"], defaultValue = "APPOINTMENT_CREATED")
-  @Size(max = 20)
+  @field:Size(max = 20)
   val mappingType: String? = null,
 
   @Schema(description = "Date-time the mapping was created")
