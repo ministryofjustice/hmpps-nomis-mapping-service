@@ -127,8 +127,7 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             """{
             "nomisEventId"          : $NOMIS_EVENT_ID,
-            "appointmentInstanceId" : $APPOINTMENT_INSTANCE_ID,
-            "mappingType"           : "APPOINTMENT_CREATED"
+            "appointmentInstanceId" : $APPOINTMENT_INSTANCE_ID
           }""",
           ),
         )
@@ -142,8 +141,7 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             """{
             "nomisEventId"          : $NOMIS_EVENT_ID,
-            "appointmentInstanceId" : $APPOINTMENT_INSTANCE_ID,
-            "mappingType"           : "APPOINTMENT_CREATED"
+            "appointmentInstanceId" : $APPOINTMENT_INSTANCE_ID
           }""",
           ),
         )
