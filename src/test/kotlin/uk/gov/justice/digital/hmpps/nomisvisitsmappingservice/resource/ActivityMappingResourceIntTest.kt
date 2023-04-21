@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.ActivityMappingDto
@@ -275,6 +276,60 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
         .exchange()
         .expectStatus().isOk
+    }
+  }
+
+  @DisplayName("GET /mapping/activities")
+  @Nested
+  inner class GetAllMappingTest {
+
+    @AfterEach
+    fun deleteData() {
+      runBlocking {
+        repository.deleteAll()
+      }
+    }
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/activities")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/activities")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/activities")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get mapping success`() {
+      postCreateMappingRequest(101, 201)
+      postCreateMappingRequest(102, 202)
+
+      val mapping = webTestClient.get().uri("/mapping/activities")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody<List<ActivityMappingDto>>()
+        .returnResult().responseBody!!
+
+      assertThat(mapping[0].nomisCourseActivityId).isEqualTo(101)
+      assertThat(mapping[0].activityScheduleId).isEqualTo(201)
+      assertThat(mapping[1].nomisCourseActivityId).isEqualTo(102)
+      assertThat(mapping[1].activityScheduleId).isEqualTo(202)
+      assertThat(mapping).hasSize(2)
     }
   }
 

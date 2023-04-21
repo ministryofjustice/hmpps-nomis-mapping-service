@@ -138,7 +138,7 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Success",
+        description = "Mapping Information Returned",
       ),
       ApiResponse(
         responseCode = "401",

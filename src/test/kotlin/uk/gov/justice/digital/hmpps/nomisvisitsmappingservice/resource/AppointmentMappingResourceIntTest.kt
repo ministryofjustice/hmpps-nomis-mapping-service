@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AppointmentMappingDto
@@ -320,6 +321,60 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
         .exchange()
         .expectStatus().isOk
+    }
+  }
+
+  @DisplayName("GET /mapping/appointments")
+  @Nested
+  inner class GetAllMappingTest {
+
+    @AfterEach
+    fun deleteData() {
+      runBlocking {
+        repository.deleteAll()
+      }
+    }
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/appointments")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/appointments")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/appointments")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get mapping success`() {
+      postCreateMappingRequest(101, 201)
+      postCreateMappingRequest(102, 202)
+
+      val mapping = webTestClient.get().uri("/mapping/appointments")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody<List<AppointmentMappingDto>>()
+        .returnResult().responseBody!!
+
+      assertThat(mapping[0].nomisEventId).isEqualTo(101)
+      assertThat(mapping[0].appointmentInstanceId).isEqualTo(201)
+      assertThat(mapping[1].nomisEventId).isEqualTo(102)
+      assertThat(mapping[1].appointmentInstanceId).isEqualTo(202)
+      assertThat(mapping).hasSize(2)
     }
   }
 
