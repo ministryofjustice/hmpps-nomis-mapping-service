@@ -307,9 +307,44 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
           assertThat(it).isEqualTo("Not Found: appointmentInstanceId=765")
         }
     }
+  }
+
+  @DisplayName("GET /mapping/appointments/nomis-event-id/{eventId}")
+  @Nested
+  inner class GetMappingByEventTest {
+
+    @AfterEach
+    fun deleteData() {
+      runBlocking {
+        repository.deleteAll()
+      }
+    }
 
     @Test
-    fun `get mapping success with update role`() {
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/appointments/nomis-event-id/$NOMIS_EVENT_ID")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/appointments/nomis-event-id/$NOMIS_EVENT_ID")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/appointments/nomis-event-id/$NOMIS_EVENT_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get mapping success`() {
       webTestClient.post().uri("/mapping/appointments")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -317,10 +352,26 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.get().uri("/mapping/appointments/appointment-instance-id/$APPOINTMENT_INSTANCE_ID")
+      val mapping = webTestClient.get().uri("/mapping/appointments/nomis-event-id/$NOMIS_EVENT_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
         .exchange()
         .expectStatus().isOk
+        .expectBody(AppointmentMappingDto::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(mapping.nomisEventId).isEqualTo(NOMIS_EVENT_ID)
+      assertThat(mapping.appointmentInstanceId).isEqualTo(APPOINTMENT_INSTANCE_ID)
+    }
+
+    @Test
+    fun `mapping not found`() {
+      webTestClient.get().uri("/mapping/appointments/nomis-event-id/765")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+        .exchange()
+        .expectStatus().isNotFound
+        .expectBody().jsonPath("$.userMessage").value<String> {
+          assertThat(it).isEqualTo("Not Found: eventId=765")
+        }
     }
   }
 

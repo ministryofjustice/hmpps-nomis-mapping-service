@@ -87,6 +87,11 @@ class AppointmentMappingService(
       ?.let { AppointmentMappingDto(it) }
       ?: throw NotFoundException("appointmentInstanceId=$id")
 
+  suspend fun getMappingByEventId(eventId: Long): AppointmentMappingDto =
+    appointmentMappingRepository.findOneByNomisEventId(eventId)
+      ?.let { AppointmentMappingDto(it) }
+      ?: throw NotFoundException("eventId=$eventId")
+
   @Transactional
   suspend fun deleteMapping(id: Long) = appointmentMappingRepository.deleteById(id)
 
