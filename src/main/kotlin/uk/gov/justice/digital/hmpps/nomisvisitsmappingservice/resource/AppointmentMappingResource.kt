@@ -82,10 +82,7 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = AppointmentMappingDto::class),
-          ),
+          Content(mediaType = "application/json", schema = Schema(implementation = AppointmentMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -105,6 +102,38 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
     @PathVariable
     appointmentInstanceId: Long,
   ): AppointmentMappingDto = mappingService.getMappingById(appointmentInstanceId)
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_APPOINTMENTS')")
+  @GetMapping("/mapping/appointments/nomis-event-id/{eventId}")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(
+    summary = "get mapping",
+    description = "Retrieves a mapping by nomis event id. Requires role NOMIS_APPOINTMENTS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = AppointmentMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getMappingGivenEventId(
+    @Schema(description = "Nomis event Id", example = "700800900", required = true)
+    @PathVariable
+    eventId: Long,
+  ): AppointmentMappingDto = mappingService.getMappingByEventId(eventId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_APPOINTMENTS')")
   @DeleteMapping("/mapping/appointments/appointment-instance-id/{id}")
