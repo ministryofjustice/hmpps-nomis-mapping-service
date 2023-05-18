@@ -32,5 +32,6 @@ data class AppointmentMappingDto(
     nomisEventId = mapping.nomisEventId,
     label = mapping.label,
     mappingType = mapping.mappingType.name,
+    whenCreated = mapping.whenCreated,
   )
 }

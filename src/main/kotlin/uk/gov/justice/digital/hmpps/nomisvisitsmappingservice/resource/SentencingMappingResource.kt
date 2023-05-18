@@ -170,7 +170,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get the latest mapping for a migration",
-    description = "Requires role READ_MAPPING, UPDATE_MAPPING or ADMIN_MAPPING",
+    description = "Requires role NOMIS_SENTENCING",
     responses = [
       ApiResponse(
         responseCode = "200",

@@ -646,6 +646,9 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
       webTestClient.delete().uri("/prison/HEI/room-mappings/nomis-room-id/HEI-VISITS-SOC_VIS_TEST")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
+      webTestClient.delete().uri("/prison/FGF/room-mappings/nomis-room-id/nomisroom")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .exchange()
     }
 
     @Test
