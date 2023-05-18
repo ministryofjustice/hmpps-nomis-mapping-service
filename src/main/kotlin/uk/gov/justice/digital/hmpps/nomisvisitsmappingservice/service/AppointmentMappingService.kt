@@ -1,8 +1,13 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service
 
 import com.microsoft.applicationinsights.TelemetryClient
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
@@ -94,6 +99,35 @@ class AppointmentMappingService(
 
   @Transactional
   suspend fun deleteMapping(id: Long) = appointmentMappingRepository.deleteById(id)
+
+  suspend fun getAppointmentMappingsByMigrationId(
+    pageRequest: Pageable,
+    migrationId: String,
+  ): Page<AppointmentMappingDto> =
+    coroutineScope {
+      val appointmentMapping = async {
+        appointmentMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+          label = migrationId,
+          AppointmentMappingType.MIGRATED,
+          pageRequest,
+        )
+      }
+
+      val count = async {
+        appointmentMappingRepository.countAllByLabelAndMappingType(migrationId, mappingType = AppointmentMappingType.MIGRATED)
+      }
+
+      PageImpl(
+        appointmentMapping.await().toList().map { AppointmentMappingDto(it) },
+        pageRequest,
+        count.await(),
+      )
+    }
+
+  suspend fun getAppointmentMappingForLatestMigrated(): AppointmentMappingDto =
+    appointmentMappingRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(AppointmentMappingType.MIGRATED)
+      ?.let { AppointmentMappingDto(it) }
+      ?: throw NotFoundException("No migrated mapping found")
 
   suspend fun getAllMappings(): List<AppointmentMappingDto> =
     appointmentMappingRepository.findAll().toList().map { AppointmentMappingDto(it) }

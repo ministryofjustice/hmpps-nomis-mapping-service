@@ -1,8 +1,10 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
+import org.hamcrest.Matchers
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -12,9 +14,14 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AppointmentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AppointmentMappingType.APPOINTMENT_CREATED
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AppointmentMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AppointmentMappingRepository
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 private const val NOMIS_EVENT_ID = 1234L
 private const val APPOINTMENT_INSTANCE_ID = 4444L
@@ -27,14 +34,20 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
   private fun createMapping(
     nomisId: Long = NOMIS_EVENT_ID,
     appointmentId: Long = APPOINTMENT_INSTANCE_ID,
+    label: String = "2022-01-01",
+    mappingType: String = APPOINTMENT_CREATED.name,
   ): AppointmentMappingDto = AppointmentMappingDto(
     nomisEventId = nomisId,
     appointmentInstanceId = appointmentId,
+    label = label,
+    mappingType = mappingType,
   )
 
   private fun postCreateMappingRequest(
     nomisId: Long = NOMIS_EVENT_ID,
     appointmentId: Long = APPOINTMENT_INSTANCE_ID,
+    label: String = "2022-01-01",
+    mappingType: String = APPOINTMENT_CREATED.name,
   ) {
     webTestClient.post().uri("/mapping/appointments")
       .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
@@ -44,6 +57,8 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
           createMapping(
             nomisId = nomisId,
             appointmentId = appointmentId,
+            label = label,
+            mappingType = mappingType,
           ),
         ),
       )
@@ -51,14 +66,14 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
       .expectStatus().isCreated
   }
 
+  @BeforeEach
+  fun deleteData() = runBlocking {
+    repository.deleteAll()
+  }
+
   @DisplayName("POST /mapping/appointments")
   @Nested
   inner class CreateMappingTest {
-
-    @AfterEach
-    fun deleteData() = runBlocking {
-      repository.deleteAll()
-    }
 
     @Test
     fun `access forbidden when no authority`() {
@@ -101,8 +116,8 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
           .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Appointment mapping already exists. \nExisting mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=1234, label=null, mappingType=APPOINTMENT_CREATED, whenCreated=null")
-        assertThat(userMessage).contains("Duplicate mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=21, label=null, mappingType=null, whenCreated=null)")
+        assertThat(userMessage).contains("Conflict: Appointment mapping already exists. \nExisting mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=1234, label=2022-01-01, mappingType=APPOINTMENT_CREATED, whenCreated=")
+        assertThat(userMessage).contains("Duplicate mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=21, label=2022-01-01, mappingType=APPOINTMENT_CREATED, whenCreated=")
         assertThat(errorCode).isEqualTo(1409)
       }
 
@@ -165,8 +180,8 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
           .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Appointment mapping already exists. \nExisting mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=1234, label=null, mappingType=APPOINTMENT_CREATED, whenCreated=null")
-        assertThat(userMessage).contains("Duplicate mapping: AppointmentMappingDto(appointmentInstanceId=99, nomisEventId=1234, label=null, mappingType=null, whenCreated=null)")
+        assertThat(userMessage).contains("Conflict: Appointment mapping already exists. \nExisting mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=1234, label=2022-01-01, mappingType=APPOINTMENT_CREATED, whenCreated=")
+        assertThat(userMessage).contains("Duplicate mapping: AppointmentMappingDto(appointmentInstanceId=99, nomisEventId=1234, label=2022-01-01, mappingType=APPOINTMENT_CREATED, whenCreated=")
         assertThat(errorCode).isEqualTo(1409)
       }
 
@@ -247,13 +262,6 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
   @Nested
   inner class GetMappingTest {
 
-    @AfterEach
-    fun deleteData() {
-      runBlocking {
-        repository.deleteAll()
-      }
-    }
-
     @Test
     fun `access forbidden when no authority`() {
       webTestClient.get().uri("/mapping/appointments/appointment-instance-id/$APPOINTMENT_INSTANCE_ID")
@@ -309,16 +317,146 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
+  @DisplayName("GET /mapping/appointments/migrated/latest")
+  @Nested
+  inner class GeMappingMigratedLatestTest {
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/appointments/migrated/latest")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/appointments/migrated/latest")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/appointments/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get retrieves latest migrated mapping`() {
+      webTestClient.post().uri("/mapping/appointments")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createMapping(
+              nomisId = 10,
+              appointmentId = 10,
+              label = "2022-01-01T00:00:00",
+              mappingType = "MIGRATED",
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping/appointments")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createMapping(
+              nomisId = 20,
+              appointmentId = 20,
+              label = "2022-01-02T00:00:00",
+              mappingType = "MIGRATED",
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping/appointments")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createMapping(
+              nomisId = 1,
+              appointmentId = 1,
+              label = "2022-01-02T10:00:00",
+              mappingType = MIGRATED.name,
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping/appointments")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createMapping(
+              nomisId = 99,
+              appointmentId = 199,
+              label = "whatever",
+              mappingType = APPOINTMENT_CREATED.name,
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      val mapping = webTestClient.get().uri("/mapping/appointments/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody(AppointmentMappingDto::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(mapping.nomisEventId).isEqualTo(1)
+      assertThat(mapping.appointmentInstanceId).isEqualTo(1)
+      assertThat(mapping.label).isEqualTo("2022-01-02T10:00:00")
+      assertThat(mapping.mappingType).isEqualTo("MIGRATED")
+      assertThat(mapping.whenCreated)
+        .isCloseTo(LocalDateTime.now(), Assertions.byLessThan(5, ChronoUnit.SECONDS))
+    }
+
+    @Test
+    fun `404 when no migrated mapping found`() {
+      webTestClient.post().uri("/mapping/appointments")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createMapping(
+              nomisId = 77,
+              appointmentId = 77,
+              label = "whatever",
+              mappingType = APPOINTMENT_CREATED.name,
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      val error = webTestClient.get().uri("/mapping/appointments/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+        .exchange()
+        .expectStatus().isNotFound
+        .expectBody(ErrorResponse::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(error.userMessage).isEqualTo("Not Found: No migrated mapping found")
+    }
+  }
+
   @DisplayName("GET /mapping/appointments/nomis-event-id/{eventId}")
   @Nested
   inner class GetMappingByEventTest {
-
-    @AfterEach
-    fun deleteData() {
-      runBlocking {
-        repository.deleteAll()
-      }
-    }
 
     @Test
     fun `access forbidden when no authority`() {
@@ -378,13 +516,6 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("GET /mapping/appointments")
   @Nested
   inner class GetAllMappingTest {
-
-    @AfterEach
-    fun deleteData() {
-      runBlocking {
-        repository.deleteAll()
-      }
-    }
 
     @Test
     fun `access forbidden when no authority`() {
@@ -506,6 +637,116 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
         .exchange()
         .expectStatus().isNoContent
+    }
+  }
+
+  @DisplayName("GET /mapping/appointments/migration-id/{migrationId}")
+  @Nested
+  inner class GetMappingByMigrationIdTest {
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/appointments/migration-id/2022-01-01T00:00:00")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/appointments/migration-id/2022-01-01T00:00:00")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get appointment mappings by migration id forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/appointments/migration-id/2022-01-01T00:00:00")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get appointment mappings by migration id success`() {
+      (1L..4L).forEach {
+        postCreateMappingRequest(it, it, label = "2022-01-01", mappingType = "MIGRATED")
+      }
+      (5L..9L).forEach {
+        postCreateMappingRequest(it, it, label = "2099-01-01", mappingType = "MIGRATED")
+      }
+      postCreateMappingRequest(12, 12, mappingType = APPOINTMENT_CREATED.name)
+
+      webTestClient.get().uri("/mapping/appointments/migration-id/2022-01-01")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(4)
+        .jsonPath("$.content..nomisEventId").value(
+          Matchers.contains(1, 2, 3, 4),
+        )
+        .jsonPath("$.content[0].whenCreated").isNotEmpty
+    }
+
+    @Test
+    fun `get appointment mappings by migration id - no records exist`() {
+      (1L..4L).forEach {
+        postCreateMappingRequest(it, it, label = "2022-01-01", mappingType = "MIGRATED")
+      }
+
+      webTestClient.get().uri("/mapping/appointments/migration-id/2044-01-01")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(0)
+        .jsonPath("content").isEmpty
+    }
+
+    @Test
+    fun `can request a different page size`() {
+      (1L..6L).forEach {
+        postCreateMappingRequest(it, it, label = "2022-01-01", mappingType = "MIGRATED")
+      }
+      webTestClient.get().uri {
+        it.path("/mapping/appointments/migration-id/2022-01-01")
+          .queryParam("size", "2")
+          .queryParam("sort", "nomisEventId,asc")
+          .build()
+      }
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(6)
+        .jsonPath("numberOfElements").isEqualTo(2)
+        .jsonPath("number").isEqualTo(0)
+        .jsonPath("totalPages").isEqualTo(3)
+        .jsonPath("size").isEqualTo(2)
+    }
+
+    @Test
+    fun `can request a different page`() {
+      (1L..3L).forEach {
+        postCreateMappingRequest(it, it, label = "2022-01-01", mappingType = "MIGRATED")
+      }
+      webTestClient.get().uri {
+        it.path("/mapping/appointments/migration-id/2022-01-01")
+          .queryParam("size", "2")
+          .queryParam("page", "1")
+          .queryParam("sort", "nomisEventId,asc")
+          .build()
+      }
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(3)
+        .jsonPath("numberOfElements").isEqualTo(1)
+        .jsonPath("number").isEqualTo(1)
+        .jsonPath("totalPages").isEqualTo(2)
+        .jsonPath("size").isEqualTo(2)
     }
   }
 }
