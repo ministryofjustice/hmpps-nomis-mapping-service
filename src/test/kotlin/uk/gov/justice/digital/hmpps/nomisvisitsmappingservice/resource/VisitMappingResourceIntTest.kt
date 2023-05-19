@@ -832,46 +832,141 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isNotFound
     }
+
+    @Test
+    fun `delete visit mappings - migrated mappings only`() {
+      webTestClient.post().uri("/mapping/visits")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createMapping()))
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping/visits")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createMapping(
+              nomisIdOverride = 222,
+              vsipIdOverride = "333",
+              mappingType = "MIGRATED",
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.delete().uri("/mapping/visits?onlyMigrated=true")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      webTestClient.get().uri("/mapping/visits/nomisId/$nomisId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .exchange()
+        .expectStatus().isOk
+
+      webTestClient.get().uri("/mapping/visits/nomisId/222")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .exchange()
+        .expectStatus().isNotFound
+    }
   }
 
-  @Test
-  fun `delete visit mappings - migrated mappings only`() {
-    webTestClient.post().uri("/mapping/visits")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(BodyInserters.fromValue(createMapping()))
-      .exchange()
-      .expectStatus().isCreated
+  @DisplayName("DELETE /mapping/visits/migration-id/{migrationId}")
+  @Nested
+  inner class DeleteMappingByMigrationIdTest {
 
-    webTestClient.post().uri("/mapping/visits")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(
-        BodyInserters.fromValue(
-          createMapping(
-            nomisIdOverride = 222,
-            vsipIdOverride = "333",
-            mappingType = "MIGRATED",
-          ),
-        ),
-      )
-      .exchange()
-      .expectStatus().isCreated
+    @AfterEach
+    internal fun deleteData() = runBlocking {
+      repository.deleteAll()
+    }
 
-    webTestClient.delete().uri("/mapping/visits?onlyMigrated=true")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
-      .exchange()
-      .expectStatus().isNoContent
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.delete().uri("/mapping/visits/migration-id/2022-01-01T00:00:00")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
 
-    webTestClient.get().uri("/mapping/visits/nomisId/$nomisId")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
-      .exchange()
-      .expectStatus().isOk
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.delete().uri("/mapping/visits/migration-id/2022-01-01T00:00:00")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
 
-    webTestClient.get().uri("/mapping/visits/nomisId/222")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
-      .exchange()
-      .expectStatus().isNotFound
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.delete().uri("/mapping/visits/migration-id/2022-01-01T00:00:00")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `delete visit mapping by migration id success`() {
+      // add two visit mappings to a migration
+      webTestClient.post().uri("/mapping/visits")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createMapping(label = "2022-01-01T00:00:00")))
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping/visits")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createMapping(nomisIdOverride = 9999, vsipIdOverride = "jj-12-23", label = "2022-01-01T00:00:00")))
+        .exchange()
+        .expectStatus().isCreated
+
+      // add 1 visit to a different migration
+      webTestClient.post().uri("/mapping/visits")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createMapping(nomisIdOverride = 8888, vsipIdOverride = "gh-12-23", label = "2022-05-05T00:00:00")))
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.get().uri("/mapping/visits/nomisId/8888")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .exchange()
+        .expectStatus().isOk
+
+      webTestClient.get().uri("/mapping/visits/nomisId/$nomisId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .exchange()
+        .expectStatus().isOk
+
+      webTestClient.get().uri("/mapping/visits/nomisId/9999")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .exchange()
+        .expectStatus().isOk
+
+      webTestClient.delete().uri("/mapping/visits/migration-id/2022-01-01T00:00:00")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      webTestClient.get().uri("/mapping/visits/nomisId/$nomisId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .exchange()
+        .expectStatus().isNotFound
+
+      webTestClient.get().uri("/mapping/visits/nomisId/9999")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .exchange()
+        .expectStatus().isNotFound
+
+      // should not have deleted visit mapping from a different migration
+      webTestClient.get().uri("/mapping/visits/nomisId/8888")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .exchange()
+        .expectStatus().isOk
+    }
   }
 
   @DisplayName("GET /mapping/visits/migration-id/{migrationId}")

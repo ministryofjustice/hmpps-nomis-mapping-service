@@ -180,4 +180,7 @@ class VisitMappingService(
       )
     }
   }
+
+  suspend fun deleteVisitMappingsByMigrationId(migrationId: String) =
+    visitIdRepository.deleteByLabel(migrationId)
 }

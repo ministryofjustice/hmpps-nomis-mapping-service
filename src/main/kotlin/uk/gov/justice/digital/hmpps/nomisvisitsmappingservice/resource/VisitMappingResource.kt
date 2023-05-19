@@ -223,7 +223,12 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     summary = "Creates a new room mapping",
     description = "Creates a new room mapping. Requires role NOMIS_VISITS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = CreateRoomMappingDto::class))],
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = CreateRoomMappingDto::class),
+        ),
+      ],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Visit mapping entry created"),
@@ -303,6 +308,32 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     onlyMigrated: Boolean,
   ) = mappingService.deleteVisitMappings(
     onlyMigrated,
+  )
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @DeleteMapping("/mapping/visits/migration-id/{migrationId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete mapping entries for the given migration id",
+    description = "Delete mapping entries created during a single migration for visits only",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Visit id mappings deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteVisitIdMappingsByMigrationId(
+    @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
+    @PathVariable
+    migrationId: String,
+  ) = mappingService.deleteVisitMappingsByMigrationId(
+    migrationId,
   )
 
   @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
