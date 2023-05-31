@@ -6,14 +6,14 @@ import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 
-data class ActivityMapping(
+data class ActivityScheduleMapping(
 
   @Id
-  val activityScheduleId: Long,
+  val scheduledInstanceId: Long,
 
-  val nomisCourseActivityId: Long,
+  val nomisCourseScheduleId: Long,
 
-  val mappingType: ActivityMappingType,
+  val mappingType: ActivityScheduleMappingType,
 
   val whenCreated: LocalDateTime? = null,
 
@@ -25,22 +25,22 @@ data class ActivityMapping(
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is ActivityMapping) return false
+    if (other !is ActivityScheduleMapping) return false
 
-    if (activityScheduleId != other.activityScheduleId) return false
+    if (scheduledInstanceId != other.scheduledInstanceId) return false
 
     return true
   }
 
   override fun hashCode(): Int {
-    return activityScheduleId.hashCode()
+    return scheduledInstanceId.hashCode()
   }
 
   override fun isNew(): Boolean = new
 
-  override fun getId(): Long = activityScheduleId
+  override fun getId(): Long = scheduledInstanceId
 }
 
-enum class ActivityMappingType {
-  ACTIVITY_CREATED, NOMIS_CREATED
+enum class ActivityScheduleMappingType {
+  ACTIVITY_CREATED, ACTIVITY_UPDATED
 }
