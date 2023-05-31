@@ -21,7 +21,7 @@ data class ActivityScheduleMapping(
   @Value("false")
   val new: Boolean = true,
 
-  ) : Persistable<Long> {
+) : Persistable<Long> {
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
