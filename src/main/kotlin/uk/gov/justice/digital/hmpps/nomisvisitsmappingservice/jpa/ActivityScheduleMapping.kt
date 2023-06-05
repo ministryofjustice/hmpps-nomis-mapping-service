@@ -15,6 +15,8 @@ data class ActivityScheduleMapping(
 
   val mappingType: ActivityScheduleMappingType,
 
+  val activityScheduleId: Long,
+
   val whenCreated: LocalDateTime? = null,
 
   @Transient

@@ -42,5 +42,5 @@ data class ActivityMapping(
 }
 
 enum class ActivityMappingType {
-  ACTIVITY_CREATED, NOMIS_CREATED
+  ACTIVITY_CREATED,
 }

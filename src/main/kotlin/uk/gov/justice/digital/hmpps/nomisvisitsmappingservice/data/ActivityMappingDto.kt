@@ -22,12 +22,16 @@ data class ActivityMappingDto(
   @field:Size(max = 20, message = "mappingType has a maximum length of 20")
   val mappingType: String,
 
+  @Schema(description = "Scheduled instance to course schedule mappings", required = true)
+  val scheduledInstanceMappings: List<ActivityScheduleMappingDto> = listOf(),
+
   @Schema(description = "Date-time the mapping was created")
   val whenCreated: LocalDateTime? = null,
 ) {
-  constructor(mapping: ActivityMapping) : this(
+  constructor(mapping: ActivityMapping, scheduleMappingss: List<ActivityScheduleMappingDto>) : this(
     activityScheduleId = mapping.activityScheduleId,
     nomisCourseActivityId = mapping.nomisCourseActivityId,
     mappingType = mapping.mappingType.name,
+    scheduledInstanceMappings = scheduleMappingss,
   )
 }

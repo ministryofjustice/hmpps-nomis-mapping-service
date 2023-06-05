@@ -90,26 +90,6 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
     activityScheduleId: Long,
   ): ActivityMappingDto = mappingService.getMappingById(activityScheduleId)
 
-//  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
-//  @DeleteMapping("/mapping/activities")
-//  @ResponseStatus(HttpStatus.NO_CONTENT)
-//  @Operation(
-//    summary = "Deletes incentive mappings",
-//    description = "Deletes all rows from the the incentive mapping table. Requires role NOMIS_ACTIVITIES",
-//    responses = [
-//      ApiResponse(
-//        responseCode = "204",
-//        description = "Incentive mappings deleted"
-//      ),
-//      ApiResponse(
-//        responseCode = "401",
-//        description = "Unauthorized to access this endpoint",
-//        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-//      ),
-//    ]
-//  )
-//  suspend fun deleteIncentiveMappings() = mappingService.deleteMappings()
-
   @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
   @DeleteMapping("/mapping/activities/activity-schedule-id/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
