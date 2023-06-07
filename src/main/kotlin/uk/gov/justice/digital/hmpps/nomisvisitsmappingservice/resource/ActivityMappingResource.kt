@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.ActivityMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.ActivityScheduleMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.ActivityMappingService
 
 @RestController
@@ -89,6 +90,40 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
     @PathVariable
     activityScheduleId: Long,
   ): ActivityMappingDto = mappingService.getMappingById(activityScheduleId)
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @GetMapping("/mapping/activities/activity-schedule-id/{activityScheduleId}/scheduled-instance-id/{scheduledInstanceId}")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(
+    summary = "get scheduled instance mapping",
+    description = "Retrieves a mapping by activity schedule id and scheduled instance id. Requires role NOMIS_ACTIVITIES",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ActivityMappingDto::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getScheduleMapping(
+    @Schema(description = "Activity schedule Id", example = "12345", required = true) @PathVariable activityScheduleId: Long,
+    @Schema(description = "Scheduled instance Id", example = "67890", required = true) @PathVariable scheduledInstanceId: Long,
+  ): ActivityScheduleMappingDto = mappingService.getScheduleMappingById(activityScheduleId, scheduledInstanceId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
   @DeleteMapping("/mapping/activities/activity-schedule-id/{id}")

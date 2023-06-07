@@ -5,6 +5,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.groups.Tuple.tuple
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -34,6 +35,8 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
   private val nomisCourseActivityId = 1234L
   private val activityScheduleId = 4444L
+  private val nomisCourseScheduleId = 2345L
+  private val activityScheduledInstanceId = 5555L
 
   @AfterEach
   internal fun deleteData() = runBlocking {
@@ -44,7 +47,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
   private fun createMapping(
     nomisId: Long = nomisCourseActivityId,
     activityId: Long = activityScheduleId,
-    scheduledInstanceMappings: List<Pair<Long, Long>> = listOf(Pair(1, 11)),
+    scheduledInstanceMappings: List<Pair<Long, Long>> = listOf(Pair(activityScheduledInstanceId, nomisCourseScheduleId)),
     mappingType: String = ActivityMappingType.ACTIVITY_CREATED.name,
   ): ActivityMappingDto = ActivityMappingDto(
     nomisCourseActivityId = nomisId,
@@ -330,6 +333,78 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
+  @DisplayName("GET /mapping/activities/activity-schedule-id/{activityScheduleId}/scheduled-instance-id/{scheduledInstanceId}")
+  @Nested
+  inner class GetScheduleMappingTest {
+
+    @BeforeEach
+    fun setUp() {
+      runBlocking {
+        activityMappingRepository.save(ActivityMapping(activityScheduleId, nomisCourseActivityId, ActivityMappingType.ACTIVITY_CREATED))
+        scheduleMappingRepository.save(ActivityScheduleMapping(activityScheduledInstanceId, nomisCourseScheduleId, ActivityScheduleMappingType.ACTIVITY_CREATED, activityScheduleId))
+      }
+    }
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId/scheduled-instance-id/$activityScheduledInstanceId")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId/scheduled-instance-id/$activityScheduledInstanceId")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId/scheduled-instance-id/$activityScheduledInstanceId")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `mapping not found for activity id`() {
+      val error = webTestClient.get().uri("/mapping/activities/activity-schedule-id/765/scheduled-instance-id/$activityScheduledInstanceId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isNotFound
+        .expectBody(ErrorResponse::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(error.userMessage).isEqualTo("Not Found: Activity schedule id=765, Scheduled instance id=$activityScheduledInstanceId")
+    }
+
+    @Test
+    fun `mapping not found for scheduled instance id`() {
+      val error = webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId/scheduled-instance-id/432")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isNotFound
+        .expectBody(ErrorResponse::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(error.userMessage).isEqualTo("Not Found: Activity schedule id=$activityScheduleId, Scheduled instance id=432")
+    }
+
+    @Test
+    fun `mapping found`() {
+      webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId/scheduled-instance-id/$activityScheduledInstanceId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("scheduledInstanceId").isEqualTo(activityScheduledInstanceId)
+        .jsonPath("nomisCourseScheduleId").isEqualTo(nomisCourseScheduleId)
+        .jsonPath("mappingType").isEqualTo("ACTIVITY_CREATED")
+    }
+  }
+
   @DisplayName("GET /mapping/activities")
   @Nested
   inner class GetAllMappingTest {
@@ -427,7 +502,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
         assertThat(activityMapping?.nomisCourseActivityId).isEqualTo(nomisCourseActivityId)
         val scheduleMappings = scheduleMappingRepository.findAllByActivityScheduleId(activityScheduleId).toList()
         assertThat(scheduleMappings).extracting(ActivityScheduleMapping::scheduledInstanceId, ActivityScheduleMapping::nomisCourseScheduleId)
-          .containsExactlyInAnyOrder(tuple(1L, 11L))
+          .containsExactlyInAnyOrder(tuple(activityScheduledInstanceId, nomisCourseScheduleId))
       }
 
       // delete mapping
