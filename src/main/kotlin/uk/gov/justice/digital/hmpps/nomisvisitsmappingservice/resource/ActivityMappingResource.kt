@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -55,6 +56,39 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
     createMappingRequest: ActivityMappingDto,
   ) =
     mappingService.createMapping(createMappingRequest)
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @PutMapping("/mapping/activities")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(
+    summary = "Updates an activity mapping",
+    description = "Updates a mapping between Nomis and Activities, including both the COURSE_ACTIVITY and COURSE_SCHEDULE. Requires NOMIS_ACTIVITIES",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = ActivityMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "200", description = "Mapping entry updated"),
+      ApiResponse(
+        responseCode = "400",
+        description = "The request is invalid, see response for details",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "An activity schedule mapping to update could not be found",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun updateMapping(
+    @RequestBody @Valid
+    updateRequest: ActivityMappingDto,
+  ) = mappingService.updateScheduleMappings(updateRequest)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
   @GetMapping("/mapping/activities/activity-schedule-id/{activityScheduleId}")

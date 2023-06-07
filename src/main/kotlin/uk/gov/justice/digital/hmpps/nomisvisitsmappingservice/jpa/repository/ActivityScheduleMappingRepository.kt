@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository
 
-import kotlinx.coroutines.flow.Flow
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivityScheduleMapping
@@ -11,7 +10,7 @@ interface ActivityScheduleMappingRepository : CoroutineCrudRepository<ActivitySc
 
   suspend fun findOneByActivityScheduleIdAndScheduledInstanceId(activityScheduleId: Long, scheduledInstanceId: Long): ActivityScheduleMapping?
 
-  fun findAllByActivityScheduleId(activityScheduleId: Long): Flow<ActivityScheduleMapping>
+  suspend fun findAllByActivityScheduleId(activityScheduleId: Long): List<ActivityScheduleMapping>
 
   suspend fun deleteAllByActivityScheduleId(activityScheduleId: Long)
 }

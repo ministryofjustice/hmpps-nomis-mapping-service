@@ -11,13 +11,15 @@ data class ActivityScheduleMapping(
   @Id
   val scheduledInstanceId: Long,
 
-  val nomisCourseScheduleId: Long,
+  var nomisCourseScheduleId: Long,
 
-  val mappingType: ActivityScheduleMappingType,
+  var mappingType: ActivityScheduleMappingType,
 
   val activityScheduleId: Long,
 
   val whenCreated: LocalDateTime? = null,
+
+  var whenUpdated: LocalDateTime? = null,
 
   @Transient
   @Value("false")
