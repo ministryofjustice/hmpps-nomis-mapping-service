@@ -9,6 +9,8 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivitySchedu
 interface ActivityScheduleMappingRepository : CoroutineCrudRepository<ActivityScheduleMapping, Long> {
   suspend fun findOneByNomisCourseScheduleId(nomisCourseScheduleId: Long): ActivityScheduleMapping?
 
+  suspend fun findOneByActivityScheduleIdAndScheduledInstanceId(activityScheduleId: Long, scheduledInstanceId: Long): ActivityScheduleMapping?
+
   fun findAllByActivityScheduleId(activityScheduleId: Long): Flow<ActivityScheduleMapping>
 
   suspend fun deleteAllByActivityScheduleId(activityScheduleId: Long)
