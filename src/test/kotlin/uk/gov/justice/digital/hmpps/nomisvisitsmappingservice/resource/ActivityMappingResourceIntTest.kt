@@ -1,7 +1,10 @@
+@file:OptIn(ExperimentalCoroutinesApi::class)
+
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
-import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.groups.Tuple.tuple
 import org.junit.jupiter.api.AfterEach
@@ -9,8 +12,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.isNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
@@ -177,7 +182,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `create mapping success with schedules`() {
+    fun `create mapping success with schedules`() = runTest {
       webTestClient.post().uri("/mapping/activities")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -205,24 +210,22 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      runBlocking {
-        val activityMapping = activityMappingRepository.findOneByNomisCourseActivityId(nomisCourseActivityId)
-          ?: throw NotFoundException("Activity mapping not saved $nomisCourseActivityId")
+      val activityMapping = activityMappingRepository.findOneByNomisCourseActivityId(nomisCourseActivityId)
+        ?: throw NotFoundException("Activity mapping not saved $nomisCourseActivityId")
 
-        assertThat(activityMapping.nomisCourseActivityId).isEqualTo(nomisCourseActivityId)
-        assertThat(activityMapping.activityScheduleId).isEqualTo(activityScheduleId)
-        assertThat(activityMapping.mappingType).isEqualTo(ActivityMappingType.ACTIVITY_CREATED)
+      assertThat(activityMapping.nomisCourseActivityId).isEqualTo(nomisCourseActivityId)
+      assertThat(activityMapping.activityScheduleId).isEqualTo(activityScheduleId)
+      assertThat(activityMapping.mappingType).isEqualTo(ActivityMappingType.ACTIVITY_CREATED)
 
-        val scheduleMappings = scheduleMappingRepository.findAllByActivityScheduleId(activityScheduleId).toList()
-        assertThat(scheduleMappings).extracting(
-          ActivityScheduleMapping::scheduledInstanceId,
-          ActivityScheduleMapping::nomisCourseScheduleId,
-        ).containsExactly(tuple(1L, 11L), tuple(2L, 22L))
-      }
+      val scheduleMappings = scheduleMappingRepository.findAllByActivityScheduleId(activityScheduleId).toList()
+      assertThat(scheduleMappings).extracting(
+        ActivityScheduleMapping::scheduledInstanceId,
+        ActivityScheduleMapping::nomisCourseScheduleId,
+      ).containsExactly(tuple(1L, 11L), tuple(2L, 22L))
     }
 
     @Test
-    fun `create mapping with no schedules`() {
+    fun `create mapping with no schedules`() = runTest {
       webTestClient.post().uri("/mapping/activities")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -238,18 +241,194 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      runBlocking {
-        val activityMapping = activityMappingRepository.findOneByNomisCourseActivityId(nomisCourseActivityId)
-          ?: throw NotFoundException("Activity mapping not saved $nomisCourseActivityId")
+      val activityMapping = activityMappingRepository.findOneByNomisCourseActivityId(nomisCourseActivityId)
+        ?: throw NotFoundException("Activity mapping not saved $nomisCourseActivityId")
 
-        assertThat(activityMapping.nomisCourseActivityId).isEqualTo(nomisCourseActivityId)
-        assertThat(activityMapping.activityScheduleId).isEqualTo(activityScheduleId)
-        assertThat(activityMapping.mappingType).isEqualTo(ActivityMappingType.ACTIVITY_CREATED)
+      assertThat(activityMapping.nomisCourseActivityId).isEqualTo(nomisCourseActivityId)
+      assertThat(activityMapping.activityScheduleId).isEqualTo(activityScheduleId)
+      assertThat(activityMapping.mappingType).isEqualTo(ActivityMappingType.ACTIVITY_CREATED)
 
-        val scheduleMappings = scheduleMappingRepository.findAllByActivityScheduleId(activityScheduleId).toList()
-        assertThat(scheduleMappings).isEmpty()
-      }
+      val scheduleMappings = scheduleMappingRepository.findAllByActivityScheduleId(activityScheduleId).toList()
+      assertThat(scheduleMappings).isEmpty()
     }
+  }
+
+  @DisplayName("PUT /mapping/activities")
+  @Nested
+  inner class UpdateMappingTest {
+
+    private fun createUpdateRequest(
+      activityMapping: Pair<Long, Long> = activityScheduleId to nomisCourseActivityId,
+      scheduleMappings: List<Pair<Long, Long>> = listOf(activityScheduledInstanceId to nomisCourseScheduleId),
+    ): String {
+      val mappingsJson = scheduleMappings.joinToString { mapping ->
+        """
+          {
+            "scheduledInstanceId": ${mapping.first},
+            "nomisCourseScheduleId":${mapping.second},
+            "mappingType": "ACTIVITY_UPDATED"
+          }
+        """.trimIndent()
+      }
+
+      return """
+          {
+            "activityScheduleId"    : ${activityMapping.first},
+            "nomisCourseActivityId" : ${activityMapping.second},
+            "mappingType"           : "ACTIVITY_UPDATED",
+            "scheduledInstanceMappings" : [$mappingsJson]
+          }
+      """.trimIndent()
+    }
+
+    @BeforeEach
+    fun setUp() = runTest {
+      activityMappingRepository.save(ActivityMapping(activityScheduleId, nomisCourseActivityId, ActivityMappingType.ACTIVITY_CREATED))
+      scheduleMappingRepository.save(ActivityScheduleMapping(activityScheduledInstanceId, nomisCourseScheduleId, ActivityScheduleMappingType.ACTIVITY_CREATED, activityScheduleId))
+    }
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.put().uri("/mapping/activities")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createUpdateRequest()))
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.put().uri("/mapping/activities")
+        .headers(setAuthorisation(roles = listOf()))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createUpdateRequest()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `create visit forbidden with wrong role`() {
+      webTestClient.put().uri("/mapping/activities")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createUpdateRequest()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `not found if activity mapping does not exist`() {
+      webTestClient.putScheduleMappings(createUpdateRequest(activityMapping = 999L to nomisCourseActivityId))
+        .expectStatus().isNotFound
+        .expectBody()
+        .jsonPath("userMessage").value<String> {
+          assertThat(it).contains("Activity schedule id=999")
+        }
+    }
+
+    @Test
+    fun `OK if there is no change to the mappings`() = runTest {
+      webTestClient.putScheduleMappings()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("activityScheduleId").isEqualTo(activityScheduleId)
+        .jsonPath("nomisCourseActivityId").isEqualTo(nomisCourseActivityId)
+        .jsonPath("mappingType").isEqualTo("ACTIVITY_CREATED")
+        .jsonPath("scheduledInstanceMappings[0].scheduledInstanceId").isEqualTo(activityScheduledInstanceId)
+        .jsonPath("scheduledInstanceMappings[0].nomisCourseScheduleId").isEqualTo(nomisCourseScheduleId)
+        .jsonPath("scheduledInstanceMappings[0].mappingType").isEqualTo("ACTIVITY_CREATED")
+
+      val saved = scheduleMappingRepository.findAllByActivityScheduleId(activityScheduleId).toList()
+      assertThat(saved)
+        .extracting(ActivityScheduleMapping::scheduledInstanceId, ActivityScheduleMapping::nomisCourseScheduleId)
+        .containsExactlyInAnyOrder(tuple(activityScheduledInstanceId, nomisCourseScheduleId))
+    }
+
+    @Test
+    fun `OK when mappings added`() = runTest {
+      val request = createUpdateRequest(scheduleMappings = listOf(activityScheduledInstanceId to nomisCourseScheduleId, 111L to 222L))
+      webTestClient.putScheduleMappings(request)
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("scheduledInstanceMappings[0].scheduledInstanceId").isEqualTo(activityScheduledInstanceId)
+        .jsonPath("scheduledInstanceMappings[0].nomisCourseScheduleId").isEqualTo(nomisCourseScheduleId)
+        .jsonPath("scheduledInstanceMappings[0].mappingType").isEqualTo("ACTIVITY_CREATED")
+        .jsonPath("scheduledInstanceMappings[1].scheduledInstanceId").isEqualTo("111")
+        .jsonPath("scheduledInstanceMappings[1].nomisCourseScheduleId").isEqualTo("222")
+        .jsonPath("scheduledInstanceMappings[1].mappingType").isEqualTo("ACTIVITY_UPDATED")
+
+      val saved = scheduleMappingRepository.findAllByActivityScheduleId(activityScheduleId).toList()
+      assertThat(saved)
+        .extracting(ActivityScheduleMapping::scheduledInstanceId, ActivityScheduleMapping::nomisCourseScheduleId)
+        .containsExactlyInAnyOrder(tuple(activityScheduledInstanceId, nomisCourseScheduleId), tuple(111L, 222L))
+    }
+
+    @Test
+    fun `OK when mappings deleted`() = runTest {
+      webTestClient.putScheduleMappings(createUpdateRequest(scheduleMappings = listOf()))
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("scheduledInstanceMappings", isNull())
+
+      val saved = scheduleMappingRepository.findAllByActivityScheduleId(activityScheduleId).toList()
+      assertThat(saved).isEmpty()
+    }
+
+    @Test
+    fun `OK when mappings updated`() = runTest {
+      val request = createUpdateRequest(scheduleMappings = listOf(activityScheduledInstanceId to 222L))
+      webTestClient.putScheduleMappings(request)
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("scheduledInstanceMappings[0].scheduledInstanceId").isEqualTo(activityScheduledInstanceId)
+        .jsonPath("scheduledInstanceMappings[0].nomisCourseScheduleId").isEqualTo("222")
+
+      val saved = scheduleMappingRepository.findAllByActivityScheduleId(activityScheduleId).toList()
+      assertThat(saved)
+        .extracting(ActivityScheduleMapping::scheduledInstanceId, ActivityScheduleMapping::nomisCourseScheduleId)
+        .containsExactlyInAnyOrder(tuple(activityScheduledInstanceId, 222L))
+    }
+
+    @Test
+    fun `OK when mappings created, deleted and updated`() = runTest {
+      scheduleMappingRepository.save(ActivityScheduleMapping(111L, 222L, ActivityScheduleMappingType.ACTIVITY_CREATED, activityScheduleId))
+      scheduleMappingRepository.save(ActivityScheduleMapping(333L, 444L, ActivityScheduleMappingType.ACTIVITY_CREATED, activityScheduleId))
+
+      val request = createUpdateRequest(
+        scheduleMappings = listOf(
+          activityScheduledInstanceId to nomisCourseScheduleId, // keep
+          111L to 223L, // update
+          555L to 666L, // create
+        ),
+      ) // missing 333L to 444L - delete
+
+      webTestClient.putScheduleMappings(request)
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("scheduledInstanceMappings[0].scheduledInstanceId").isEqualTo(activityScheduledInstanceId)
+        .jsonPath("scheduledInstanceMappings[0].nomisCourseScheduleId").isEqualTo(nomisCourseScheduleId)
+        .jsonPath("scheduledInstanceMappings[1].scheduledInstanceId").isEqualTo("111")
+        .jsonPath("scheduledInstanceMappings[1].nomisCourseScheduleId").isEqualTo("223")
+        .jsonPath("scheduledInstanceMappings[2].scheduledInstanceId").isEqualTo("555")
+        .jsonPath("scheduledInstanceMappings[2].nomisCourseScheduleId").isEqualTo("666")
+        .jsonPath("scheduledInstanceMappings[3].scheduledInstanceId", isNull())
+
+      val saved = scheduleMappingRepository.findAllByActivityScheduleId(activityScheduleId).toList()
+      assertThat(saved)
+        .extracting(ActivityScheduleMapping::scheduledInstanceId, ActivityScheduleMapping::nomisCourseScheduleId)
+        .containsExactlyInAnyOrder(
+          tuple(activityScheduledInstanceId, nomisCourseScheduleId),
+          tuple(111L, 223L),
+          tuple(555L, 666L),
+        )
+    }
+
+    private fun WebTestClient.putScheduleMappings(request: String = createUpdateRequest()) =
+      put().uri("/mapping/activities")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(request))
+        .exchange()
   }
 
   @DisplayName("GET /mapping/activities/activity-schedule/{activityScheduleId}")
@@ -292,10 +471,8 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `get mapping success no schedules`() {
-      runBlocking {
-        activityMappingRepository.save(ActivityMapping(activityScheduleId, 2, ActivityMappingType.ACTIVITY_CREATED))
-      }
+    fun `get mapping success no schedules`() = runTest {
+      activityMappingRepository.save(ActivityMapping(activityScheduleId, 2, ActivityMappingType.ACTIVITY_CREATED))
 
       webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
@@ -309,12 +486,10 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `get mapping success with schedules`() {
-      runBlocking {
-        activityMappingRepository.save(ActivityMapping(activityScheduleId, nomisCourseActivityId, ActivityMappingType.ACTIVITY_CREATED))
-        scheduleMappingRepository.save(ActivityScheduleMapping(11, 12, ActivityScheduleMappingType.ACTIVITY_CREATED, activityScheduleId))
-        scheduleMappingRepository.save(ActivityScheduleMapping(21, 22, ActivityScheduleMappingType.ACTIVITY_CREATED, activityScheduleId))
-      }
+    fun `get mapping success with schedules`() = runTest {
+      activityMappingRepository.save(ActivityMapping(activityScheduleId, nomisCourseActivityId, ActivityMappingType.ACTIVITY_CREATED))
+      scheduleMappingRepository.save(ActivityScheduleMapping(11, 12, ActivityScheduleMappingType.ACTIVITY_CREATED, activityScheduleId))
+      scheduleMappingRepository.save(ActivityScheduleMapping(21, 22, ActivityScheduleMappingType.ACTIVITY_CREATED, activityScheduleId))
 
       webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
@@ -338,11 +513,9 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
   inner class GetScheduleMappingTest {
 
     @BeforeEach
-    fun setUp() {
-      runBlocking {
-        activityMappingRepository.save(ActivityMapping(activityScheduleId, nomisCourseActivityId, ActivityMappingType.ACTIVITY_CREATED))
-        scheduleMappingRepository.save(ActivityScheduleMapping(activityScheduledInstanceId, nomisCourseScheduleId, ActivityScheduleMappingType.ACTIVITY_CREATED, activityScheduleId))
-      }
+    fun setUp() = runTest {
+      activityMappingRepository.save(ActivityMapping(activityScheduleId, nomisCourseActivityId, ActivityMappingType.ACTIVITY_CREATED))
+      scheduleMappingRepository.save(ActivityScheduleMapping(activityScheduledInstanceId, nomisCourseScheduleId, ActivityScheduleMappingType.ACTIVITY_CREATED, activityScheduleId))
     }
 
     @Test
@@ -480,7 +653,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `delete specific mapping success with schedules`() {
+    fun `delete specific mapping success with schedules`() = runTest {
       // create mapping
       webTestClient.post().uri("/mapping/activities")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
@@ -496,14 +669,12 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
 
       // and present on the database
-      runBlocking {
-        val activityMapping = activityMappingRepository.findOneByNomisCourseActivityId(nomisCourseActivityId)
-        assertThat(activityMapping?.activityScheduleId).isEqualTo(activityScheduleId)
-        assertThat(activityMapping?.nomisCourseActivityId).isEqualTo(nomisCourseActivityId)
-        val scheduleMappings = scheduleMappingRepository.findAllByActivityScheduleId(activityScheduleId).toList()
-        assertThat(scheduleMappings).extracting(ActivityScheduleMapping::scheduledInstanceId, ActivityScheduleMapping::nomisCourseScheduleId)
-          .containsExactlyInAnyOrder(tuple(activityScheduledInstanceId, nomisCourseScheduleId))
-      }
+      val activityMapping = activityMappingRepository.findOneByNomisCourseActivityId(nomisCourseActivityId)
+      assertThat(activityMapping?.activityScheduleId).isEqualTo(activityScheduleId)
+      assertThat(activityMapping?.nomisCourseActivityId).isEqualTo(nomisCourseActivityId)
+      val scheduleMappings = scheduleMappingRepository.findAllByActivityScheduleId(activityScheduleId)
+      assertThat(scheduleMappings).extracting(ActivityScheduleMapping::scheduledInstanceId, ActivityScheduleMapping::nomisCourseScheduleId)
+        .containsExactlyInAnyOrder(tuple(activityScheduledInstanceId, nomisCourseScheduleId))
 
       // delete mapping
       webTestClient.delete().uri("/mapping/activities/activity-schedule-id/$activityScheduleId")
@@ -518,12 +689,8 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isNotFound
 
       // and not present on the database
-      runBlocking {
-        val activityMapping = activityMappingRepository.findOneByNomisCourseActivityId(nomisCourseActivityId)
-        assertThat(activityMapping).isNull()
-        val scheduleMappings = scheduleMappingRepository.findAllByActivityScheduleId(activityScheduleId).toList()
-        assertThat(scheduleMappings).isEmpty()
-      }
+      assertThat(activityMappingRepository.findOneByNomisCourseActivityId(nomisCourseActivityId)).isNull()
+      assertThat(scheduleMappingRepository.findAllByActivityScheduleId(activityScheduleId)).isEmpty()
     }
 
     @Test

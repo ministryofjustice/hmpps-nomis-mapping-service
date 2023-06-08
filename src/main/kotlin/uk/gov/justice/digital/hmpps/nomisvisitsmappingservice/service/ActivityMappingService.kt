@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service
 
 import com.microsoft.applicationinsights.TelemetryClient
 import jakarta.validation.ValidationException
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -82,12 +81,62 @@ class ActivityMappingService(
     }
   }
 
+  suspend fun updateScheduleMappings(updateRequest: ActivityMappingDto): ActivityMappingDto {
+    if (!activityMappingRepository.existsById(updateRequest.activityScheduleId)) {
+      throw NotFoundException("Activity schedule id=${updateRequest.activityScheduleId}")
+    }
+
+    val activityScheduleId = updateRequest.activityScheduleId
+    val existingMappings = activityScheduleMappingRepository.findAllByActivityScheduleId(activityScheduleId)
+
+    // handle updates and deletes
+    existingMappings.forEach { existingMapping ->
+      updateRequest.scheduledInstanceMappings.findRequestedMapping(existingMapping)
+        ?.also { requestedMapping -> existingMapping.saveIfChanged(requestedMapping) }
+        ?: also { activityScheduleMappingRepository.delete(existingMapping) }
+    }
+
+    // create new mappings
+    updateRequest.scheduledInstanceMappings.forEach { requestedMapping ->
+      if (existingMappings.doesNotExist(requestedMapping)) {
+        requestedMapping.createForActivity(activityScheduleId)
+      }
+    }
+
+    return getMappingById(activityScheduleId)
+  }
+
+  private fun List<ActivityScheduleMappingDto>.findRequestedMapping(existingMapping: ActivityScheduleMapping) =
+    find { it.scheduledInstanceId == existingMapping.scheduledInstanceId }
+
+  private suspend fun ActivityScheduleMappingDto.createForActivity(activityScheduleId: Long) {
+    ActivityScheduleMapping(
+      scheduledInstanceId = scheduledInstanceId,
+      nomisCourseScheduleId = nomisCourseScheduleId,
+      mappingType = ActivityScheduleMappingType.valueOf(mappingType),
+      activityScheduleId = activityScheduleId,
+    ).also {
+      activityScheduleMappingRepository.save(it)
+    }
+  }
+
+  private fun List<ActivityScheduleMapping>.doesNotExist(requestedMapping: ActivityScheduleMappingDto) =
+    none { it.scheduledInstanceId == requestedMapping.scheduledInstanceId }
+
+  private suspend fun ActivityScheduleMapping.saveIfChanged(requestedMapping: ActivityScheduleMappingDto) {
+    if (nomisCourseScheduleId != requestedMapping.nomisCourseScheduleId) {
+      nomisCourseScheduleId = requestedMapping.nomisCourseScheduleId
+      mappingType = ActivityScheduleMappingType.valueOf(requestedMapping.mappingType)
+      activityScheduleMappingRepository.save(this)
+    }
+  }
+
   suspend fun getMappingById(id: Long): ActivityMappingDto =
     activityScheduleMappingRepository.findAllByActivityScheduleId(id)
       .map { ActivityScheduleMappingDto(it) }
       .let { schedules ->
         activityMappingRepository.findById(id)
-          ?.let { ActivityMappingDto(it, schedules.toList()) }
+          ?.let { ActivityMappingDto(it, schedules) }
           ?: throw NotFoundException("Activity schedule id=$id")
       }
 
