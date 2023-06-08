@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivitySchedu
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivityScheduleMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.ActivityMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.ActivityScheduleMappingRepository
-import java.time.LocalDateTime.now
 
 @Service
 @Transactional(readOnly = true)
@@ -83,12 +82,11 @@ class ActivityMappingService(
   }
 
   suspend fun updateScheduleMappings(updateRequest: ActivityMappingDto): ActivityMappingDto {
-    val activityScheduleId = if (activityMappingRepository.existsById(updateRequest.activityScheduleId)) {
-      updateRequest.activityScheduleId
-    } else {
+    if (!activityMappingRepository.existsById(updateRequest.activityScheduleId)) {
       throw NotFoundException("Activity schedule id=${updateRequest.activityScheduleId}")
     }
 
+    val activityScheduleId = updateRequest.activityScheduleId
     val existingMappings = activityScheduleMappingRepository.findAllByActivityScheduleId(activityScheduleId)
 
     // handle updates and deletes
@@ -105,7 +103,7 @@ class ActivityMappingService(
       }
     }
 
-    return getMappingById(updateRequest.activityScheduleId)
+    return getMappingById(activityScheduleId)
   }
 
   private fun List<ActivityScheduleMappingDto>.findRequestedMapping(existingMapping: ActivityScheduleMapping) =
@@ -129,7 +127,6 @@ class ActivityMappingService(
     if (nomisCourseScheduleId != requestedMapping.nomisCourseScheduleId) {
       nomisCourseScheduleId = requestedMapping.nomisCourseScheduleId
       mappingType = ActivityScheduleMappingType.valueOf(requestedMapping.mappingType)
-      whenUpdated = now()
       activityScheduleMappingRepository.save(this)
     }
   }

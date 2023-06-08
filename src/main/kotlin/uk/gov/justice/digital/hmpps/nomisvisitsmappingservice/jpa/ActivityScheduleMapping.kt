@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa
 
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
@@ -17,8 +19,10 @@ data class ActivityScheduleMapping(
 
   val activityScheduleId: Long,
 
+  @CreatedDate
   val whenCreated: LocalDateTime? = null,
 
+  @LastModifiedDate
   var whenUpdated: LocalDateTime? = null,
 
   @Transient
