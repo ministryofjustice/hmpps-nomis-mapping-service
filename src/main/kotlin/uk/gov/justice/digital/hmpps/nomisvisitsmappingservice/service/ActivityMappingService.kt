@@ -81,6 +81,7 @@ class ActivityMappingService(
     }
   }
 
+  @Transactional
   suspend fun updateScheduleMappings(updateRequest: ActivityMappingDto): ActivityMappingDto {
     if (!activityMappingRepository.existsById(updateRequest.activityScheduleId)) {
       throw NotFoundException("Activity schedule id=${updateRequest.activityScheduleId}")
