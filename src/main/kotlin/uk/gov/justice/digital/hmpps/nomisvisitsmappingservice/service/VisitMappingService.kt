@@ -134,6 +134,7 @@ class VisitMappingService(
       RoomMappingDto(it.vsipId, it.nomisRoomDescription, it.prisonId, it.isOpen)
     }
 
+  @Transactional
   suspend fun createRoomMapping(prisonId: String, createRoomMappingDto: CreateRoomMappingDto) {
     roomIdRepository.findOneByPrisonIdAndNomisRoomDescription(prisonId, createRoomMappingDto.nomisRoomDescription)
       ?.run {
@@ -164,6 +165,7 @@ class VisitMappingService(
     )
   }
 
+  @Transactional
   suspend fun deleteRoomMapping(prisonId: String, nomisRoomDescription: String) {
     roomIdRepository.findOneByPrisonIdAndNomisRoomDescription(prisonId, nomisRoomDescription)?.run {
       roomIdRepository.deleteById(this.id)
@@ -181,6 +183,7 @@ class VisitMappingService(
     }
   }
 
+  @Transactional
   suspend fun deleteVisitMappingsByMigrationId(migrationId: String) =
     visitIdRepository.deleteByLabel(migrationId)
 }
