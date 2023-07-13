@@ -131,4 +131,9 @@ class AppointmentMappingService(
 
   suspend fun getAllMappings(): List<AppointmentMappingDto> =
     appointmentMappingRepository.findAll().toList().map { AppointmentMappingDto(it) }
+
+  @Transactional
+  suspend fun deleteMigrationMappings() {
+    appointmentMappingRepository.deleteByMappingType(AppointmentMappingType.MIGRATED)
+  }
 }

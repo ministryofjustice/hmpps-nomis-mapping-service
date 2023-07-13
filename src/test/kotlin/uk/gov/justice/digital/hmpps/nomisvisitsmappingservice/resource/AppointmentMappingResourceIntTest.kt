@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
@@ -637,6 +639,64 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
         .exchange()
         .expectStatus().isNoContent
+    }
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  @DisplayName("DELETE /mappings/appointments")
+  @Nested
+  inner class DeleteAllMappings {
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.delete().uri("/mapping/appointments/migrations")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.delete().uri("/mapping/appointments/migrations")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `delete mapping success`() = runTest {
+      postCreateMappingRequest(1, 11, mappingType = MIGRATED.name)
+      postCreateMappingRequest(2, 22, mappingType = MIGRATED.name)
+      postCreateMappingRequest(3, 33, mappingType = APPOINTMENT_CREATED.name)
+
+      webTestClient.get().uri("/mapping/appointments")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("$[0].nomisEventId").isEqualTo(1)
+        .jsonPath("$[0].appointmentInstanceId").isEqualTo(11)
+        .jsonPath("$[0].mappingType").isEqualTo("MIGRATED")
+        .jsonPath("$[1].nomisEventId").isEqualTo(2)
+        .jsonPath("$[1].appointmentInstanceId").isEqualTo(22)
+        .jsonPath("$[1].mappingType").isEqualTo("MIGRATED")
+        .jsonPath("$[2].nomisEventId").isEqualTo(3)
+        .jsonPath("$[2].appointmentInstanceId").isEqualTo(33)
+        .jsonPath("$[2].mappingType").isEqualTo("APPOINTMENT_CREATED")
+
+      webTestClient.delete().uri("/mapping/appointments/migrations")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      webTestClient.get().uri("/mapping/appointments")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("$[0].nomisEventId").isEqualTo(3)
+        .jsonPath("$[0].appointmentInstanceId").isEqualTo(33)
+        .jsonPath("$[0].mappingType").isEqualTo("APPOINTMENT_CREATED")
     }
   }
 

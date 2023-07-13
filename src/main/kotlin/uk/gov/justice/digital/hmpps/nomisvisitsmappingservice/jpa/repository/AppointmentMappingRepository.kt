@@ -20,4 +20,6 @@ interface AppointmentMappingRepository : CoroutineCrudRepository<AppointmentMapp
     mappingType: AppointmentMappingType,
     pageable: Pageable,
   ): Flow<AppointmentMapping>
+
+  suspend fun deleteByMappingType(mappingType: AppointmentMappingType)
 }
