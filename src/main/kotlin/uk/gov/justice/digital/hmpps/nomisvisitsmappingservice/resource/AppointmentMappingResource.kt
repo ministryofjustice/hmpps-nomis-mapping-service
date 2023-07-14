@@ -192,15 +192,15 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
   ) = mappingService.deleteMapping(id)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_APPOINTMENTS')")
-  @DeleteMapping("/mapping/appointments/migrations")
+  @DeleteMapping("/mapping/appointments/migration-id/{migrationId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
-    summary = "Deletes all migration mappings",
+    summary = "Delete appointment mapping entries for the supplied migration id",
     description = "To be used when re-running migrations. Note this will not touch any appointments, just the mappings.",
     responses = [
       ApiResponse(
         responseCode = "204",
-        description = "Mappings deleted",
+        description = "Appointments migration mapping id mappings deleted",
       ),
       ApiResponse(
         responseCode = "401",
@@ -208,13 +208,17 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
-        description = "Insufficient priveleges - requires role NOMIS_APPOINTMENTS",
+        description = "Insufficient privileges - requires role NOMIS_APPOINTMENTS",
         responseCode = "403",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
     ],
   )
-  suspend fun deleteMigrationMappings() = mappingService.deleteMigrationMappings()
+  suspend fun deleteAppointmentMigrationMappingsByMigrationId(
+    @Schema(description = "Migration Id", example = "2023-06-24T12:00:00", required = true)
+    @PathVariable
+    migrationId: String,
+  ) = mappingService.deleteAppointmentMappingsByMigrationId(migrationId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_APPOINTMENTS')")
   @GetMapping("/mapping/appointments/migration-id/{migrationId}")

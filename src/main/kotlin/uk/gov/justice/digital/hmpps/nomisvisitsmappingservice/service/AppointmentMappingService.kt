@@ -133,7 +133,7 @@ class AppointmentMappingService(
     appointmentMappingRepository.findAll().toList().map { AppointmentMappingDto(it) }
 
   @Transactional
-  suspend fun deleteMigrationMappings() {
-    appointmentMappingRepository.deleteByMappingType(AppointmentMappingType.MIGRATED)
+  suspend fun deleteAppointmentMappingsByMigrationId(migrationId: String) {
+    appointmentMappingRepository.deleteByLabel(migrationId)
   }
 }

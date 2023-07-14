@@ -643,13 +643,19 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
-  @DisplayName("DELETE /mappings/appointments")
+  @DisplayName("DELETE /mappings/appointments/migration-id/{migrationId}")
   @Nested
   inner class DeleteAllMappings {
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.delete().uri("/mapping/appointments/migration-id/2023-06-24T00:00:00")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.delete().uri("/mapping/appointments/migrations")
+      webTestClient.delete().uri("/mapping/appointments/migration-id/2023-06-24T00:00:00")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -657,7 +663,7 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden with wrong role`() {
-      webTestClient.delete().uri("/mapping/appointments/migrations")
+      webTestClient.delete().uri("/mapping/appointments/migration-id/2023-06-24T00:00:00")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -665,8 +671,8 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `delete mapping success`() = runTest {
-      postCreateMappingRequest(1, 11, mappingType = MIGRATED.name)
-      postCreateMappingRequest(2, 22, mappingType = MIGRATED.name)
+      postCreateMappingRequest(1, 11, "2023-06-23", mappingType = MIGRATED.name)
+      postCreateMappingRequest(2, 22, "2023-06-24", mappingType = MIGRATED.name)
       postCreateMappingRequest(3, 33, mappingType = APPOINTMENT_CREATED.name)
 
       webTestClient.get().uri("/mapping/appointments")
@@ -676,15 +682,17 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
         .expectBody()
         .jsonPath("$[0].nomisEventId").isEqualTo(1)
         .jsonPath("$[0].appointmentInstanceId").isEqualTo(11)
+        .jsonPath("$[0].label").isEqualTo("2023-06-23")
         .jsonPath("$[0].mappingType").isEqualTo("MIGRATED")
         .jsonPath("$[1].nomisEventId").isEqualTo(2)
         .jsonPath("$[1].appointmentInstanceId").isEqualTo(22)
+        .jsonPath("$[1].label").isEqualTo("2023-06-24")
         .jsonPath("$[1].mappingType").isEqualTo("MIGRATED")
         .jsonPath("$[2].nomisEventId").isEqualTo(3)
         .jsonPath("$[2].appointmentInstanceId").isEqualTo(33)
         .jsonPath("$[2].mappingType").isEqualTo("APPOINTMENT_CREATED")
 
-      webTestClient.delete().uri("/mapping/appointments/migrations")
+      webTestClient.delete().uri("/mapping/appointments/migration-id/2023-06-24")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
         .exchange()
         .expectStatus().isNoContent
@@ -694,9 +702,13 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isOk
         .expectBody()
-        .jsonPath("$[0].nomisEventId").isEqualTo(3)
-        .jsonPath("$[0].appointmentInstanceId").isEqualTo(33)
-        .jsonPath("$[0].mappingType").isEqualTo("APPOINTMENT_CREATED")
+        .jsonPath("$[0].nomisEventId").isEqualTo(1)
+        .jsonPath("$[0].appointmentInstanceId").isEqualTo(11)
+        .jsonPath("$[0].label").isEqualTo("2023-06-23")
+        .jsonPath("$[0].mappingType").isEqualTo("MIGRATED")
+        .jsonPath("$[1].nomisEventId").isEqualTo(3)
+        .jsonPath("$[1].appointmentInstanceId").isEqualTo(33)
+        .jsonPath("$[1].mappingType").isEqualTo("APPOINTMENT_CREATED")
     }
   }
 
