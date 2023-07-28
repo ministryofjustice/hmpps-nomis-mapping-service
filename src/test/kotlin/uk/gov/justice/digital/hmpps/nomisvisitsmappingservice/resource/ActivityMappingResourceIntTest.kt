@@ -12,7 +12,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.isNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -30,6 +29,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivitySchedu
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivityScheduleMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
   @Autowired
@@ -368,7 +368,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
       webTestClient.putScheduleMappings(createUpdateRequest(scheduleMappings = listOf()))
         .expectStatus().isOk
         .expectBody()
-        .jsonPath("scheduledInstanceMappings", isNull())
+        .jsonPath("scheduledInstanceMappings").isEmpty
 
       val saved = scheduleMappingRepository.findAllByActivityScheduleId(activityScheduleId).toList()
       assertThat(saved).isEmpty()
@@ -411,7 +411,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
         .jsonPath("scheduledInstanceMappings[1].nomisCourseScheduleId").isEqualTo("223")
         .jsonPath("scheduledInstanceMappings[2].scheduledInstanceId").isEqualTo("555")
         .jsonPath("scheduledInstanceMappings[2].nomisCourseScheduleId").isEqualTo("666")
-        .jsonPath("scheduledInstanceMappings[3].scheduledInstanceId", isNull())
+        .jsonPath("scheduledInstanceMappings[3].scheduledInstanceId").doesNotExist()
 
       val saved = scheduleMappingRepository.findAllByActivityScheduleId(activityScheduleId).toList()
       assertThat(saved)

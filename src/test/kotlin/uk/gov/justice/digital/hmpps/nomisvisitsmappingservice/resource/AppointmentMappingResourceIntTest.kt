@@ -10,7 +10,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
+import org.mockito.kotlin.whenever
+import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.expectBody
@@ -28,9 +29,10 @@ import java.time.temporal.ChronoUnit
 private const val NOMIS_EVENT_ID = 1234L
 private const val APPOINTMENT_INSTANCE_ID = 4444L
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class AppointmentMappingResourceIntTest : IntegrationTestBase() {
 
-  @Autowired
+  @SpyBean
   lateinit var repository: AppointmentMappingRepository
 
   private fun createMapping(
@@ -226,6 +228,44 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping2.nomisEventId).isEqualTo(NOMIS_EVENT_ID)
       assertThat(mapping2.appointmentInstanceId).isEqualTo(APPOINTMENT_INSTANCE_ID)
       assertThat(mapping2.mappingType).isEqualTo("APPOINTMENT_CREATED")
+    }
+
+    @Test
+    fun `create mapping - Duplicate db error`() = runTest {
+      webTestClient
+        .post().uri("/mapping/appointments")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createMapping(nomisId = 101, appointmentId = APPOINTMENT_INSTANCE_ID),
+          ),
+        )
+        .exchange()
+        .expectStatus().isEqualTo(201)
+
+      // Emulate calling service simultaneously twice by disabling the duplicate check
+      // Note: the spy is automatically reset by ResetMocksTestExecutionListener
+      whenever(repository.findById(APPOINTMENT_INSTANCE_ID)).thenReturn(null)
+
+      val responseBody =
+        webTestClient.post().uri("/mapping/appointments")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_APPOINTMENTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              createMapping(nomisId = 102, appointmentId = APPOINTMENT_INSTANCE_ID),
+            ),
+          )
+          .exchange()
+          .expectStatus().isEqualTo(409)
+          .expectBody(object : ParameterizedTypeReference<DuplicateMappingErrorResponse<AppointmentMappingDto>>() {})
+          .returnResult().responseBody
+
+      with(responseBody!!) {
+        assertThat(userMessage).contains("Conflict: Appointment mapping already exists, detected by org.springframework.dao.DuplicateKeyException")
+        assertThat(errorCode).isEqualTo(1409)
+      }
     }
 
     @Test

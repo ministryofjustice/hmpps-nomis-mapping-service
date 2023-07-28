@@ -132,6 +132,6 @@ data class DuplicateErrorContent<MAPPING>(
 
 class DuplicateMappingException(
   val duplicate: Any,
-  val existing: Any,
-  val messageIn: String?,
+  val existing: Any? = null,
+  messageIn: String?,
 ) : RuntimeException(messageIn)
