@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.byLessThan
 import org.hamcrest.Matchers
@@ -8,7 +10,9 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
@@ -19,6 +23,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.RoomMappingDt
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.VisitMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.Repository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.VisitIdRepository
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
@@ -47,7 +52,11 @@ private fun createRoomMapping(
   isOpen = isOpenOverride,
 )
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class VisitMappingResourceIntTest : IntegrationTestBase() {
+
+  @SpyBean(name = "visitIdRepository")
+  lateinit var visitIdRepository: VisitIdRepository
 
   @Autowired
   lateinit var repository: Repository
@@ -220,6 +229,53 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping2.vsipId).isEqualTo(vsipId)
       assertThat(mapping2.label).isEqualTo("2022-01-01")
       assertThat(mapping2.mappingType).isEqualTo("ONLINE")
+    }
+
+    @Test
+    fun `create mapping - Duplicate db error`() = runTest {
+      webTestClient.post().uri("/mapping/visits")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            """{
+            "nomisId"     : 101,
+            "vsipId"      : "$vsipId",
+            "label"       : "2022-01-01",
+            "mappingType" : "ONLINE"
+          }""",
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      // Emulate calling service simultaneously twice by disabling the duplicate check
+      // Note: the spy is automatically reset by ResetMocksTestExecutionListener
+      whenever(visitIdRepository.findOneByVsipId(vsipId)).thenReturn(null)
+
+      val responseBody =
+        webTestClient.post().uri("/mapping/visits")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              """{
+            "nomisId"     : 102,
+            "vsipId"      : "$vsipId",
+            "label"       : "2022-01-01",
+            "mappingType" : "ONLINE"
+          }""",
+            ),
+          )
+          .exchange()
+          .expectStatus().isEqualTo(409)
+          .expectBody(object : ParameterizedTypeReference<DuplicateMappingErrorResponse<VisitMappingDto>>() {})
+          .returnResult().responseBody
+
+      with(responseBody!!) {
+        assertThat(userMessage).contains("Conflict: Visit mapping already exists, detected by org.springframework.dao.DuplicateKeyException")
+        assertThat(errorCode).isEqualTo(1409)
+      }
     }
   }
 

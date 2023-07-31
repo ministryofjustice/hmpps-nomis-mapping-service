@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.SentencingAdjustmentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.SentencingMappingService
@@ -74,7 +76,15 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     @RequestBody @Valid
     createMappingRequest: SentencingAdjustmentMappingDto,
   ) =
-    mappingService.createSentenceAdjustmentMapping(createMappingRequest)
+    try {
+      mappingService.createSentenceAdjustmentMapping(createMappingRequest)
+    } catch (e: DuplicateKeyException) {
+      throw DuplicateMappingException(
+        messageIn = "Sentencing mapping already exists, detected by $e",
+        duplicate = createMappingRequest,
+        cause = e,
+      )
+    }
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
   @GetMapping("/mapping/sentencing/adjustments/nomis-adjustment-category/{nomisAdjustmentCategory}/nomis-adjustment-id/{nomisAdjustmentId}")

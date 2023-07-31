@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.byLessThan
 import org.hamcrest.Matchers
@@ -8,7 +10,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
+import org.mockito.kotlin.whenever
+import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
@@ -23,9 +26,10 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.Sen
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
-  @Autowired
+  @SpyBean
   lateinit var repository: SentenceAdjustmentMappingRepository
 
   private val nomisAdjustId = 1234L
@@ -260,6 +264,55 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping2.adjustmentId).isEqualTo(adjustId)
       assertThat(mapping2.label).isEqualTo("2022-01-01")
       assertThat(mapping2.mappingType).isEqualTo("SENTENCING_CREATED")
+    }
+
+    @Test
+    fun `create mapping - Duplicate db error`() = runTest {
+      webTestClient.post().uri("/mapping/sentencing/adjustments")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            """{
+            "nomisAdjustmentId"         : 101,
+            "nomisAdjustmentCategory"   : "$nomisAdjustCategory",
+            "adjustmentId"      : "$adjustId",
+            "label"       : "2022-01-01",
+            "mappingType" : "SENTENCING_CREATED"
+          }""",
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      // Emulate calling service simultaneously twice by disabling the duplicate check
+      // Note: the spy is automatically reset by ResetMocksTestExecutionListener
+      whenever(repository.findById(adjustId)).thenReturn(null)
+
+      val responseBody =
+        webTestClient.post().uri("/mapping/sentencing/adjustments")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              """{
+            "nomisAdjustmentId"         : 102,
+            "nomisAdjustmentCategory"   : "$nomisAdjustCategory",
+            "adjustmentId"      : "$adjustId",
+            "label"       : "2022-01-01",
+            "mappingType" : "SENTENCING_CREATED"
+          }""",
+            ),
+          )
+          .exchange()
+          .expectStatus().isEqualTo(409)
+          .expectBody(object : ParameterizedTypeReference<DuplicateMappingErrorResponse<SentencingAdjustmentMappingDto>>() {})
+          .returnResult().responseBody
+
+      with(responseBody!!) {
+        assertThat(userMessage).contains("Conflict: Sentencing mapping already exists, detected by org.springframework.dao.DuplicateKeyException")
+        assertThat(errorCode).isEqualTo(1409)
+      }
     }
 
     @Test
