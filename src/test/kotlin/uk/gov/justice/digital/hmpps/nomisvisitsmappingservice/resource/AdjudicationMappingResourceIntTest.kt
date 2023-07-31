@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers
@@ -8,10 +10,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
+import org.mockito.kotlin.whenever
+import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
@@ -23,9 +28,10 @@ import java.time.temporal.ChronoUnit
 
 private const val ADJUDICATION_NUMBER = 4444L
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
-  @Autowired
+  @SpyBean
   lateinit var repository: AdjudicationMappingRepository
 
   private fun createMapping(
@@ -191,6 +197,51 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping2.adjudicationNumber).isEqualTo(ADJUDICATION_NUMBER)
       assertThat(mapping2.label).isEqualTo("2023-04-20")
       assertThat(mapping2.mappingType).isEqualTo("MIGRATED")
+    }
+
+    @Test
+    fun `create mapping failure - Duplicate db error`() = runTest {
+      webTestClient.post().uri("/mapping/adjudications")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            """{
+            "adjudicationNumber" : $ADJUDICATION_NUMBER,
+            "label"                 : "2023-04-20",
+            "mappingType"           : "MIGRATED"
+          }""",
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      // Emulate calling service simultaneously twice by disabling the duplicate check
+      // Note: the spy is automatically reset by ResetMocksTestExecutionListener
+      whenever(repository.findById(ADJUDICATION_NUMBER)).thenReturn(null)
+
+      val responseBody =
+        webTestClient.post().uri("/mapping/adjudications")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              """{
+            "adjudicationNumber" : $ADJUDICATION_NUMBER,
+            "label"                 : "2023-04-20",
+            "mappingType"           : "MIGRATED"
+          }""",
+            ),
+          )
+          .exchange()
+          .expectStatus().isEqualTo(409)
+          .expectBody(object : ParameterizedTypeReference<DuplicateMappingErrorResponse<AdjudicationMappingDto>>() {})
+          .returnResult().responseBody
+
+      with(responseBody!!) {
+        assertThat(userMessage).contains("Conflict: Adjudication mapping already exists, detected by org.springframework.dao.DuplicateKeyException")
+        assertThat(errorCode).isEqualTo(1409)
+      }
     }
   }
 

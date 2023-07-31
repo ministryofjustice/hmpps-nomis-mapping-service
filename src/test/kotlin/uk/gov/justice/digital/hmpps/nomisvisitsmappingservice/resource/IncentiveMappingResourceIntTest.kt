@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.byLessThan
 import org.hamcrest.Matchers
@@ -8,7 +10,9 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
@@ -20,13 +24,18 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.Integr
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncentiveMappingType.INCENTIVE_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncentiveMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncentiveMappingType.NOMIS_CREATED
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.IncentiveMappingRepository
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
+  @SpyBean(name = "incentiveMappingRepository")
+  lateinit var incentiveMappingRepository: IncentiveMappingRepository
+
   @Autowired
-  lateinit var repository: IncentiveRepository
+  lateinit var incentiveRepository: IncentiveRepository
 
   private val bookingId = 1234L
   private val sequence = 1L
@@ -77,7 +86,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
     @AfterEach
     internal fun deleteData() = runBlocking {
-      repository.deleteAll()
+      incentiveRepository.deleteAll()
     }
 
     @Test
@@ -263,6 +272,55 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping2.label).isEqualTo("2022-01-01")
       assertThat(mapping2.mappingType).isEqualTo("INCENTIVE_CREATED")
     }
+
+    @Test
+    fun `create mapping - Duplicate db error`() = runTest {
+      webTestClient.post().uri("/mapping/incentives")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            """{
+            "nomisBookingId"         : 101,
+            "nomisIncentiveSequence" : 1,
+            "incentiveId"      : $incentiveId,
+            "label"       : "2022-01-01",
+            "mappingType" : "INCENTIVE_CREATED"
+          }""",
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      // Emulate calling service simultaneously twice by disabling the duplicate check
+      // Note: the spy is automatically reset by ResetMocksTestExecutionListener
+      whenever(incentiveMappingRepository.findById(incentiveId)).thenReturn(null)
+
+      val responseBody =
+        webTestClient.post().uri("/mapping/incentives")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              """{
+            "nomisBookingId"         : 102,
+            "nomisIncentiveSequence" : 1,
+            "incentiveId"      : $incentiveId,
+            "label"       : "2022-01-01",
+            "mappingType" : "INCENTIVE_CREATED"
+          }""",
+            ),
+          )
+          .exchange()
+          .expectStatus().isEqualTo(409)
+          .expectBody(object : ParameterizedTypeReference<DuplicateMappingErrorResponse<IncentiveMappingDto>>() {})
+          .returnResult().responseBody
+
+      with(responseBody!!) {
+        assertThat(userMessage).contains("Conflict: Incentive mapping already exists, detected by org.springframework.dao.DuplicateKeyException")
+        assertThat(errorCode).isEqualTo(1409)
+      }
+    }
   }
 
   @DisplayName("GET /mapping/incentives/nomis-booking-id/{bookingId}/nomis-incentive-sequence/{incentiveId}")
@@ -271,7 +329,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
     @AfterEach
     internal fun deleteData() = runBlocking {
-      repository.deleteAll()
+      incentiveRepository.deleteAll()
     }
 
     @Test
@@ -355,7 +413,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
     @AfterEach
     internal fun deleteData() = runBlocking {
-      repository.deleteAll()
+      incentiveRepository.deleteAll()
     }
 
     @Test
@@ -503,7 +561,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
     @AfterEach
     internal fun deleteData() = runBlocking {
-      repository.deleteAll()
+      incentiveRepository.deleteAll()
     }
 
     @Test
@@ -769,7 +827,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
     @AfterEach
     internal fun deleteData() = runBlocking {
-      repository.deleteAll()
+      incentiveRepository.deleteAll()
     }
 
     @Test

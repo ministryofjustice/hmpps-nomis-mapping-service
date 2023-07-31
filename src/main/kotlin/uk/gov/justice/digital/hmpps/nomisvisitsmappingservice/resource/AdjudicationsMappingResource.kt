@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.AdjudicationMappingService
@@ -61,7 +63,15 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
     @RequestBody @Valid
     createMappingRequest: AdjudicationMappingDto,
   ) =
-    mappingService.createMapping(createMappingRequest)
+    try {
+      mappingService.createMapping(createMappingRequest)
+    } catch (e: DuplicateKeyException) {
+      throw DuplicateMappingException(
+        messageIn = "Adjudication mapping already exists, detected by $e",
+        duplicate = createMappingRequest,
+        cause = e,
+      )
+    }
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
   @GetMapping("/mapping/adjudications/{adjudicationNumber}")

@@ -4,7 +4,6 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
@@ -16,7 +15,6 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncentiveMappi
 @ActiveProfiles("test")
 @WithMockUser
 class IncentiveMappingRepositoryTest : TestBase() {
-  @Qualifier("incentiveMappingRepository")
   @Autowired
   lateinit var repository: IncentiveMappingRepository
 

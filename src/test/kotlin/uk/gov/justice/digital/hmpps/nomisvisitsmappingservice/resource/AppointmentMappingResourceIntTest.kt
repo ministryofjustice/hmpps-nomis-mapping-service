@@ -242,7 +242,7 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
           ),
         )
         .exchange()
-        .expectStatus().isEqualTo(201)
+        .expectStatus().isCreated
 
       // Emulate calling service simultaneously twice by disabling the duplicate check
       // Note: the spy is automatically reset by ResetMocksTestExecutionListener

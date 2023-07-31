@@ -134,4 +134,5 @@ class DuplicateMappingException(
   val duplicate: Any,
   val existing: Any? = null,
   messageIn: String?,
-) : RuntimeException(messageIn)
+  cause: Exception? = null,
+) : RuntimeException(messageIn, cause)

@@ -80,6 +80,7 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
       throw DuplicateMappingException(
         messageIn = "Appointment mapping already exists, detected by $e",
         duplicate = createMappingRequest,
+        cause = e,
       )
     }
 
