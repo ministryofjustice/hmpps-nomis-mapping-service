@@ -65,7 +65,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     activityId: Long = activityScheduleId,
     scheduledInstanceMappings: List<Pair<Long, Long>> = listOf(Pair(activityScheduledInstanceId, nomisCourseScheduleId)),
     mappingType: String = ActivityMappingType.ACTIVITY_CREATED.name,
-    label: String = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+    label: String? = null,
   ): ActivityMappingDto = ActivityMappingDto(
     nomisCourseActivityId = nomisId,
     activityScheduleId = activityId,
