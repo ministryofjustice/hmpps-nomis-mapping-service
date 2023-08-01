@@ -19,6 +19,8 @@ data class ActivityMapping(
   @CreatedDate
   val whenCreated: LocalDateTime? = null,
 
+  val label: String? = null,
+
   @Transient
   @Value("false")
   val new: Boolean = true,
@@ -44,5 +46,5 @@ data class ActivityMapping(
 }
 
 enum class ActivityMappingType {
-  ACTIVITY_CREATED,
+  ACTIVITY_CREATED, ACTIVITY_MIGRATED
 }

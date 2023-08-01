@@ -7,6 +7,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.groups.Tuple.tuple
+import org.joda.time.LocalDate
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -33,6 +34,8 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivitySchedu
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivityScheduleMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.ActivityMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ActivityMappingResourceIntTest : IntegrationTestBase() {
@@ -62,6 +65,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     activityId: Long = activityScheduleId,
     scheduledInstanceMappings: List<Pair<Long, Long>> = listOf(Pair(activityScheduledInstanceId, nomisCourseScheduleId)),
     mappingType: String = ActivityMappingType.ACTIVITY_CREATED.name,
+    label: String = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
   ): ActivityMappingDto = ActivityMappingDto(
     nomisCourseActivityId = nomisId,
     activityScheduleId = activityId,
@@ -69,6 +73,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
       ActivityScheduleMappingDto(it.first, it.second, mappingType)
     },
     mappingType = mappingType,
+    label = label,
   )
 
   private fun postCreateMappingRequest(
@@ -116,7 +121,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `create visit forbidden with wrong role`() {
+    fun `create forbidden with wrong role`() {
       webTestClient.post().uri("/mapping/activities")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .body(BodyInserters.fromValue(createMapping()))
@@ -258,6 +263,33 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
       val scheduleMappings = scheduleRepository.findAllByActivityScheduleId(activityScheduleId).toList()
       assertThat(scheduleMappings).isEmpty()
+    }
+
+    @Test
+    fun `create migration mapping`() = runTest {
+      webTestClient.post().uri("/mapping/activities")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            """{
+            "nomisCourseActivityId" : $nomisCourseActivityId,
+            "activityScheduleId"    : $activityScheduleId,
+            "mappingType"           : "ACTIVITY_MIGRATED",
+            "label"                 : "${LocalDateTime.now().withNano(0).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)}"
+          }""",
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      val activityMapping = activityRepository.findOneByNomisCourseActivityId(nomisCourseActivityId)
+        ?: throw NotFoundException("Activity mapping not saved $nomisCourseActivityId")
+
+      assertThat(activityMapping.nomisCourseActivityId).isEqualTo(nomisCourseActivityId)
+      assertThat(activityMapping.activityScheduleId).isEqualTo(activityScheduleId)
+      assertThat(activityMapping.mappingType).isEqualTo(ActivityMappingType.ACTIVITY_MIGRATED)
+      assertThat(activityMapping.label).startsWith(LocalDate.now().toString())
     }
 
     @Test
@@ -558,6 +590,31 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
         .jsonPath("scheduledInstanceMappings[1].scheduledInstanceId").isEqualTo(21)
         .jsonPath("scheduledInstanceMappings[1].nomisCourseScheduleId").isEqualTo(22)
         .jsonPath("scheduledInstanceMappings[1].mappingType").isEqualTo("ACTIVITY_CREATED")
+    }
+
+    @Test
+    fun `get migration mapping`() = runTest {
+      activityRepository.save(
+        ActivityMapping(
+          activityScheduleId = activityScheduleId,
+          nomisCourseActivityId = nomisCourseActivityId,
+          mappingType = ActivityMappingType.ACTIVITY_MIGRATED,
+          label = LocalDateTime.now().withNano(0).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+        ),
+      )
+
+      webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("activityScheduleId").isEqualTo(activityScheduleId)
+        .jsonPath("nomisCourseActivityId").isEqualTo(nomisCourseActivityId)
+        .jsonPath("mappingType").isEqualTo("ACTIVITY_MIGRATED")
+        .jsonPath("label").value<String> {
+          assertThat(it).startsWith(LocalDate.now().toString())
+        }
+        .jsonPath("scheduledInstanceMappings").isEmpty
     }
   }
 

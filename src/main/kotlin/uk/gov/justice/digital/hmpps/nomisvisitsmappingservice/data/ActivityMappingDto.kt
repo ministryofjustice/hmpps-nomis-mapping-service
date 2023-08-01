@@ -27,11 +27,16 @@ data class ActivityMappingDto(
 
   @Schema(description = "Date-time the mapping was created")
   val whenCreated: LocalDateTime? = null,
+
+  @Schema(description = "Label (a unique reference for migrations)")
+  @field:Size(max = 20)
+  val label: String? = null,
 ) {
   constructor(mapping: ActivityMapping, scheduleMappingss: List<ActivityScheduleMappingDto>) : this(
     activityScheduleId = mapping.activityScheduleId,
     nomisCourseActivityId = mapping.nomisCourseActivityId,
     mappingType = mapping.mappingType.name,
     scheduledInstanceMappings = scheduleMappingss,
+    label = mapping.label,
   )
 }
