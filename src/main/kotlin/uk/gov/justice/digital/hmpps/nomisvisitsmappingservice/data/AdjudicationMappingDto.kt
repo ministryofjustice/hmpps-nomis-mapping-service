@@ -10,8 +10,14 @@ import java.time.LocalDateTime
 @Schema(description = "Adjudication mapping (same value for NOMIS and DPS)")
 data class AdjudicationMappingDto(
 
-  @Schema(description = "Adjudication number - the adjudication id", required = true)
+  @Schema(description = "NOMIS Adjudication number", required = true, example = "123456")
   val adjudicationNumber: Long,
+
+  @Schema(description = "NOMIS Charges sequence", required = true, example = "1")
+  val chargeSequence: Int,
+
+  @Schema(description = "DPS Charges number", required = true, example = "123456/1")
+  val chargeNumber: String,
 
   @Schema(description = "Label (a timestamp for migrated ids)")
   @field:Size(max = 20)
@@ -30,6 +36,8 @@ data class AdjudicationMappingDto(
 ) {
   constructor(mapping: AdjudicationMapping) : this(
     adjudicationNumber = mapping.adjudicationNumber,
+    chargeSequence = mapping.chargeSequence,
+    chargeNumber = mapping.chargeNumber,
     label = mapping.label,
     mappingType = mapping.mappingType.name,
     whenCreated = mapping.whenCreated,

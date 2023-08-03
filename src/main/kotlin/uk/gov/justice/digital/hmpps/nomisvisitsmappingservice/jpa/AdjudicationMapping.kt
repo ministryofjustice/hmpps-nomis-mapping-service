@@ -9,7 +9,11 @@ import java.time.LocalDateTime
 data class AdjudicationMapping(
 
   @Id
+  val chargeNumber: String,
+
   val adjudicationNumber: Long,
+
+  val chargeSequence: Int,
 
   /**
    * ISO timestamp of batch job if a migration
@@ -24,22 +28,22 @@ data class AdjudicationMapping(
 
   val whenCreated: LocalDateTime? = null,
 
-) : Persistable<Long> {
+) : Persistable<String> {
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other !is AdjudicationMapping) return false
 
-    return adjudicationNumber == other.adjudicationNumber
+    return chargeNumber == other.chargeNumber
   }
 
   override fun hashCode(): Int {
-    return adjudicationNumber.hashCode()
+    return chargeNumber.hashCode()
   }
 
   override fun isNew(): Boolean = new
 
-  override fun getId(): Long = adjudicationNumber
+  override fun getId(): String = chargeNumber
 }
 
 enum class AdjudicationMappingType {

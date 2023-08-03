@@ -49,7 +49,7 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
       ApiResponse(responseCode = "201", description = "Mapping entry created"),
       ApiResponse(
         responseCode = "409",
-        description = "Adjudication number already exist",
+        description = "Adjudication with charge sequence already exist",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
@@ -74,10 +74,10 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
     }
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
-  @GetMapping("/mapping/adjudications/{adjudicationNumber}")
+  @GetMapping("/mapping/adjudications/charge-number/{chargeNumber}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by adjudication number. Requires role NOMIS_ADJUDICATIONS",
+    description = "Retrieves a mapping by DPS charge number. Requires role NOMIS_ADJUDICATIONS",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -98,11 +98,45 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
       ),
     ],
   )
-  suspend fun getMappingGivenId(
+  suspend fun getMappingGivenNomisId(
+    @Schema(description = "DPS Charge number", example = "12345/1", required = true)
+    @PathVariable
+    chargeNumber: String,
+  ): AdjudicationMappingDto = mappingService.getMappingByDpsId(chargeNumber)
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @GetMapping("/mapping/adjudications/adjudication-number/{adjudicationNumber}/charge-sequence/{chargeSequence}")
+  @Operation(
+    summary = "get mapping",
+    description = "Retrieves a mapping by NOMIS adjudication number and charge sequence. Requires role NOMIS_ADJUDICATIONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = AdjudicationMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getMappingGivenDpsId(
     @Schema(description = "Adjudication number", example = "12345", required = true)
     @PathVariable
     adjudicationNumber: Long,
-  ): AdjudicationMappingDto = mappingService.getMappingById(adjudicationNumber)
+    @Schema(description = "Charge sequence for offence in this adjudication", example = "1", required = true)
+    @PathVariable
+    chargeSequence: Int,
+  ): AdjudicationMappingDto = mappingService.getMappingByNomisId(adjudicationNumber, chargeSequence)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
   @GetMapping("/mapping/adjudications/migrated/latest")
@@ -136,10 +170,10 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
     mappingService.getAdjudicationMappingForLatestMigrated()
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
-  @DeleteMapping("/mapping/adjudications/{adjudicationNumber}")
+  @DeleteMapping("/mapping/adjudications/charge-number/{chargeNumber}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
-    summary = "Deletes a specific mapping by adjudication number",
+    summary = "Deletes a specific mapping by DPS charge number",
     description = "Deletes the mapping table row. Requires role NOMIS_ADJUDICATIONS",
     responses = [
       ApiResponse(
@@ -156,8 +190,8 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
   suspend fun deleteMapping(
     @Schema(description = "Adjudication number", example = "12345", required = true)
     @PathVariable
-    adjudicationNumber: Long,
-  ) = mappingService.deleteMapping(adjudicationNumber)
+    chargeNumber: String,
+  ) = mappingService.deleteMapping(chargeNumber)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
   @GetMapping("/mapping/adjudications/migration-id/{migrationId}")

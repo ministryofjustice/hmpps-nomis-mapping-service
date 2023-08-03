@@ -8,8 +8,10 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationMa
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationMappingType
 
 @Repository
-interface AdjudicationMappingRepository : CoroutineCrudRepository<AdjudicationMapping, Long> {
+interface AdjudicationMappingRepository : CoroutineCrudRepository<AdjudicationMapping, String> {
   suspend fun findFirstByMappingTypeOrderByWhenCreatedDesc(mappingType: AdjudicationMappingType): AdjudicationMapping?
+
+  suspend fun findByAdjudicationNumberAndChargeSequence(adjudicationNumber: Long, chargeSequence: Int): AdjudicationMapping?
 
   suspend fun countAllByLabelAndMappingType(label: String, mappingType: AdjudicationMappingType): Long
 

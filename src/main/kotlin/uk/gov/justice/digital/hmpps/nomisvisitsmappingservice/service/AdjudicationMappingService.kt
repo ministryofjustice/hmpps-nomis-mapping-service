@@ -31,11 +31,19 @@ class AdjudicationMappingService(
     with(createMappingRequest) {
       log.debug("creating adjudication {}", createMappingRequest)
 
-      adjudicationMappingRepository.findById(adjudicationNumber)
-        ?.let { throw throw DuplicateMappingException(existing = adjudicationNumber, duplicate = adjudicationNumber, messageIn = "Adjudication mapping with id $adjudicationNumber already exists") }
+      adjudicationMappingRepository.findById(chargeNumber)
+        ?.let {
+          throw DuplicateMappingException(
+            existing = chargeNumber,
+            duplicate = chargeNumber,
+            messageIn = "Adjudication mapping with id $chargeNumber already exists",
+          )
+        }
         ?: adjudicationMappingRepository.save(
           AdjudicationMapping(
             adjudicationNumber = adjudicationNumber,
+            chargeSequence = chargeSequence,
+            chargeNumber = chargeNumber,
             label = label,
             mappingType = AdjudicationMappingType.valueOf(mappingType ?: "ADJUDICATION_CREATED"),
           ),
@@ -51,13 +59,18 @@ class AdjudicationMappingService(
       log.debug("Mapping created with adjudicationNumber = $adjudicationNumber")
     }
 
-  suspend fun getMappingById(id: Long): AdjudicationMappingDto =
-    adjudicationMappingRepository.findById(id)
+  suspend fun getMappingByDpsId(chargeNumber: String): AdjudicationMappingDto =
+    adjudicationMappingRepository.findById(chargeNumber)
       ?.let { AdjudicationMappingDto(it) }
-      ?: throw NotFoundException("adjudicationNumber=$id")
+      ?: throw NotFoundException("chargeNumber=$chargeNumber")
+
+  suspend fun getMappingByNomisId(adjudicationNumber: Long, chargeSequence: Int): AdjudicationMappingDto =
+    adjudicationMappingRepository.findByAdjudicationNumberAndChargeSequence(adjudicationNumber, chargeSequence)
+      ?.let { AdjudicationMappingDto(it) }
+      ?: throw NotFoundException("adjudicationNumber=$adjudicationNumber, chargeSequence=$chargeSequence")
 
   @Transactional
-  suspend fun deleteMapping(id: Long) = adjudicationMappingRepository.deleteById(id)
+  suspend fun deleteMapping(chargeNumber: String) = adjudicationMappingRepository.deleteById(chargeNumber)
 
   suspend fun getAdjudicationMappingsByMigrationId(
     pageRequest: Pageable,

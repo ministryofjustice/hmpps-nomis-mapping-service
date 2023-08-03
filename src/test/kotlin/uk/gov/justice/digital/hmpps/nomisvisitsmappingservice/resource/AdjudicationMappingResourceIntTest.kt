@@ -27,6 +27,8 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 private const val ADJUDICATION_NUMBER = 4444L
+private const val CHARGE_SEQ = 2
+private const val CHARGE_NUMBER = "4444/2"
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
@@ -36,16 +38,22 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
   private fun createMapping(
     adjudicationNumber: Long = ADJUDICATION_NUMBER,
+    chargeSequence: Int = CHARGE_SEQ,
+    chargeNumber: String = CHARGE_NUMBER,
     label: String = "2022-01-01",
     mappingType: String = AdjudicationMappingType.ADJUDICATION_CREATED.name,
   ): AdjudicationMappingDto = AdjudicationMappingDto(
     adjudicationNumber = adjudicationNumber,
+    chargeSequence = chargeSequence,
+    chargeNumber = chargeNumber,
     label = label,
     mappingType = mappingType,
   )
 
   private fun postCreateMappingRequest(
     adjudicationNumber: Long = ADJUDICATION_NUMBER,
+    chargeSequence: Int = CHARGE_SEQ,
+    chargeNumber: String = CHARGE_NUMBER,
     label: String = "2022-01-01",
     mappingType: String = AdjudicationMappingType.ADJUDICATION_CREATED.name,
   ) {
@@ -56,6 +64,8 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
         BodyInserters.fromValue(
           createMapping(
             adjudicationNumber = adjudicationNumber,
+            chargeSequence = chargeSequence,
+            chargeNumber = chargeNumber,
             label = label,
             mappingType = mappingType,
           ),
@@ -107,23 +117,42 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
+            // language=json
             """{
-            "adjudicationNumber" : $ADJUDICATION_NUMBER
+            "adjudicationNumber" : $ADJUDICATION_NUMBER,
+            "chargeSequence" : $CHARGE_SEQ,
+            "chargeNumber": "$CHARGE_NUMBER"
           }""",
           ),
         )
         .exchange()
         .expectStatus().isCreated
 
-      val mapping2 = webTestClient.get().uri("/mapping/adjudications/$ADJUDICATION_NUMBER")
+      val createdMappingByNomisId = webTestClient.get()
+        .uri("/mapping/adjudications/adjudication-number/$ADJUDICATION_NUMBER/charge-sequence/$CHARGE_SEQ")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
         .exchange()
         .expectStatus().isOk
         .expectBody(AdjudicationMappingDto::class.java)
         .returnResult().responseBody!!
 
-      assertThat(mapping2.adjudicationNumber).isEqualTo(ADJUDICATION_NUMBER)
-      assertThat(mapping2.mappingType).isEqualTo("ADJUDICATION_CREATED")
+      assertThat(createdMappingByNomisId.adjudicationNumber).isEqualTo(ADJUDICATION_NUMBER)
+      assertThat(createdMappingByNomisId.chargeSequence).isEqualTo(CHARGE_SEQ)
+      assertThat(createdMappingByNomisId.chargeNumber).isEqualTo(CHARGE_NUMBER)
+      assertThat(createdMappingByNomisId.mappingType).isEqualTo("ADJUDICATION_CREATED")
+
+      val createdMappingByDpsId =
+        webTestClient.get().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody(AdjudicationMappingDto::class.java)
+          .returnResult().responseBody!!
+
+      assertThat(createdMappingByDpsId.adjudicationNumber).isEqualTo(ADJUDICATION_NUMBER)
+      assertThat(createdMappingByDpsId.chargeSequence).isEqualTo(CHARGE_SEQ)
+      assertThat(createdMappingByDpsId.chargeNumber).isEqualTo(CHARGE_NUMBER)
+      assertThat(createdMappingByDpsId.mappingType).isEqualTo("ADJUDICATION_CREATED")
     }
 
     @Test
@@ -133,26 +162,30 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
+            // language=json
             """{
-            "adjudicationNumber" : $ADJUDICATION_NUMBER,
-            "label"                 : "2023-04-20",
-            "mappingType"           : "MIGRATED"
-          }""",
+                "adjudicationNumber": $ADJUDICATION_NUMBER,
+                "chargeSequence": $CHARGE_SEQ,
+                "chargeNumber": "$CHARGE_NUMBER",
+                "label": "2023-04-20",
+                "mappingType": "MIGRATED"
+              }""",
           ),
         )
         .exchange()
         .expectStatus().isCreated
 
-      val mapping2 = webTestClient.get().uri("/mapping/adjudications/$ADJUDICATION_NUMBER")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
-        .exchange()
-        .expectStatus().isOk
-        .expectBody(AdjudicationMappingDto::class.java)
-        .returnResult().responseBody!!
+      val createdMappingByDpsId =
+        webTestClient.get().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody(AdjudicationMappingDto::class.java)
+          .returnResult().responseBody!!
 
-      assertThat(mapping2.adjudicationNumber).isEqualTo(ADJUDICATION_NUMBER)
-      assertThat(mapping2.label).isEqualTo("2023-04-20")
-      assertThat(mapping2.mappingType).isEqualTo("MIGRATED")
+      assertThat(createdMappingByDpsId.adjudicationNumber).isEqualTo(ADJUDICATION_NUMBER)
+      assertThat(createdMappingByDpsId.label).isEqualTo("2023-04-20")
+      assertThat(createdMappingByDpsId.mappingType).isEqualTo("MIGRATED")
     }
 
     @Test
@@ -162,8 +195,11 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
+            // language=json
             """{
             "adjudicationNumber" : $ADJUDICATION_NUMBER,
+            "chargeSequence": $CHARGE_SEQ,
+            "chargeNumber": "$CHARGE_NUMBER",
             "label"                 : "2023-04-20",
             "mappingType"           : "MIGRATED"
           }""",
@@ -177,8 +213,11 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
+            // language=json
             """{
             "adjudicationNumber" : $ADJUDICATION_NUMBER,
+            "chargeSequence": $CHARGE_SEQ,
+            "chargeNumber": "$CHARGE_NUMBER",
             "label"                 : "2023-04-25",
             "mappingType"           : "MIGRATED"
           }""",
@@ -187,16 +226,17 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isDuplicateMapping
 
-      val mapping2 = webTestClient.get().uri("/mapping/adjudications/$ADJUDICATION_NUMBER")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
-        .exchange()
-        .expectStatus().isOk
-        .expectBody(AdjudicationMappingDto::class.java)
-        .returnResult().responseBody!!
+      val createdMappingByDpsId =
+        webTestClient.get().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody(AdjudicationMappingDto::class.java)
+          .returnResult().responseBody!!
 
-      assertThat(mapping2.adjudicationNumber).isEqualTo(ADJUDICATION_NUMBER)
-      assertThat(mapping2.label).isEqualTo("2023-04-20")
-      assertThat(mapping2.mappingType).isEqualTo("MIGRATED")
+      assertThat(createdMappingByDpsId.adjudicationNumber).isEqualTo(ADJUDICATION_NUMBER)
+      assertThat(createdMappingByDpsId.label).isEqualTo("2023-04-20")
+      assertThat(createdMappingByDpsId.mappingType).isEqualTo("MIGRATED")
     }
 
     @Test
@@ -206,9 +246,12 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
+            // language=json
             """{
             "adjudicationNumber" : $ADJUDICATION_NUMBER,
-            "label"                 : "2023-04-20",
+            "chargeSequence": $CHARGE_SEQ,
+            "chargeNumber": "$CHARGE_NUMBER",
+            "label"                 : "2023-04-25",
             "mappingType"           : "MIGRATED"
           }""",
           ),
@@ -218,7 +261,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
       // Emulate calling service simultaneously twice by disabling the duplicate check
       // Note: the spy is automatically reset by ResetMocksTestExecutionListener
-      whenever(repository.findById(ADJUDICATION_NUMBER)).thenReturn(null)
+      whenever(repository.findById(CHARGE_NUMBER)).thenReturn(null)
 
       val responseBody =
         webTestClient.post().uri("/mapping/adjudications")
@@ -226,9 +269,12 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
+              // language=json
               """{
             "adjudicationNumber" : $ADJUDICATION_NUMBER,
-            "label"                 : "2023-04-20",
+            "chargeSequence": $CHARGE_SEQ,
+            "chargeNumber": "$CHARGE_NUMBER",
+            "label"                 : "2023-04-25",
             "mappingType"           : "MIGRATED"
           }""",
             ),
@@ -245,20 +291,22 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("GET /mapping/adjudications/{adjudicationNumber}")
+  @DisplayName("GET /mapping/adjudications/adjudication-number/{adjudicationNumber}/charge-sequence/{chargeSequence}")
   @Nested
   inner class GetMappingTest {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.get().uri("/mapping/adjudications/$ADJUDICATION_NUMBER")
+      webTestClient.get()
+        .uri("/mapping/adjudications/adjudication-number/$ADJUDICATION_NUMBER/charge-sequence/$CHARGE_SEQ")
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.get().uri("/mapping/adjudications/$ADJUDICATION_NUMBER")
+      webTestClient.get()
+        .uri("/mapping/adjudications/adjudication-number/$ADJUDICATION_NUMBER/charge-sequence/$CHARGE_SEQ")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -266,7 +314,8 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden with wrong role`() {
-      webTestClient.get().uri("/mapping/adjudications/$ADJUDICATION_NUMBER")
+      webTestClient.get()
+        .uri("/mapping/adjudications/adjudication-number/$ADJUDICATION_NUMBER/charge-sequence/$CHARGE_SEQ")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -281,7 +330,8 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      val mapping = webTestClient.get().uri("/mapping/adjudications/$ADJUDICATION_NUMBER")
+      val mapping = webTestClient.get()
+        .uri("/mapping/adjudications/adjudication-number/$ADJUDICATION_NUMBER/charge-sequence/$CHARGE_SEQ")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
         .exchange()
         .expectStatus().isOk
@@ -293,12 +343,19 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `mapping not found`() {
-      webTestClient.get().uri("/mapping/adjudications/765")
+      webTestClient.get().uri("/mapping/adjudications/adjudication-number/$ADJUDICATION_NUMBER/charge-sequence/765")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).isEqualTo("Not Found: adjudicationNumber=765")
+          assertThat(it).isEqualTo("Not Found: adjudicationNumber=4444, chargeSequence=765")
+        }
+      webTestClient.get().uri("/mapping/adjudications/adjudication-number/765/charge-sequence/$CHARGE_SEQ")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .exchange()
+        .expectStatus().isNotFound
+        .expectBody().jsonPath("$.userMessage").value<String> {
+          assertThat(it).isEqualTo("Not Found: adjudicationNumber=765, chargeSequence=2")
         }
     }
   }
@@ -354,6 +411,8 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             createMapping(
               adjudicationNumber = 20,
+              chargeSequence = 1,
+              chargeNumber = "20/1",
               label = "2022-01-02T00:00:00",
               mappingType = "MIGRATED",
             ),
@@ -369,6 +428,8 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             createMapping(
               adjudicationNumber = 1,
+              chargeSequence = 2,
+              chargeNumber = "1/2",
               label = "2022-01-02T10:00:00",
               mappingType = AdjudicationMappingType.MIGRATED.name,
             ),
@@ -384,6 +445,8 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             createMapping(
               adjudicationNumber = 199,
+              chargeSequence = 2,
+              chargeNumber = "199/2",
               label = "whatever",
               mappingType = AdjudicationMappingType.ADJUDICATION_CREATED.name,
             ),
@@ -463,8 +526,8 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success`() {
-      postCreateMappingRequest(201)
-      postCreateMappingRequest(202)
+      postCreateMappingRequest(201, chargeNumber = "201/1")
+      postCreateMappingRequest(202, chargeNumber = "202/1")
 
       val mapping = webTestClient.get().uri("/mapping/adjudications")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
@@ -492,7 +555,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.delete().uri("/mapping/adjudications/999")
+      webTestClient.delete().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -500,7 +563,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden with wrong role`() {
-      webTestClient.delete().uri("/mapping/adjudications/999")
+      webTestClient.delete().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -517,19 +580,19 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       // it is present after creation by adjudication id
-      webTestClient.get().uri("/mapping/adjudications/$ADJUDICATION_NUMBER")
+      webTestClient.get().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
         .exchange()
         .expectStatus().isOk
 
       // delete mapping
-      webTestClient.delete().uri("/mapping/adjudications/$ADJUDICATION_NUMBER")
+      webTestClient.delete().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
         .exchange()
         .expectStatus().isNoContent
 
-      // no longer present by adjudication id
-      webTestClient.get().uri("/mapping/adjudications/$ADJUDICATION_NUMBER")
+      // no longer present by charge number
+      webTestClient.get().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
         .exchange()
         .expectStatus().isNotFound
@@ -546,13 +609,13 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       // delete mapping
-      webTestClient.delete().uri("/mapping/adjudications/$ADJUDICATION_NUMBER")
+      webTestClient.delete().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
         .exchange()
         .expectStatus().isNoContent
 
       // delete mapping second time still returns success
-      webTestClient.delete().uri("/mapping/adjudications/$ADJUDICATION_NUMBER")
+      webTestClient.delete().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
         .exchange()
         .expectStatus().isNoContent
@@ -589,12 +652,29 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get adjudication mappings by migration id success`() {
       (1L..4L).forEach {
-        postCreateMappingRequest(it, label = "2022-01-01", mappingType = "MIGRATED")
+        postCreateMappingRequest(
+          adjudicationNumber = it,
+          chargeSequence = 1,
+          chargeNumber = "$it/1",
+          label = "2022-01-01",
+          mappingType = "MIGRATED",
+        )
       }
       (5L..9L).forEach {
-        postCreateMappingRequest(it, label = "2099-01-01", mappingType = "MIGRATED")
+        postCreateMappingRequest(
+          adjudicationNumber = it,
+          chargeSequence = 1,
+          chargeNumber = "$it/1",
+          label = "2099-01-01",
+          mappingType = "MIGRATED",
+        )
       }
-      postCreateMappingRequest(12, mappingType = AdjudicationMappingType.ADJUDICATION_CREATED.name)
+      postCreateMappingRequest(
+        12,
+        chargeSequence = 1,
+        chargeNumber = "12/1",
+        mappingType = AdjudicationMappingType.ADJUDICATION_CREATED.name,
+      )
 
       webTestClient.get().uri("/mapping/adjudications/migration-id/2022-01-01")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
@@ -611,7 +691,13 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get adjudication mappings by migration id - no records exist`() {
       (1L..4L).forEach {
-        postCreateMappingRequest(it, label = "2022-01-01", mappingType = "MIGRATED")
+        postCreateMappingRequest(
+          adjudicationNumber = it,
+          chargeSequence = 1,
+          chargeNumber = "$it/1",
+          label = "2022-01-01",
+          mappingType = "MIGRATED",
+        )
       }
 
       webTestClient.get().uri("/mapping/adjudications/migration-id/2044-01-01")
@@ -626,7 +712,13 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `can request a different page size`() {
       (1L..6L).forEach {
-        postCreateMappingRequest(it, label = "2022-01-01", mappingType = "MIGRATED")
+        postCreateMappingRequest(
+          adjudicationNumber = it,
+          chargeSequence = 1,
+          chargeNumber = "$it/1",
+          label = "2022-01-01",
+          mappingType = "MIGRATED",
+        )
       }
       webTestClient.get().uri {
         it.path("/mapping/adjudications/migration-id/2022-01-01")
@@ -648,7 +740,13 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `can request a different page`() {
       (1L..3L).forEach {
-        postCreateMappingRequest(it, label = "2022-01-01", mappingType = "MIGRATED")
+        postCreateMappingRequest(
+          adjudicationNumber = it,
+          chargeSequence = 1,
+          chargeNumber = "$it/1",
+          label = "2022-01-01",
+          mappingType = "MIGRATED",
+        )
       }
       webTestClient.get().uri {
         it.path("/mapping/adjudications/migration-id/2022-01-01")
