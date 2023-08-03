@@ -33,7 +33,7 @@ class AdjudicationMappingService(
 
       adjudicationMappingRepository.findById(chargeNumber)
         ?.let {
-          throw throw DuplicateMappingException(
+          throw DuplicateMappingException(
             existing = chargeNumber,
             duplicate = chargeNumber,
             messageIn = "Adjudication mapping with id $chargeNumber already exists",
