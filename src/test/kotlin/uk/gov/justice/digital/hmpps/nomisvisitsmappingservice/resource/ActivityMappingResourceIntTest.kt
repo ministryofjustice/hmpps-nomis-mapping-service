@@ -7,7 +7,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.groups.Tuple.tuple
-import org.joda.time.LocalDate
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -34,8 +33,6 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivitySchedu
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivityScheduleMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.ActivityMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ActivityMappingResourceIntTest : IntegrationTestBase() {
@@ -273,8 +270,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
             """{
             "nomisCourseActivityId" : $nomisCourseActivityId,
             "activityScheduleId"    : $activityScheduleId,
-            "mappingType"           : "ACTIVITY_MIGRATED",
-            "label"                 : "${LocalDateTime.now().withNano(0).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)}"
+            "mappingType"           : "ACTIVITY_MIGRATED"
           }""",
           ),
         )
@@ -607,9 +603,6 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
         .jsonPath("activityScheduleId").isEqualTo(activityScheduleId)
         .jsonPath("nomisCourseActivityId").isEqualTo(nomisCourseActivityId)
         .jsonPath("mappingType").isEqualTo("ACTIVITY_MIGRATED")
-        .jsonPath("label").value<String> {
-          assertThat(it).startsWith(LocalDate.now().toString())
-        }
         .jsonPath("scheduledInstanceMappings").isEmpty
     }
   }
