@@ -48,7 +48,6 @@ class ActivityMappingService(
           activityScheduleId = activityScheduleId,
           nomisCourseActivityId = nomisCourseActivityId,
           mappingType = ActivityMappingType.valueOf(mappingType),
-          label = label,
         ),
       )
       telemetryClient.trackEvent(

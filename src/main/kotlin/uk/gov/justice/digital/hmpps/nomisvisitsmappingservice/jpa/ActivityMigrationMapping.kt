@@ -7,17 +7,19 @@ import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 
-data class ActivityMapping(
+data class ActivityMigrationMapping(
 
   @Id
-  val activityScheduleId: Long,
-
   val nomisCourseActivityId: Long,
 
-  val mappingType: ActivityMappingType,
+  val activityScheduleId: Long,
+
+  val activityScheduleId2: Long?,
 
   @CreatedDate
   val whenCreated: LocalDateTime? = null,
+
+  val label: String,
 
   @Transient
   @Value("false")
@@ -29,20 +31,16 @@ data class ActivityMapping(
     if (this === other) return true
     if (other !is ActivityMapping) return false
 
-    if (activityScheduleId != other.activityScheduleId) return false
+    if (nomisCourseActivityId != other.nomisCourseActivityId) return false
 
     return true
   }
 
   override fun hashCode(): Int {
-    return activityScheduleId.hashCode()
+    return nomisCourseActivityId.hashCode()
   }
 
   override fun isNew(): Boolean = new
 
-  override fun getId(): Long = activityScheduleId
-}
-
-enum class ActivityMappingType {
-  ACTIVITY_CREATED, ACTIVITY_MIGRATED
+  override fun getId(): Long = nomisCourseActivityId
 }

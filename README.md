@@ -1,7 +1,7 @@
 # HMPPS NOMIS Prisoner Mapping Service
 
 [![CircleCI](https://circleci.com/gh/ministryofjustice/hmpps-nomis-mapping-service/tree/main.svg?style=svg)](https://circleci.com/gh/ministryofjustice/hmpps-nomis-mapping-service)
-[![API docs](https://img.shields.io/badge/API_docs_-view-85EA2D.svg?logo=swagger)](https://nomis-mapping-dev.hmpps.service.justice.gov.uk/webjars/swagger-ui/index.html?configUrl=/v3/api-docs)
+[![API docs](https://img.shields.io/badge/API_docs_-view-85EA2D.svg?logo=swagger)](https://nomis-sync-prisoner-mapping-dev.hmpps.service.justice.gov.uk/webjars/swagger-ui/index.html?configUrl=/v3/api-docs)
 
 Self-contained fat-jar micro-service to interact with prisoners in the NOMIS database
 

@@ -7,7 +7,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.groups.Tuple.tuple
-import org.joda.time.LocalDate
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -34,8 +33,6 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivitySchedu
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivityScheduleMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.ActivityMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ActivityMappingResourceIntTest : IntegrationTestBase() {
@@ -65,7 +62,6 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     activityId: Long = activityScheduleId,
     scheduledInstanceMappings: List<Pair<Long, Long>> = listOf(Pair(activityScheduledInstanceId, nomisCourseScheduleId)),
     mappingType: String = ActivityMappingType.ACTIVITY_CREATED.name,
-    label: String? = null,
   ): ActivityMappingDto = ActivityMappingDto(
     nomisCourseActivityId = nomisId,
     activityScheduleId = activityId,
@@ -73,7 +69,6 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
       ActivityScheduleMappingDto(it.first, it.second, mappingType)
     },
     mappingType = mappingType,
-    label = label,
   )
 
   private fun postCreateMappingRequest(
@@ -275,8 +270,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
             """{
             "nomisCourseActivityId" : $nomisCourseActivityId,
             "activityScheduleId"    : $activityScheduleId,
-            "mappingType"           : "ACTIVITY_MIGRATED",
-            "label"                 : "${LocalDateTime.now().withNano(0).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)}"
+            "mappingType"           : "ACTIVITY_MIGRATED"
           }""",
           ),
         )
@@ -289,7 +283,6 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
       assertThat(activityMapping.nomisCourseActivityId).isEqualTo(nomisCourseActivityId)
       assertThat(activityMapping.activityScheduleId).isEqualTo(activityScheduleId)
       assertThat(activityMapping.mappingType).isEqualTo(ActivityMappingType.ACTIVITY_MIGRATED)
-      assertThat(activityMapping.label).startsWith(LocalDate.now().toString())
     }
 
     @Test
@@ -599,7 +592,6 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
           activityScheduleId = activityScheduleId,
           nomisCourseActivityId = nomisCourseActivityId,
           mappingType = ActivityMappingType.ACTIVITY_MIGRATED,
-          label = LocalDateTime.now().withNano(0).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
         ),
       )
 
@@ -611,9 +603,6 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
         .jsonPath("activityScheduleId").isEqualTo(activityScheduleId)
         .jsonPath("nomisCourseActivityId").isEqualTo(nomisCourseActivityId)
         .jsonPath("mappingType").isEqualTo("ACTIVITY_MIGRATED")
-        .jsonPath("label").value<String> {
-          assertThat(it).startsWith(LocalDate.now().toString())
-        }
         .jsonPath("scheduledInstanceMappings").isEmpty
     }
   }
