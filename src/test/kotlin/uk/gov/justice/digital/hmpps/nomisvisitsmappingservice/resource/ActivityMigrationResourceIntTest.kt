@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+@file:OptIn(ExperimentalCoroutinesApi::class, ExperimentalCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
@@ -10,6 +10,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.http.MediaType
@@ -52,9 +53,9 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
   private fun postCreateMappingRequest(
     nomisId: Long = NOMIS_ID,
     activityId: Long = ACTIVITY_ID,
-    activityId2: Long = ACTIVITY_ID_2,
+    activityId2: Long? = ACTIVITY_ID_2,
     label: String = MIGRATION_ID,
-  ) {
+  ) =
     webTestClient.post().uri("/mapping/activities/migration")
       .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
       .contentType(MediaType.APPLICATION_JSON)
@@ -69,8 +70,6 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
         ),
       )
       .exchange()
-      .expectStatus().isCreated
-  }
 
   @DisplayName("POST /mapping/activities/migration")
   @Nested
@@ -103,8 +102,9 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `create mapping`() = runTest {
+    fun `should create mapping`() = runTest {
       postCreateMappingRequest()
+        .expectStatus().isCreated
 
       val saved = activityMigrationRepository.findById(NOMIS_ID)!!
       with(saved) {
@@ -112,6 +112,71 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
         assertThat(activityScheduleId2).isEqualTo(ACTIVITY_ID_2)
         assertThat(label).isEqualTo(MIGRATION_ID)
       }
+    }
+
+    @Test
+    fun `should create mapping if 2nd activity id is null`() = runTest {
+      postCreateMappingRequest(activityId2 = null)
+        .expectStatus().isCreated
+
+      val saved = activityMigrationRepository.findById(NOMIS_ID)!!
+      with(saved) {
+        assertThat(activityScheduleId).isEqualTo(ACTIVITY_ID)
+        assertThat(activityScheduleId2).isNull()
+        assertThat(label).isEqualTo(MIGRATION_ID)
+      }
+    }
+
+    @Test
+    fun `should return bad request if mapping already exists for different Activity id`() = runTest {
+      postCreateMappingRequest()
+        .expectStatus().isCreated
+
+      postCreateMappingRequest(activityId = 1)
+        .expectStatus().isBadRequest
+        .expectBody()
+        .jsonPath("userMessage").value<String> {
+          assertThat(it).contains("Nomis mapping id = $NOMIS_ID already exists")
+        }
+    }
+
+    @Test
+    fun `should return created if mapping already exists for same Nomis and Activity id`() = runTest {
+      postCreateMappingRequest()
+        .expectStatus().isCreated
+
+      postCreateMappingRequest()
+        .expectStatus().isCreated
+    }
+
+    @Test
+    fun `should return bad request if activity already exists for different Nomis id`() = runTest {
+      postCreateMappingRequest()
+        .expectStatus().isCreated
+
+      postCreateMappingRequest(nomisId = 1)
+        .expectStatus().isBadRequest
+        .expectBody()
+        .jsonPath("userMessage").value<String> {
+          assertThat(it).contains("Activity migration mapping with Activity id=$ACTIVITY_ID and 2nd Activity Id=$ACTIVITY_ID_2 already exists")
+        }
+    }
+
+    @Test
+    fun `should return conflict if attempting to create duplicate`() = runTest {
+      postCreateMappingRequest(activityId = 101, activityId2 = 102)
+        .expectStatus().isCreated
+
+      // Emulate calling service simultaneously by disabling the duplicate check
+      // Note: the spy is automatically reset by ResetMocksTestExecutionListener
+      whenever(activityMigrationMappingRepository.findById(NOMIS_ID)).thenReturn(null)
+
+      postCreateMappingRequest(activityId = 103, activityId2 = 104)
+        .expectStatus().isEqualTo(409)
+        .expectBody()
+        .jsonPath("userMessage").value<String> {
+          assertThat(it).contains("Conflict: Activity migration mapping already exists, detected by org.springframework.dao.DuplicateKeyException")
+        }
     }
   }
 }
