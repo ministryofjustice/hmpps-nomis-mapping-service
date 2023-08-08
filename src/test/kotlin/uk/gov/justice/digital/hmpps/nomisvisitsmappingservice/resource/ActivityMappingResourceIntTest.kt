@@ -65,7 +65,6 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     activityId: Long = activityScheduleId,
     scheduledInstanceMappings: List<Pair<Long, Long>> = listOf(Pair(activityScheduledInstanceId, nomisCourseScheduleId)),
     mappingType: String = ActivityMappingType.ACTIVITY_CREATED.name,
-    label: String? = null,
   ): ActivityMappingDto = ActivityMappingDto(
     nomisCourseActivityId = nomisId,
     activityScheduleId = activityId,
@@ -73,7 +72,6 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
       ActivityScheduleMappingDto(it.first, it.second, mappingType)
     },
     mappingType = mappingType,
-    label = label,
   )
 
   private fun postCreateMappingRequest(
@@ -289,7 +287,6 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
       assertThat(activityMapping.nomisCourseActivityId).isEqualTo(nomisCourseActivityId)
       assertThat(activityMapping.activityScheduleId).isEqualTo(activityScheduleId)
       assertThat(activityMapping.mappingType).isEqualTo(ActivityMappingType.ACTIVITY_MIGRATED)
-      assertThat(activityMapping.label).startsWith(LocalDate.now().toString())
     }
 
     @Test
@@ -599,7 +596,6 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
           activityScheduleId = activityScheduleId,
           nomisCourseActivityId = nomisCourseActivityId,
           mappingType = ActivityMappingType.ACTIVITY_MIGRATED,
-          label = LocalDateTime.now().withNano(0).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
         ),
       )
 
