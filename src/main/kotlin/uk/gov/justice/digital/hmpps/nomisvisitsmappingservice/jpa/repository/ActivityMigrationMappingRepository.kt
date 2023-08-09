@@ -7,4 +7,6 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivityMigrat
 @Repository
 interface ActivityMigrationMappingRepository : CoroutineCrudRepository<ActivityMigrationMapping, Long> {
   suspend fun findOneByActivityScheduleIdAndActivityScheduleId2(activityScheduleId: Long, activityScheduleId2: Long?): ActivityMigrationMapping?
+
+  suspend fun findFirstByOrderByWhenCreatedDesc(): ActivityMigrationMapping?
 }

@@ -183,7 +183,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
 
   @DisplayName("GET /mapping/activities/migration/nomis-course-activity-id/{courseActivityId}")
   @Nested
-  inner class GetMappingTest {
+  inner class GetMapping {
 
     @Test
     fun `access forbidden when no authority`() {
@@ -261,6 +261,77 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
         .expectBody()
         .jsonPath("userMessage").value<String> {
           assertThat(it).contains("nomisCourseActivityId=$NOMIS_ID")
+        }
+    }
+  }
+
+  @DisplayName("GET /mapping/activities/migrated/latest")
+  @Nested
+  inner class GetLatestMigratedMapping {
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/activities/migrated/latest")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/activities/migrated/latest")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/activities/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `should get latest migrated mapping`() = runTest {
+      // Note that this relies on the whenCreated value defaulted by the database
+      activityMigrationRepository.save(
+        ActivityMigrationMapping(
+          nomisCourseActivityId = NOMIS_ID + 1,
+          activityScheduleId = ACTIVITY_ID + 1,
+          activityScheduleId2 = ACTIVITY_ID_2 + 1,
+          label = MIGRATION_ID,
+        ),
+      )
+      activityMigrationRepository.save(
+        ActivityMigrationMapping(
+          nomisCourseActivityId = NOMIS_ID,
+          activityScheduleId = ACTIVITY_ID,
+          activityScheduleId2 = ACTIVITY_ID_2,
+          label = MIGRATION_ID,
+        ),
+      )
+
+      webTestClient.get().uri("/mapping/activities/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("nomisCourseActivityId").isEqualTo(NOMIS_ID)
+        .jsonPath("activityScheduleId").isEqualTo(ACTIVITY_ID)
+        .jsonPath("activityScheduleId2").isEqualTo(ACTIVITY_ID_2)
+        .jsonPath("label").isEqualTo(MIGRATION_ID)
+    }
+
+    @Test
+    fun `404 when no migrated mapping found`() {
+      webTestClient.get().uri("/mapping/activities/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isNotFound
+        .expectBody()
+        .jsonPath("userMessage").value<String> {
+          assertThat(it).contains("No migrated mapping found")
         }
     }
   }
