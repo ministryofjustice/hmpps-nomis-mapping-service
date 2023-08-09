@@ -62,4 +62,9 @@ class ActivityMigrationService(
     activityMigrationMappingRepository.findById(courseActivityId)
       ?.let { ActivityMigrationMappingDto(it) }
       ?: throw NotFoundException("nomisCourseActivityId=$courseActivityId")
+
+  suspend fun getLatestMigrated(): ActivityMigrationMappingDto =
+    activityMigrationMappingRepository.findFirstByOrderByWhenCreatedDesc()
+      ?.let { ActivityMigrationMappingDto(it) }
+      ?: throw NotFoundException("No migrated mapping found")
 }

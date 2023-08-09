@@ -94,4 +94,35 @@ class ActivityMigrationResource(private val mappingService: ActivityMigrationSer
     @PathVariable
     courseActivityId: Long,
   ): ActivityMigrationMappingDto = mappingService.getMapping(courseActivityId)
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @GetMapping("/mapping/activities/migrated/latest")
+  @Operation(
+    summary = "get the latest mapping for a migration",
+    description = "Requires role NOMIS_ACTIVITIES",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ActivityMigrationMappingDto::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "No mappings found at all for any migration",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getLatestMigratedMapping(): ActivityMigrationMappingDto =
+    mappingService.getLatestMigrated()
 }
