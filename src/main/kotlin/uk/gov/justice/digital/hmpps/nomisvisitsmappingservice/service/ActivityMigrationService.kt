@@ -2,7 +2,13 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service
 
 import com.microsoft.applicationinsights.TelemetryClient
 import jakarta.validation.ValidationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.ActivityMigrationMappingDto
@@ -67,4 +73,24 @@ class ActivityMigrationService(
     activityMigrationMappingRepository.findFirstByOrderByWhenCreatedDesc()
       ?.let { ActivityMigrationMappingDto(it) }
       ?: throw NotFoundException("No migrated mapping found")
+
+  suspend fun getMappings(
+    pageRequest: Pageable,
+    migrationId: String,
+  ): Page<ActivityMigrationMappingDto> =
+    coroutineScope {
+      val activityMigrationMappings = async {
+        activityMigrationMappingRepository.findAllByLabelOrderByNomisCourseActivityIdAsc(label = migrationId, pageRequest)
+      }
+
+      val count = async {
+        activityMigrationMappingRepository.countAllByLabel(migrationId)
+      }
+
+      PageImpl(
+        activityMigrationMappings.await().toList().map { ActivityMigrationMappingDto(it) },
+        pageRequest,
+        count.await(),
+      )
+    }
 }
