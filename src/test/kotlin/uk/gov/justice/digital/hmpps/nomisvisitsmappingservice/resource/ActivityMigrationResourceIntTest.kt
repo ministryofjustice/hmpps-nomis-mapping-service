@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalCoroutinesApi::class, ExperimentalCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+@file:OptIn(ExperimentalCoroutinesApi::class)
 
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
@@ -18,6 +18,7 @@ import org.springframework.web.reactive.function.BodyInserters.fromValue
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.ActivityMigrationMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.ActivityMigrationRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivityMigrationMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.ActivityMigrationMappingRepository
 
 class ActivityMigrationResourceIntTest : IntegrationTestBase() {
@@ -176,6 +177,90 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
         .expectBody()
         .jsonPath("userMessage").value<String> {
           assertThat(it).contains("Conflict: Activity migration mapping already exists, detected by org.springframework.dao.DuplicateKeyException")
+        }
+    }
+  }
+
+  @DisplayName("GET /mapping/activities/migration/nomis-course-activity-id/{courseActivityId}")
+  @Nested
+  inner class GetMappingTest {
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/activities/migration/nomis-course-activity-id/$NOMIS_ID")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/activities/migration/nomis-course-activity-id/$NOMIS_ID")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/activities/migration/nomis-course-activity-id/$NOMIS_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `should return OK if mapping exists`() = runTest {
+      activityMigrationRepository.save(
+        ActivityMigrationMapping(
+          nomisCourseActivityId = NOMIS_ID,
+          activityScheduleId = ACTIVITY_ID,
+          activityScheduleId2 = ACTIVITY_ID_2,
+          label = MIGRATION_ID,
+        ),
+      )
+
+      webTestClient.get().uri("/mapping/activities/migration/nomis-course-activity-id/$NOMIS_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("nomisCourseActivityId").isEqualTo(NOMIS_ID)
+        .jsonPath("activityScheduleId").isEqualTo(ACTIVITY_ID)
+        .jsonPath("activityScheduleId2").isEqualTo(ACTIVITY_ID_2)
+        .jsonPath("label").isEqualTo(MIGRATION_ID)
+    }
+
+    @Test
+    fun `should handle null 2nd activity id`() = runTest {
+      activityMigrationRepository.save(
+        ActivityMigrationMapping(
+          nomisCourseActivityId = NOMIS_ID,
+          activityScheduleId = ACTIVITY_ID,
+          activityScheduleId2 = null,
+          label = MIGRATION_ID,
+        ),
+      )
+
+      webTestClient.get().uri("/mapping/activities/migration/nomis-course-activity-id/$NOMIS_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("nomisCourseActivityId").isEqualTo(NOMIS_ID)
+        .jsonPath("activityScheduleId").isEqualTo(ACTIVITY_ID)
+        .jsonPath("activityScheduleId2").doesNotExist()
+        .jsonPath("label").isEqualTo(MIGRATION_ID)
+    }
+
+    @Test
+    fun `should return not found `() = runTest {
+      webTestClient.get().uri("/mapping/activities/migration/nomis-course-activity-id/$NOMIS_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isNotFound
+        .expectBody()
+        .jsonPath("userMessage").value<String> {
+          assertThat(it).contains("nomisCourseActivityId=$NOMIS_ID")
         }
     }
   }

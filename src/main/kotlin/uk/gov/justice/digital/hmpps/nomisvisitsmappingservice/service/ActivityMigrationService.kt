@@ -57,4 +57,9 @@ class ActivityMigrationService(
       )
     }
   }
+
+  suspend fun getMapping(courseActivityId: Long): ActivityMigrationMappingDto =
+    activityMigrationMappingRepository.findById(courseActivityId)
+      ?.let { ActivityMigrationMappingDto(it) }
+      ?: throw NotFoundException("nomisCourseActivityId=$courseActivityId")
 }

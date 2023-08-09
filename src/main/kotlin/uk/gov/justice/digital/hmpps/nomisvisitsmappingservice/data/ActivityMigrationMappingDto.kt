@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Size
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivityMigrationMapping
 import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -24,5 +25,12 @@ data class ActivityMigrationMappingDto(
 
   @Schema(description = "Date-time the mapping was created")
   val whenCreated: LocalDateTime? = null,
-
-)
+) {
+  constructor(mapping: ActivityMigrationMapping) : this(
+    nomisCourseActivityId = mapping.nomisCourseActivityId,
+    activityScheduleId = mapping.activityScheduleId,
+    activityScheduleId2 = mapping.activityScheduleId2,
+    label = mapping.label,
+    whenCreated = mapping.whenCreated,
+  )
+}
