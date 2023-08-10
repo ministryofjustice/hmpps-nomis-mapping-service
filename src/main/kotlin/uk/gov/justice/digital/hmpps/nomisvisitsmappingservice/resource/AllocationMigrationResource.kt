@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -61,4 +63,33 @@ class AllocationMigrationResource(private val mappingService: AllocationMigratio
         cause = e,
       )
     }
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @GetMapping("/mapping/allocations/migration/nomis-allocation-id/{nomisAllocationId}")
+  @Operation(
+    summary = "get mapping for an allocation migration",
+    description = "Retrieves an allocation migration mapping by the nomis id. Requires role NOMIS_ACTIVITIES",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = AllocationMigrationMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getMapping(
+    @Schema(description = "Nomis allocation Id", example = "12345", required = true) @PathVariable nomisAllocationId: Long,
+  ): AllocationMigrationMappingDto = mappingService.getMapping(nomisAllocationId)
 }

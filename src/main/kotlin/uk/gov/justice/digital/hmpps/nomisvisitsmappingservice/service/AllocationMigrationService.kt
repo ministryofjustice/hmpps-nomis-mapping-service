@@ -54,4 +54,9 @@ class AllocationMigrationService(
       )
     }
   }
+
+  suspend fun getMapping(nomisAllocationId: Long): AllocationMigrationMappingDto =
+    allocationMigrationMappingRepository.findById(nomisAllocationId)
+      ?.let { AllocationMigrationMappingDto(it) }
+      ?: throw NotFoundException("nomisAllocationId=$nomisAllocationId")
 }
