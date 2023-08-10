@@ -72,6 +72,25 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
       )
       .exchange()
 
+  private fun saveMapping(offset: Int, label: String = MIGRATION_ID) =
+    saveMapping(NOMIS_ID + offset, ACTIVITY_ID + offset, ACTIVITY_ID_2 + offset, label)
+
+  private fun saveMapping(
+    nomisId: Long = NOMIS_ID,
+    activityId: Long = ACTIVITY_ID,
+    activityId2: Long? = ACTIVITY_ID_2,
+    label: String = MIGRATION_ID,
+  ) = runTest {
+    activityMigrationRepository.save(
+      ActivityMigrationMapping(
+        nomisCourseActivityId = nomisId,
+        activityScheduleId = activityId,
+        activityScheduleId2 = activityId2,
+        label = label,
+      ),
+    )
+  }
+
   @DisplayName("POST /mapping/activities/migration")
   @Nested
   inner class CreateMapping {
@@ -210,14 +229,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should return OK if mapping exists`() = runTest {
-      activityMigrationRepository.save(
-        ActivityMigrationMapping(
-          nomisCourseActivityId = NOMIS_ID,
-          activityScheduleId = ACTIVITY_ID,
-          activityScheduleId2 = ACTIVITY_ID_2,
-          label = MIGRATION_ID,
-        ),
-      )
+      saveMapping()
 
       webTestClient.get().uri("/mapping/activities/migration/nomis-course-activity-id/$NOMIS_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
@@ -232,14 +244,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should handle null 2nd activity id`() = runTest {
-      activityMigrationRepository.save(
-        ActivityMigrationMapping(
-          nomisCourseActivityId = NOMIS_ID,
-          activityScheduleId = ACTIVITY_ID,
-          activityScheduleId2 = null,
-          label = MIGRATION_ID,
-        ),
-      )
+      saveMapping(activityId2 = null)
 
       webTestClient.get().uri("/mapping/activities/migration/nomis-course-activity-id/$NOMIS_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
@@ -295,22 +300,8 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
     @Test
     fun `should get latest migrated mapping`() = runTest {
       // Note that this relies on the whenCreated value defaulted by the database
-      activityMigrationRepository.save(
-        ActivityMigrationMapping(
-          nomisCourseActivityId = NOMIS_ID + 1,
-          activityScheduleId = ACTIVITY_ID + 1,
-          activityScheduleId2 = ACTIVITY_ID_2 + 1,
-          label = MIGRATION_ID,
-        ),
-      )
-      activityMigrationRepository.save(
-        ActivityMigrationMapping(
-          nomisCourseActivityId = NOMIS_ID,
-          activityScheduleId = ACTIVITY_ID,
-          activityScheduleId2 = ACTIVITY_ID_2,
-          label = MIGRATION_ID,
-        ),
-      )
+      saveMapping(1)
+      saveMapping()
 
       webTestClient.get().uri("/mapping/activities/migrated/latest")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
@@ -333,6 +324,114 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
         .jsonPath("userMessage").value<String> {
           assertThat(it).contains("No migrated mapping found")
         }
+    }
+  }
+
+  @DisplayName("GET /mapping/activities/migration/migration-id/{migrationId}")
+  @Nested
+  inner class GetMappingByMigrationId {
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/activities/migration/migration-id/2022-01-01T00:00:00")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/activities/migration/migration-id/2022-01-01T00:00:00")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/activities/migration/migration-id/2022-01-01T00:00:00")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `should return only the migration requested`() {
+      saveMapping()
+      saveMapping(1)
+      saveMapping(2, label = "wrong-migration")
+
+      webTestClient.get().uri("/mapping/activities/migration/migration-id/$MIGRATION_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(2)
+        .jsonPath("content.size()").isEqualTo(2)
+        .jsonPath("content[0].nomisCourseActivityId").isEqualTo(NOMIS_ID)
+        .jsonPath("content[0].activityScheduleId").isEqualTo(ACTIVITY_ID)
+        .jsonPath("content[0].activityScheduleId2").isEqualTo(ACTIVITY_ID_2)
+        .jsonPath("content[0].whenCreated").isNotEmpty
+        .jsonPath("content[1].nomisCourseActivityId").isEqualTo(NOMIS_ID + 1)
+        .jsonPath("content[1].activityScheduleId").isEqualTo(ACTIVITY_ID + 1)
+        .jsonPath("content[1].activityScheduleId2").isEqualTo(ACTIVITY_ID_2 + 1)
+        .jsonPath("content[1].whenCreated").isNotEmpty
+    }
+
+    @Test
+    fun `should return an empty list`() {
+      saveMapping(label = "wrong-migration")
+
+      webTestClient.get().uri("/mapping/activities/migration/migration-id/$MIGRATION_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(0)
+        .jsonPath("content.size()").isEqualTo(0)
+    }
+
+    @Test
+    fun `should return mappings in pages`() {
+      val pageSize = 3
+      (1..(pageSize + 1)).forEach { saveMapping(it) }
+
+      webTestClient.get().uri {
+        it.path("/mapping/activities/migration/migration-id/$MIGRATION_ID")
+          .queryParam("size", "$pageSize")
+          .queryParam("page", "0")
+          .build()
+      }
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(4)
+        .jsonPath("numberOfElements").isEqualTo(pageSize)
+        .jsonPath("number").isEqualTo(0)
+        .jsonPath("totalPages").isEqualTo(2)
+        .jsonPath("size").isEqualTo(pageSize)
+        .jsonPath("content.size()").isEqualTo(pageSize)
+        .jsonPath("content[0].nomisCourseActivityId").isEqualTo(NOMIS_ID + 1)
+        .jsonPath("content[1].nomisCourseActivityId").isEqualTo(NOMIS_ID + 2)
+        .jsonPath("content[2].nomisCourseActivityId").isEqualTo(NOMIS_ID + 3)
+
+      webTestClient.get().uri {
+        it.path("/mapping/activities/migration/migration-id/$MIGRATION_ID")
+          .queryParam("size", "$pageSize")
+          .queryParam("page", "1")
+          .build()
+      }
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(4)
+        .jsonPath("numberOfElements").isEqualTo(1)
+        .jsonPath("number").isEqualTo(1)
+        .jsonPath("totalPages").isEqualTo(2)
+        .jsonPath("size").isEqualTo(pageSize)
+        .jsonPath("content.size()").isEqualTo(1)
+        .jsonPath("content[0].nomisCourseActivityId").isEqualTo(NOMIS_ID + 4)
     }
   }
 }
