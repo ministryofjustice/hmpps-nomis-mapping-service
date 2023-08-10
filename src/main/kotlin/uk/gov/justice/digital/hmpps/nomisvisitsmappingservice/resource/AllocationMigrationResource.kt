@@ -92,4 +92,35 @@ class AllocationMigrationResource(private val mappingService: AllocationMigratio
   suspend fun getMapping(
     @Schema(description = "Nomis allocation Id", example = "12345", required = true) @PathVariable nomisAllocationId: Long,
   ): AllocationMigrationMappingDto = mappingService.getMapping(nomisAllocationId)
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @GetMapping("/mapping/allocations/migrated/latest")
+  @Operation(
+    summary = "get the latest mapping for an allocation migration",
+    description = "Requires role NOMIS_ACTIVITIES",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = AllocationMigrationMappingDto::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "No mappings found at all for any migration",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getLatestMigratedMapping(): AllocationMigrationMappingDto =
+    mappingService.getLatestMigrated()
 }

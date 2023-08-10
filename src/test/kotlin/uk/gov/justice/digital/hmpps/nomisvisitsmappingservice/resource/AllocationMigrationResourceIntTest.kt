@@ -241,4 +241,61 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
         }
     }
   }
+
+  @DisplayName("GET /mapping/allocations/migrated/latest")
+  @Nested
+  inner class GetLatestMigratedMapping {
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/allocations/migrated/latest")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/allocations/migrated/latest")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/allocations/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `should get latest migrated mapping`() = runTest {
+      // Note that this relies on the whenCreated value defaulted by the database
+      saveMapping(offset = 1)
+      saveMapping()
+
+      webTestClient.get().uri("/mapping/allocations/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("nomisAllocationId").isEqualTo(NOMIS_ALLOCATION_ID)
+        .jsonPath("activityAllocationId").isEqualTo(ACTIVITY_ALLOCATION_ID)
+        .jsonPath("activityScheduleId").isEqualTo(ACTIVITY_ID)
+        .jsonPath("label").isEqualTo(MIGRATION_ID)
+    }
+
+    @Test
+    fun `404 when no migrated mapping found`() {
+      webTestClient.get().uri("/mapping/allocations/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isNotFound
+        .expectBody()
+        .jsonPath("userMessage").value<String> {
+          assertThat(it).contains("No migrated mapping found")
+        }
+    }
+  }
 }

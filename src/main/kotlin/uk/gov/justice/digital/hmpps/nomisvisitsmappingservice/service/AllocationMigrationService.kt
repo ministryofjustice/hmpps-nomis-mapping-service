@@ -59,4 +59,9 @@ class AllocationMigrationService(
     allocationMigrationMappingRepository.findById(nomisAllocationId)
       ?.let { AllocationMigrationMappingDto(it) }
       ?: throw NotFoundException("nomisAllocationId=$nomisAllocationId")
+
+  suspend fun getLatestMigrated(): AllocationMigrationMappingDto =
+    allocationMigrationMappingRepository.findFirstByOrderByWhenCreatedDesc()
+      ?.let { AllocationMigrationMappingDto(it) }
+      ?: throw NotFoundException("No migrated mapping found")
 }

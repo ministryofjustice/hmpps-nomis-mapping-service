@@ -7,4 +7,6 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AllocationMigr
 @Repository
 interface AllocationMigrationMappingRepository : CoroutineCrudRepository<AllocationMigrationMapping, Long> {
   suspend fun findOneByActivityAllocationId(activityAllocationId: Long): AllocationMigrationMapping?
+
+  suspend fun findFirstByOrderByWhenCreatedDesc(): AllocationMigrationMapping?
 }
