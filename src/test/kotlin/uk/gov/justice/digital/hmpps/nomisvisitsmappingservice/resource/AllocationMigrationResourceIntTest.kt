@@ -298,4 +298,112 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
         }
     }
   }
+
+  @DisplayName("GET /mapping/allocations/migration/migration-id/{migrationId}")
+  @Nested
+  inner class GetMappingByMigrationId {
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/allocations/migration/migration-id/2022-01-01T00:00:00")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/allocations/migration/migration-id/2022-01-01T00:00:00")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/allocations/migration/migration-id/2022-01-01T00:00:00")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `should return only the migration requested`() {
+      saveMapping()
+      saveMapping(1)
+      saveMapping(2, label = "wrong-migration")
+
+      webTestClient.get().uri("/mapping/allocations/migration/migration-id/$MIGRATION_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(2)
+        .jsonPath("content.size()").isEqualTo(2)
+        .jsonPath("content[0].nomisAllocationId").isEqualTo(NOMIS_ALLOCATION_ID)
+        .jsonPath("content[0].activityAllocationId").isEqualTo(ACTIVITY_ALLOCATION_ID)
+        .jsonPath("content[0].activityScheduleId").isEqualTo(ACTIVITY_ID)
+        .jsonPath("content[0].whenCreated").isNotEmpty
+        .jsonPath("content[1].nomisAllocationId").isEqualTo(NOMIS_ALLOCATION_ID + 1)
+        .jsonPath("content[1].activityAllocationId").isEqualTo(ACTIVITY_ALLOCATION_ID + 1)
+        .jsonPath("content[1].activityScheduleId").isEqualTo(ACTIVITY_ID + 1)
+        .jsonPath("content[1].whenCreated").isNotEmpty
+    }
+
+    @Test
+    fun `should return an empty list`() {
+      saveMapping(label = "wrong-migration")
+
+      webTestClient.get().uri("/mapping/allocations/migration/migration-id/$MIGRATION_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(0)
+        .jsonPath("content.size()").isEqualTo(0)
+    }
+
+    @Test
+    fun `should return mappings in pages`() {
+      val pageSize = 3
+      (1..(pageSize + 1)).forEach { saveMapping(it) }
+
+      webTestClient.get().uri {
+        it.path("/mapping/allocations/migration/migration-id/$MIGRATION_ID")
+          .queryParam("size", "$pageSize")
+          .queryParam("page", "0")
+          .build()
+      }
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(4)
+        .jsonPath("numberOfElements").isEqualTo(pageSize)
+        .jsonPath("number").isEqualTo(0)
+        .jsonPath("totalPages").isEqualTo(2)
+        .jsonPath("size").isEqualTo(pageSize)
+        .jsonPath("content.size()").isEqualTo(pageSize)
+        .jsonPath("content[0].nomisAllocationId").isEqualTo(NOMIS_ALLOCATION_ID + 1)
+        .jsonPath("content[1].nomisAllocationId").isEqualTo(NOMIS_ALLOCATION_ID + 2)
+        .jsonPath("content[2].nomisAllocationId").isEqualTo(NOMIS_ALLOCATION_ID + 3)
+
+      webTestClient.get().uri {
+        it.path("/mapping/allocations/migration/migration-id/$MIGRATION_ID")
+          .queryParam("size", "$pageSize")
+          .queryParam("page", "1")
+          .build()
+      }
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(4)
+        .jsonPath("numberOfElements").isEqualTo(1)
+        .jsonPath("number").isEqualTo(1)
+        .jsonPath("totalPages").isEqualTo(2)
+        .jsonPath("size").isEqualTo(pageSize)
+        .jsonPath("content.size()").isEqualTo(1)
+        .jsonPath("content[0].nomisAllocationId").isEqualTo(NOMIS_ALLOCATION_ID + 4)
+    }
+  }
 }
