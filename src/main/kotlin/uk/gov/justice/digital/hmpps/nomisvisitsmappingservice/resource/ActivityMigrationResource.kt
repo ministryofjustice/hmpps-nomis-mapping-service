@@ -99,7 +99,7 @@ class ActivityMigrationResource(private val mappingService: ActivityMigrationSer
   ): ActivityMigrationMappingDto = mappingService.getMapping(courseActivityId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
-  @GetMapping("/mapping/activities/migrated/latest")
+  @GetMapping("/mapping/activities/migration/migrated/latest")
   @Operation(
     summary = "get the latest mapping for a migration",
     description = "Requires role NOMIS_ACTIVITIES",
