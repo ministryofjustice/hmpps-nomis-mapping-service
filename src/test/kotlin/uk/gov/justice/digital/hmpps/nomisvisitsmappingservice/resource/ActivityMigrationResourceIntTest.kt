@@ -270,20 +270,20 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("GET /mapping/activities/migrated/latest")
+  @DisplayName("GET /mapping/activities/migration/migrated/latest")
   @Nested
   inner class GetLatestMigratedMapping {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.get().uri("/mapping/activities/migrated/latest")
+      webTestClient.get().uri("/mapping/activities/migration/migrated/latest")
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.get().uri("/mapping/activities/migrated/latest")
+      webTestClient.get().uri("/mapping/activities/migration/migrated/latest")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -291,7 +291,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden with wrong role`() {
-      webTestClient.get().uri("/mapping/activities/migrated/latest")
+      webTestClient.get().uri("/mapping/activities/migration/migrated/latest")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -303,7 +303,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
       saveMapping(1)
       saveMapping()
 
-      webTestClient.get().uri("/mapping/activities/migrated/latest")
+      webTestClient.get().uri("/mapping/activities/migration/migrated/latest")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
         .exchange()
         .expectStatus().isOk
@@ -316,7 +316,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `404 when no migrated mapping found`() {
-      webTestClient.get().uri("/mapping/activities/migrated/latest")
+      webTestClient.get().uri("/mapping/activities/migration/migrated/latest")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
         .exchange()
         .expectStatus().isNotFound
