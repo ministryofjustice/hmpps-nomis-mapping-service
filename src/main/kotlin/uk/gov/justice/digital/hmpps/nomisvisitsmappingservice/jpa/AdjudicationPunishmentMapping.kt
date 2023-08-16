@@ -1,46 +1,46 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa
 
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 
-data class ActivityMigrationMapping(
+data class AdjudicationPunishmentMapping(
 
   @Id
-  val nomisCourseActivityId: Long,
+  val dpsPunishmentId: String,
 
-  val activityScheduleId: Long,
+  val nomisBookingId: Long,
+  val nomisSanctionSequence: Int,
 
-  val activityScheduleId2: Long?,
+  /**
+   * ISO timestamp of batch job if a migration
+   */
+  val label: String? = null,
 
-  @CreatedDate
-  val whenCreated: LocalDateTime? = null,
-
-  val label: String,
+  val mappingType: AdjudicationMappingType,
 
   @Transient
   @Value("false")
   val new: Boolean = true,
 
-) : Persistable<Long> {
+  val whenCreated: LocalDateTime? = null,
+
+) : Persistable<String> {
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is ActivityMigrationMapping) return false
+    if (other !is AdjudicationPunishmentMapping) return false
 
-    if (nomisCourseActivityId != other.nomisCourseActivityId) return false
-
-    return true
+    return dpsPunishmentId == other.dpsPunishmentId
   }
 
   override fun hashCode(): Int {
-    return nomisCourseActivityId.hashCode()
+    return dpsPunishmentId.hashCode()
   }
 
   override fun isNew(): Boolean = new
 
-  override fun getId(): Long = nomisCourseActivityId
+  override fun getId(): String = dpsPunishmentId
 }

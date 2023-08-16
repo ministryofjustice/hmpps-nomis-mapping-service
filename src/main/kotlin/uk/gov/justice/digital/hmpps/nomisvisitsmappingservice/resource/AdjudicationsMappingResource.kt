@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationAllMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.AdjudicationMappingService
 
@@ -62,6 +63,48 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
   suspend fun createMapping(
     @RequestBody @Valid
     createMappingRequest: AdjudicationMappingDto,
+  ) =
+    try {
+      mappingService.createMapping(createMappingRequest)
+    } catch (e: DuplicateKeyException) {
+      throw DuplicateMappingException(
+        messageIn = "Adjudication mapping already exists, detected by $e",
+        duplicate = createMappingRequest,
+        cause = e,
+      )
+    }
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @PostMapping("/mapping/adjudications/all")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates a new adjudication mapping along with associated hearings and punishments",
+    description = "Creates a record of a adjudication number, hearing and punishment. Requires NOMIS_ADJUDICATIONS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = AdjudicationAllMappingDto::class),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping entry created"),
+      ApiResponse(
+        responseCode = "409",
+        description = "Adjudication with charge sequence already exist",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun createAllMappings(
+    @RequestBody @Valid
+    createMappingRequest: AdjudicationAllMappingDto,
   ) =
     try {
       mappingService.createMapping(createMappingRequest)
@@ -242,4 +285,28 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
     ],
   )
   suspend fun getAllMappings() = mappingService.getAllMappings()
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @DeleteMapping("/mapping/adjudications/all/migration-id/{migrationId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete all adjudication related mapping entries for the given migration id",
+    description = "Delete mapping entries created during a single migration for adjudications and associated hearings and punishments",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Adjudication mappings deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteMappingsByMigrationId(
+    @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
+    @PathVariable
+    migrationId: String,
+  ) = mappingService.deleteAllMappings(migrationId)
 }

@@ -1,0 +1,1 @@
+create index activity_migration_activity_schedule_index on activity_migration_mapping (activity_schedule_id, activity_schedule_id2);
