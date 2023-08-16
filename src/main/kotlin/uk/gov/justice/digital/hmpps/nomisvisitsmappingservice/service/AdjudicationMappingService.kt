@@ -11,19 +11,54 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationAllMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationHearingMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationPunishmentMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationHearingMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationMappingType
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationPunishmentMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AdjudicationHearingMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AdjudicationMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AdjudicationPunishmentMappingRepository
 
 @Service
 @Transactional(readOnly = true)
 class AdjudicationMappingService(
   private val adjudicationMappingRepository: AdjudicationMappingRepository,
+  private val adjudicationHearingMappingRepository: AdjudicationHearingMappingRepository,
+  private val adjudicationPunishmentMappingRepository: AdjudicationPunishmentMappingRepository,
   private val telemetryClient: TelemetryClient,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
+  }
+
+  @Transactional
+  suspend fun createMapping(createMappingRequest: AdjudicationAllMappingDto) {
+    createMapping(
+      createMappingRequest.adjudicationId.copy(
+        mappingType = createMappingRequest.mappingType,
+        label = createMappingRequest.label,
+      ),
+    )
+    createMappingRequest.hearings.forEach {
+      createMapping(
+        it.copy(
+          mappingType = createMappingRequest.mappingType,
+          label = createMappingRequest.label,
+        ),
+      )
+    }
+    createMappingRequest.punishments.forEach {
+      createMapping(
+        it.copy(
+          mappingType = createMappingRequest.mappingType,
+          label = createMappingRequest.label,
+        ),
+      )
+    }
   }
 
   @Transactional
@@ -59,6 +94,72 @@ class AdjudicationMappingService(
       log.debug("Mapping created with adjudicationNumber = $adjudicationNumber")
     }
 
+  @Transactional
+  suspend fun createMapping(createMappingRequest: AdjudicationHearingMappingDto) =
+    with(createMappingRequest) {
+      log.debug("creating adjudication hearing {}", createMappingRequest)
+
+      adjudicationMappingRepository.findById(dpsHearingId)
+        ?.let {
+          throw DuplicateMappingException(
+            existing = dpsHearingId,
+            duplicate = nomisHearingId.toString(),
+            messageIn = "Adjudication hearing mapping with id $dpsHearingId already exists",
+          )
+        }
+        ?: adjudicationHearingMappingRepository.save(
+          AdjudicationHearingMapping(
+            dpsHearingId = dpsHearingId,
+            nomisHearingId = nomisHearingId,
+            label = label,
+            mappingType = AdjudicationMappingType.valueOf(mappingType ?: "ADJUDICATION_CREATED"),
+          ),
+        )
+
+      telemetryClient.trackEvent(
+        "adjudication-hearing-mapping-created",
+        mapOf(
+          "dpsHearingId" to dpsHearingId,
+          "nomisHearingId" to nomisHearingId.toString(),
+        ),
+        null,
+      )
+    }
+
+  @Transactional
+  suspend fun createMapping(createMappingRequest: AdjudicationPunishmentMappingDto) =
+    with(createMappingRequest) {
+      log.debug("creating adjudication punishment {}", createMappingRequest)
+
+      adjudicationMappingRepository.findById(dpsPunishmentId)
+        ?.let {
+          throw DuplicateMappingException(
+            existing = dpsPunishmentId,
+            duplicate = nomisBookingId to nomisSanctionSequence,
+            messageIn = "Adjudication mapping with id $dpsPunishmentId already exists",
+          )
+        }
+        ?: adjudicationPunishmentMappingRepository.save(
+          AdjudicationPunishmentMapping(
+            dpsPunishmentId = dpsPunishmentId,
+            nomisBookingId = nomisBookingId,
+            nomisSanctionSequence = nomisSanctionSequence,
+            label = label,
+            mappingType = AdjudicationMappingType.valueOf(mappingType ?: "ADJUDICATION_CREATED"),
+          ),
+        )
+
+      telemetryClient.trackEvent(
+        "adjudication-punishment-mapping-created",
+        mapOf(
+          "dpsPunishmentId" to dpsPunishmentId,
+          "nomisBookingId" to nomisBookingId.toString(),
+          "nomisSanctionSequence" to nomisSanctionSequence.toString(),
+        ),
+        null,
+      )
+    }
+
   suspend fun getMappingByDpsId(chargeNumber: String): AdjudicationMappingDto =
     adjudicationMappingRepository.findById(chargeNumber)
       ?.let { AdjudicationMappingDto(it) }
@@ -71,6 +172,13 @@ class AdjudicationMappingService(
 
   @Transactional
   suspend fun deleteMapping(chargeNumber: String) = adjudicationMappingRepository.deleteById(chargeNumber)
+
+  @Transactional
+  suspend fun deleteAllMappings(migrationId: String) {
+    adjudicationMappingRepository.deleteByLabel(migrationId)
+    adjudicationHearingMappingRepository.deleteByLabel(migrationId)
+    adjudicationPunishmentMappingRepository.deleteByLabel(migrationId)
+  }
 
   suspend fun getAdjudicationMappingsByMigrationId(
     pageRequest: Pageable,
