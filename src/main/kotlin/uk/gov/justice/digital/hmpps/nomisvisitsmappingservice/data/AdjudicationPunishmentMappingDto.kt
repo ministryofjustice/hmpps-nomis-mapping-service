@@ -16,7 +16,7 @@ data class AdjudicationPunishmentMappingDto(
   @Schema(description = "NOMIS sanction sequence", required = true, example = "4")
   val nomisSanctionSequence: Int,
 
-  @Schema(description = "DPS hearing id", required = true, example = "123456")
+  @Schema(description = "DPS punishment id", required = true, example = "123456")
   val dpsPunishmentId: String,
 
   @Schema(description = "Label (a timestamp for migrated ids)")
