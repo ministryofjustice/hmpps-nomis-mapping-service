@@ -52,18 +52,18 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
   )
 
   private fun postCreateMappingRequest(
-    nomisAlloationId: Long = NOMIS_ALLOCATION_ID,
+    nomisAllocationId: Long = NOMIS_ALLOCATION_ID,
     activityAllocationId: Long = ACTIVITY_ALLOCATION_ID,
     activityScheduleId: Long = ACTIVITY_ID,
     label: String = MIGRATION_ID,
   ) =
-    webTestClient.post().uri("/mapping/allocation/migration")
+    webTestClient.post().uri("/mapping/allocations/migration")
       .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         fromValue(
           createMapping(
-            nomisAllocationId = nomisAlloationId,
+            nomisAllocationId = nomisAllocationId,
             activityAllocationId = activityAllocationId,
             activityScheduleId = activityScheduleId,
             label = label,
@@ -97,7 +97,7 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.post().uri("/mapping/allocation/migration")
+      webTestClient.post().uri("/mapping/allocations/migration")
         .body(fromValue(createMapping()))
         .exchange()
         .expectStatus().isUnauthorized
@@ -105,7 +105,7 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.post().uri("/mapping/allocation/migration")
+      webTestClient.post().uri("/mapping/allocations/migration")
         .headers(setAuthorisation(roles = listOf()))
         .body(fromValue(createMapping()))
         .exchange()
@@ -114,7 +114,7 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `create forbidden with wrong role`() {
-      webTestClient.post().uri("/mapping/allocation/migration")
+      webTestClient.post().uri("/mapping/allocations/migration")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .body(fromValue(createMapping()))
         .exchange()
@@ -161,7 +161,7 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
       postCreateMappingRequest()
         .expectStatus().isCreated
 
-      postCreateMappingRequest(nomisAlloationId = 1)
+      postCreateMappingRequest(nomisAllocationId = 1)
         .expectStatus().isBadRequest
         .expectBody()
         .jsonPath("userMessage").value<String> {

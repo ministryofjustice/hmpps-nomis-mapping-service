@@ -31,7 +31,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.Allocation
 class AllocationMigrationResource(private val mappingService: AllocationMigrationService) {
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
-  @PostMapping("/mapping/allocation/migration")
+  @PostMapping("/mapping/allocations/migration")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new allocation migration mapping",
