@@ -29,25 +29,25 @@ class ActivityMigrationService(
   suspend fun createMapping(createMappingRequest: ActivityMigrationMappingDto) {
     with(createMappingRequest) {
       activityMigrationMappingRepository.findById(nomisCourseActivityId)?.run {
-        if (this@run.activityScheduleId == this@with.activityScheduleId && this@run.activityScheduleId2 == this@with.activityScheduleId2) {
-          log.debug("Activity mapping already exists for activity Ids: $activityScheduleId, $activityScheduleId2 and nomisBookingId: $nomisCourseActivityId so not creating. All OK")
+        if (this@run.activityId == this@with.activityId && this@run.activityId2 == this@with.activityId2) {
+          log.debug("Activity mapping already exists for activity Ids: $activityId, $activityId2 and nomisBookingId: $nomisCourseActivityId so not creating. All OK")
           return
         }
         throw ValidationException("Nomis mapping id = $nomisCourseActivityId already exists")
       }
 
-      activityMigrationMappingRepository.findOneByActivityScheduleIdAndActivityScheduleId2(
-        activityScheduleId = activityScheduleId,
-        activityScheduleId2 = activityScheduleId2,
+      activityMigrationMappingRepository.findOneByActivityIdAndActivityId2(
+        activityScheduleId = activityId,
+        activityScheduleId2 = activityId2,
       )?.run {
-        throw ValidationException("Activity migration mapping with Activity id=$activityScheduleId and 2nd Activity Id=$activityScheduleId2 already exists")
+        throw ValidationException("Activity migration mapping with Activity id=$activityId and 2nd Activity Id=$activityId2 already exists")
       }
 
       activityMigrationMappingRepository.save(
         ActivityMigrationMapping(
           nomisCourseActivityId = nomisCourseActivityId,
-          activityScheduleId = activityScheduleId,
-          activityScheduleId2 = activityScheduleId2,
+          activityId = activityId,
+          activityId2 = activityId2,
           label = label,
         ),
       )
@@ -55,8 +55,8 @@ class ActivityMigrationService(
         "activity-migration-mapping-created",
         mapOf(
           "nomisCourseActivityId" to nomisCourseActivityId.toString(),
-          "activityScheduleId" to activityScheduleId.toString(),
-          "activityScheduleId1" to activityScheduleId2.toString(),
+          "activityScheduleId" to activityId.toString(),
+          "activityScheduleId1" to activityId2.toString(),
           "label" to label,
         ),
         null,

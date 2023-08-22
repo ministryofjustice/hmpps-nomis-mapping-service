@@ -46,8 +46,8 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
     label: String = MIGRATION_ID,
   ): ActivityMigrationMappingDto = ActivityMigrationMappingDto(
     nomisCourseActivityId = nomisId,
-    activityScheduleId = activityId,
-    activityScheduleId2 = activityId2,
+    activityId = activityId,
+    activityId2 = activityId2,
     label = label,
   )
 
@@ -84,8 +84,8 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
     activityMigrationRepository.save(
       ActivityMigrationMapping(
         nomisCourseActivityId = nomisId,
-        activityScheduleId = activityId,
-        activityScheduleId2 = activityId2,
+        activityId = activityId,
+        activityId2 = activityId2,
         label = label,
       ),
     )
@@ -128,8 +128,8 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
 
       val saved = activityMigrationRepository.findById(NOMIS_ID)!!
       with(saved) {
-        assertThat(activityScheduleId).isEqualTo(ACTIVITY_ID)
-        assertThat(activityScheduleId2).isEqualTo(ACTIVITY_ID_2)
+        assertThat(activityId).isEqualTo(ACTIVITY_ID)
+        assertThat(activityId2).isEqualTo(ACTIVITY_ID_2)
         assertThat(label).isEqualTo(MIGRATION_ID)
       }
     }
@@ -141,8 +141,8 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
 
       val saved = activityMigrationRepository.findById(NOMIS_ID)!!
       with(saved) {
-        assertThat(activityScheduleId).isEqualTo(ACTIVITY_ID)
-        assertThat(activityScheduleId2).isNull()
+        assertThat(activityId).isEqualTo(ACTIVITY_ID)
+        assertThat(activityId2).isNull()
         assertThat(label).isEqualTo(MIGRATION_ID)
       }
     }
@@ -237,8 +237,8 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
         .expectBody()
         .jsonPath("nomisCourseActivityId").isEqualTo(NOMIS_ID)
-        .jsonPath("activityScheduleId").isEqualTo(ACTIVITY_ID)
-        .jsonPath("activityScheduleId2").isEqualTo(ACTIVITY_ID_2)
+        .jsonPath("activityId").isEqualTo(ACTIVITY_ID)
+        .jsonPath("activityId2").isEqualTo(ACTIVITY_ID_2)
         .jsonPath("label").isEqualTo(MIGRATION_ID)
     }
 
@@ -252,8 +252,8 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
         .expectBody()
         .jsonPath("nomisCourseActivityId").isEqualTo(NOMIS_ID)
-        .jsonPath("activityScheduleId").isEqualTo(ACTIVITY_ID)
-        .jsonPath("activityScheduleId2").doesNotExist()
+        .jsonPath("activityId").isEqualTo(ACTIVITY_ID)
+        .jsonPath("activityId2").doesNotExist()
         .jsonPath("label").isEqualTo(MIGRATION_ID)
     }
 
@@ -309,8 +309,8 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
         .expectBody()
         .jsonPath("nomisCourseActivityId").isEqualTo(NOMIS_ID)
-        .jsonPath("activityScheduleId").isEqualTo(ACTIVITY_ID)
-        .jsonPath("activityScheduleId2").isEqualTo(ACTIVITY_ID_2)
+        .jsonPath("activityId").isEqualTo(ACTIVITY_ID)
+        .jsonPath("activityId2").isEqualTo(ACTIVITY_ID_2)
         .jsonPath("label").isEqualTo(MIGRATION_ID)
     }
 
@@ -368,12 +368,12 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
         .jsonPath("totalElements").isEqualTo(2)
         .jsonPath("content.size()").isEqualTo(2)
         .jsonPath("content[0].nomisCourseActivityId").isEqualTo(NOMIS_ID)
-        .jsonPath("content[0].activityScheduleId").isEqualTo(ACTIVITY_ID)
-        .jsonPath("content[0].activityScheduleId2").isEqualTo(ACTIVITY_ID_2)
+        .jsonPath("content[0].activityId").isEqualTo(ACTIVITY_ID)
+        .jsonPath("content[0].activityId2").isEqualTo(ACTIVITY_ID_2)
         .jsonPath("content[0].whenCreated").isNotEmpty
         .jsonPath("content[1].nomisCourseActivityId").isEqualTo(NOMIS_ID + 1)
-        .jsonPath("content[1].activityScheduleId").isEqualTo(ACTIVITY_ID + 1)
-        .jsonPath("content[1].activityScheduleId2").isEqualTo(ACTIVITY_ID_2 + 1)
+        .jsonPath("content[1].activityId").isEqualTo(ACTIVITY_ID + 1)
+        .jsonPath("content[1].activityId2").isEqualTo(ACTIVITY_ID_2 + 1)
         .jsonPath("content[1].whenCreated").isNotEmpty
     }
 

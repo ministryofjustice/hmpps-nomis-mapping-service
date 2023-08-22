@@ -12,9 +12,9 @@ data class ActivityMigrationMapping(
   @Id
   val nomisCourseActivityId: Long,
 
-  val activityScheduleId: Long,
+  val activityId: Long,
 
-  val activityScheduleId2: Long?,
+  val activityId2: Long?,
 
   @CreatedDate
   val whenCreated: LocalDateTime? = null,
