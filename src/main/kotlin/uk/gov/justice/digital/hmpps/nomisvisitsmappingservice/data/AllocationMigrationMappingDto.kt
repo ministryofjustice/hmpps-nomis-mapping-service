@@ -16,8 +16,8 @@ data class AllocationMigrationMappingDto(
   @Schema(description = "Activity allocation id", required = true)
   val activityAllocationId: Long,
 
-  @Schema(description = "Activity schedule id", required = true)
-  val activityScheduleId: Long,
+  @Schema(description = "Activity id", required = true)
+  val activityId: Long,
 
   @Schema(description = "Label (a timestamp for migrated ids)", required = true)
   @field:Size(max = 20)
@@ -29,7 +29,7 @@ data class AllocationMigrationMappingDto(
   constructor(mapping: AllocationMigrationMapping) : this(
     nomisAllocationId = mapping.nomisAllocationId,
     activityAllocationId = mapping.activityAllocationId,
-    activityScheduleId = mapping.activityScheduleId,
+    activityId = mapping.activityId,
     label = mapping.label,
     whenCreated = mapping.whenCreated,
   )

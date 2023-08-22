@@ -14,7 +14,7 @@ data class AllocationMigrationMapping(
 
   val activityAllocationId: Long,
 
-  val activityScheduleId: Long,
+  val activityId: Long,
 
   @CreatedDate
   val whenCreated: LocalDateTime? = null,
