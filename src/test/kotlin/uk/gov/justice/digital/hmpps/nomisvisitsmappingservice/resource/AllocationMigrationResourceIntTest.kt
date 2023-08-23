@@ -42,11 +42,11 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
   private fun createMapping(
     nomisAllocationId: Long = NOMIS_ALLOCATION_ID,
     activityAllocationId: Long = ACTIVITY_ALLOCATION_ID,
-    activityScheduleId: Long = ACTIVITY_ID,
+    activityId: Long = ACTIVITY_ID,
     label: String = MIGRATION_ID,
   ): AllocationMigrationMappingDto = AllocationMigrationMappingDto(
     nomisAllocationId = nomisAllocationId,
-    activityScheduleId = activityScheduleId,
+    activityId = activityId,
     activityAllocationId = activityAllocationId,
     label = label,
   )
@@ -54,7 +54,7 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
   private fun postCreateMappingRequest(
     nomisAllocationId: Long = NOMIS_ALLOCATION_ID,
     activityAllocationId: Long = ACTIVITY_ALLOCATION_ID,
-    activityScheduleId: Long = ACTIVITY_ID,
+    activityId: Long = ACTIVITY_ID,
     label: String = MIGRATION_ID,
   ) =
     webTestClient.post().uri("/mapping/allocations/migration")
@@ -65,7 +65,7 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
           createMapping(
             nomisAllocationId = nomisAllocationId,
             activityAllocationId = activityAllocationId,
-            activityScheduleId = activityScheduleId,
+            activityId = activityId,
             label = label,
           ),
         ),
@@ -78,14 +78,14 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
   private fun saveMapping(
     nomisAllocationId: Long = NOMIS_ALLOCATION_ID,
     activityAllocationId: Long = ACTIVITY_ALLOCATION_ID,
-    activityScheduleId: Long = ACTIVITY_ID,
+    activityId: Long = ACTIVITY_ID,
     label: String = MIGRATION_ID,
   ) = runTest {
     allocationMigrationRepository.save(
       AllocationMigrationMapping(
         nomisAllocationId = nomisAllocationId,
         activityAllocationId = activityAllocationId,
-        activityScheduleId = activityScheduleId,
+        activityId = activityId,
         label = label,
       ),
     )
@@ -129,7 +129,7 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
       val saved = allocationMigrationRepository.findById(NOMIS_ALLOCATION_ID)!!
       with(saved) {
         assertThat(activityAllocationId).isEqualTo(ACTIVITY_ALLOCATION_ID)
-        assertThat(activityScheduleId).isEqualTo(ACTIVITY_ID)
+        assertThat(activityId).isEqualTo(ACTIVITY_ID)
         assertThat(label).isEqualTo(MIGRATION_ID)
       }
     }
@@ -171,14 +171,14 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should return conflict if attempting to create duplicate`() = runTest {
-      postCreateMappingRequest(activityScheduleId = 101, activityAllocationId = 102)
+      postCreateMappingRequest(activityId = 101, activityAllocationId = 102)
         .expectStatus().isCreated
 
       // Emulate calling service simultaneously by disabling the duplicate check
       // Note: the spy is automatically reset by ResetMocksTestExecutionListener
       whenever(allocationMigrationMappingRepository.findById(NOMIS_ALLOCATION_ID)).thenReturn(null)
 
-      postCreateMappingRequest(activityScheduleId = 103, activityAllocationId = 104)
+      postCreateMappingRequest(activityId = 103, activityAllocationId = 104)
         .expectStatus().isEqualTo(409)
         .expectBody()
         .jsonPath("userMessage").value<String> {
@@ -225,7 +225,7 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
         .expectBody()
         .jsonPath("nomisAllocationId").isEqualTo(NOMIS_ALLOCATION_ID)
         .jsonPath("activityAllocationId").isEqualTo(ACTIVITY_ALLOCATION_ID)
-        .jsonPath("activityScheduleId").isEqualTo(ACTIVITY_ID)
+        .jsonPath("activityId").isEqualTo(ACTIVITY_ID)
         .jsonPath("label").isEqualTo(MIGRATION_ID)
     }
 
@@ -282,7 +282,7 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
         .expectBody()
         .jsonPath("nomisAllocationId").isEqualTo(NOMIS_ALLOCATION_ID)
         .jsonPath("activityAllocationId").isEqualTo(ACTIVITY_ALLOCATION_ID)
-        .jsonPath("activityScheduleId").isEqualTo(ACTIVITY_ID)
+        .jsonPath("activityId").isEqualTo(ACTIVITY_ID)
         .jsonPath("label").isEqualTo(MIGRATION_ID)
     }
 
@@ -341,11 +341,11 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
         .jsonPath("content.size()").isEqualTo(2)
         .jsonPath("content[0].nomisAllocationId").isEqualTo(NOMIS_ALLOCATION_ID)
         .jsonPath("content[0].activityAllocationId").isEqualTo(ACTIVITY_ALLOCATION_ID)
-        .jsonPath("content[0].activityScheduleId").isEqualTo(ACTIVITY_ID)
+        .jsonPath("content[0].activityId").isEqualTo(ACTIVITY_ID)
         .jsonPath("content[0].whenCreated").isNotEmpty
         .jsonPath("content[1].nomisAllocationId").isEqualTo(NOMIS_ALLOCATION_ID + 1)
         .jsonPath("content[1].activityAllocationId").isEqualTo(ACTIVITY_ALLOCATION_ID + 1)
-        .jsonPath("content[1].activityScheduleId").isEqualTo(ACTIVITY_ID + 1)
+        .jsonPath("content[1].activityId").isEqualTo(ACTIVITY_ID + 1)
         .jsonPath("content[1].whenCreated").isNotEmpty
     }
 

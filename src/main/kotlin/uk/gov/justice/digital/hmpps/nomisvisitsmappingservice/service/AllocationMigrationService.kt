@@ -44,7 +44,7 @@ class AllocationMigrationService(
         AllocationMigrationMapping(
           nomisAllocationId = nomisAllocationId,
           activityAllocationId = activityAllocationId,
-          activityScheduleId = activityScheduleId,
+          activityId = activityId,
           label = label,
         ),
       )
@@ -53,7 +53,7 @@ class AllocationMigrationService(
         mapOf(
           "nomisAllocationId" to nomisAllocationId.toString(),
           "activityAllocationId" to activityAllocationId.toString(),
-          "activityScheduleId" to activityScheduleId.toString(),
+          "activityId" to activityId.toString(),
           "label" to label,
         ),
         null,
