@@ -1,7 +1,7 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.3.0-beta"
-  kotlin("plugin.spring") version "1.9.0"
-  kotlin("plugin.jpa") version "1.9.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.4.0"
+  kotlin("plugin.spring") version "1.9.10"
+  kotlin("plugin.jpa") version "1.9.10"
   idea
 }
 
@@ -24,16 +24,16 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.2")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.2")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.3")
 
   implementation("org.flywaydb:flyway-core")
   runtimeOnly("org.postgresql:r2dbc-postgresql:1.0.2.RELEASE")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
   runtimeOnly("org.postgresql:postgresql:42.6.0")
-  implementation("io.opentelemetry:opentelemetry-api:1.28.0")
+  implementation("io.opentelemetry:opentelemetry-api:1.29.0")
 
-  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.1.0")
+  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.2.0")
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
@@ -46,9 +46,9 @@ dependencies {
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.16")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.testcontainers:postgresql:1.18.3")
+  testImplementation("org.testcontainers:postgresql:1.19.0")
   testImplementation("io.projectreactor:reactor-test")
-  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.2")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 }
 
 java {
