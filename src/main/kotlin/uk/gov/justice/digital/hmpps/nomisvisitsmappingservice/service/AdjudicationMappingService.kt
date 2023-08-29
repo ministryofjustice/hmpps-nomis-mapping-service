@@ -180,6 +180,24 @@ class AdjudicationMappingService(
     adjudicationPunishmentMappingRepository.deleteByLabel(migrationId)
   }
 
+  @Transactional
+  suspend fun deleteAllMappings(migrationOnly: Boolean, synchronisationOnly: Boolean) {
+    if (migrationOnly == synchronisationOnly) { // implies delete everything even for the weird true/true scenario
+      adjudicationMappingRepository.deleteAll()
+      adjudicationHearingMappingRepository.deleteAll()
+      adjudicationPunishmentMappingRepository.deleteAll()
+    } else {
+      val type = if (migrationOnly) {
+        AdjudicationMappingType.MIGRATED
+      } else {
+        AdjudicationMappingType.ADJUDICATION_CREATED
+      }
+      adjudicationMappingRepository.deleteAllByMappingType(type)
+      adjudicationHearingMappingRepository.deleteAllByMappingType(type)
+      adjudicationPunishmentMappingRepository.deleteAllByMappingType(type)
+    }
+  }
+
   suspend fun getAdjudicationMappingsByMigrationId(
     pageRequest: Pageable,
     migrationId: String,
