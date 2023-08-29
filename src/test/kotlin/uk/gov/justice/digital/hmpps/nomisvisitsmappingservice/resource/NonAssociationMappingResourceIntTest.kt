@@ -501,4 +501,93 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
     }
   }
+
+  @DisplayName("DELETE /mapping/non-associations/nonAssociationId/{nonAssociationId}")
+  @Nested
+  inner class DeleteMappingTest {
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.delete().uri("/mapping/non-associations/nonAssociationId/999")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.delete().uri("/mapping/non-associations/nonAssociationId/999")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.delete().uri("/mapping/non-associations/nonAssociationId/999")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `delete specific mapping success`() {
+      // create mapping
+      webTestClient.post().uri("/mapping/non-associations")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createNonAssociationMapping()))
+        .exchange()
+        .expectStatus().isCreated
+
+      // it is present after creation by nonAssociation id
+      webTestClient.get().uri("/mapping/non-associations/nonAssociationId/$NON_ASSOCIATION_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+      // it is also present after creation by nomis id
+      webTestClient.get().uri("/mapping/non-associations/firstOffenderNo/$FIRST_OFFENDER_NO/secondOffenderNo/$SECOND_OFFENDER_NO/typeSequence/$TYPE_SEQUENCE")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+
+      // delete mapping
+      webTestClient.delete().uri("/mapping/non-associations/nonAssociationId/$NON_ASSOCIATION_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      // no longer present by nonAssociation id
+      webTestClient.get().uri("/mapping/non-associations/nonAssociationId/$NON_ASSOCIATION_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isNotFound
+      // and also no longer present by nomis id
+      webTestClient.get().uri("/mapping/non-associations/firstOffenderNo/$FIRST_OFFENDER_NO/secondOffenderNo/$SECOND_OFFENDER_NO/typeSequence/$TYPE_SEQUENCE")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    internal fun `delete is idempotent`() {
+      // create mapping
+      webTestClient.post().uri("/mapping/non-associations")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createNonAssociationMapping()))
+        .exchange()
+        .expectStatus().isCreated
+
+      // delete mapping
+      webTestClient.delete().uri("/mapping/non-associations/nonAssociationId/$NON_ASSOCIATION_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isNoContent
+      // delete mapping second time still returns success
+      webTestClient.delete().uri("/mapping/non-associations/nonAssociationId/$NON_ASSOCIATION_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isNoContent
+    }
+  }
 }
