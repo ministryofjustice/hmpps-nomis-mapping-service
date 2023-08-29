@@ -23,6 +23,9 @@ spring:
     properties:
       sslMode: DISABLE
       sslRootCert:
+    pool:
+      max-idle-time: 5ms
+
 
 logging:
   level:
