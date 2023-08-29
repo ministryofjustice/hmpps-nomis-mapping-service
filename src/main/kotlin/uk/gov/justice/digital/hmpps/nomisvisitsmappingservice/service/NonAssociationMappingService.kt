@@ -106,43 +106,4 @@ class NonAssociationMappingService(
     nonAssociationMappingRepository.findById(nonAssociationId)
       ?.let { NonAssociationMappingDto(it) }
       ?: throw NotFoundException("nonAssociationId=$nonAssociationId")
-
-  /*
-  @Transactional
-  suspend fun deleteNonAssociationMappings(onlyMigrated: Boolean) =
-    onlyMigrated.takeIf { it }?.apply {
-      nonAssociationMappingRepository.deleteByMappingTypeEquals(NonAssociationMappingType.MIGRATED)
-    } ?: run {
-      nonAssociationMappingRepository.deleteAll()
-    }
-
-  suspend fun getNonAssociationMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<NonAssociationMappingDto> =
-    coroutineScope {
-      val nonAssociationMapping = async {
-        nonAssociationMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
-          label = migrationId,
-          NonAssociationMappingType.MIGRATED,
-          pageRequest,
-        )
-      }
-
-      val count = async {
-        nonAssociationMappingRepository.countAllByLabelAndMappingType(migrationId, mappingType = NonAssociationMappingType.MIGRATED)
-      }
-
-      PageImpl(
-        nonAssociationMapping.await().toList().map { NonAssociationMappingDto(it) },
-        pageRequest,
-        count.await(),
-      )
-    }
-
-  suspend fun getNonAssociationMappingForLatestMigrated(): NonAssociationMappingDto =
-    nonAssociationMappingRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(NonAssociationMappingType.MIGRATED)
-      ?.let { NonAssociationMappingDto(it) }
-      ?: throw NotFoundException("No migrated mapping found")
-
-  @Transactional
-  suspend fun deleteNonAssociationMapping(nonAssociationId: Long) = nonAssociationMappingRepository.deleteById(nonAssociationId)
-   */
 }
