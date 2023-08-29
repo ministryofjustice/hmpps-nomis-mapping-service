@@ -106,4 +106,7 @@ class NonAssociationMappingService(
     nonAssociationMappingRepository.findById(nonAssociationId)
       ?.let { NonAssociationMappingDto(it) }
       ?: throw NotFoundException("nonAssociationId=$nonAssociationId")
+
+  @Transactional
+  suspend fun deleteNonAssociationMapping(nonAssociationId: Long) = nonAssociationMappingRepository.deleteById(nonAssociationId)
 }

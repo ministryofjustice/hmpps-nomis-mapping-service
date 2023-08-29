@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -147,4 +148,28 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
     @PathVariable
     nonAssociationId: Long,
   ): NonAssociationMappingDto = mappingService.getNonAssociationMappingByNonAssociationId(nonAssociationId)
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_NON_ASSOCIATIONS')")
+  @DeleteMapping("/mapping/non-associations/nonAssociationId/{nonAssociationId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes a specific non-association mapping by nonAssociationId",
+    description = "Deletes the non-association from the mapping table. Requires role NOMIS_NON_ASSOCIATIONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Non-association mapping deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteNonAssociationMapping(
+    @Schema(description = "Non-association Id", example = "12345", required = true)
+    @PathVariable
+    nonAssociationId: Long,
+  ) = mappingService.deleteNonAssociationMapping(nonAssociationId)
 }
