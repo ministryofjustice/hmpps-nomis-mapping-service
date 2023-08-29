@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -309,4 +310,31 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
     @PathVariable
     migrationId: String,
   ) = mappingService.deleteAllMappings(migrationId)
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @DeleteMapping("/mapping/adjudications/all")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete all adjudication related mapping entries",
+    description = "Delete mapping entries created during any migration or synchronisation for adjudications and associated hearings and punishments",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Adjudication mappings deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteAllMappings(
+    @Schema(description = "Migration mappings only", example = "true", required = false, defaultValue = "false")
+    @Parameter
+    migrationOnly: Boolean = false,
+    @Schema(description = "Synchronisation mappings only", example = "true", required = false, defaultValue = "false")
+    @Parameter
+    synchronisationOnly: Boolean = false,
+  ) = mappingService.deleteAllMappings(migrationOnly = migrationOnly, synchronisationOnly = synchronisationOnly)
 }

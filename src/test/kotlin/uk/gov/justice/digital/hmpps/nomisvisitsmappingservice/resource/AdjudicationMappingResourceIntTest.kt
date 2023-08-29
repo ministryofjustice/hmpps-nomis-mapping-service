@@ -26,8 +26,12 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationM
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationPunishmentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.isDuplicateMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationHearingMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationMappingType
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationMappingType.ADJUDICATION_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationMappingType.MIGRATED
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationPunishmentMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AdjudicationHearingMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AdjudicationMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AdjudicationPunishmentMappingRepository
@@ -58,7 +62,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     chargeSequence: Int = CHARGE_SEQ,
     chargeNumber: String = CHARGE_NUMBER,
     label: String = "2022-01-01",
-    mappingType: String = AdjudicationMappingType.ADJUDICATION_CREATED.name,
+    mappingType: String = ADJUDICATION_CREATED.name,
   ): AdjudicationMappingDto = AdjudicationMappingDto(
     adjudicationNumber = adjudicationNumber,
     chargeSequence = chargeSequence,
@@ -72,7 +76,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     chargeSequence: Int = CHARGE_SEQ,
     chargeNumber: String = CHARGE_NUMBER,
     label: String = "2022-01-01",
-    mappingType: String = AdjudicationMappingType.ADJUDICATION_CREATED.name,
+    mappingType: String = ADJUDICATION_CREATED.name,
     hearingIdPairs: List<Pair<String, Long>> = HEARINGS,
     bookingId: Long = BOOKING_ID,
     punishmentIdPairs: List<Pair<String, Int>> = PUNISHMENTS,
@@ -104,7 +108,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     chargeSequence: Int = CHARGE_SEQ,
     chargeNumber: String = CHARGE_NUMBER,
     label: String = "2022-01-01",
-    mappingType: String = AdjudicationMappingType.ADJUDICATION_CREATED.name,
+    mappingType: String = ADJUDICATION_CREATED.name,
   ) {
     webTestClient.post().uri("/mapping/adjudications")
       .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
@@ -373,7 +377,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `will create mapping when no hearings or punishments`() = runBlocking {
+    fun `will create mapping when no hearings or punishments`(): Unit = runBlocking {
       webTestClient.post().uri("/mapping/adjudications/all")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -753,7 +757,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
               chargeSequence = 2,
               chargeNumber = "199/2",
               label = "whatever",
-              mappingType = AdjudicationMappingType.ADJUDICATION_CREATED.name,
+              mappingType = ADJUDICATION_CREATED.name,
             ),
           ),
         )
@@ -784,7 +788,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
             createMapping(
               adjudicationNumber = 77,
               label = "whatever",
-              mappingType = AdjudicationMappingType.ADJUDICATION_CREATED.name,
+              mappingType = ADJUDICATION_CREATED.name,
             ),
           ),
         )
@@ -1007,6 +1011,181 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
+  @DisplayName("DELETE /mapping/adjudications/all")
+  @Nested
+  inner class DeleteAllMappingTest {
+    @BeforeEach
+    fun setUp() = runTest {
+      repository.save(
+        AdjudicationMapping(
+          chargeNumber = "111111-1",
+          chargeSequence = 1,
+          adjudicationNumber = 111111,
+          label = "2022-01-01",
+          mappingType = MIGRATED,
+        ),
+      )
+      hearingRepository.save(
+        AdjudicationHearingMapping(
+          dpsHearingId = "111",
+          nomisHearingId = 111,
+          label = "2022-01-01",
+          mappingType = MIGRATED,
+        ),
+      )
+      punishmentRepository.save(
+        AdjudicationPunishmentMapping(
+          dpsPunishmentId = "111",
+          nomisBookingId = 111,
+          nomisSanctionSequence = 1,
+          label = "2022-01-01",
+          mappingType = MIGRATED,
+        ),
+      )
+
+      repository.save(
+        AdjudicationMapping(
+          chargeNumber = "222222-1",
+          chargeSequence = 1,
+          adjudicationNumber = 222222,
+          label = "2022-02-02",
+          mappingType = MIGRATED,
+        ),
+      )
+      hearingRepository.save(
+        AdjudicationHearingMapping(
+          dpsHearingId = "222",
+          nomisHearingId = 222,
+          label = "2022-02-02",
+          mappingType = MIGRATED,
+        ),
+      )
+      punishmentRepository.save(
+        AdjudicationPunishmentMapping(
+          dpsPunishmentId = "222",
+          nomisBookingId = 222,
+          nomisSanctionSequence = 2,
+          label = "2022-01-01",
+          mappingType = MIGRATED,
+        ),
+      )
+      repository.save(
+        AdjudicationMapping(
+          chargeNumber = "333333-1",
+          chargeSequence = 1,
+          adjudicationNumber = 333333,
+          label = null,
+          mappingType = ADJUDICATION_CREATED,
+        ),
+      )
+      hearingRepository.save(
+        AdjudicationHearingMapping(
+          dpsHearingId = "333",
+          nomisHearingId = 333,
+          label = null,
+          mappingType = ADJUDICATION_CREATED,
+        ),
+      )
+      punishmentRepository.save(
+        AdjudicationPunishmentMapping(
+          dpsPunishmentId = "333",
+          nomisBookingId = 333,
+          nomisSanctionSequence = 3,
+          label = null,
+          mappingType = ADJUDICATION_CREATED,
+        ),
+      )
+
+      assertThat(repository.findAll().count()).isEqualTo(3)
+      assertThat(hearingRepository.findAll().count()).isEqualTo(3)
+      assertThat(punishmentRepository.findAll().count()).isEqualTo(3)
+    }
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.delete().uri("/mapping/adjudications/all")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.delete().uri("/mapping/adjudications/all")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.delete().uri("/mapping/adjudications/all")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `delete all mapping`(): Unit = runBlocking {
+      webTestClient.delete().uri("/mapping/adjudications/all")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      assertThat(repository.findAll().count()).isEqualTo(0)
+      assertThat(hearingRepository.findAll().count()).isEqualTo(0)
+      assertThat(punishmentRepository.findAll().count()).isEqualTo(0)
+    }
+
+    @Test
+    fun `delete all migration mappings`(): Unit = runBlocking {
+      webTestClient.delete().uri("/mapping/adjudications/all?migrationOnly=true")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      assertThat(repository.findAll().toList()).hasSize(1).noneMatch { it.mappingType == MIGRATED }
+      assertThat(hearingRepository.findAll().toList()).hasSize(1).noneMatch { it.mappingType == MIGRATED }
+      assertThat(punishmentRepository.findAll().toList()).hasSize(1).noneMatch { it.mappingType == MIGRATED }
+    }
+
+    @Test
+    fun `delete all synchronisation mappings`(): Unit = runBlocking {
+      webTestClient.delete().uri("/mapping/adjudications/all?synchronisationOnly=true")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      assertThat(repository.findAll().toList()).hasSize(2).noneMatch { it.mappingType == ADJUDICATION_CREATED }
+      assertThat(hearingRepository.findAll().toList()).hasSize(2).noneMatch { it.mappingType == ADJUDICATION_CREATED }
+      assertThat(punishmentRepository.findAll().toList()).hasSize(2)
+        .noneMatch { it.mappingType == ADJUDICATION_CREATED }
+    }
+
+    @Test
+    fun `delete all mappings (both true which for sure makes no sense, by whatever)`(): Unit = runBlocking {
+      webTestClient.delete().uri("/mapping/adjudications/all?migrationOnly=true&synchronisationOnly=true")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      assertThat(repository.findAll().count()).isEqualTo(0)
+      assertThat(hearingRepository.findAll().count()).isEqualTo(0)
+      assertThat(punishmentRepository.findAll().count()).isEqualTo(0)
+    }
+
+    @Test
+    fun `delete all mappings (both false which is default anyway)`(): Unit = runBlocking {
+      webTestClient.delete().uri("/mapping/adjudications/all?migrationOnly=false&synchronisationOnly=false")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      assertThat(repository.findAll().count()).isEqualTo(0)
+      assertThat(hearingRepository.findAll().count()).isEqualTo(0)
+      assertThat(punishmentRepository.findAll().count()).isEqualTo(0)
+    }
+  }
+
   @DisplayName("GET /mapping/adjudications/migration-id/{migrationId}")
   @Nested
   inner class GetMappingByMigrationIdTest {
@@ -1058,7 +1237,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
         12,
         chargeSequence = 1,
         chargeNumber = "12/1",
-        mappingType = AdjudicationMappingType.ADJUDICATION_CREATED.name,
+        mappingType = ADJUDICATION_CREATED.name,
       )
 
       webTestClient.get().uri("/mapping/adjudications/migration-id/2022-01-01")
