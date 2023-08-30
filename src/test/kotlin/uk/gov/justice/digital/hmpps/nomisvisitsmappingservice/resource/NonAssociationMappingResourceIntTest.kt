@@ -4,6 +4,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.byLessThan
+import org.hamcrest.Matchers
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -19,9 +21,17 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorRespon
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.NonAssociationMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.NonAssociationRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.NonAssociationMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.NonAssociationMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.NonAssociationMappingType.NOMIS_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.NonAssociationMappingRepository
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
+
+private const val NON_ASSOCIATION_ID = 1234L
+private const val FIRST_OFFENDER_NO = "A1234BC"
+private const val SECOND_OFFENDER_NO = "D5678EF"
+private const val TYPE_SEQUENCE = 1
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
@@ -31,11 +41,6 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
 
   @SpyBean
   lateinit var nonAssociationRepository: NonAssociationRepository
-
-  private val NON_ASSOCIATION_ID = 1234L
-  private val FIRST_OFFENDER_NO = "A1234BC"
-  private val SECOND_OFFENDER_NO = "D5678EF"
-  private val TYPE_SEQUENCE = 1
 
   private fun createNonAssociationMapping(
     nonAssociationId: Long = NON_ASSOCIATION_ID,
@@ -500,6 +505,292 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
         .exchange()
         .expectStatus().isOk
+    }
+  }
+
+  @DisplayName("GET /mapping/non-associations/migration-id/{migrationId}")
+  @Nested
+  inner class GetMappingByMigrationIdTest {
+
+    @AfterEach
+    internal fun deleteData() = runBlocking {
+      nonAssociationRepository.deleteAll()
+    }
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/migration-id/2022-01-01T00:00:00")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/non-associations/migration-id/2022-01-01T00:00:00")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get nonAssociation mappings by migration id forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/non-associations/migration-id/2022-01-01T00:00:00")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get nonAssociation mappings by migration id success`() {
+      (1L..4L).forEach {
+        postCreateNonAssociationMappingRequest(
+          nonAssociationId = it,
+          nomisTypeSequence = it.toInt(),
+          label = "2022-01-01",
+          mappingType = "MIGRATED",
+        )
+      }
+      (5L..9L).forEach {
+        postCreateNonAssociationMappingRequest(
+          nonAssociationId = it,
+          nomisTypeSequence = it.toInt(),
+          label = "2099-01-01",
+          mappingType = "MIGRATED",
+        )
+      }
+      postCreateNonAssociationMappingRequest(
+        nonAssociationId = 12,
+        nomisTypeSequence = 12,
+        mappingType = NonAssociationMappingType.NON_ASSOCIATION_CREATED.name,
+      )
+
+      webTestClient.get().uri("/mapping/non-associations/migration-id/2022-01-01")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(4)
+        .jsonPath("$.content..nonAssociationId").value(Matchers.contains(1, 2, 3, 4))
+        .jsonPath("$.content..nomisTypeSequence").value(Matchers.contains(1, 2, 3, 4))
+        .jsonPath("$.content[0].whenCreated").isNotEmpty
+    }
+
+    @Test
+    fun `get nonAssociation mappings by migration id - no records exist`() {
+      (1L..4L).forEach {
+        postCreateNonAssociationMappingRequest(
+          nonAssociationId = it,
+          nomisTypeSequence = it.toInt(),
+          label = "2022-01-01",
+          mappingType = "MIGRATED",
+        )
+      }
+
+      webTestClient.get().uri("/mapping/non-associations/migration-id/2044-01-01")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(0)
+        .jsonPath("content").isEmpty
+    }
+
+    @Test
+    fun `can request a different page size`() {
+      (1L..6L).forEach {
+        postCreateNonAssociationMappingRequest(
+          nonAssociationId = it,
+          nomisTypeSequence = it.toInt(),
+          label = "2022-01-01",
+          mappingType = "MIGRATED",
+        )
+      }
+      webTestClient.get().uri {
+        it.path("/mapping/non-associations/migration-id/2022-01-01")
+          .queryParam("size", "2")
+          .queryParam("sort", "firstOffenderNo,asc")
+          .build()
+      }
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(6)
+        .jsonPath("numberOfElements").isEqualTo(2)
+        .jsonPath("number").isEqualTo(0)
+        .jsonPath("totalPages").isEqualTo(3)
+        .jsonPath("size").isEqualTo(2)
+    }
+
+    @Test
+    fun `can request a different page`() {
+      (1L..3L).forEach {
+        postCreateNonAssociationMappingRequest(
+          nonAssociationId = it,
+          nomisTypeSequence = it.toInt(),
+          label = "2022-01-01",
+          mappingType = "MIGRATED",
+        )
+      }
+      webTestClient.get().uri {
+        it.path("/mapping/non-associations/migration-id/2022-01-01")
+          .queryParam("size", "2")
+          .queryParam("page", "1")
+          .queryParam("sort", "firstOffenderNo,asc")
+          .build()
+      }
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(3)
+        .jsonPath("numberOfElements").isEqualTo(1)
+        .jsonPath("number").isEqualTo(1)
+        .jsonPath("totalPages").isEqualTo(2)
+        .jsonPath("size").isEqualTo(2)
+    }
+  }
+
+  @DisplayName("GET /mapping/non-associations/migrated/latest")
+  @Nested
+  inner class GeMappingMigratedLatestTest {
+
+    @AfterEach
+    internal fun deleteData() = runBlocking {
+      nonAssociationRepository.deleteAll()
+    }
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/non-associations/migrated/latest")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/non-associations/migrated/latest")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/non-associations/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get retrieves latest migrated mapping`() {
+      webTestClient.post().uri("/mapping/non-associations")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createNonAssociationMapping(
+              nonAssociationId = 10,
+              nomisTypeSequence = 2,
+              label = "2022-01-01T00:00:00",
+              mappingType = "MIGRATED",
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping/non-associations")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createNonAssociationMapping(
+              nonAssociationId = 20,
+              nomisTypeSequence = 4,
+              label = "2022-01-02T00:00:00",
+              mappingType = "MIGRATED",
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping/non-associations")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createNonAssociationMapping(
+              nonAssociationId = 1,
+              nomisTypeSequence = 1,
+              label = "2022-01-02T10:00:00",
+              mappingType = MIGRATED.name,
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping/non-associations")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createNonAssociationMapping(
+              nonAssociationId = 99,
+              nomisTypeSequence = 3,
+              label = "whatever",
+              mappingType = NOMIS_CREATED.name,
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      val mapping = webTestClient.get().uri("/mapping/non-associations/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody(NonAssociationMappingDto::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(mapping.nonAssociationId).isEqualTo(1)
+      assertThat(mapping.firstOffenderNo).isEqualTo("A1234BC")
+      assertThat(mapping.secondOffenderNo).isEqualTo("D5678EF")
+      assertThat(mapping.nomisTypeSequence).isEqualTo(1)
+      assertThat(mapping.label).isEqualTo("2022-01-02T10:00:00")
+      assertThat(mapping.mappingType).isEqualTo("MIGRATED")
+      assertThat(mapping.whenCreated).isCloseTo(LocalDateTime.now(), byLessThan(5, ChronoUnit.SECONDS))
+    }
+
+    @Test
+    fun `404 when no migrated mapping found`() {
+      webTestClient.post().uri("/mapping/non-associations")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createNonAssociationMapping(
+              nonAssociationId = 77,
+              nomisTypeSequence = 7,
+              label = "whatever",
+              mappingType = NOMIS_CREATED.name,
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      val error = webTestClient.get().uri("/mapping/non-associations/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isNotFound
+        .expectBody(ErrorResponse::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(error.userMessage).isEqualTo("Not Found: No migrated mapping found")
     }
   }
 
