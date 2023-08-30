@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
@@ -172,4 +174,31 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
     @PathVariable
     nonAssociationId: Long,
   ) = mappingService.deleteNonAssociationMapping(nonAssociationId)
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_NON_ASSOCIATIONS')")
+  @DeleteMapping("/mapping/non-associations")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes non-association mappings.",
+    description = "Deletes all rows from the non-associations mapping table. Requires role NOMIS_NON_ASSOCIATIONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Non association mappings deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteNonAssociationMappings(
+    @RequestParam(value = "onlyMigrated", required = false, defaultValue = "false")
+    @Parameter(
+      description = "if true delete mapping entries created by the migration process only (synchronisation records are unaffected)",
+      example = "true",
+    )
+    onlyMigrated: Boolean,
+  ) = mappingService.deleteNonAssociationMappings(onlyMigrated)
 }

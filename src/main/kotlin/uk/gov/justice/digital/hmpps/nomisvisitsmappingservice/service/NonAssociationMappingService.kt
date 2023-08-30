@@ -109,4 +109,12 @@ class NonAssociationMappingService(
 
   @Transactional
   suspend fun deleteNonAssociationMapping(nonAssociationId: Long) = nonAssociationMappingRepository.deleteById(nonAssociationId)
+
+  @Transactional
+  suspend fun deleteNonAssociationMappings(onlyMigrated: Boolean) =
+    onlyMigrated.takeIf { it }?.apply {
+      nonAssociationMappingRepository.deleteByMappingTypeEquals(NonAssociationMappingType.MIGRATED)
+    } ?: run {
+      nonAssociationMappingRepository.deleteAll()
+    }
 }

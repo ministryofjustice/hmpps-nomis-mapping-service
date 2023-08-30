@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorRespon
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.NonAssociationMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.NonAssociationRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.NonAssociationMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.NonAssociationMappingType.NOMIS_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.NonAssociationMappingRepository
 
@@ -588,6 +589,101 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
         .exchange()
         .expectStatus().isNoContent
+    }
+  }
+
+  @DisplayName("DELETE /mapping/non-associations")
+  @Nested
+  inner class DeleteMappingsTest {
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.delete().uri("/mapping/non-associations")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.delete().uri("/mapping/non-associations")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.delete().uri("/mapping/non-associations")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `delete mapping success`() {
+      webTestClient.post().uri("/mapping/non-associations")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createNonAssociationMapping()))
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.get().uri("/mapping/non-associations/firstOffenderNo/$FIRST_OFFENDER_NO/secondOffenderNo/$SECOND_OFFENDER_NO/typeSequence/$TYPE_SEQUENCE")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+
+      webTestClient.delete().uri("/mapping/non-associations")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      webTestClient.get().uri("/mapping/non-associations/firstOffenderNo/$FIRST_OFFENDER_NO/secondOffenderNo/$SECOND_OFFENDER_NO/typeSequence/$TYPE_SEQUENCE")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `delete nonAssociation mappings - migrated mappings only`() {
+      webTestClient.post().uri("/mapping/non-associations")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createNonAssociationMapping()))
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping/non-associations")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createNonAssociationMapping(
+              nonAssociationId = 333,
+              nomisTypeSequence = 2,
+              firstOffenderNo = FIRST_OFFENDER_NO,
+              secondOffenderNo = SECOND_OFFENDER_NO,
+              mappingType = MIGRATED.name,
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.delete().uri("/mapping/non-associations?onlyMigrated=true")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      webTestClient.get().uri("/mapping/non-associations/firstOffenderNo/$FIRST_OFFENDER_NO/secondOffenderNo/$SECOND_OFFENDER_NO/typeSequence/$TYPE_SEQUENCE")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+
+      webTestClient.get().uri("/mapping/non-associations/nonAssociationId/222")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isNotFound
     }
   }
 }
