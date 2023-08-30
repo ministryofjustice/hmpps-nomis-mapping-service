@@ -12,6 +12,8 @@ data class ActivityMapping(
   @Id
   val activityScheduleId: Long,
 
+  val activityId: Long? = null,
+
   val nomisCourseActivityId: Long,
 
   val mappingType: ActivityMappingType,

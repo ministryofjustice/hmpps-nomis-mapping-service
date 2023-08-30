@@ -14,6 +14,9 @@ data class ActivityMappingDto(
   @Schema(description = "Activity schedule id", required = true)
   val activityScheduleId: Long,
 
+  @Schema(description = "Activity id")
+  val activityId: Long? = null,
+
   @Schema(description = "NOMIS course activity id", required = true)
   val nomisCourseActivityId: Long,
 
@@ -29,10 +32,11 @@ data class ActivityMappingDto(
   val whenCreated: LocalDateTime? = null,
 
 ) {
-  constructor(mapping: ActivityMapping, scheduleMappingss: List<ActivityScheduleMappingDto>) : this(
+  constructor(mapping: ActivityMapping, scheduleMappings: List<ActivityScheduleMappingDto>) : this(
     activityScheduleId = mapping.activityScheduleId,
+    activityId = mapping.activityId,
     nomisCourseActivityId = mapping.nomisCourseActivityId,
     mappingType = mapping.mappingType.name,
-    scheduledInstanceMappings = scheduleMappingss,
+    scheduledInstanceMappings = scheduleMappings,
   )
 }

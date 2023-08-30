@@ -34,7 +34,7 @@ class ActivityMappingService(
           log.debug("Activity mapping already exists for nomisBookingId: $nomisCourseActivityId : $activityScheduleId so not creating. All OK")
           return
         }
-        throw ValidationException("Activity mapping id = $activityScheduleId already exists")
+        throw ValidationException("Activity schedule mapping id = $activityScheduleId already exists")
       }
 
       activityMappingRepository.findOneByNomisCourseActivityId(
@@ -46,6 +46,7 @@ class ActivityMappingService(
       activityMappingRepository.save(
         ActivityMapping(
           activityScheduleId = activityScheduleId,
+          activityId = activityId,
           nomisCourseActivityId = nomisCourseActivityId,
           mappingType = ActivityMappingType.valueOf(mappingType),
         ),
@@ -55,6 +56,7 @@ class ActivityMappingService(
         mapOf(
           "nomisCourseActivityId" to nomisCourseActivityId.toString(),
           "activityScheduleId" to activityScheduleId.toString(),
+          "activityId" to activityId.toString(),
         ),
         null,
       )
