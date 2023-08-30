@@ -48,6 +48,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
   private val nomisCourseActivityId = 1234L
   private val activityScheduleId = 4444L
+  private val activityId = 3333L
   private val nomisCourseScheduleId = 2345L
   private val activityScheduledInstanceId = 5555L
 
@@ -59,12 +60,14 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
   private fun createMapping(
     nomisId: Long = nomisCourseActivityId,
-    activityId: Long = activityScheduleId,
+    activityScheduleId: Long = this.activityScheduleId,
+    activityId: Long = this.activityId,
     scheduledInstanceMappings: List<Pair<Long, Long>> = listOf(Pair(activityScheduledInstanceId, nomisCourseScheduleId)),
     mappingType: String = ActivityMappingType.ACTIVITY_CREATED.name,
   ): ActivityMappingDto = ActivityMappingDto(
     nomisCourseActivityId = nomisId,
-    activityScheduleId = activityId,
+    activityScheduleId = activityScheduleId,
+    activityId = activityId,
     scheduledInstanceMappings = scheduledInstanceMappings.map {
       ActivityScheduleMappingDto(it.first, it.second, mappingType)
     },
@@ -73,7 +76,8 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
   private fun postCreateMappingRequest(
     nomisId: Long = nomisCourseActivityId,
-    activityId: Long = activityScheduleId,
+    activityScheduleId: Long = this.activityScheduleId,
+    activityId: Long = this.activityId,
     scheduledInstanceMappings: List<Pair<Long, Long>> = listOf(),
     mappingType: String = ActivityMappingType.ACTIVITY_CREATED.name,
   ) {
@@ -84,6 +88,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
         BodyInserters.fromValue(
           createMapping(
             nomisId = nomisId,
+            activityScheduleId = activityScheduleId,
             activityId = activityId,
             scheduledInstanceMappings = scheduledInstanceMappings,
             mappingType = mappingType,
@@ -137,7 +142,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isBadRequest
           .expectBody(ErrorResponse::class.java)
           .returnResult().responseBody?.userMessage,
-      ).isEqualTo("Validation failure: Activity mapping id = 4444 already exists")
+      ).isEqualTo("Validation failure: Activity schedule mapping id = 4444 already exists")
     }
 
     @Test
@@ -150,6 +155,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
             """{
             "nomisCourseActivityId" : $nomisCourseActivityId,
             "activityScheduleId"    : $activityScheduleId,
+            "activityId"            : $activityId,
             "mappingType"           : "ACTIVITY_CREATED"
           }""",
           ),
@@ -165,6 +171,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
             """{
             "nomisCourseActivityId" : $nomisCourseActivityId,
             "activityScheduleId"    : $activityScheduleId,
+            "activityId"            : $activityId,
             "mappingType"           : "ACTIVITY_CREATED"
           }""",
           ),
@@ -199,6 +206,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
             """{
             "nomisCourseActivityId" : $nomisCourseActivityId,
             "activityScheduleId"    : $activityScheduleId,
+            "activityId"            : $activityId,
             "mappingType"           : "ACTIVITY_CREATED",
             "scheduledInstanceMappings" : [
               {
@@ -223,6 +231,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
       assertThat(activityMapping.nomisCourseActivityId).isEqualTo(nomisCourseActivityId)
       assertThat(activityMapping.activityScheduleId).isEqualTo(activityScheduleId)
+      assertThat(activityMapping.activityId).isEqualTo(activityId)
       assertThat(activityMapping.mappingType).isEqualTo(ActivityMappingType.ACTIVITY_CREATED)
 
       val scheduleMappings = scheduleRepository.findAllByActivityScheduleId(activityScheduleId).toList()
@@ -242,6 +251,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
             """{
             "nomisCourseActivityId" : $nomisCourseActivityId,
             "activityScheduleId"    : $activityScheduleId,
+            "activityId"            : $activityId,
             "mappingType"           : "ACTIVITY_CREATED"
           }""",
           ),
@@ -254,6 +264,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
       assertThat(activityMapping.nomisCourseActivityId).isEqualTo(nomisCourseActivityId)
       assertThat(activityMapping.activityScheduleId).isEqualTo(activityScheduleId)
+      assertThat(activityMapping.activityId).isEqualTo(activityId)
       assertThat(activityMapping.mappingType).isEqualTo(ActivityMappingType.ACTIVITY_CREATED)
 
       val scheduleMappings = scheduleRepository.findAllByActivityScheduleId(activityScheduleId).toList()
@@ -270,6 +281,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
             """{
             "nomisCourseActivityId" : $nomisCourseActivityId,
             "activityScheduleId"    : $activityScheduleId,
+            "activityId"            : $activityId,
             "mappingType"           : "ACTIVITY_MIGRATED"
           }""",
           ),
@@ -282,6 +294,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
       assertThat(activityMapping.nomisCourseActivityId).isEqualTo(nomisCourseActivityId)
       assertThat(activityMapping.activityScheduleId).isEqualTo(activityScheduleId)
+      assertThat(activityMapping.activityId).isEqualTo(activityId)
       assertThat(activityMapping.mappingType).isEqualTo(ActivityMappingType.ACTIVITY_MIGRATED)
     }
 
@@ -295,6 +308,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
             """{
             "nomisCourseActivityId" : 101,
             "activityScheduleId"    : $activityScheduleId,
+            "activityId"            : $activityId,
             "mappingType"           : "ACTIVITY_CREATED"
           }""",
           ),
@@ -315,6 +329,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
               """{
             "nomisCourseActivityId" : 102,
             "activityScheduleId"    : $activityScheduleId,
+            "activityId"            : $activityId,
             "mappingType"           : "ACTIVITY_CREATED"
           }""",
             ),
@@ -337,6 +352,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
     private fun createUpdateRequest(
       activityMapping: Pair<Long, Long> = activityScheduleId to nomisCourseActivityId,
+      activity: Long = activityId,
       scheduleMappings: List<Pair<Long, Long>> = listOf(activityScheduledInstanceId to nomisCourseScheduleId),
     ): String {
       val mappingsJson = scheduleMappings.joinToString { mapping ->
@@ -352,6 +368,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
       return """
           {
             "activityScheduleId"    : ${activityMapping.first},
+            "activityId"            : $activity,
             "nomisCourseActivityId" : ${activityMapping.second},
             "mappingType"           : "ACTIVITY_UPDATED",
             "scheduledInstanceMappings" : [$mappingsJson]
@@ -361,7 +378,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setUp() = runTest {
-      activityRepository.save(ActivityMapping(activityScheduleId, nomisCourseActivityId, ActivityMappingType.ACTIVITY_CREATED))
+      activityRepository.save(ActivityMapping(activityScheduleId, activityId, nomisCourseActivityId, ActivityMappingType.ACTIVITY_CREATED))
       scheduleRepository.save(ActivityScheduleMapping(activityScheduledInstanceId, nomisCourseScheduleId, ActivityScheduleMappingType.ACTIVITY_CREATED, activityScheduleId))
     }
 
@@ -410,6 +427,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
         .expectBody()
         .jsonPath("activityScheduleId").isEqualTo(activityScheduleId)
+        .jsonPath("activityId").isEqualTo(activityId)
         .jsonPath("nomisCourseActivityId").isEqualTo(nomisCourseActivityId)
         .jsonPath("mappingType").isEqualTo("ACTIVITY_CREATED")
         .jsonPath("scheduledInstanceMappings[0].scheduledInstanceId").isEqualTo(activityScheduledInstanceId)
@@ -550,7 +568,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success no schedules`() = runTest {
-      activityRepository.save(ActivityMapping(activityScheduleId, 2, ActivityMappingType.ACTIVITY_CREATED))
+      activityRepository.save(ActivityMapping(activityScheduleId, activityId, 2, ActivityMappingType.ACTIVITY_CREATED))
 
       webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
@@ -558,6 +576,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
         .expectBody()
         .jsonPath("activityScheduleId").isEqualTo(activityScheduleId)
+        .jsonPath("activityId").isEqualTo(activityId)
         .jsonPath("nomisCourseActivityId").isEqualTo(2)
         .jsonPath("mappingType").isEqualTo("ACTIVITY_CREATED")
         .jsonPath("scheduledInstanceMappings").isEmpty
@@ -565,7 +584,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success with schedules`() = runTest {
-      activityRepository.save(ActivityMapping(activityScheduleId, nomisCourseActivityId, ActivityMappingType.ACTIVITY_CREATED))
+      activityRepository.save(ActivityMapping(activityScheduleId, activityId, nomisCourseActivityId, ActivityMappingType.ACTIVITY_CREATED))
       scheduleRepository.save(ActivityScheduleMapping(11, 12, ActivityScheduleMappingType.ACTIVITY_CREATED, activityScheduleId))
       scheduleRepository.save(ActivityScheduleMapping(21, 22, ActivityScheduleMappingType.ACTIVITY_CREATED, activityScheduleId))
 
@@ -575,6 +594,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
         .expectBody()
         .jsonPath("activityScheduleId").isEqualTo(activityScheduleId)
+        .jsonPath("activityId").isEqualTo(activityId)
         .jsonPath("nomisCourseActivityId").isEqualTo(nomisCourseActivityId)
         .jsonPath("mappingType").isEqualTo("ACTIVITY_CREATED")
         .jsonPath("scheduledInstanceMappings[0].scheduledInstanceId").isEqualTo(11)
@@ -590,6 +610,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
       activityRepository.save(
         ActivityMapping(
           activityScheduleId = activityScheduleId,
+          activityId = activityId,
           nomisCourseActivityId = nomisCourseActivityId,
           mappingType = ActivityMappingType.ACTIVITY_MIGRATED,
         ),
@@ -601,6 +622,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
         .expectBody()
         .jsonPath("activityScheduleId").isEqualTo(activityScheduleId)
+        .jsonPath("activityId").isEqualTo(activityId)
         .jsonPath("nomisCourseActivityId").isEqualTo(nomisCourseActivityId)
         .jsonPath("mappingType").isEqualTo("ACTIVITY_MIGRATED")
         .jsonPath("scheduledInstanceMappings").isEmpty
@@ -613,7 +635,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setUp() = runTest {
-      activityRepository.save(ActivityMapping(activityScheduleId, nomisCourseActivityId, ActivityMappingType.ACTIVITY_CREATED))
+      activityRepository.save(ActivityMapping(activityScheduleId, activityId, nomisCourseActivityId, ActivityMappingType.ACTIVITY_CREATED))
       scheduleRepository.save(ActivityScheduleMapping(activityScheduledInstanceId, nomisCourseScheduleId, ActivityScheduleMappingType.ACTIVITY_CREATED, activityScheduleId))
     }
 
@@ -706,8 +728,8 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get mapping success`() {
-      postCreateMappingRequest(101, 201)
-      postCreateMappingRequest(102, 202)
+      postCreateMappingRequest(101, 201, 301)
+      postCreateMappingRequest(102, 202, 302)
 
       val mapping = webTestClient.get().uri("/mapping/activities")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
@@ -718,8 +740,10 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
       assertThat(mapping[0].nomisCourseActivityId).isEqualTo(101)
       assertThat(mapping[0].activityScheduleId).isEqualTo(201)
+      assertThat(mapping[0].activityId).isEqualTo(301)
       assertThat(mapping[1].nomisCourseActivityId).isEqualTo(102)
       assertThat(mapping[1].activityScheduleId).isEqualTo(202)
+      assertThat(mapping[1].activityId).isEqualTo(302)
       assertThat(mapping).hasSize(2)
     }
   }
@@ -770,6 +794,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
       // and present on the database
       val activityMapping = activityRepository.findOneByNomisCourseActivityId(nomisCourseActivityId)
       assertThat(activityMapping?.activityScheduleId).isEqualTo(activityScheduleId)
+      assertThat(activityMapping?.activityId).isEqualTo(activityId)
       assertThat(activityMapping?.nomisCourseActivityId).isEqualTo(nomisCourseActivityId)
       val scheduleMappings = scheduleRepository.findAllByActivityScheduleId(activityScheduleId)
       assertThat(scheduleMappings).extracting(ActivityScheduleMapping::scheduledInstanceId, ActivityScheduleMapping::nomisCourseScheduleId)
