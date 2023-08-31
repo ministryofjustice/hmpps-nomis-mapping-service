@@ -99,7 +99,7 @@ class AdjudicationMappingService(
     with(createMappingRequest) {
       log.debug("creating adjudication hearing {}", createMappingRequest)
 
-      adjudicationMappingRepository.findById(dpsHearingId)
+      adjudicationHearingMappingRepository.findById(dpsHearingId)
         ?.let {
           throw DuplicateMappingException(
             existing = dpsHearingId,
@@ -131,12 +131,12 @@ class AdjudicationMappingService(
     with(createMappingRequest) {
       log.debug("creating adjudication punishment {}", createMappingRequest)
 
-      adjudicationMappingRepository.findById(dpsPunishmentId)
+      adjudicationPunishmentMappingRepository.findById(dpsPunishmentId)
         ?.let {
           throw DuplicateMappingException(
             existing = dpsPunishmentId,
             duplicate = nomisBookingId to nomisSanctionSequence,
-            messageIn = "Adjudication mapping with id $dpsPunishmentId already exists",
+            messageIn = "Adjudication punishment mapping with id $dpsPunishmentId already exists",
           )
         }
         ?: adjudicationPunishmentMappingRepository.save(
