@@ -14,10 +14,10 @@ data class NonAssociationMappingDto(
   @Schema(description = "Non-Association id", required = true)
   val nonAssociationId: Long,
 
-  @Schema(description = "First NOMIS Offender No", required = true, example = "AB1234CD")
+  @Schema(description = "First NOMIS Offender No", required = true, example = "A1234BC")
   val firstOffenderNo: String,
 
-  @Schema(description = "Second NOMIS Offender No", required = true, example = "EF5678GH")
+  @Schema(description = "Second NOMIS Offender No", required = true, example = "D5678EF")
   val secondOffenderNo: String,
 
   @Schema(description = "NOMIS type sequence", required = true)
@@ -28,7 +28,7 @@ data class NonAssociationMappingDto(
   @field:Size(max = 20)
   val label: String? = null,
 
-  @Schema(description = "Mapping type", allowableValues = ["MIGRATED", "NOMIS_CREATED", "NON_ASSOCIATION_CREATED", "NON_ASSOCIATION_DELETED"])
+  @Schema(description = "Mapping type", allowableValues = ["MIGRATED", "NOMIS_CREATED", "NON_ASSOCIATION_CREATED"])
   @field:Size(max = 30)
   val mappingType: String,
 

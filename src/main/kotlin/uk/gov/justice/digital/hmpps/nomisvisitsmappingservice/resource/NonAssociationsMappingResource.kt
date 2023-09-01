@@ -87,7 +87,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
     }
 
   @PreAuthorize("hasRole('ROLE_NOMIS_NON_ASSOCIATIONS')")
-  @GetMapping("/mapping/non-associations/firstOffenderNo/{firstOffenderNo}/secondOffenderNo/{secondOffenderNo}/typeSequence/{typeSequence}")
+  @GetMapping("/mapping/non-associations/first-offender-no/{firstOffenderNo}/second-offender-no/{secondOffenderNo}/type-sequence/{typeSequence}")
   @Operation(
     summary = "get mapping",
     description = "Retrieves a mapping by firstOffenderNo, secondOffenderNo and Nomis type sequence. Requires role NOMIS_NON_ASSOCIATIONS",
@@ -124,7 +124,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
   ): NonAssociationMappingDto = mappingService.getNonAssociationMappingByNomisId(firstOffenderNo, secondOffenderNo, typeSequence)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_NON_ASSOCIATIONS')")
-  @GetMapping("/mapping/non-associations/nonAssociationId/{nonAssociationId}")
+  @GetMapping("/mapping/non-associations/non-association-id/{nonAssociationId}")
   @Operation(
     summary = "get mapping",
     description = "Retrieves a mapping by Non-Association Id. Requires role NOMIS_NON_ASSOCIATIONS",
@@ -218,7 +218,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
     mappingService.getNonAssociationMappingForLatestMigrated()
 
   @PreAuthorize("hasRole('ROLE_NOMIS_NON_ASSOCIATIONS')")
-  @DeleteMapping("/mapping/non-associations/nonAssociationId/{nonAssociationId}")
+  @DeleteMapping("/mapping/non-associations/non-association-id/{nonAssociationId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a specific non-association mapping by nonAssociationId",
