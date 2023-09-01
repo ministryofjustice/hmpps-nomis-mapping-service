@@ -170,6 +170,16 @@ class AdjudicationMappingService(
       ?.let { AdjudicationMappingDto(it) }
       ?: throw NotFoundException("adjudicationNumber=$adjudicationNumber, chargeSequence=$chargeSequence")
 
+  suspend fun getHearingMappingByDpsId(hearingId: String): AdjudicationHearingMappingDto =
+    adjudicationHearingMappingRepository.findById(hearingId)
+      ?.let { AdjudicationHearingMappingDto(it) }
+      ?: throw NotFoundException("DPS hearing Id=$hearingId")
+
+  suspend fun getHearingMappingByNomisId(hearingId: Long): AdjudicationHearingMappingDto =
+    adjudicationHearingMappingRepository.findByNomisHearingId(hearingId)
+      ?.let { AdjudicationHearingMappingDto(it) }
+      ?: throw NotFoundException("NOMIS hearing Id=$hearingId")
+
   @Transactional
   suspend fun deleteMapping(chargeNumber: String) = adjudicationMappingRepository.deleteById(chargeNumber)
 
@@ -197,6 +207,9 @@ class AdjudicationMappingService(
       adjudicationPunishmentMappingRepository.deleteAllByMappingType(type)
     }
   }
+
+  @Transactional
+  suspend fun deleteHearingMapping(dpsId: String) = adjudicationHearingMappingRepository.deleteById(dpsId)
 
   suspend fun getAdjudicationMappingsByMigrationId(
     pageRequest: Pageable,
