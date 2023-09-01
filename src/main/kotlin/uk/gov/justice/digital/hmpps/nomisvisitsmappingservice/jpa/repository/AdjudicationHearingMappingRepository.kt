@@ -9,4 +9,5 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationMa
 interface AdjudicationHearingMappingRepository : CoroutineCrudRepository<AdjudicationHearingMapping, String> {
   suspend fun deleteByLabel(label: String)
   suspend fun deleteAllByMappingType(adjudicationMappingType: AdjudicationMappingType)
+  suspend fun findByNomisHearingId(hearingId: Long): AdjudicationHearingMapping?
 }
