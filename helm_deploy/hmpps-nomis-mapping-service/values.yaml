@@ -1,6 +1,7 @@
 ---
 generic-service:
   nameOverride: hmpps-nomis-mapping-service
+  productId: DPS060
 
   replicaCount: 4
 
