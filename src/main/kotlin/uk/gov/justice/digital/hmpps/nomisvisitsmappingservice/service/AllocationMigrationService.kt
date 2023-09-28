@@ -49,7 +49,7 @@ class AllocationMigrationService(
         ),
       )
       telemetryClient.trackEvent(
-        "activity-migration-mapping-created",
+        "activity-allocation-migration-mapping-created",
         mapOf(
           "nomisAllocationId" to nomisAllocationId.toString(),
           "dpsAllocationId" to activityAllocationId.toString(),

@@ -55,8 +55,8 @@ class ActivityMigrationService(
         "activity-migration-mapping-created",
         mapOf(
           "nomisCourseActivityId" to nomisCourseActivityId.toString(),
-          "activityScheduleId" to activityId.toString(),
-          "activityScheduleId1" to activityId2.toString(),
+          "dpsActivityId" to activityId.toString(),
+          "dpsActivityId2" to activityId2.toString(),
           "label" to label,
         ),
         null,
