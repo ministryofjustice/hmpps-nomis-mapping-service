@@ -52,8 +52,8 @@ class AllocationMigrationService(
         "activity-migration-mapping-created",
         mapOf(
           "nomisAllocationId" to nomisAllocationId.toString(),
-          "activityAllocationId" to activityAllocationId.toString(),
-          "activityId" to activityId.toString(),
+          "dpsAllocationId" to activityAllocationId.toString(),
+          "dpsActivityId" to activityId.toString(),
           "label" to label,
         ),
         null,

@@ -55,8 +55,8 @@ class ActivityMappingService(
         "activity-mapping-created",
         mapOf(
           "nomisCourseActivityId" to nomisCourseActivityId.toString(),
-          "activityScheduleId" to activityScheduleId.toString(),
-          "activityId" to activityId.toString(),
+          "dpsActivityScheduleId" to activityScheduleId.toString(),
+          "dpdsActivityId" to activityId.toString(),
         ),
         null,
       )
@@ -72,8 +72,8 @@ class ActivityMappingService(
           telemetryClient.trackEvent(
             "activity-schedule-mappings-created",
             mapOf(
-              "activityScheduleId" to activityScheduleId.toString(),
-              "scheduleInstanceId" to entity.scheduledInstanceId.toString(),
+              "dpsActivityScheduleId" to activityScheduleId.toString(),
+              "dpsScheduleInstanceId" to entity.scheduledInstanceId.toString(),
               "nomisCourseScheduleId" to entity.nomisCourseScheduleId.toString(),
             ),
             null,
