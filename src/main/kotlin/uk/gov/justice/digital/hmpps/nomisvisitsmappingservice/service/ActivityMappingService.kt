@@ -56,7 +56,7 @@ class ActivityMappingService(
         mapOf(
           "nomisCourseActivityId" to nomisCourseActivityId.toString(),
           "dpsActivityScheduleId" to activityScheduleId.toString(),
-          "dpdsActivityId" to activityId.toString(),
+          "dpsActivityId" to activityId.toString(),
         ),
         null,
       )
