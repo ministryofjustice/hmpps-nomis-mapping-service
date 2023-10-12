@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMa
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationAllMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationHearingMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationPunishmentBatchMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationPunishmentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationHearingMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationMapping
@@ -245,4 +246,8 @@ class AdjudicationMappingService(
 
   suspend fun getAllMappings(): List<AdjudicationMappingDto> =
     adjudicationMappingRepository.findAll().toList().map { AdjudicationMappingDto(it) }
+
+  @Transactional
+  suspend fun createPunishmentMappings(createMappingRequest: AdjudicationPunishmentBatchMappingDto) =
+    createMappingRequest.punishments.forEach { createMapping(it) }
 }
