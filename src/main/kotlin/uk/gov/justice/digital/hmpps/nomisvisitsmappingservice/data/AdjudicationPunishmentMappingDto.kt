@@ -43,3 +43,10 @@ data class AdjudicationPunishmentMappingDto(
     whenCreated = mapping.whenCreated,
   )
 }
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Batch of Adjudication punishment (aka award) mappings")
+data class AdjudicationPunishmentBatchMappingDto(
+  @Schema(description = "Adjudication punishment mapping", required = true)
+  val punishments: List<AdjudicationPunishmentMappingDto> = emptyList(),
+)
