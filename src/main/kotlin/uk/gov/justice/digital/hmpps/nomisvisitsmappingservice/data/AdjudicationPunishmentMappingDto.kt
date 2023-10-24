@@ -45,8 +45,27 @@ data class AdjudicationPunishmentMappingDto(
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "ID of mapping identified by the NOMIS id for an adjudication punishment (aka award) mapping")
+data class AdjudicationPunishmentNomisIdDto(
+
+  @Schema(description = "NOMIS booking id", required = true, example = "123456")
+  val nomisBookingId: Long,
+
+  @Schema(description = "NOMIS sanction sequence", required = true, example = "4")
+  val nomisSanctionSequence: Int,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Batch of Adjudication punishment (aka award) mappings")
 data class AdjudicationPunishmentBatchMappingDto(
   @Schema(description = "Adjudication punishment mapping", required = true)
   val punishments: List<AdjudicationPunishmentMappingDto> = emptyList(),
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Batch of Adjudication punishment (aka award) mappings to create and delete")
+data class AdjudicationPunishmentBatchUpdateMappingDto(
+  @Schema(description = "Adjudication punishment mapping", required = true)
+  val punishmentsToCreate: List<AdjudicationPunishmentMappingDto> = emptyList(),
+  val punishmentsToDelete: List<AdjudicationPunishmentNomisIdDto> = emptyList(),
 )
