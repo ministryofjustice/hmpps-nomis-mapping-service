@@ -14,8 +14,9 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMa
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationAllMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationHearingMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationMappingDto
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationPunishmentBatchMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationPunishmentBatchUpdateMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationPunishmentMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationPunishmentNomisIdDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationHearingMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationMappingType
@@ -248,6 +249,20 @@ class AdjudicationMappingService(
     adjudicationMappingRepository.findAll().toList().map { AdjudicationMappingDto(it) }
 
   @Transactional
-  suspend fun createPunishmentMappings(createMappingRequest: AdjudicationPunishmentBatchMappingDto) =
-    createMappingRequest.punishments.forEach { createMapping(it) }
+  suspend fun createPunishmentMappings(punishments: List<AdjudicationPunishmentMappingDto>) =
+    punishments.forEach { createMapping(it) }
+
+  @Transactional
+  suspend fun createAndDeletePunishmentMappings(request: AdjudicationPunishmentBatchUpdateMappingDto) {
+    createPunishmentMappings(request.punishmentsToCreate)
+    deletePunishmentMappings(request.punishmentsToDelete)
+  }
+
+  private suspend fun deletePunishmentMappings(punishments: List<AdjudicationPunishmentNomisIdDto>) =
+    punishments.forEach {
+      adjudicationPunishmentMappingRepository.deleteByNomisBookingIdAndNomisSanctionSequence(
+        it.nomisBookingId,
+        it.nomisSanctionSequence,
+      )
+    }
 }

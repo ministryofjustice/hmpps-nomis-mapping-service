@@ -9,4 +9,5 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationPu
 interface AdjudicationPunishmentMappingRepository : CoroutineCrudRepository<AdjudicationPunishmentMapping, String> {
   suspend fun deleteByLabel(label: String)
   suspend fun deleteAllByMappingType(adjudicationMappingType: AdjudicationMappingType)
+  suspend fun deleteByNomisBookingIdAndNomisSanctionSequence(nomisBookingId: Long, nomisSanctionSequence: Int)
 }
