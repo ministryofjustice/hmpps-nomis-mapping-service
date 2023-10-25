@@ -532,4 +532,69 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
       }
     }
   }
+
+  @DisplayName("GET /mapping/punishments/:dpsPunishmentId")
+  @Nested
+  inner class GetMappingTest {
+    @BeforeEach
+    fun setUp() {
+      postCreateSingleMappingRequest(
+        dpsPunishmentId = DPS_PUNISHMENT_ID,
+        nomisBookingId = NOMIS_BOOKING_ID,
+        nomisSanctionSequence = NOMIS_SANCTION_SEQUENCE,
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access forbidden when no authority`() {
+        webTestClient.get().uri("/mapping/punishments/$DPS_PUNISHMENT_ID")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get().uri("/mapping/punishments/$DPS_PUNISHMENT_ID")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `create forbidden with wrong role`() {
+        webTestClient.get().uri("/mapping/punishments/$DPS_PUNISHMENT_ID")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class NotFound {
+      @Test
+      fun `not found when mapping does not exist`() = runTest {
+        webTestClient.get().uri("/mapping/punishments/9940235")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `can read punishment mapping`() = runTest {
+        webTestClient.get().uri("/mapping/punishments/$DPS_PUNISHMENT_ID")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisBookingId").isEqualTo("$NOMIS_BOOKING_ID")
+          .jsonPath("nomisSanctionSequence").isEqualTo("$NOMIS_SANCTION_SEQUENCE")
+          .jsonPath("dpsPunishmentId").isEqualTo(DPS_PUNISHMENT_ID)
+      }
+    }
+  }
 }
