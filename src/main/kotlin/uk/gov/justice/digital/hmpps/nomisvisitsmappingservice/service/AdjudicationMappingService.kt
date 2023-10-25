@@ -265,4 +265,9 @@ class AdjudicationMappingService(
         it.nomisSanctionSequence,
       )
     }
+
+  suspend fun getPunishmentMappingByDpsId(dpsPunishmentId: String): AdjudicationPunishmentMappingDto =
+    adjudicationPunishmentMappingRepository.findById(dpsPunishmentId)
+      ?.let { AdjudicationPunishmentMappingDto(it) }
+      ?: throw NotFoundException("DPS punishment Id=$dpsPunishmentId")
 }
