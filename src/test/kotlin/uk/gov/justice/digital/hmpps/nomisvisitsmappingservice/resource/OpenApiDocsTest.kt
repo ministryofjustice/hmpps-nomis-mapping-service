@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.Integr
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-@Suppress("SpringJavaInjectionPointsAutowiringInspection")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 class OpenApiDocsTest : IntegrationTestBase() {
@@ -39,13 +38,13 @@ class OpenApiDocsTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `the swagger json is valid`() {
+  fun `the open api json contains documentation`() {
     webTestClient.get()
       .uri("/v3/api-docs")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
       .expectStatus().isOk
-      .expectBody().jsonPath("messages").doesNotExist()
+      .expectBody().jsonPath("paths").isNotEmpty
   }
 
   @Test
