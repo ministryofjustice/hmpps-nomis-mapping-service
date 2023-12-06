@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.10.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.10.1"
   kotlin("plugin.spring") version "1.9.21"
   kotlin("plugin.jpa") version "1.9.21"
   idea
@@ -32,7 +32,7 @@ dependencies {
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
   runtimeOnly("org.postgresql:postgresql:42.7.0")
 
-  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.2.0")
+  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0")
 
   developmentOnly("org.springframework.boot:spring-boot-devtools")
 
@@ -48,6 +48,7 @@ dependencies {
   testImplementation("org.testcontainers:postgresql:1.19.3")
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+  testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
 }
 
 kotlin {
