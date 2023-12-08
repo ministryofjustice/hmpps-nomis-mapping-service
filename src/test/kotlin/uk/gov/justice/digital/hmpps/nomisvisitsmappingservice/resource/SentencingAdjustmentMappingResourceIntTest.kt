@@ -1,17 +1,19 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.byLessThan
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.AdditionalAnswers
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
@@ -23,18 +25,28 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentencingMapp
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentencingMappingType.NOMIS_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentencingMappingType.SENTENCING_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.SentenceAdjustmentMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.SentencingMappingService
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
-  @SpyBean
-  lateinit var repository: SentenceAdjustmentMappingRepository
+  @Autowired
+  private lateinit var realRepository: SentenceAdjustmentMappingRepository
+  private lateinit var repository: SentenceAdjustmentMappingRepository
+
+  @Autowired
+  private lateinit var sentencingMappingService: SentencingMappingService
 
   private val nomisAdjustId = 1234L
   private val nomisAdjustCategory = "SENTENCE"
   private val adjustId = "4444"
+
+  @BeforeEach
+  fun setup() {
+    repository = mock(defaultAnswer = AdditionalAnswers.delegatesTo(realRepository))
+    sentencingMappingService.sentenceAdjustmentRepository = repository
+  }
 
   private fun createSentenceAdjustmentMapping(
     nomisAdjustmentId: Long = nomisAdjustId,

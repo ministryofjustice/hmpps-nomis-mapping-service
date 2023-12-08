@@ -16,9 +16,8 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.Act
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.ActivityScheduleMappingRepository
 
 @Service
-@Transactional(readOnly = true)
 class ActivityMappingService(
-  private val activityMappingRepository: ActivityMappingRepository,
+  var activityMappingRepository: ActivityMappingRepository,
   private val activityScheduleMappingRepository: ActivityScheduleMappingRepository,
   private val telemetryClient: TelemetryClient,
 ) {
@@ -134,6 +133,7 @@ class ActivityMappingService(
     }
   }
 
+  @Transactional(readOnly = true)
   suspend fun getMappingById(id: Long): ActivityMappingDto =
     activityScheduleMappingRepository.findAllByActivityScheduleId(id)
       .map { ActivityScheduleMappingDto(it) }
@@ -143,6 +143,7 @@ class ActivityMappingService(
           ?: throw NotFoundException("Activity schedule id=$id")
       }
 
+  @Transactional(readOnly = true)
   suspend fun getScheduleMappingById(activityScheduleId: Long, scheduledInstanceId: Long): ActivityScheduleMappingDto =
     activityScheduleMappingRepository.findOneByActivityScheduleIdAndScheduledInstanceId(activityScheduleId, scheduledInstanceId)
       ?.let { ActivityScheduleMappingDto(it) }
@@ -153,6 +154,7 @@ class ActivityMappingService(
     activityMappingRepository.deleteById(id)
       .also { activityScheduleMappingRepository.deleteAllByActivityScheduleId(id) }
 
+  @Transactional(readOnly = true)
   suspend fun getAllMappings(): List<ActivityMappingDto> =
     activityMappingRepository.findAll().toList().map { activityMapping ->
       activityScheduleMappingRepository.findAllByActivityScheduleId(activityMapping.activityScheduleId)

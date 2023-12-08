@@ -7,12 +7,15 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.AdditionalAnswers
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters.fromValue
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.ActivityMigrationMappingDto
@@ -20,19 +23,31 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.Ac
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivityMigrationMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.ActivityMigrationMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.ActivityMigrationService
 
 class ActivityMigrationResourceIntTest : IntegrationTestBase() {
 
-  @SpyBean(name = "activityMigrationMappingRepository")
+  @Autowired
+  @Qualifier("activityMigrationMappingRepository")
+  private lateinit var realActivityMigrationMappingRepository: ActivityMigrationMappingRepository
   private lateinit var activityMigrationMappingRepository: ActivityMigrationMappingRepository
 
   @Autowired
   private lateinit var activityMigrationRepository: ActivityMigrationRepository
 
+  @Autowired
+  private lateinit var activityMigrationService: ActivityMigrationService
+
   private val NOMIS_ID = 1234L
   private val ACTIVITY_ID = 4444L
   private val ACTIVITY_ID_2 = 5555L
   private val MIGRATION_ID = "migration-1"
+
+  @BeforeEach
+  fun setup() {
+    activityMigrationMappingRepository = mock(defaultAnswer = AdditionalAnswers.delegatesTo(realActivityMigrationMappingRepository))
+    activityMigrationService.activityMigrationMappingRepository = activityMigrationMappingRepository
+  }
 
   @AfterEach
   fun deleteData() = runBlocking {

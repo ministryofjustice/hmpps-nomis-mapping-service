@@ -18,16 +18,15 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.SentencingMapp
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.SentenceAdjustmentMappingRepository
 
 @Service
-@Transactional(readOnly = true)
 class SentencingMappingService(
-  private val sentenceAdjustmentRepository: SentenceAdjustmentMappingRepository,
+  var sentenceAdjustmentRepository: SentenceAdjustmentMappingRepository,
   private val telemetryClient: TelemetryClient,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun alreadyExistsMessage(
+  private fun alreadyExistsMessage(
     duplicateMapping: SentencingAdjustmentMappingDto,
     existingMapping: SentencingAdjustmentMappingDto,
   ) =
@@ -95,6 +94,7 @@ class SentencingMappingService(
       )
     }
 
+  @Transactional(readOnly = true)
   suspend fun getSentenceAdjustmentMappingByNomisId(
     nomisAdjustmentId: Long,
     nomisAdjustmentCategory: String,
@@ -106,6 +106,7 @@ class SentencingMappingService(
       ?.let { SentencingAdjustmentMappingDto(it) }
       ?: throw NotFoundException("Sentence adjustment with nomisAdjustmentId = $nomisAdjustmentId  nomisAdjustmentCategory $nomisAdjustmentCategory not found")
 
+  @Transactional(readOnly = true)
   suspend fun getSentencingAdjustmentMappingByAdjustmentId(adjustmentId: String): SentencingAdjustmentMappingDto =
     sentenceAdjustmentRepository.findById(adjustmentId)
       ?.let { SentencingAdjustmentMappingDto(it) }
@@ -119,6 +120,7 @@ class SentencingMappingService(
       sentenceAdjustmentRepository.deleteAll()
     }
 
+  @Transactional(readOnly = true)
   suspend fun getSentenceAdjustmentMappingsByMigrationId(
     pageRequest: Pageable,
     migrationId: String,
@@ -143,6 +145,7 @@ class SentencingMappingService(
       )
     }
 
+  @Transactional(readOnly = true)
   suspend fun getSentencingAdjustmentMappingForLatestMigrated(): SentencingAdjustmentMappingDto =
     sentenceAdjustmentRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(MIGRATED)
       ?.let { SentencingAdjustmentMappingDto(it) }

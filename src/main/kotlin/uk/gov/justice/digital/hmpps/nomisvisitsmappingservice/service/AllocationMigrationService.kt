@@ -16,9 +16,8 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AllocationMigr
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AllocationMigrationMappingRepository
 
 @Service
-@Transactional(readOnly = true)
 class AllocationMigrationService(
-  private val allocationMigrationMappingRepository: AllocationMigrationMappingRepository,
+  var allocationMigrationMappingRepository: AllocationMigrationMappingRepository,
   private val telemetryClient: TelemetryClient,
 ) {
   private companion object {
@@ -61,16 +60,19 @@ class AllocationMigrationService(
     }
   }
 
+  @Transactional(readOnly = true)
   suspend fun getMapping(nomisAllocationId: Long): AllocationMigrationMappingDto =
     allocationMigrationMappingRepository.findById(nomisAllocationId)
       ?.let { AllocationMigrationMappingDto(it) }
       ?: throw NotFoundException("nomisAllocationId=$nomisAllocationId")
 
+  @Transactional(readOnly = true)
   suspend fun getLatestMigrated(): AllocationMigrationMappingDto =
     allocationMigrationMappingRepository.findFirstByOrderByWhenCreatedDesc()
       ?.let { AllocationMigrationMappingDto(it) }
       ?: throw NotFoundException("No migrated mapping found")
 
+  @Transactional(readOnly = true)
   suspend fun getMappings(
     pageRequest: Pageable,
     migrationId: String,

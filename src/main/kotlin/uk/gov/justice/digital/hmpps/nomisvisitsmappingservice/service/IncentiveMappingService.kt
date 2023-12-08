@@ -18,16 +18,15 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncentiveMappi
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.IncentiveMappingRepository
 
 @Service
-@Transactional(readOnly = true)
 class IncentiveMappingService(
-  private val incentiveMappingRepository: IncentiveMappingRepository,
+  var incentiveMappingRepository: IncentiveMappingRepository,
   private val telemetryClient: TelemetryClient,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun alreadyExistsMessage(
+  private fun alreadyExistsMessage(
     duplicateMapping: IncentiveMappingDto,
     existingMapping: IncentiveMappingDto,
   ) =
@@ -96,6 +95,7 @@ class IncentiveMappingService(
       log.debug("Mapping created with Incentive id = $incentiveId, bookingId=$nomisBookingId and incentiveSequence=$nomisIncentiveSequence")
     }
 
+  @Transactional(readOnly = true)
   suspend fun getIncentiveMappingByNomisId(nomisBookingId: Long, nomisIncentiveSequence: Long): IncentiveMappingDto =
     incentiveMappingRepository.findOneByNomisBookingIdAndNomisIncentiveSequence(
       bookingId = nomisBookingId,
@@ -104,6 +104,7 @@ class IncentiveMappingService(
       ?.let { IncentiveMappingDto(it) }
       ?: throw NotFoundException("Incentive with bookingId=$nomisBookingId and incentiveSequence=$nomisIncentiveSequence not found")
 
+  @Transactional(readOnly = true)
   suspend fun getIncentiveMappingByIncentiveId(incentiveId: Long): IncentiveMappingDto =
     incentiveMappingRepository.findById(incentiveId)
       ?.let { IncentiveMappingDto(it) }
@@ -117,6 +118,7 @@ class IncentiveMappingService(
       incentiveMappingRepository.deleteAll()
     }
 
+  @Transactional(readOnly = true)
   suspend fun getIncentiveMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<IncentiveMappingDto> =
     coroutineScope {
       val incentiveMapping = async {
@@ -138,6 +140,7 @@ class IncentiveMappingService(
       )
     }
 
+  @Transactional(readOnly = true)
   suspend fun getIncentiveMappingForLatestMigrated(): IncentiveMappingDto =
     incentiveMappingRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(MIGRATED)
       ?.let { IncentiveMappingDto(it) }

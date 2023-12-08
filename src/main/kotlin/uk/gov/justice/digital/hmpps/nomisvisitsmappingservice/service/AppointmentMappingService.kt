@@ -17,16 +17,15 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AppointmentMap
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AppointmentMappingRepository
 
 @Service
-@Transactional(readOnly = true)
 class AppointmentMappingService(
-  private val appointmentMappingRepository: AppointmentMappingRepository,
+  var appointmentMappingRepository: AppointmentMappingRepository,
   private val telemetryClient: TelemetryClient,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun alreadyExistsMessage(
+  private fun alreadyExistsMessage(
     duplicateMapping: AppointmentMappingDto,
     existingMapping: AppointmentMappingDto,
   ) =
@@ -87,11 +86,13 @@ class AppointmentMappingService(
       log.debug("Mapping created with appointmentInstanceId = $appointmentInstanceId, nomisEventId = $nomisEventId")
     }
 
+  @Transactional(readOnly = true)
   suspend fun getMappingById(id: Long): AppointmentMappingDto =
     appointmentMappingRepository.findById(id)
       ?.let { AppointmentMappingDto(it) }
       ?: throw NotFoundException("appointmentInstanceId=$id")
 
+  @Transactional(readOnly = true)
   suspend fun getMappingByEventId(eventId: Long): AppointmentMappingDto =
     appointmentMappingRepository.findOneByNomisEventId(eventId)
       ?.let { AppointmentMappingDto(it) }
@@ -100,6 +101,7 @@ class AppointmentMappingService(
   @Transactional
   suspend fun deleteMapping(id: Long) = appointmentMappingRepository.deleteById(id)
 
+  @Transactional(readOnly = true)
   suspend fun getAppointmentMappingsByMigrationId(
     pageRequest: Pageable,
     migrationId: String,
@@ -124,11 +126,13 @@ class AppointmentMappingService(
       )
     }
 
+  @Transactional(readOnly = true)
   suspend fun getAppointmentMappingForLatestMigrated(): AppointmentMappingDto =
     appointmentMappingRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(AppointmentMappingType.MIGRATED)
       ?.let { AppointmentMappingDto(it) }
       ?: throw NotFoundException("No migrated mapping found")
 
+  @Transactional(readOnly = true)
   suspend fun getAllMappings(): List<AppointmentMappingDto> =
     appointmentMappingRepository.findAll().toList().map { AppointmentMappingDto(it) }
 

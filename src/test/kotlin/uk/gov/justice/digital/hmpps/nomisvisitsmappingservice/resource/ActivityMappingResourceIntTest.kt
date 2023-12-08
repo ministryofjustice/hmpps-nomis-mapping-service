@@ -12,9 +12,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.AdditionalAnswers
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -32,13 +34,18 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivityMappin
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivityScheduleMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivityScheduleMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.ActivityMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.ActivityMappingService
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
-  @SpyBean(name = "activityMappingRepository")
-  lateinit var activityMappingRepository: ActivityMappingRepository
+  @Autowired
+  @Qualifier("activityMappingRepository")
+  private lateinit var realActivityMappingRepository: ActivityMappingRepository
+  private lateinit var activityMappingRepository: ActivityMappingRepository
+
+  @Autowired
+  private lateinit var activityMappingService: ActivityMappingService
 
   @Autowired
   lateinit var activityRepository: ActivityRepository
@@ -51,6 +58,12 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
   private val activityId = 3333L
   private val nomisCourseScheduleId = 2345L
   private val activityScheduledInstanceId = 5555L
+
+  @BeforeEach
+  fun setup() {
+    activityMappingRepository = mock(defaultAnswer = AdditionalAnswers.delegatesTo(realActivityMappingRepository))
+    activityMappingService.activityMappingRepository = activityMappingRepository
+  }
 
   @AfterEach
   internal fun deleteData() = runBlocking {

@@ -10,8 +10,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.AdditionalAnswers
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.expectBody
@@ -23,17 +25,27 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.Integr
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AppointmentMappingType.APPOINTMENT_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AppointmentMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AppointmentMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.AppointmentMappingService
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 private const val NOMIS_EVENT_ID = 1234L
 private const val APPOINTMENT_INSTANCE_ID = 4444L
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class AppointmentMappingResourceIntTest : IntegrationTestBase() {
 
-  @SpyBean
-  lateinit var repository: AppointmentMappingRepository
+  @Autowired
+  private lateinit var realRepository: AppointmentMappingRepository
+  private lateinit var repository: AppointmentMappingRepository
+
+  @Autowired
+  private lateinit var appointmentMappingService: AppointmentMappingService
+
+  @BeforeEach
+  fun setup() {
+    repository = mock(defaultAnswer = AdditionalAnswers.delegatesTo(realRepository))
+    appointmentMappingService.appointmentMappingRepository = repository
+  }
 
   private fun createMapping(
     nomisId: Long = NOMIS_EVENT_ID,

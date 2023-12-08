@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -12,8 +11,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.AdditionalAnswers
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.expectBody
@@ -35,6 +36,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationPu
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AdjudicationHearingMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AdjudicationMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AdjudicationPunishmentMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.AdjudicationMappingService
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
@@ -45,17 +47,26 @@ private const val BOOKING_ID = 9876L
 private val HEARINGS = listOf("123" to 321L, "456" to 654L, "789" to 654L)
 private val PUNISHMENTS = listOf("123" to 2, "456" to 3)
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
-  @SpyBean
-  lateinit var repository: AdjudicationMappingRepository
+  @Autowired
+  private lateinit var realRepository: AdjudicationMappingRepository
+  private lateinit var repository: AdjudicationMappingRepository
 
-  @SpyBean
-  lateinit var hearingRepository: AdjudicationHearingMappingRepository
+  @Autowired
+  private lateinit var adjudicationMappingService: AdjudicationMappingService
 
-  @SpyBean
-  lateinit var punishmentRepository: AdjudicationPunishmentMappingRepository
+  @Autowired
+  private lateinit var hearingRepository: AdjudicationHearingMappingRepository
+
+  @Autowired
+  private lateinit var punishmentRepository: AdjudicationPunishmentMappingRepository
+
+  @BeforeEach
+  fun setup() {
+    repository = mock(defaultAnswer = AdditionalAnswers.delegatesTo(realRepository))
+    adjudicationMappingService.adjudicationMappingRepository = repository
+  }
 
   private fun createMapping(
     adjudicationNumber: Long = ADJUDICATION_NUMBER,

@@ -1,18 +1,20 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.byLessThan
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.AdditionalAnswers
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
@@ -25,14 +27,19 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncentiveMappi
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncentiveMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncentiveMappingType.NOMIS_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.IncentiveMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.IncentiveMappingService
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
-  @SpyBean(name = "incentiveMappingRepository")
-  lateinit var incentiveMappingRepository: IncentiveMappingRepository
+  @Autowired
+  @Qualifier("incentiveMappingRepository")
+  private lateinit var realIncentiveMappingRepository: IncentiveMappingRepository
+  private lateinit var incentiveMappingRepository: IncentiveMappingRepository
+
+  @Autowired
+  private lateinit var incentiveMappingService: IncentiveMappingService
 
   @Autowired
   lateinit var incentiveRepository: IncentiveRepository
@@ -40,6 +47,12 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
   private val bookingId = 1234L
   private val sequence = 1L
   private val incentiveId = 4444L
+
+  @BeforeEach
+  fun setup() {
+    incentiveMappingRepository = mock(defaultAnswer = AdditionalAnswers.delegatesTo(realIncentiveMappingRepository))
+    incentiveMappingService.incentiveMappingRepository = incentiveMappingRepository
+  }
 
   private fun createIncentiveMapping(
     nomisBookingId: Long = bookingId,
