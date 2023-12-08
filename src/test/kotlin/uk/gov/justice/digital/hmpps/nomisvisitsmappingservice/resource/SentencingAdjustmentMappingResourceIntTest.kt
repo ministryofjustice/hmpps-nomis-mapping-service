@@ -802,7 +802,7 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isOk
 
-      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-category/$nomisAdjustCategory/adjustment-id/222")
+      webTestClient.get().uri("/mapping/sentencing/adjustments/nomis-adjustment-category/$nomisAdjustCategory/nomis-adjustment-id/222")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
         .exchange()
         .expectStatus().isNotFound
