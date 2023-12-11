@@ -26,10 +26,11 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.Adj
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AdjudicationPunishmentMappingRepository
 
 @Service
+@Transactional(readOnly = true)
 class AdjudicationMappingService(
-  var adjudicationMappingRepository: AdjudicationMappingRepository,
-  var adjudicationHearingMappingRepository: AdjudicationHearingMappingRepository,
-  var adjudicationPunishmentMappingRepository: AdjudicationPunishmentMappingRepository,
+  private val adjudicationMappingRepository: AdjudicationMappingRepository,
+  private val adjudicationHearingMappingRepository: AdjudicationHearingMappingRepository,
+  private val adjudicationPunishmentMappingRepository: AdjudicationPunishmentMappingRepository,
   private val telemetryClient: TelemetryClient,
 ) {
   private companion object {
@@ -161,25 +162,21 @@ class AdjudicationMappingService(
       )
     }
 
-  @Transactional(readOnly = true)
   suspend fun getMappingByDpsId(chargeNumber: String): AdjudicationMappingDto =
     adjudicationMappingRepository.findById(chargeNumber)
       ?.let { AdjudicationMappingDto(it) }
       ?: throw NotFoundException("chargeNumber=$chargeNumber")
 
-  @Transactional(readOnly = true)
   suspend fun getMappingByNomisId(adjudicationNumber: Long, chargeSequence: Int): AdjudicationMappingDto =
     adjudicationMappingRepository.findByAdjudicationNumberAndChargeSequence(adjudicationNumber, chargeSequence)
       ?.let { AdjudicationMappingDto(it) }
       ?: throw NotFoundException("adjudicationNumber=$adjudicationNumber, chargeSequence=$chargeSequence")
 
-  @Transactional(readOnly = true)
   suspend fun getHearingMappingByDpsId(hearingId: String): AdjudicationHearingMappingDto =
     adjudicationHearingMappingRepository.findById(hearingId)
       ?.let { AdjudicationHearingMappingDto(it) }
       ?: throw NotFoundException("DPS hearing Id=$hearingId")
 
-  @Transactional(readOnly = true)
   suspend fun getHearingMappingByNomisId(hearingId: Long): AdjudicationHearingMappingDto =
     adjudicationHearingMappingRepository.findByNomisHearingId(hearingId)
       ?.let { AdjudicationHearingMappingDto(it) }
@@ -216,7 +213,6 @@ class AdjudicationMappingService(
   @Transactional
   suspend fun deleteHearingMapping(dpsId: String) = adjudicationHearingMappingRepository.deleteById(dpsId)
 
-  @Transactional(readOnly = true)
   suspend fun getAdjudicationMappingsByMigrationId(
     pageRequest: Pageable,
     migrationId: String,
@@ -244,13 +240,11 @@ class AdjudicationMappingService(
       )
     }
 
-  @Transactional(readOnly = true)
   suspend fun getAdjudicationMappingForLatestMigrated(): AdjudicationMappingDto =
     adjudicationMappingRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(AdjudicationMappingType.MIGRATED)
       ?.let { AdjudicationMappingDto(it) }
       ?: throw NotFoundException("No migrated mapping found")
 
-  @Transactional(readOnly = true)
   suspend fun getAllMappings(): List<AdjudicationMappingDto> =
     adjudicationMappingRepository.findAll().toList().map { AdjudicationMappingDto(it) }
 
@@ -272,7 +266,6 @@ class AdjudicationMappingService(
       )
     }
 
-  @Transactional(readOnly = true)
   suspend fun getPunishmentMappingByDpsId(dpsPunishmentId: String): AdjudicationPunishmentMappingDto =
     adjudicationPunishmentMappingRepository.findById(dpsPunishmentId)
       ?.let { AdjudicationPunishmentMappingDto(it) }

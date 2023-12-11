@@ -16,6 +16,7 @@ import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
+import org.springframework.test.util.ReflectionTestUtils
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
@@ -45,7 +46,7 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
   @BeforeEach
   fun setup() {
     repository = mock(defaultAnswer = AdditionalAnswers.delegatesTo(realRepository))
-    sentencingMappingService.sentenceAdjustmentRepository = repository
+    ReflectionTestUtils.setField(sentencingMappingService, "sentenceAdjustmentRepository", repository)
   }
 
   private fun createSentenceAdjustmentMapping(

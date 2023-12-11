@@ -18,15 +18,16 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.NonAssociation
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.NonAssociationMappingRepository
 
 @Service
+@Transactional(readOnly = true)
 class NonAssociationMappingService(
-  var nonAssociationMappingRepository: NonAssociationMappingRepository,
+  private val nonAssociationMappingRepository: NonAssociationMappingRepository,
   private val telemetryClient: TelemetryClient,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  private fun alreadyExistsMessage(
+  fun alreadyExistsMessage(
     duplicateMapping: NonAssociationMappingDto,
     existingMapping: NonAssociationMappingDto,
   ) =
@@ -99,7 +100,6 @@ class NonAssociationMappingService(
       log.debug("Mapping created with nonAssociationId = $nonAssociationId, firstOffenderNo=$firstOffenderNo, secondOffenderNo=$secondOffenderNo, and nomisTypeSequence=$nomisTypeSequence")
     }
 
-  @Transactional(readOnly = true)
   suspend fun getNonAssociationMappingByNomisId(firstOffenderNo: String, secondOffenderNo: String, nomisTypeSequence: Int): NonAssociationMappingDto =
     nonAssociationMappingRepository.findOneByFirstOffenderNoAndSecondOffenderNoAndNomisTypeSequence(
       firstOffenderNo = firstOffenderNo,
@@ -109,13 +109,11 @@ class NonAssociationMappingService(
       ?.let { NonAssociationMappingDto(it) }
       ?: throw NotFoundException("Non-association with firstOffenderNo=$firstOffenderNo, secondOffenderNo=$secondOffenderNo, and nomisTypeSequence=$nomisTypeSequence not found")
 
-  @Transactional(readOnly = true)
   suspend fun getNonAssociationMappingByNonAssociationId(nonAssociationId: Long): NonAssociationMappingDto =
     nonAssociationMappingRepository.findById(nonAssociationId)
       ?.let { NonAssociationMappingDto(it) }
       ?: throw NotFoundException("nonAssociationId=$nonAssociationId")
 
-  @Transactional(readOnly = true)
   suspend fun getNonAssociationMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<NonAssociationMappingDto> =
     coroutineScope {
       val nonAssociationMapping = async {
@@ -137,7 +135,6 @@ class NonAssociationMappingService(
       )
     }
 
-  @Transactional(readOnly = true)
   suspend fun getNonAssociationMappingForLatestMigrated(): NonAssociationMappingDto =
     nonAssociationMappingRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(MIGRATED)
       ?.let { NonAssociationMappingDto(it) }

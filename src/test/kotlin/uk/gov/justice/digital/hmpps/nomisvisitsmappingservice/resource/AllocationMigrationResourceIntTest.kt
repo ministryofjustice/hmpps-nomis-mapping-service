@@ -17,6 +17,7 @@ import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.MediaType
+import org.springframework.test.util.ReflectionTestUtils
 import org.springframework.web.reactive.function.BodyInserters.fromValue
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AllocationMigrationMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.AllocationMigrationRepository
@@ -46,7 +47,7 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
   @BeforeEach
   fun setup() {
     allocationMigrationMappingRepository = mock(defaultAnswer = AdditionalAnswers.delegatesTo(realAllocationMigrationMappingRepository))
-    allocationMigrationService.allocationMigrationMappingRepository = allocationMigrationMappingRepository
+    ReflectionTestUtils.setField(allocationMigrationService, "allocationMigrationMappingRepository", allocationMigrationMappingRepository)
   }
 
   @AfterEach

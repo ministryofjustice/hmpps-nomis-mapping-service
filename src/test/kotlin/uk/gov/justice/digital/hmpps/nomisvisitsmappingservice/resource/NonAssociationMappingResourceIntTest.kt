@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.test.util.ReflectionTestUtils
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
@@ -53,7 +54,7 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
   @BeforeEach
   fun setup() {
     nonAssociationMappingRepository = mock(defaultAnswer = AdditionalAnswers.delegatesTo(realNonAssociationMappingRepository))
-    nonAssociationMappingService.nonAssociationMappingRepository = nonAssociationMappingRepository
+    ReflectionTestUtils.setField(nonAssociationMappingService, "nonAssociationMappingRepository", nonAssociationMappingRepository)
   }
 
   private fun createNonAssociationMapping(

@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
+import org.springframework.test.util.ReflectionTestUtils
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
@@ -62,7 +63,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
   @BeforeEach
   fun setup() {
     activityMappingRepository = mock(defaultAnswer = AdditionalAnswers.delegatesTo(realActivityMappingRepository))
-    activityMappingService.activityMappingRepository = activityMappingRepository
+    ReflectionTestUtils.setField(activityMappingService, "activityMappingRepository", activityMappingRepository)
   }
 
   @AfterEach

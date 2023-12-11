@@ -16,8 +16,9 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivityMigrat
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.ActivityMigrationMappingRepository
 
 @Service
+@Transactional(readOnly = true)
 class ActivityMigrationService(
-  var activityMigrationMappingRepository: ActivityMigrationMappingRepository,
+  private val activityMigrationMappingRepository: ActivityMigrationMappingRepository,
   private val telemetryClient: TelemetryClient,
 ) {
   private companion object {
@@ -63,19 +64,16 @@ class ActivityMigrationService(
     }
   }
 
-  @Transactional(readOnly = true)
   suspend fun getMapping(courseActivityId: Long): ActivityMigrationMappingDto =
     activityMigrationMappingRepository.findById(courseActivityId)
       ?.let { ActivityMigrationMappingDto(it) }
       ?: throw NotFoundException("nomisCourseActivityId=$courseActivityId")
 
-  @Transactional(readOnly = true)
   suspend fun getLatestMigrated(): ActivityMigrationMappingDto =
     activityMigrationMappingRepository.findFirstByOrderByWhenCreatedDesc()
       ?.let { ActivityMigrationMappingDto(it) }
       ?: throw NotFoundException("No migrated mapping found")
 
-  @Transactional(readOnly = true)
   suspend fun getMappings(
     pageRequest: Pageable,
     migrationId: String,
