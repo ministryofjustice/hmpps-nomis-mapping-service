@@ -1,20 +1,23 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.byLessThan
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.AdditionalAnswers
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
+import org.springframework.test.util.ReflectionTestUtils
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
@@ -24,6 +27,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.VisitMappingD
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.Repository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.VisitIdRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.VisitMappingService
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
@@ -52,14 +56,24 @@ private fun createRoomMapping(
   isOpen = isOpenOverride,
 )
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class VisitMappingResourceIntTest : IntegrationTestBase() {
 
-  @SpyBean(name = "visitIdRepository")
-  lateinit var visitIdRepository: VisitIdRepository
+  @Autowired
+  @Qualifier("visitIdRepository")
+  private lateinit var realVisitIdRepository: VisitIdRepository
+  private lateinit var visitIdRepository: VisitIdRepository
+
+  @Autowired
+  private lateinit var visitMappingService: VisitMappingService
 
   @Autowired
   lateinit var repository: Repository
+
+  @BeforeEach
+  fun setup() {
+    visitIdRepository = mock(defaultAnswer = AdditionalAnswers.delegatesTo(realVisitIdRepository))
+    ReflectionTestUtils.setField(visitMappingService, "visitIdRepository", visitIdRepository)
+  }
 
   private fun postCreateMappingRequest(
     nomisIdOverride: Long = nomisId,

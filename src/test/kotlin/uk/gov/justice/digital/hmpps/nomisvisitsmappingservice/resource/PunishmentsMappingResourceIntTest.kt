@@ -12,10 +12,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.AdditionalAnswers
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
+import org.springframework.test.util.ReflectionTestUtils
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationPunishmentBatchMappingDto
@@ -26,6 +29,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.Integr
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.isDuplicateMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationMappingType.ADJUDICATION_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AdjudicationPunishmentMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.AdjudicationMappingService
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
@@ -35,8 +39,18 @@ const val NOMIS_SANCTION_SEQUENCE = 2
 
 class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
 
-  @SpyBean
-  lateinit var repository: AdjudicationPunishmentMappingRepository
+  @Autowired
+  private lateinit var realRepository: AdjudicationPunishmentMappingRepository
+  private lateinit var repository: AdjudicationPunishmentMappingRepository
+
+  @Autowired
+  private lateinit var adjudicationMappingService: AdjudicationMappingService
+
+  @BeforeEach
+  fun setup() {
+    repository = mock(defaultAnswer = AdditionalAnswers.delegatesTo(realRepository))
+    ReflectionTestUtils.setField(adjudicationMappingService, "adjudicationPunishmentMappingRepository", repository)
+  }
 
   private fun createMapping(
     dpsPunishmentId: String = DPS_PUNISHMENT_ID,

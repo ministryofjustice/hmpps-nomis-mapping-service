@@ -7,24 +7,34 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.AdditionalAnswers
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.MediaType
+import org.springframework.test.util.ReflectionTestUtils
 import org.springframework.web.reactive.function.BodyInserters.fromValue
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AllocationMigrationMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.AllocationMigrationRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AllocationMigrationMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AllocationMigrationMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.AllocationMigrationService
 
 class AllocationMigrationResourceIntTest : IntegrationTestBase() {
 
-  @SpyBean(name = "allocationMigrationMappingRepository")
+  @Autowired
+  @Qualifier("allocationMigrationMappingRepository")
+  private lateinit var realAllocationMigrationMappingRepository: AllocationMigrationMappingRepository
   private lateinit var allocationMigrationMappingRepository: AllocationMigrationMappingRepository
+
+  @Autowired
+  private lateinit var allocationMigrationService: AllocationMigrationService
 
   @Autowired
   private lateinit var allocationMigrationRepository: AllocationMigrationRepository
@@ -33,6 +43,12 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
   private val ACTIVITY_ALLOCATION_ID = 4444L
   private val ACTIVITY_ID = 5555L
   private val MIGRATION_ID = "migration-1"
+
+  @BeforeEach
+  fun setup() {
+    allocationMigrationMappingRepository = mock(defaultAnswer = AdditionalAnswers.delegatesTo(realAllocationMigrationMappingRepository))
+    ReflectionTestUtils.setField(allocationMigrationService, "allocationMigrationMappingRepository", allocationMigrationMappingRepository)
+  }
 
   @AfterEach
   fun deleteData() = runBlocking {

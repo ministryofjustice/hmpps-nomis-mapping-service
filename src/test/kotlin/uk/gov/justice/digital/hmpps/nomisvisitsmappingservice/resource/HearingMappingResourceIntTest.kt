@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions
@@ -8,10 +7,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.AdditionalAnswers
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
+import org.springframework.test.util.ReflectionTestUtils
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationHearingMappingDto
@@ -19,15 +21,25 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.Integr
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.isDuplicateMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AdjudicationHearingMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.AdjudicationMappingService
 
 private const val DPS_HEARING_ID = "AB123"
 private const val NOMIS_HEARING_ID = 4444L
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class HearingMappingResourceIntTest : IntegrationTestBase() {
 
-  @SpyBean
-  lateinit var hearingRepository: AdjudicationHearingMappingRepository
+  @Autowired
+  private lateinit var realHearingRepository: AdjudicationHearingMappingRepository
+  private lateinit var hearingRepository: AdjudicationHearingMappingRepository
+
+  @Autowired
+  private lateinit var adjudicationMappingService: AdjudicationMappingService
+
+  @BeforeEach
+  fun setup() {
+    hearingRepository = mock(defaultAnswer = AdditionalAnswers.delegatesTo(realHearingRepository))
+    ReflectionTestUtils.setField(adjudicationMappingService, "adjudicationHearingMappingRepository", hearingRepository)
+  }
 
   private fun createMapping(
     dpsHearingId: String = DPS_HEARING_ID,

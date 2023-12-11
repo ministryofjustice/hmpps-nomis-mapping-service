@@ -1,20 +1,24 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.byLessThan
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.AdditionalAnswers
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.test.util.ReflectionTestUtils
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
@@ -25,6 +29,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.NonAssociation
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.NonAssociationMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.NonAssociationMappingType.NOMIS_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.NonAssociationMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NonAssociationMappingService
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
@@ -33,14 +38,24 @@ private const val FIRST_OFFENDER_NO = "A1234BC"
 private const val SECOND_OFFENDER_NO = "D5678EF"
 private const val TYPE_SEQUENCE = 1
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
 
-  @SpyBean(name = "nonAssociationMappingRepository")
-  lateinit var nonAssociationMappingRepository: NonAssociationMappingRepository
+  @Autowired
+  @Qualifier("nonAssociationMappingRepository")
+  private lateinit var realNonAssociationMappingRepository: NonAssociationMappingRepository
+  private lateinit var nonAssociationMappingRepository: NonAssociationMappingRepository
 
-  @SpyBean
-  lateinit var nonAssociationRepository: NonAssociationRepository
+  @Autowired
+  private lateinit var nonAssociationRepository: NonAssociationRepository
+
+  @Autowired
+  private lateinit var nonAssociationMappingService: NonAssociationMappingService
+
+  @BeforeEach
+  fun setup() {
+    nonAssociationMappingRepository = mock(defaultAnswer = AdditionalAnswers.delegatesTo(realNonAssociationMappingRepository))
+    ReflectionTestUtils.setField(nonAssociationMappingService, "nonAssociationMappingRepository", nonAssociationMappingRepository)
+  }
 
   private fun createNonAssociationMapping(
     nonAssociationId: Long = NON_ASSOCIATION_ID,
