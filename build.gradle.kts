@@ -48,7 +48,6 @@ dependencies {
   testImplementation("org.testcontainers:postgresql:1.19.3")
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-  testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
 }
 
 kotlin {
