@@ -45,11 +45,6 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
     responses = [
       ApiResponse(responseCode = "201", description = "Mapping entry created"),
       ApiResponse(
-        responseCode = "409",
-        description = "Incident mapping already exists",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
