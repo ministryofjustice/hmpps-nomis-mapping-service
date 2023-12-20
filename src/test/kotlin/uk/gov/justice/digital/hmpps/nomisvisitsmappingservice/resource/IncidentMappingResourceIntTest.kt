@@ -149,7 +149,7 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    internal fun `create mapping does not error when the same mapping already exists for the same adjustment`() {
+    internal fun `create mapping does not error when the same mapping already exists for the same incident`() {
       webTestClient.post().uri("/mapping/incidents")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
         .contentType(MediaType.APPLICATION_JSON)
