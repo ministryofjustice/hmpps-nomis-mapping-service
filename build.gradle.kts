@@ -1,7 +1,7 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.10.1"
-  kotlin("plugin.spring") version "1.9.21"
-  kotlin("plugin.jpa") version "1.9.21"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.12.0"
+  kotlin("plugin.spring") version "1.9.22"
+  kotlin("plugin.jpa") version "1.9.22"
   idea
 }
 
@@ -28,9 +28,9 @@ dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.3")
 
   implementation("org.flywaydb:flyway-core")
-  runtimeOnly("org.postgresql:r2dbc-postgresql:1.0.2.RELEASE")
+  runtimeOnly("org.postgresql:r2dbc-postgresql:1.0.3.RELEASE")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
-  runtimeOnly("org.postgresql:postgresql:42.7.0")
+  runtimeOnly("org.postgresql:postgresql:42.7.1")
 
   implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0")
 
@@ -43,7 +43,7 @@ dependencies {
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.19") {
     exclude(group = "io.swagger.core.v3")
   }
-  testImplementation("io.swagger.core.v3:swagger-core-jakarta:2.2.19")
+  testImplementation("io.swagger.core.v3:swagger-core-jakarta:2.2.20")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.testcontainers:postgresql:1.19.3")
   testImplementation("io.projectreactor:reactor-test")
