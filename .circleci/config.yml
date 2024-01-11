@@ -16,7 +16,7 @@ jobs:
     executor:
       name: hmpps/java_postgres
       jdk_tag: "21.0"
-      postgres_tag: "15"
+      postgres_tag: "16"
       postgres_db: "mapping"
       postgres_username: "mapping"
       postgres_password: "mapping"
