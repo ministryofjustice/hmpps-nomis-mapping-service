@@ -28,7 +28,7 @@ services:
       - APPLICATION_AUTHENTICATION_UI_ALLOWLIST=0.0.0.0/0
 
   mapping-db:
-    image: postgres:15
+    image: postgres:16
     networks:
       - hmpps
     # network_mode: "host"
