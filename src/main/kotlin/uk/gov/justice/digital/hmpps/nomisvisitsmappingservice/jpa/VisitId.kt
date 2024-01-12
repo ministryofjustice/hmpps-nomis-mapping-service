@@ -46,5 +46,6 @@ data class VisitId(
 }
 
 enum class MappingType {
-  MIGRATED, ONLINE
+  MIGRATED,
+  ONLINE,
 }

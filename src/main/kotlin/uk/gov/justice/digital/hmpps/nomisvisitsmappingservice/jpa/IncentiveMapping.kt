@@ -48,5 +48,7 @@ data class IncentiveMapping(
 }
 
 enum class IncentiveMappingType {
-  MIGRATED, INCENTIVE_CREATED, NOMIS_CREATED
+  MIGRATED,
+  INCENTIVE_CREATED,
+  NOMIS_CREATED,
 }

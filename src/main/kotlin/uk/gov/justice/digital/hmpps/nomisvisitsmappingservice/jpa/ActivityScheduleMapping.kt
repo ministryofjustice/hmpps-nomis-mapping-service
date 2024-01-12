@@ -50,5 +50,6 @@ data class ActivityScheduleMapping(
 }
 
 enum class ActivityScheduleMappingType {
-  ACTIVITY_CREATED, ACTIVITY_UPDATED
+  ACTIVITY_CREATED,
+  ACTIVITY_UPDATED,
 }

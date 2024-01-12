@@ -39,10 +39,12 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var activityMigrationService: ActivityMigrationService
 
-  private val NOMIS_ID = 1234L
-  private val ACTIVITY_ID = 4444L
-  private val ACTIVITY_ID_2 = 5555L
-  private val MIGRATION_ID = "migration-1"
+  private companion object {
+    private const val NOMIS_ID = 1234L
+    private const val ACTIVITY_ID = 4444L
+    private const val ACTIVITY_ID_2 = 5555L
+    private const val MIGRATION_ID = "migration-1"
+  }
 
   @BeforeEach
   fun setup() {

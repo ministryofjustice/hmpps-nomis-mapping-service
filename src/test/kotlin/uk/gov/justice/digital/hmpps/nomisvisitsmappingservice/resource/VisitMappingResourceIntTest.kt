@@ -31,12 +31,12 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.VisitMappi
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
-private const val nomisId = 1234L
-private const val vsipId = "12345678"
+private const val NOMIS_ID = 1234L
+private const val VSIP_ID = "12345678"
 
 private fun createMapping(
-  nomisIdOverride: Long = nomisId,
-  vsipIdOverride: String = vsipId,
+  nomisIdOverride: Long = NOMIS_ID,
+  vsipIdOverride: String = VSIP_ID,
   label: String = "2022-01-01",
   mappingType: String = "ONLINE",
 ): VisitMappingDto = VisitMappingDto(
@@ -76,8 +76,8 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
   }
 
   private fun postCreateMappingRequest(
-    nomisIdOverride: Long = nomisId,
-    vsipIdOverride: String = vsipId,
+    nomisIdOverride: Long = NOMIS_ID,
+    vsipIdOverride: String = VSIP_ID,
     label: String = "2022-01-01",
     mappingType: String = "ONLINE",
   ) {
@@ -175,8 +175,8 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .body(
           BodyInserters.fromValue(
             """{
-            "nomisId"     : $nomisId,
-            "vsipId"      : "$vsipId",
+            "nomisId"     : $NOMIS_ID,
+            "vsipId"      : "$VSIP_ID",
             "label"       : "2022-01-01",
             "mappingType" : "ONLINE"
           }""",
@@ -191,8 +191,8 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .body(
           BodyInserters.fromValue(
             """{
-            "nomisId"     : $nomisId,
-            "vsipId"      : "$vsipId",
+            "nomisId"     : $NOMIS_ID,
+            "vsipId"      : "$VSIP_ID",
             "label"       : "2022-01-01",
             "mappingType" : "ONLINE"
           }""",
@@ -210,8 +210,8 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .body(
           BodyInserters.fromValue(
             """{
-            "nomisId"     : $nomisId,
-            "vsipId"      : "$vsipId",
+            "nomisId"     : $NOMIS_ID,
+            "vsipId"      : "$VSIP_ID",
             "label"       : "2022-01-01",
             "mappingType" : "ONLINE"
           }""",
@@ -220,27 +220,27 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      val mapping1 = webTestClient.get().uri("/mapping/visits/nomisId/$nomisId")
+      val mapping1 = webTestClient.get().uri("/mapping/visits/nomisId/$NOMIS_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
         .expectBody(VisitMappingDto::class.java)
         .returnResult().responseBody!!
 
-      assertThat(mapping1.nomisId).isEqualTo(nomisId)
-      assertThat(mapping1.vsipId).isEqualTo(vsipId)
+      assertThat(mapping1.nomisId).isEqualTo(NOMIS_ID)
+      assertThat(mapping1.vsipId).isEqualTo(VSIP_ID)
       assertThat(mapping1.label).isEqualTo("2022-01-01")
       assertThat(mapping1.mappingType).isEqualTo("ONLINE")
 
-      val mapping2 = webTestClient.get().uri("/mapping/visits/vsipId/$vsipId")
+      val mapping2 = webTestClient.get().uri("/mapping/visits/vsipId/$VSIP_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
         .expectBody(VisitMappingDto::class.java)
         .returnResult().responseBody!!
 
-      assertThat(mapping2.nomisId).isEqualTo(nomisId)
-      assertThat(mapping2.vsipId).isEqualTo(vsipId)
+      assertThat(mapping2.nomisId).isEqualTo(NOMIS_ID)
+      assertThat(mapping2.vsipId).isEqualTo(VSIP_ID)
       assertThat(mapping2.label).isEqualTo("2022-01-01")
       assertThat(mapping2.mappingType).isEqualTo("ONLINE")
     }
@@ -254,7 +254,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             """{
             "nomisId"     : 101,
-            "vsipId"      : "$vsipId",
+            "vsipId"      : "$VSIP_ID",
             "label"       : "2022-01-01",
             "mappingType" : "ONLINE"
           }""",
@@ -265,7 +265,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
 
       // Emulate calling service simultaneously twice by disabling the duplicate check
       // Note: the spy is automatically reset by ResetMocksTestExecutionListener
-      whenever(visitIdRepository.findOneByVsipId(vsipId)).thenReturn(null)
+      whenever(visitIdRepository.findOneByVsipId(VSIP_ID)).thenReturn(null)
 
       val responseBody =
         webTestClient.post().uri("/mapping/visits")
@@ -275,7 +275,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
             BodyInserters.fromValue(
               """{
             "nomisId"     : 102,
-            "vsipId"      : "$vsipId",
+            "vsipId"      : "$VSIP_ID",
             "label"       : "2022-01-01",
             "mappingType" : "ONLINE"
           }""",
@@ -304,14 +304,14 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.get().uri("/mapping/visits/nomisId/$nomisId")
+      webTestClient.get().uri("/mapping/visits/nomisId/$NOMIS_ID")
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.get().uri("/mapping/visits/nomisId/$nomisId")
+      webTestClient.get().uri("/mapping/visits/nomisId/$NOMIS_ID")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -319,7 +319,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden with wrong role`() {
-      webTestClient.get().uri("/mapping/visits/nomisId/$nomisId")
+      webTestClient.get().uri("/mapping/visits/nomisId/$NOMIS_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -334,15 +334,15 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      val mapping = webTestClient.get().uri("/mapping/visits/nomisId/$nomisId")
+      val mapping = webTestClient.get().uri("/mapping/visits/nomisId/$NOMIS_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
         .expectBody(VisitMappingDto::class.java)
         .returnResult().responseBody!!
 
-      assertThat(mapping.nomisId).isEqualTo(nomisId)
-      assertThat(mapping.vsipId).isEqualTo(vsipId)
+      assertThat(mapping.nomisId).isEqualTo(NOMIS_ID)
+      assertThat(mapping.vsipId).isEqualTo(VSIP_ID)
       assertThat(mapping.label).isEqualTo("2022-01-01")
       assertThat(mapping.mappingType).isEqualTo("ONLINE")
     }
@@ -368,7 +368,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.get().uri("/mapping/visits/nomisId/$nomisId")
+      webTestClient.get().uri("/mapping/visits/nomisId/$NOMIS_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
@@ -527,14 +527,14 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.get().uri("/mapping/visits/vsipId/$vsipId")
+      webTestClient.get().uri("/mapping/visits/vsipId/$VSIP_ID")
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.get().uri("/mapping/visits/vsipId/$vsipId")
+      webTestClient.get().uri("/mapping/visits/vsipId/$VSIP_ID")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -542,7 +542,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden with wrong role`() {
-      webTestClient.get().uri("/mapping/visits/vsipId/$vsipId")
+      webTestClient.get().uri("/mapping/visits/vsipId/$VSIP_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -557,15 +557,15 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      val mapping = webTestClient.get().uri("/mapping/visits/vsipId/$vsipId")
+      val mapping = webTestClient.get().uri("/mapping/visits/vsipId/$VSIP_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
         .expectBody(VisitMappingDto::class.java)
         .returnResult().responseBody!!
 
-      assertThat(mapping.nomisId).isEqualTo(nomisId)
-      assertThat(mapping.vsipId).isEqualTo(vsipId)
+      assertThat(mapping.nomisId).isEqualTo(NOMIS_ID)
+      assertThat(mapping.vsipId).isEqualTo(VSIP_ID)
       assertThat(mapping.label).isEqualTo("2022-01-01")
       assertThat(mapping.mappingType).isEqualTo("ONLINE")
     }
@@ -591,7 +591,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.get().uri("/mapping/visits/vsipId/$vsipId")
+      webTestClient.get().uri("/mapping/visits/vsipId/$VSIP_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
@@ -887,7 +887,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.get().uri("/mapping/visits/nomisId/$nomisId")
+      webTestClient.get().uri("/mapping/visits/nomisId/$NOMIS_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
@@ -897,7 +897,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isNoContent
 
-      webTestClient.get().uri("/mapping/visits/nomisId/$nomisId")
+      webTestClient.get().uri("/mapping/visits/nomisId/$NOMIS_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isNotFound
@@ -932,7 +932,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isNoContent
 
-      webTestClient.get().uri("/mapping/visits/nomisId/$nomisId")
+      webTestClient.get().uri("/mapping/visits/nomisId/$NOMIS_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
@@ -1006,7 +1006,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isOk
 
-      webTestClient.get().uri("/mapping/visits/nomisId/$nomisId")
+      webTestClient.get().uri("/mapping/visits/nomisId/$NOMIS_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isOk
@@ -1021,7 +1021,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isNoContent
 
-      webTestClient.get().uri("/mapping/visits/nomisId/$nomisId")
+      webTestClient.get().uri("/mapping/visits/nomisId/$NOMIS_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
         .exchange()
         .expectStatus().isNotFound

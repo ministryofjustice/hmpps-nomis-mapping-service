@@ -506,9 +506,12 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
       val request = createUpdateRequest(
         scheduleMappings = listOf(
-          activityScheduledInstanceId to nomisCourseScheduleId, // keep
-          111L to 223L, // update
-          555L to 666L, // create
+          // keep
+          activityScheduledInstanceId to nomisCourseScheduleId,
+          // update
+          111L to 223L,
+          // create
+          555L to 666L,
         ),
       ) // missing 333L to 444L - delete
 
