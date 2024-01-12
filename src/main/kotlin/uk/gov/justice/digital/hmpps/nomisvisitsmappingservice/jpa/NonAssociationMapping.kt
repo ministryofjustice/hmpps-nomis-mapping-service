@@ -47,5 +47,7 @@ data class NonAssociationMapping(
 }
 
 enum class NonAssociationMappingType {
-  MIGRATED, NOMIS_CREATED, NON_ASSOCIATION_CREATED
+  MIGRATED,
+  NOMIS_CREATED,
+  NON_ASSOCIATION_CREATED,
 }

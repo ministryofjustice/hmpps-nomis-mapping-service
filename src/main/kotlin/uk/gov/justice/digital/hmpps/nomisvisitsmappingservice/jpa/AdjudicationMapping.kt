@@ -47,5 +47,6 @@ data class AdjudicationMapping(
 }
 
 enum class AdjudicationMappingType {
-  MIGRATED, ADJUDICATION_CREATED
+  MIGRATED,
+  ADJUDICATION_CREATED,
 }

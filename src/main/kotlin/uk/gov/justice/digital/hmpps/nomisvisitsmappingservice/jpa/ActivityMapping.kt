@@ -46,5 +46,6 @@ data class ActivityMapping(
 }
 
 enum class ActivityMappingType {
-  ACTIVITY_CREATED, ACTIVITY_MIGRATED
+  ACTIVITY_CREATED,
+  ACTIVITY_MIGRATED,
 }

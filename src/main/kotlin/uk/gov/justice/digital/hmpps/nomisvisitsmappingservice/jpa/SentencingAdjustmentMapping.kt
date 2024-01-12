@@ -49,5 +49,7 @@ data class SentencingAdjustmentMapping(
 }
 
 enum class SentencingMappingType {
-  MIGRATED, SENTENCING_CREATED, NOMIS_CREATED
+  MIGRATED,
+  SENTENCING_CREATED,
+  NOMIS_CREATED,
 }

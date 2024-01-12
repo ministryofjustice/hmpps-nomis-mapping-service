@@ -45,5 +45,7 @@ data class IncidentMapping(
 }
 
 enum class IncidentMappingType {
-  MIGRATED, NOMIS_CREATED, INCIDENT_CREATED
+  MIGRATED,
+  NOMIS_CREATED,
+  INCIDENT_CREATED,
 }

@@ -45,5 +45,6 @@ data class AppointmentMapping(
 }
 
 enum class AppointmentMappingType {
-  MIGRATED, APPOINTMENT_CREATED
+  MIGRATED,
+  APPOINTMENT_CREATED,
 }
