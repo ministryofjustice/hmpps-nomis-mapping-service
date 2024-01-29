@@ -136,8 +136,8 @@ class AdjudicationMappingService(
       adjudicationPunishmentMappingRepository.findById(dpsPunishmentId)
         ?.let {
           throw DuplicateMappingException(
-            existing = dpsPunishmentId,
-            duplicate = nomisBookingId to nomisSanctionSequence,
+            existing = it,
+            duplicate = createMappingRequest,
             messageIn = "Adjudication punishment mapping with id $dpsPunishmentId already exists",
           )
         }

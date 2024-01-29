@@ -34,7 +34,7 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 const val DPS_PUNISHMENT_ID = "876"
-const val NOMIS_BOOKING_ID = 543422L
+const val NOMIS_BOOKING_ID = 5434220000
 const val NOMIS_SANCTION_SEQUENCE = 2
 
 class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
@@ -258,39 +258,112 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
           nomisSanctionSequence = NOMIS_SANCTION_SEQUENCE,
         )
 
-        webTestClient.post().uri("/mapping/punishments")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(
-            BodyInserters.fromValue(
-              createMappingBatch(
-                createMapping(
-                  dpsPunishmentId = DPS_PUNISHMENT_ID,
-                  nomisBookingId = 5434231,
-                  nomisSanctionSequence = 99,
+        val response1 =
+          webTestClient.post().uri("/mapping/punishments")
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+              BodyInserters.fromValue(
+                createMappingBatch(
+                  createMapping(
+                    dpsPunishmentId = DPS_PUNISHMENT_ID,
+                    nomisBookingId = NOMIS_BOOKING_ID,
+                    nomisSanctionSequence = NOMIS_SANCTION_SEQUENCE,
+                  ),
                 ),
               ),
-            ),
-          )
-          .exchange()
-          .expectStatus().isDuplicateMapping
+            )
+            .exchange()
+            .expectStatus().isEqualTo(409)
+            .expectBody(
+              object :
+                ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
+            )
+            .returnResult().responseBody
 
-        webTestClient.post().uri("/mapping/punishments")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(
-            BodyInserters.fromValue(
-              createMappingBatch(
-                createMapping(
-                  dpsPunishmentId = "7656543",
-                  nomisBookingId = NOMIS_BOOKING_ID,
-                  nomisSanctionSequence = NOMIS_SANCTION_SEQUENCE,
+        with(response1!!) {
+          assertThat(this.moreInfo.existing)
+            .containsEntry("nomisBookingId", NOMIS_BOOKING_ID)
+            .containsEntry("nomisSanctionSequence", NOMIS_SANCTION_SEQUENCE)
+            .containsEntry("dpsPunishmentId", DPS_PUNISHMENT_ID)
+          assertThat(this.moreInfo.duplicate)
+            .containsEntry("nomisBookingId", NOMIS_BOOKING_ID)
+            .containsEntry("nomisSanctionSequence", NOMIS_SANCTION_SEQUENCE)
+            .containsEntry("dpsPunishmentId", DPS_PUNISHMENT_ID)
+        }
+
+        val response2 =
+          webTestClient.post().uri("/mapping/punishments")
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+              BodyInserters.fromValue(
+                createMappingBatch(
+                  createMapping(
+                    dpsPunishmentId = DPS_PUNISHMENT_ID,
+                    nomisBookingId = 54342310000,
+                    nomisSanctionSequence = 99,
+                  ),
                 ),
               ),
-            ),
-          )
-          .exchange()
-          .expectStatus().isDuplicateMapping
+            )
+            .exchange()
+            .expectStatus().isEqualTo(409)
+            .expectBody(
+              object :
+                ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
+            )
+            .returnResult().responseBody
+
+        with(response2!!) {
+          assertThat(this.moreInfo.existing)
+            .containsEntry("nomisBookingId", NOMIS_BOOKING_ID)
+            .containsEntry("nomisSanctionSequence", NOMIS_SANCTION_SEQUENCE)
+            .containsEntry("dpsPunishmentId", DPS_PUNISHMENT_ID)
+          assertThat(this.moreInfo.duplicate)
+            .containsEntry("nomisBookingId", 54342310000)
+            .containsEntry("nomisSanctionSequence", 99)
+            .containsEntry("dpsPunishmentId", DPS_PUNISHMENT_ID)
+        }
+
+        val response3 =
+          webTestClient.post().uri("/mapping/punishments")
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+              BodyInserters.fromValue(
+                createMappingBatch(
+                  createMapping(
+                    dpsPunishmentId = "7656543",
+                    nomisBookingId = NOMIS_BOOKING_ID,
+                    nomisSanctionSequence = NOMIS_SANCTION_SEQUENCE,
+                  ),
+                ),
+              ),
+            )
+            .exchange()
+            .expectStatus().isEqualTo(409)
+            .expectBody(
+              object :
+                ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
+            )
+            .returnResult().responseBody
+
+        with(response3!!) {
+          // not supplied in this scenario since this happens for duplicate key rather than look up
+          // so returns ugly list on punishments supplied
+          assertThat(this.moreInfo.existing)
+            .isNull()
+          assertThat(this.moreInfo.duplicate)
+            .containsKeys("punishments")
+          @Suppress("UNCHECKED_CAST")
+          val existingPunishments = this.moreInfo.duplicate["punishments"] as List<Map<String, *>>
+          assertThat(existingPunishments).hasSize(1)
+          assertThat(existingPunishments[0])
+            .containsEntry("nomisBookingId", NOMIS_BOOKING_ID)
+            .containsEntry("nomisSanctionSequence", NOMIS_SANCTION_SEQUENCE)
+            .containsEntry("dpsPunishmentId", "7656543")
+        }
       }
 
       @Test
@@ -612,3 +685,13 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 }
+
+// Update sync service reads as if these are Maps
+class TestDuplicateErrorResponse(
+  val moreInfo: TestDuplicateErrorContent,
+)
+
+data class TestDuplicateErrorContent(
+  val duplicate: Map<String, *>,
+  val existing: Map<String, *>? = null,
+)
