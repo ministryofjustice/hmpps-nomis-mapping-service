@@ -189,7 +189,7 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
           .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Non-association mapping already exists. \nExisting mapping: NonAssociationMappingDto(nonAssociationId=1234, firstOffenderNo=A1234BC, secondOffenderNo=D5678EF, nomisTypeSequence=1, label=2022-01-01, mappingType=NOMIS_CREATED")
+        assertThat(userMessage).contains("Conflict: Non-association mapping already exists.\nExisting mapping: NonAssociationMappingDto(nonAssociationId=1234, firstOffenderNo=A1234BC, secondOffenderNo=D5678EF, nomisTypeSequence=1, label=2022-01-01, mappingType=NOMIS_CREATED")
         assertThat(userMessage).contains("Duplicate mapping: NonAssociationMappingDto(nonAssociationId=99, firstOffenderNo=A1234BC, secondOffenderNo=D5678EF, nomisTypeSequence=1, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null")
         assertThat(errorCode).isEqualTo(1409)
       }
@@ -228,7 +228,7 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
           .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Non-association mapping already exists. \nExisting mapping: NonAssociationMappingDto(nonAssociationId=1234, firstOffenderNo=A1234BC, secondOffenderNo=D5678EF, nomisTypeSequence=1, label=2022-01-01, mappingType=NOMIS_CREATED")
+        assertThat(userMessage).contains("Conflict: Non-association mapping already exists.\nExisting mapping: NonAssociationMappingDto(nonAssociationId=1234, firstOffenderNo=A1234BC, secondOffenderNo=D5678EF, nomisTypeSequence=1, label=2022-01-01, mappingType=NOMIS_CREATED")
         assertThat(userMessage).contains("Duplicate mapping: NonAssociationMappingDto(nonAssociationId=1234, firstOffenderNo=A1234BC, secondOffenderNo=D5678EF, nomisTypeSequence=21, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null")
         assertThat(errorCode).isEqualTo(1409)
       }

@@ -181,7 +181,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
           .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Incentive mapping already exists. \nExisting mapping: IncentiveMappingDto(nomisBookingId=1234, nomisIncentiveSequence=1, incentiveId=4444, label=2022-01-01, mappingType=NOMIS_CREATED")
+        assertThat(userMessage).contains("Conflict: Incentive mapping already exists.\nExisting mapping: IncentiveMappingDto(nomisBookingId=1234, nomisIncentiveSequence=1, incentiveId=4444, label=2022-01-01, mappingType=NOMIS_CREATED")
         assertThat(userMessage).contains("Duplicate mapping: IncentiveMappingDto(nomisBookingId=1234, nomisIncentiveSequence=1, incentiveId=99, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null")
         assertThat(errorCode).isEqualTo(1409)
       }
@@ -218,7 +218,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
           .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Incentive mapping already exists. \nExisting mapping: IncentiveMappingDto(nomisBookingId=1234, nomisIncentiveSequence=1, incentiveId=4444, label=2022-01-01, mappingType=NOMIS_CREATED")
+        assertThat(userMessage).contains("Conflict: Incentive mapping already exists.\nExisting mapping: IncentiveMappingDto(nomisBookingId=1234, nomisIncentiveSequence=1, incentiveId=4444, label=2022-01-01, mappingType=NOMIS_CREATED")
         assertThat(userMessage).contains("Duplicate mapping: IncentiveMappingDto(nomisBookingId=21, nomisIncentiveSequence=1, incentiveId=4444, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null")
         assertThat(errorCode).isEqualTo(1409)
       }

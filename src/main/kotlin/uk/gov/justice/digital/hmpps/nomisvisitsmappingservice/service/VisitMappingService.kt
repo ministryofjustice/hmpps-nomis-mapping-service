@@ -36,7 +36,10 @@ class VisitMappingService(
     duplicateMapping: VisitMappingDto,
     existingMapping: VisitMappingDto,
   ) =
-    "Visit mapping already exists. \nExisting mapping: $existingMapping\nDuplicate mapping: $duplicateMapping"
+    """Visit mapping already exists.
+       |Existing mapping: $existingMapping
+       |Duplicate mapping: $duplicateMapping
+    """.trimMargin()
 
   @Transactional
   suspend fun createVisitMapping(createMappingRequest: VisitMappingDto) =

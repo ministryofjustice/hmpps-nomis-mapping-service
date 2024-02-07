@@ -31,22 +31,25 @@ class SentencingMappingService(
     duplicateMapping: SentencingAdjustmentMappingDto,
     existingMapping: SentencingAdjustmentMappingDto,
   ) =
-    "Sentence adjustment mapping already exists. \nExisting mapping: $existingMapping\nDuplicate mapping: $duplicateMapping"
+    """Sentence adjustment mapping already exists.
+       |Existing mapping: $existingMapping
+       |Duplicate mapping: $duplicateMapping
+    """.trimMargin()
 
   @Transactional
   suspend fun createSentenceAdjustmentMapping(createMappingRequest: SentencingAdjustmentMappingDto) =
     with(createMappingRequest) {
-      log.debug("creating sentence adjustment $createMappingRequest")
+      log.debug("creating sentence adjustment {}", createMappingRequest)
       sentenceAdjustmentRepository.findById(adjustmentId)?.run {
         if (this@run.nomisAdjustmentId == this@with.nomisAdjustmentId &&
           this@run.nomisAdjustmentCategory == this@with.nomisAdjustmentCategory
         ) {
           log.debug(
-            "Not creating. All OK: " +
-              alreadyExistsMessage(
-                duplicateMapping = createMappingRequest,
-                existingMapping = SentencingAdjustmentMappingDto(this@run),
-              ),
+            "Not creating. All OK: {}",
+            alreadyExistsMessage(
+              duplicateMapping = createMappingRequest,
+              existingMapping = SentencingAdjustmentMappingDto(this@run),
+            ),
           )
           return
         }

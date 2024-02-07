@@ -24,21 +24,23 @@ class IncidentMappingService(
     duplicateMapping: IncidentMappingDto,
     existingMapping: IncidentMappingDto,
   ) =
-    "Incident mapping already exists. \nExisting mapping: $existingMapping\nDuplicate mapping: $duplicateMapping"
+    """Incident mapping already exists.
+       |Existing mapping: $existingMapping
+       |Duplicate mapping: $duplicateMapping
+    """.trimMargin()
 
   @Transactional
   suspend fun createIncidentMapping(createMappingRequest: IncidentMappingDto) =
     with(createMappingRequest) {
-      log.debug("creating incident $createMappingRequest")
+      log.debug("creating incident {}", createMappingRequest)
       incidentMappingRepository.findById(incidentId)?.run {
-        if (this@run.nomisIncidentId == this@with.nomisIncidentId
-        ) {
+        if (this@run.nomisIncidentId == this@with.nomisIncidentId) {
           log.debug(
-            "Not creating. All OK: " +
-              alreadyExistsMessage(
-                duplicateMapping = createMappingRequest,
-                existingMapping = IncidentMappingDto(this@run),
-              ),
+            "Not creating. All OK: {}",
+            alreadyExistsMessage(
+              duplicateMapping = createMappingRequest,
+              existingMapping = IncidentMappingDto(this@run),
+            ),
           )
           return
         }

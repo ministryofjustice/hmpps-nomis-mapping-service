@@ -178,7 +178,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
           .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Location mapping already exists. \nExisting mapping: LocationMappingDto(dpsLocationId=$DPS_LOCATION_ID, nomisLocationId=$NOMIS_LOCATION_ID, label=2022-01-01, mappingType=NOMIS_CREATED")
+        assertThat(userMessage).contains("Conflict: Location mapping already exists.\nExisting mapping: LocationMappingDto(dpsLocationId=$DPS_LOCATION_ID, nomisLocationId=$NOMIS_LOCATION_ID, label=2022-01-01, mappingType=NOMIS_CREATED")
         assertThat(userMessage).contains("Duplicate mapping: LocationMappingDto(dpsLocationId=99, nomisLocationId=$NOMIS_LOCATION_ID, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null")
         assertThat(errorCode).isEqualTo(1409)
       }
@@ -213,7 +213,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
           .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Location mapping already exists. \nExisting mapping: LocationMappingDto(dpsLocationId=$DPS_LOCATION_ID, nomisLocationId=$NOMIS_LOCATION_ID, label=2022-01-01, mappingType=NOMIS_CREATED")
+        assertThat(userMessage).contains("Conflict: Location mapping already exists.\nExisting mapping: LocationMappingDto(dpsLocationId=$DPS_LOCATION_ID, nomisLocationId=$NOMIS_LOCATION_ID, label=2022-01-01, mappingType=NOMIS_CREATED")
         assertThat(userMessage).contains("Duplicate mapping: LocationMappingDto(dpsLocationId=$DPS_LOCATION_ID, nomisLocationId=9999, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null")
         assertThat(errorCode).isEqualTo(1409)
       }

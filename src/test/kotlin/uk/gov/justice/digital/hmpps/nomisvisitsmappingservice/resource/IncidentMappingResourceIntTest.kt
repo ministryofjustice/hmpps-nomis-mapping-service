@@ -128,7 +128,7 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Incident mapping already exists. \nExisting mapping: IncidentMappingDto(nomisIncidentId=1234, incidentId=4444, label=2022-01-01, mappingType=NOMIS_CREATED")
+        assertThat(userMessage).contains("Conflict: Incident mapping already exists.\nExisting mapping: IncidentMappingDto(nomisIncidentId=1234, incidentId=4444, label=2022-01-01, mappingType=NOMIS_CREATED")
         assertThat(userMessage).contains("Duplicate mapping: IncidentMappingDto(nomisIncidentId=21, incidentId=4444, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null)")
         assertThat(errorCode).isEqualTo(1409)
       }
@@ -197,7 +197,7 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Incident mapping already exists. \nExisting mapping: IncidentMappingDto(nomisIncidentId=1234, incidentId=4444, label=2022-01-01, mappingType=NOMIS_CREATED")
+        assertThat(userMessage).contains("Conflict: Incident mapping already exists.\nExisting mapping: IncidentMappingDto(nomisIncidentId=1234, incidentId=4444, label=2022-01-01, mappingType=NOMIS_CREATED")
         assertThat(userMessage).contains("Duplicate mapping: IncidentMappingDto(nomisIncidentId=1234, incidentId=99, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null)")
         assertThat(errorCode).isEqualTo(1409)
       }

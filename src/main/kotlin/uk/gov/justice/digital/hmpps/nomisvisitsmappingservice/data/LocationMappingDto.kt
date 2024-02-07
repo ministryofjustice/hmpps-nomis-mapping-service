@@ -20,7 +20,7 @@ data class LocationMappingDto(
   @field:Size(max = 20)
   val label: String? = null,
 
-  @Schema(description = "Mapping type", allowableValues = ["MIGRATED", "NOMIS_CREATED", "NON_ASSOCIATION_CREATED"])
+  @Schema(description = "Mapping type", allowableValues = ["MIGRATED", "NOMIS_CREATED", "LOCATION_CREATED"])
   @field:Size(max = 30)
   val mappingType: String,
 

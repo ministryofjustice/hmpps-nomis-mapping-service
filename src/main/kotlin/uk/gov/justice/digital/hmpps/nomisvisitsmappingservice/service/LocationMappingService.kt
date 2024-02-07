@@ -31,7 +31,10 @@ class LocationMappingService(
     duplicateMapping: LocationMappingDto,
     existingMapping: LocationMappingDto,
   ) =
-    "Location mapping already exists. \nExisting mapping: $existingMapping\nDuplicate mapping: $duplicateMapping"
+    """Location mapping already exists.
+       |Existing mapping: $existingMapping
+       |Duplicate mapping: $duplicateMapping
+    """.trimMargin()
 
   @Transactional
   suspend fun createMapping(createMappingRequest: LocationMappingDto) =
@@ -40,11 +43,11 @@ class LocationMappingService(
       locationMappingRepository.findById(dpsLocationId)?.run {
         if (this@run.nomisLocationId == this@with.nomisLocationId) {
           log.debug(
-            "Not creating. All OK: " +
-              alreadyExistsMessage(
-                duplicateMapping = createMappingRequest,
-                existingMapping = LocationMappingDto(this@run),
-              ),
+            "Not creating. All OK: {}",
+            alreadyExistsMessage(
+              duplicateMapping = createMappingRequest,
+              existingMapping = LocationMappingDto(this@run),
+            ),
           )
           return
         }

@@ -31,7 +31,10 @@ class IncentiveMappingService(
     duplicateMapping: IncentiveMappingDto,
     existingMapping: IncentiveMappingDto,
   ) =
-    "Incentive mapping already exists. \nExisting mapping: $existingMapping\nDuplicate mapping: $duplicateMapping"
+    """Incentive mapping already exists.
+       |Existing mapping: $existingMapping
+       |Duplicate mapping: $duplicateMapping
+    """.trimMargin()
 
   @Transactional
   suspend fun createIncentiveMapping(createMappingRequest: IncentiveMappingDto) =
@@ -42,11 +45,11 @@ class IncentiveMappingService(
           this@run.nomisIncentiveSequence == this@with.nomisIncentiveSequence
         ) {
           log.debug(
-            "Not creating. All OK: " +
-              alreadyExistsMessage(
-                duplicateMapping = createMappingRequest,
-                existingMapping = IncentiveMappingDto(this@run),
-              ),
+            "Not creating. All OK: {}",
+            alreadyExistsMessage(
+              duplicateMapping = createMappingRequest,
+              existingMapping = IncentiveMappingDto(this@run),
+            ),
           )
           return
         }

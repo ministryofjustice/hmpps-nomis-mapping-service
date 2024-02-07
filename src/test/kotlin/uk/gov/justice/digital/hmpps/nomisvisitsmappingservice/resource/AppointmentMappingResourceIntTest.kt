@@ -133,7 +133,7 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
           .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Appointment mapping already exists. \nExisting mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=1234, label=2022-01-01, mappingType=APPOINTMENT_CREATED, whenCreated=")
+        assertThat(userMessage).contains("Conflict: Appointment mapping already exists.\nExisting mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=1234, label=2022-01-01, mappingType=APPOINTMENT_CREATED, whenCreated=")
         assertThat(userMessage).contains("Duplicate mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=21, label=2022-01-01, mappingType=APPOINTMENT_CREATED, whenCreated=")
         assertThat(errorCode).isEqualTo(1409)
       }
@@ -197,7 +197,7 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
           .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Appointment mapping already exists. \nExisting mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=1234, label=2022-01-01, mappingType=APPOINTMENT_CREATED, whenCreated=")
+        assertThat(userMessage).contains("Conflict: Appointment mapping already exists.\nExisting mapping: AppointmentMappingDto(appointmentInstanceId=4444, nomisEventId=1234, label=2022-01-01, mappingType=APPOINTMENT_CREATED, whenCreated=")
         assertThat(userMessage).contains("Duplicate mapping: AppointmentMappingDto(appointmentInstanceId=99, nomisEventId=1234, label=2022-01-01, mappingType=APPOINTMENT_CREATED, whenCreated=")
         assertThat(errorCode).isEqualTo(1409)
       }
