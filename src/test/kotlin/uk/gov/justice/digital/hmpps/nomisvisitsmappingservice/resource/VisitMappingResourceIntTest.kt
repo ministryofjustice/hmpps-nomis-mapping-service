@@ -147,7 +147,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Visit mapping already exists. \nExisting mapping: VisitMappingDto(nomisId=1234, vsipId=12345678, label=2022-01-01, mappingType=ONLINE")
+        assertThat(userMessage).contains("Conflict: Visit mapping already exists.\nExisting mapping: VisitMappingDto(nomisId=1234, vsipId=12345678, label=2022-01-01, mappingType=ONLINE")
         assertThat(userMessage).contains("Duplicate mapping: VisitMappingDto(nomisId=1234, vsipId=other, label=2022-01-01, mappingType=ONLINE, whenCreated=null)")
         assertThat(errorCode).isEqualTo(1409)
       }

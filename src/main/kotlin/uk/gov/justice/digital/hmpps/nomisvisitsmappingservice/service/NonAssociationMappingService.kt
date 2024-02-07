@@ -31,23 +31,26 @@ class NonAssociationMappingService(
     duplicateMapping: NonAssociationMappingDto,
     existingMapping: NonAssociationMappingDto,
   ) =
-    "Non-association mapping already exists. \nExisting mapping: $existingMapping\nDuplicate mapping: $duplicateMapping"
+    """Non-association mapping already exists.
+       |Existing mapping: $existingMapping
+       |Duplicate mapping: $duplicateMapping
+    """.trimMargin()
 
   @Transactional
   suspend fun createNonAssociationMapping(createMappingRequest: NonAssociationMappingDto) =
     with(createMappingRequest) {
-      log.debug("creating nonAssociation $createMappingRequest")
+      log.debug("creating nonAssociation {}", createMappingRequest)
       nonAssociationMappingRepository.findById(nonAssociationId)?.run {
         if (this@run.firstOffenderNo == this@with.firstOffenderNo &&
           this@run.secondOffenderNo == this@with.secondOffenderNo &&
           this@run.nomisTypeSequence == this@with.nomisTypeSequence
         ) {
           log.debug(
-            "Not creating. All OK: " +
-              alreadyExistsMessage(
-                duplicateMapping = createMappingRequest,
-                existingMapping = NonAssociationMappingDto(this@run),
-              ),
+            "Not creating. All OK: {}",
+            alreadyExistsMessage(
+              duplicateMapping = createMappingRequest,
+              existingMapping = NonAssociationMappingDto(this@run),
+            ),
           )
           return
         }

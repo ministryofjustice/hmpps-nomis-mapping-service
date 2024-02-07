@@ -137,7 +137,7 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Sentence adjustment mapping already exists. \nExisting mapping: SentencingAdjustmentMappingDto(nomisAdjustmentId=1234, nomisAdjustmentCategory=SENTENCE, adjustmentId=4444, label=2022-01-01, mappingType=NOMIS_CREATED")
+        assertThat(userMessage).contains("Conflict: Sentence adjustment mapping already exists.\nExisting mapping: SentencingAdjustmentMappingDto(nomisAdjustmentId=1234, nomisAdjustmentCategory=SENTENCE, adjustmentId=4444, label=2022-01-01, mappingType=NOMIS_CREATED")
         assertThat(userMessage).contains("Duplicate mapping: SentencingAdjustmentMappingDto(nomisAdjustmentId=21, nomisAdjustmentCategory=SENTENCE, adjustmentId=4444, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null)")
         assertThat(errorCode).isEqualTo(1409)
       }
@@ -210,7 +210,7 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Sentence adjustment mapping already exists. \nExisting mapping: SentencingAdjustmentMappingDto(nomisAdjustmentId=1234, nomisAdjustmentCategory=SENTENCE, adjustmentId=4444, label=2022-01-01, mappingType=NOMIS_CREATED")
+        assertThat(userMessage).contains("Conflict: Sentence adjustment mapping already exists.\nExisting mapping: SentencingAdjustmentMappingDto(nomisAdjustmentId=1234, nomisAdjustmentCategory=SENTENCE, adjustmentId=4444, label=2022-01-01, mappingType=NOMIS_CREATED")
         assertThat(userMessage).contains("Duplicate mapping: SentencingAdjustmentMappingDto(nomisAdjustmentId=1234, nomisAdjustmentCategory=SENTENCE, adjustmentId=99, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null)")
         assertThat(errorCode).isEqualTo(1409)
       }

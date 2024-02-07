@@ -30,7 +30,10 @@ class AppointmentMappingService(
     duplicateMapping: AppointmentMappingDto,
     existingMapping: AppointmentMappingDto,
   ) =
-    "Appointment mapping already exists. \nExisting mapping: $existingMapping\nDuplicate mapping: $duplicateMapping"
+    """Appointment mapping already exists.
+       |Existing mapping: $existingMapping
+       |Duplicate mapping: $duplicateMapping
+    """.trimMargin()
 
   @Transactional
   suspend fun createMapping(createMappingRequest: AppointmentMappingDto) =
@@ -39,11 +42,11 @@ class AppointmentMappingService(
       appointmentMappingRepository.findById(appointmentInstanceId)?.run {
         if (this@run.nomisEventId == this@with.nomisEventId) {
           log.debug(
-            "Not creating. All OK: " +
-              alreadyExistsMessage(
-                duplicateMapping = createMappingRequest,
-                existingMapping = AppointmentMappingDto(this@run),
-              ),
+            "Not creating. All OK: {}",
+            alreadyExistsMessage(
+              duplicateMapping = createMappingRequest,
+              existingMapping = AppointmentMappingDto(this@run),
+            ),
           )
           return
         }
