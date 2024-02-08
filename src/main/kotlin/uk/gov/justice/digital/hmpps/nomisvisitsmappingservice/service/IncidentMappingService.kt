@@ -1,7 +1,13 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service
 
 import com.microsoft.applicationinsights.TelemetryClient
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
@@ -98,4 +104,30 @@ class IncidentMappingService(
     incidentMappingRepository.findById(incidentId)
       ?.let { IncidentMappingDto(it) }
       ?: throw NotFoundException("incidentId=$incidentId")
+
+  suspend fun getIncidentMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<IncidentMappingDto> =
+    coroutineScope {
+      val incidentMapping = async {
+        incidentMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+          label = migrationId,
+          IncidentMappingType.MIGRATED,
+          pageRequest,
+        )
+      }
+
+      val count = async {
+        incidentMappingRepository.countAllByLabelAndMappingType(migrationId, mappingType = IncidentMappingType.MIGRATED)
+      }
+
+      PageImpl(
+        incidentMapping.await().toList().map { IncidentMappingDto(it) },
+        pageRequest,
+        count.await(),
+      )
+    }
+
+  suspend fun getIncidentMappingForLatestMigrated(): IncidentMappingDto =
+    incidentMappingRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(IncidentMappingType.MIGRATED)
+      ?.let { IncidentMappingDto(it) }
+      ?: throw NotFoundException("No migrated mapping found")
 }
