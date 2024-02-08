@@ -2,7 +2,9 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
+import org.hamcrest.Matchers
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -21,9 +23,13 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMa
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.IncidentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncidentMappingType
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncidentMappingType.INCIDENT_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncidentMappingType.NOMIS_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.IncidentMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.IncidentMappingService
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 class IncidentMappingResourceIntTest : IntegrationTestBase() {
 
@@ -56,7 +62,7 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
     mappingType = mappingType,
   )
 
-  private fun postcreateIncidentMappingRequest(
+  private fun postCreateIncidentMappingRequest(
     nomisIncidentId: Long = 1234L,
     incidentId: String = "4444",
     label: String = "2022-01-01",
@@ -116,7 +122,7 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `create when mapping for incident id already exists for another mapping`() {
-      postcreateIncidentMappingRequest()
+      postCreateIncidentMappingRequest()
 
       val responseBody = webTestClient.post().uri("/mapping/incidents")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
@@ -185,7 +191,7 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `create when mapping for nomis ids already exists`() {
-      postcreateIncidentMappingRequest()
+      postCreateIncidentMappingRequest()
 
       val responseBody = webTestClient.post().uri("/mapping/incidents")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
@@ -540,6 +546,290 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
         .exchange()
         .expectStatus().isOk
+    }
+  }
+
+  @DisplayName("GET /mapping/incidents/migration-id/{migrationId}")
+  @Nested
+  inner class GetMappingByMigrationIdTest {
+
+    @AfterEach
+    internal fun deleteData() = runBlocking {
+      repository.deleteAll()
+    }
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/migration-id/2022-01-01T00:00:00")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/incidents/migration-id/2022-01-01T00:00:00")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get incident mappings by migration id forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/incidents/migration-id/2022-01-01T00:00:00")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get incident mappings by migration id success`() {
+      (1L..4L).forEach {
+        postCreateIncidentMappingRequest(
+          nomisIncidentId = it,
+          incidentId = "$it",
+          label = "2022-01-01",
+          mappingType = "MIGRATED",
+        )
+      }
+      (5L..9L).forEach {
+        postCreateIncidentMappingRequest(
+          nomisIncidentId = it,
+          incidentId = "$it",
+          label = "2099-01-01",
+          mappingType = "MIGRATED",
+        )
+      }
+      postCreateIncidentMappingRequest(
+        nomisIncidentId = 12,
+        incidentId = "12",
+        mappingType = INCIDENT_CREATED.name,
+      )
+
+      webTestClient.get().uri("/mapping/incidents/migration-id/2022-01-01")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(4)
+        .jsonPath("$.content..incidentId").value(Matchers.contains("1", "2", "3", "4"))
+        .jsonPath("$.content..nomisIncidentId").value(Matchers.contains(1, 2, 3, 4))
+        .jsonPath("$.content[0].whenCreated").isNotEmpty
+    }
+
+    @Test
+    fun `get incident mappings by migration id - no records exist`() {
+      (1L..4L).forEach {
+        postCreateIncidentMappingRequest(
+          nomisIncidentId = it,
+          incidentId = "$it",
+          label = "2022-01-01",
+          mappingType = "MIGRATED",
+        )
+      }
+
+      webTestClient.get().uri("/mapping/incidents/migration-id/2044-01-01")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(0)
+        .jsonPath("content").isEmpty
+    }
+
+    @Test
+    fun `can request a different page size`() {
+      (1L..6L).forEach {
+        postCreateIncidentMappingRequest(
+          nomisIncidentId = it,
+          incidentId = "$it",
+          label = "2022-01-01",
+          mappingType = "MIGRATED",
+        )
+      }
+      webTestClient.get().uri {
+        it.path("/mapping/incidents/migration-id/2022-01-01")
+          .queryParam("size", "2")
+          .queryParam("sort", "nomisIncidentId,asc")
+          .build()
+      }
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(6)
+        .jsonPath("numberOfElements").isEqualTo(2)
+        .jsonPath("number").isEqualTo(0)
+        .jsonPath("totalPages").isEqualTo(3)
+        .jsonPath("size").isEqualTo(2)
+    }
+
+    @Test
+    fun `can request a different page`() {
+      (1L..3L).forEach {
+        postCreateIncidentMappingRequest(
+          nomisIncidentId = it,
+          incidentId = "$it",
+          label = "2022-01-01",
+          mappingType = "MIGRATED",
+        )
+      }
+      webTestClient.get().uri {
+        it.path("/mapping/incidents/migration-id/2022-01-01")
+          .queryParam("size", "2")
+          .queryParam("page", "1")
+          .queryParam("sort", "nomisIncidentId,asc")
+          .build()
+      }
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(3)
+        .jsonPath("numberOfElements").isEqualTo(1)
+        .jsonPath("number").isEqualTo(1)
+        .jsonPath("totalPages").isEqualTo(2)
+        .jsonPath("size").isEqualTo(2)
+    }
+  }
+
+  @DisplayName("GET /mapping/incidents/migrated/latest")
+  @Nested
+  inner class GeMappingMigratedLatestTest {
+
+    @AfterEach
+    internal fun deleteData() = runBlocking {
+      repository.deleteAll()
+    }
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/incidents/migrated/latest")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/incidents/migrated/latest")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/incidents/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get retrieves latest migrated mapping`() {
+      webTestClient.post().uri("/mapping/incidents")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createIncidentMapping(
+              nomisIncidentId = 10,
+              incidentId = "10",
+              label = "2022-01-01T00:00:00",
+              mappingType = "MIGRATED",
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping/incidents")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createIncidentMapping(
+              nomisIncidentId = 20,
+              incidentId = "4",
+              label = "2022-01-02T00:00:00",
+              mappingType = "MIGRATED",
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping/incidents")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createIncidentMapping(
+              nomisIncidentId = 1,
+              incidentId = "1",
+              label = "2022-01-02T10:00:00",
+              mappingType = IncidentMappingType.MIGRATED.name,
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping/incidents")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createIncidentMapping(
+              nomisIncidentId = 99,
+              incidentId = "3",
+              label = "whatever",
+              mappingType = IncidentMappingType.NOMIS_CREATED.name,
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      val mapping = webTestClient.get().uri("/mapping/incidents/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody(IncidentMappingDto::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(mapping.nomisIncidentId).isEqualTo(1)
+      assertThat(mapping.incidentId).isEqualTo("1")
+      assertThat(mapping.label).isEqualTo("2022-01-02T10:00:00")
+      assertThat(mapping.mappingType).isEqualTo("MIGRATED")
+      assertThat(mapping.whenCreated).isCloseTo(LocalDateTime.now(), Assertions.byLessThan(5, ChronoUnit.SECONDS))
+    }
+
+    @Test
+    fun `404 when no migrated mapping found`() {
+      webTestClient.post().uri("/mapping/incidents")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createIncidentMapping(
+              nomisIncidentId = 77,
+              incidentId = "7",
+              label = "whatever",
+              mappingType = IncidentMappingType.NOMIS_CREATED.name,
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      val error = webTestClient.get().uri("/mapping/incidents/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isNotFound
+        .expectBody(ErrorResponse::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(error.userMessage).isEqualTo("Not Found: No migrated mapping found")
     }
   }
 }
