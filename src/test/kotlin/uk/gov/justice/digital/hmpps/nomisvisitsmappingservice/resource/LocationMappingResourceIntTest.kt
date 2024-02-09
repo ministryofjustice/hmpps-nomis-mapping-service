@@ -31,7 +31,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.LocationMa
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
-private const val DPS_LOCATION_ID = 1234L
+private const val DPS_LOCATION_ID = "abcd1234-cdef-5678-90ab-ef1234567890"
 private const val NOMIS_LOCATION_ID = 5678L
 
 class LocationMappingResourceIntTest : IntegrationTestBase() {
@@ -59,7 +59,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
   }
 
   private fun createLocationMapping(
-    dpsLocationId: Long = DPS_LOCATION_ID,
+    dpsLocationId: String = DPS_LOCATION_ID,
     nomisLocationId: Long = NOMIS_LOCATION_ID,
     label: String = "2022-01-01",
     mappingType: String = LocationMappingType.NOMIS_CREATED.name,
@@ -71,7 +71,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
   )
 
   private fun postCreateLocationMappingRequest(
-    dpsLocationId: Long = DPS_LOCATION_ID,
+    dpsLocationId: String = DPS_LOCATION_ID,
     nomisLocationId: Long = NOMIS_LOCATION_ID,
     label: String = "2022-01-01",
     mappingType: String = LocationMappingType.NOMIS_CREATED.name,
@@ -136,7 +136,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         .body(
           BodyInserters.fromValue(
             """{
-            "dpsLocationId"     : $DPS_LOCATION_ID,
+            "dpsLocationId"     : "$DPS_LOCATION_ID",
             "nomisLocationId"   : $NOMIS_LOCATION_ID,
             "label"             : "2022-01-01",
             "mappingType"       : "NOMIS_CREATED"
@@ -152,7 +152,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         .body(
           BodyInserters.fromValue(
             """{
-            "dpsLocationId"     : $DPS_LOCATION_ID,
+            "dpsLocationId"     : "$DPS_LOCATION_ID",
             "nomisLocationId"   : $NOMIS_LOCATION_ID,
             "label"             : "2022-01-01",
             "mappingType"       : "NOMIS_CREATED"
@@ -171,7 +171,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         webTestClient.post().uri("/mapping/locations")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
           .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(createLocationMapping().copy(dpsLocationId = 99)))
+          .body(BodyInserters.fromValue(createLocationMapping().copy(dpsLocationId = "other-dps-location-id")))
           .exchange()
           .expectStatus().isEqualTo(HttpStatus.CONFLICT.value())
           .expectBody(object : ParameterizedTypeReference<DuplicateMappingErrorResponse<LocationMappingDto>>() {})
@@ -179,7 +179,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
 
       with(responseBody!!) {
         assertThat(userMessage).contains("Conflict: Location mapping already exists.\nExisting mapping: LocationMappingDto(dpsLocationId=$DPS_LOCATION_ID, nomisLocationId=$NOMIS_LOCATION_ID, label=2022-01-01, mappingType=NOMIS_CREATED")
-        assertThat(userMessage).contains("Duplicate mapping: LocationMappingDto(dpsLocationId=99, nomisLocationId=$NOMIS_LOCATION_ID, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null")
+        assertThat(userMessage).contains("Duplicate mapping: LocationMappingDto(dpsLocationId=other-dps-location-id, nomisLocationId=$NOMIS_LOCATION_ID, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null")
         assertThat(errorCode).isEqualTo(1409)
       }
 
@@ -192,7 +192,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
 
       val duplicateLocation = responseBody.moreInfo?.duplicate!!
       with(duplicateLocation) {
-        assertThat(dpsLocationId).isEqualTo(99)
+        assertThat(dpsLocationId).isEqualTo("other-dps-location-id")
         assertThat(nomisLocationId).isEqualTo(NOMIS_LOCATION_ID)
         assertThat(mappingType).isEqualTo("NOMIS_CREATED")
       }
@@ -241,7 +241,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         .body(
           BodyInserters.fromValue(
             """{
-                "dpsLocationId"   : $DPS_LOCATION_ID,
+                "dpsLocationId"   : "$DPS_LOCATION_ID",
                 "nomisLocationId" : $NOMIS_LOCATION_ID,
                 "label"           : "2024-01-01",
                 "mappingType"     : "NOMIS_CREATED"
@@ -287,7 +287,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         .body(
           BodyInserters.fromValue(
             """{
-                "dpsLocationId"     : $DPS_LOCATION_ID,
+                "dpsLocationId"     : "$DPS_LOCATION_ID",
                 "nomisLocationId"   : $NOMIS_LOCATION_ID,
                 "label"             : "2022-01-01",
                 "mappingType"       : "NOMIS_CREATED"
@@ -308,7 +308,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
           .body(
             BodyInserters.fromValue(
               """{
-                "dpsLocationId"     : $DPS_LOCATION_ID,
+                "dpsLocationId"     : "$DPS_LOCATION_ID",
                 "nomisLocationId"   : ${NOMIS_LOCATION_ID + 1},
                 "label"             : "2022-01-01",
                 "mappingType"       : "NOMIS_CREATED"
@@ -536,7 +536,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     fun `get location mappings by migration id success`() {
       (1L..4L).forEach {
         postCreateLocationMappingRequest(
-          dpsLocationId = it,
+          dpsLocationId = it.toString(),
           nomisLocationId = it,
           label = "2022-01-01",
           mappingType = "MIGRATED",
@@ -544,14 +544,14 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
       }
       (5L..9L).forEach {
         postCreateLocationMappingRequest(
-          dpsLocationId = it,
+          dpsLocationId = it.toString(),
           nomisLocationId = it,
           label = "2099-01-01",
           mappingType = "MIGRATED",
         )
       }
       postCreateLocationMappingRequest(
-        dpsLocationId = 12,
+        dpsLocationId = "12",
         nomisLocationId = 12,
         mappingType = LocationMappingType.LOCATION_CREATED.name,
       )
@@ -562,7 +562,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
         .expectBody()
         .jsonPath("totalElements").isEqualTo(4)
-        .jsonPath("$.content..dpsLocationId").value(Matchers.contains(1, 2, 3, 4))
+        .jsonPath("$.content..dpsLocationId").value(Matchers.contains("1", "2", "3", "4"))
         .jsonPath("$.content..nomisLocationId").value(Matchers.contains(1, 2, 3, 4))
         .jsonPath("$.content[0].whenCreated").isNotEmpty
     }
@@ -571,7 +571,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     fun `get location mappings by migration dpsLocationId - no records exist`() {
       (1L..4L).forEach {
         postCreateLocationMappingRequest(
-          dpsLocationId = it,
+          dpsLocationId = it.toString(),
           nomisLocationId = it,
           label = "2022-01-01",
           mappingType = "MIGRATED",
@@ -591,7 +591,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     fun `can request a different page size`() {
       (1L..6L).forEach {
         postCreateLocationMappingRequest(
-          dpsLocationId = it,
+          dpsLocationId = it.toString(),
           nomisLocationId = it,
           label = "2022-01-01",
           mappingType = "MIGRATED",
@@ -618,7 +618,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     fun `can request a different page`() {
       (1L..3L).forEach {
         postCreateLocationMappingRequest(
-          dpsLocationId = it,
+          dpsLocationId = it.toString(),
           nomisLocationId = it,
           label = "2022-01-01",
           mappingType = "MIGRATED",
@@ -683,7 +683,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         .body(
           BodyInserters.fromValue(
             createLocationMapping(
-              dpsLocationId = 10,
+              dpsLocationId = "10",
               nomisLocationId = 2,
               label = "2022-01-01T00:00:00",
               mappingType = "MIGRATED",
@@ -699,7 +699,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         .body(
           BodyInserters.fromValue(
             createLocationMapping(
-              dpsLocationId = 20,
+              dpsLocationId = "20",
               nomisLocationId = 4,
               label = "2022-01-02T00:00:00",
               mappingType = "MIGRATED",
@@ -715,7 +715,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         .body(
           BodyInserters.fromValue(
             createLocationMapping(
-              dpsLocationId = 1,
+              dpsLocationId = "1",
               nomisLocationId = 1,
               label = "2022-01-02T10:00:00",
               mappingType = LocationMappingType.MIGRATED.name,
@@ -731,7 +731,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         .body(
           BodyInserters.fromValue(
             createLocationMapping(
-              dpsLocationId = 99,
+              dpsLocationId = "99",
               nomisLocationId = 3,
               label = "whatever",
               mappingType = LocationMappingType.NOMIS_CREATED.name,
@@ -748,7 +748,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         .expectBody(LocationMappingDto::class.java)
         .returnResult().responseBody!!
 
-      assertThat(mapping.dpsLocationId).isEqualTo(1)
+      assertThat(mapping.dpsLocationId).isEqualTo("1")
       assertThat(mapping.nomisLocationId).isEqualTo(1)
       assertThat(mapping.label).isEqualTo("2022-01-02T10:00:00")
       assertThat(mapping.mappingType).isEqualTo("MIGRATED")
@@ -764,7 +764,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         .body(
           BodyInserters.fromValue(
             createLocationMapping(
-              dpsLocationId = 77,
+              dpsLocationId = "77",
               nomisLocationId = 7,
               label = "whatever",
               mappingType = LocationMappingType.NOMIS_CREATED.name,
@@ -945,7 +945,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         .body(
           BodyInserters.fromValue(
             createLocationMapping(
-              dpsLocationId = 333,
+              dpsLocationId = "333",
               nomisLocationId = 444,
               mappingType = LocationMappingType.MIGRATED.name,
             ),

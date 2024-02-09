@@ -83,7 +83,7 @@ class LocationMappingService(
       telemetryClient.trackEvent(
         "location-mapping-created",
         mapOf(
-          "id" to dpsLocationId.toString(),
+          "id" to dpsLocationId,
           "nomisLocationId" to nomisLocationId.toString(),
           "batchId" to label,
         ),
@@ -97,7 +97,7 @@ class LocationMappingService(
       ?.let { LocationMappingDto(it) }
       ?: throw NotFoundException("Location with nomisLocationId=$nomisLocationId not found")
 
-  suspend fun getMappingByDpsId(dpsLocationId: Long): LocationMappingDto =
+  suspend fun getMappingByDpsId(dpsLocationId: String): LocationMappingDto =
     locationMappingRepository.findById(dpsLocationId)
       ?.let { LocationMappingDto(it) }
       ?: throw NotFoundException("Location with dpsLocationId=$dpsLocationId not found")
@@ -129,7 +129,7 @@ class LocationMappingService(
       ?: throw NotFoundException("No migrated mapping found")
 
   @Transactional
-  suspend fun deleteMapping(locationId: Long) = locationMappingRepository.deleteById(locationId)
+  suspend fun deleteMapping(locationId: String) = locationMappingRepository.deleteById(locationId)
 
   @Transactional
   suspend fun deleteMappings(onlyMigrated: Boolean) =

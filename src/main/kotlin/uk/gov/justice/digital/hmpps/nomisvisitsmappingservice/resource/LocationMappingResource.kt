@@ -145,7 +145,7 @@ class LocationMappingResource(private val mappingService: LocationMappingService
   suspend fun getMappingGivenDpsId(
     @Schema(description = "DPS Location id", example = "22345678", required = true)
     @PathVariable
-    dpsLocationId: Long,
+    dpsLocationId: String,
   ): LocationMappingDto = mappingService.getMappingByDpsId(dpsLocationId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_LOCATIONS')")
@@ -232,7 +232,7 @@ class LocationMappingResource(private val mappingService: LocationMappingService
   suspend fun deleteMapping(
     @Schema(description = "DPS Location Id", example = "12345678", required = true)
     @PathVariable
-    locationId: Long,
+    locationId: String,
   ) = mappingService.deleteMapping(locationId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_LOCATIONS')")

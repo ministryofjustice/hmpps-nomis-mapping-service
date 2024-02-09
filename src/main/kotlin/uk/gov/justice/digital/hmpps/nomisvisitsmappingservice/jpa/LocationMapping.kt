@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 data class LocationMapping(
 
   @Id
-  val dpsLocationId: Long,
+  val dpsLocationId: String,
 
   val nomisLocationId: Long,
 
@@ -25,7 +25,7 @@ data class LocationMapping(
   val new: Boolean = true,
 
   val whenCreated: LocalDateTime? = null,
-) : Persistable<Long> {
+) : Persistable<String> {
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -40,7 +40,7 @@ data class LocationMapping(
 
   override fun isNew(): Boolean = new
 
-  override fun getId(): Long = dpsLocationId
+  override fun getId(): String = dpsLocationId
 }
 
 enum class LocationMappingType {
