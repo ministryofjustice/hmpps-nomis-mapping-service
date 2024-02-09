@@ -11,3 +11,4 @@ create table location_mapping (
 
 create index location_mapping_label_index on location_mapping (label);
 create index location_mapping_when_created_index on location_mapping (when_created);
+create unique index location_mapping_nomis_location_id_index on location_mapping (nomis_location_id);
