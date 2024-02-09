@@ -11,7 +11,7 @@ import java.time.LocalDateTime
 data class LocationMappingDto(
 
   @Schema(description = "Location id in DPS", required = true)
-  val dpsLocationId: Long,
+  val dpsLocationId: String,
 
   @Schema(description = "Location id in Nomis", required = true)
   val nomisLocationId: Long,

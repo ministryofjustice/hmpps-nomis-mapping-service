@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.LocationMappin
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.LocationMappingType
 
 @Repository
-interface LocationMappingRepository : CoroutineCrudRepository<LocationMapping, Long> {
+interface LocationMappingRepository : CoroutineCrudRepository<LocationMapping, String> {
   suspend fun findOneByNomisLocationId(nomisLocationId: Long): LocationMapping?
   suspend fun findFirstByMappingTypeOrderByWhenCreatedDesc(mappingType: LocationMappingType): LocationMapping?
   suspend fun countAllByLabelAndMappingType(label: String, mappingType: LocationMappingType): Long
