@@ -134,8 +134,8 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Incident mapping already exists.\nExisting mapping: IncidentMappingDto(nomisIncidentId=1234, incidentId=4321, label=2022-01-01, mappingType=NOMIS_CREATED")
-        assertThat(userMessage).contains("Duplicate mapping: IncidentMappingDto(nomisIncidentId=21, incidentId=4321, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null)")
+        assertThat(userMessage).contains("Conflict: Incident mapping already exists.\nExisting mapping: IncidentMappingDto(nomisIncidentId=$NOMIS_INCIDENT_ID, incidentId=$INCIDENT_ID, label=2022-01-01, mappingType=NOMIS_CREATED")
+        assertThat(userMessage).contains("Duplicate mapping: IncidentMappingDto(nomisIncidentId=21, incidentId=$INCIDENT_ID, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null)")
         assertThat(errorCode).isEqualTo(1409)
       }
 
@@ -203,8 +203,8 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Incident mapping already exists.\nExisting mapping: IncidentMappingDto(nomisIncidentId=1234, incidentId=4321, label=2022-01-01, mappingType=NOMIS_CREATED")
-        assertThat(userMessage).contains("Duplicate mapping: IncidentMappingDto(nomisIncidentId=1234, incidentId=99, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null)")
+        assertThat(userMessage).contains("Conflict: Incident mapping already exists.\nExisting mapping: IncidentMappingDto(nomisIncidentId=$NOMIS_INCIDENT_ID, incidentId=$INCIDENT_ID, label=2022-01-01, mappingType=NOMIS_CREATED")
+        assertThat(userMessage).contains("Duplicate mapping: IncidentMappingDto(nomisIncidentId=$NOMIS_INCIDENT_ID, incidentId=99, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null)")
         assertThat(errorCode).isEqualTo(1409)
       }
 
@@ -586,7 +586,7 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      // it is present after creation by nonAssociation id
+      // it is present after creation by incident id
       webTestClient.get().uri("/mapping/incidents/incident-id/$INCIDENT_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
         .exchange()
@@ -603,7 +603,7 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isNoContent
 
-      // no longer present by nonAssociation id
+      // no longer present by incident id
       webTestClient.get().uri("/mapping/incidents/incident-id/$INCIDENT_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
         .exchange()
