@@ -105,6 +105,17 @@ class IncidentMappingService(
       ?.let { IncidentMappingDto(it) }
       ?: throw NotFoundException("incidentId=$incidentId")
 
+  @Transactional
+  suspend fun deleteIncidentMapping(incidentId: String) = incidentMappingRepository.deleteById(incidentId)
+
+  @Transactional
+  suspend fun deleteMappings(onlyMigrated: Boolean) =
+    onlyMigrated.takeIf { it }?.apply {
+      incidentMappingRepository.deleteByMappingTypeEquals(IncidentMappingType.MIGRATED)
+    } ?: run {
+      incidentMappingRepository.deleteAll()
+    }
+
   suspend fun getIncidentMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<IncidentMappingDto> =
     coroutineScope {
       val incidentMapping = async {

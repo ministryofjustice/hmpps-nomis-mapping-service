@@ -31,6 +31,9 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.IncidentMa
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
+private const val INCIDENT_ID = "4321"
+private const val NOMIS_INCIDENT_ID = 1234L
+
 class IncidentMappingResourceIntTest : IntegrationTestBase() {
 
   @Autowired
@@ -41,9 +44,6 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var incidentMappingService: IncidentMappingService
 
-  private val nomisIncidentNo = 1234L
-  private val incidentNo = "4444"
-
   @BeforeEach
   fun setup() {
     repository = mock(defaultAnswer = AdditionalAnswers.delegatesTo(realRepository))
@@ -51,8 +51,8 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
   }
 
   private fun createIncidentMapping(
-    nomisIncidentId: Long = nomisIncidentNo,
-    incidentId: String = incidentNo,
+    nomisIncidentId: Long = NOMIS_INCIDENT_ID,
+    incidentId: String = INCIDENT_ID,
     label: String = "2022-01-01",
     mappingType: String = NOMIS_CREATED.name,
   ): IncidentMappingDto = IncidentMappingDto(
@@ -63,8 +63,8 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
   )
 
   private fun postCreateIncidentMappingRequest(
-    nomisIncidentId: Long = 1234L,
-    incidentId: String = "4444",
+    nomisIncidentId: Long = NOMIS_INCIDENT_ID,
+    incidentId: String = INCIDENT_ID,
     label: String = "2022-01-01",
     mappingType: String = NOMIS_CREATED.name,
   ) {
@@ -134,21 +134,21 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Incident mapping already exists.\nExisting mapping: IncidentMappingDto(nomisIncidentId=1234, incidentId=4444, label=2022-01-01, mappingType=NOMIS_CREATED")
-        assertThat(userMessage).contains("Duplicate mapping: IncidentMappingDto(nomisIncidentId=21, incidentId=4444, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null)")
+        assertThat(userMessage).contains("Conflict: Incident mapping already exists.\nExisting mapping: IncidentMappingDto(nomisIncidentId=1234, incidentId=4321, label=2022-01-01, mappingType=NOMIS_CREATED")
+        assertThat(userMessage).contains("Duplicate mapping: IncidentMappingDto(nomisIncidentId=21, incidentId=4321, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null)")
         assertThat(errorCode).isEqualTo(1409)
       }
 
       val existingIncident = responseBody.moreInfo?.existing!!
       with(existingIncident) {
-        assertThat(incidentId).isEqualTo("4444")
-        assertThat(nomisIncidentId).isEqualTo(1234)
+        assertThat(incidentId).isEqualTo(INCIDENT_ID)
+        assertThat(nomisIncidentId).isEqualTo(NOMIS_INCIDENT_ID)
         assertThat(mappingType).isEqualTo("NOMIS_CREATED")
       }
 
       val duplicateIncident = responseBody.moreInfo?.duplicate!!
       with(duplicateIncident) {
-        assertThat(incidentId).isEqualTo("4444")
+        assertThat(incidentId).isEqualTo(INCIDENT_ID)
         assertThat(nomisIncidentId).isEqualTo(21)
         assertThat(mappingType).isEqualTo("NOMIS_CREATED")
       }
@@ -162,8 +162,8 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         .body(
           BodyInserters.fromValue(
             """{
-              "nomisIncidentId" : $nomisIncidentNo,
-              "incidentId"      : "$incidentNo",
+              "nomisIncidentId" : $NOMIS_INCIDENT_ID,
+              "incidentId"      : "$INCIDENT_ID",
               "label"           : "2022-01-01",
               "mappingType"     : "INCIDENT_CREATED"
             }""",
@@ -178,8 +178,8 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         .body(
           BodyInserters.fromValue(
             """{
-              "nomisIncidentId" : $nomisIncidentNo,
-              "incidentId"      : "$incidentNo",
+              "nomisIncidentId" : $NOMIS_INCIDENT_ID,
+              "incidentId"      : "$INCIDENT_ID",
               "label"           : "2022-01-01",
               "mappingType"     : "INCIDENT_CREATED"
             }""",
@@ -203,22 +203,22 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         .returnResult().responseBody
 
       with(responseBody!!) {
-        assertThat(userMessage).contains("Conflict: Incident mapping already exists.\nExisting mapping: IncidentMappingDto(nomisIncidentId=1234, incidentId=4444, label=2022-01-01, mappingType=NOMIS_CREATED")
+        assertThat(userMessage).contains("Conflict: Incident mapping already exists.\nExisting mapping: IncidentMappingDto(nomisIncidentId=1234, incidentId=4321, label=2022-01-01, mappingType=NOMIS_CREATED")
         assertThat(userMessage).contains("Duplicate mapping: IncidentMappingDto(nomisIncidentId=1234, incidentId=99, label=2022-01-01, mappingType=NOMIS_CREATED, whenCreated=null)")
         assertThat(errorCode).isEqualTo(1409)
       }
 
       val existingIncident = responseBody.moreInfo?.existing!!
       with(existingIncident) {
-        assertThat(incidentId).isEqualTo("4444")
-        assertThat(nomisIncidentId).isEqualTo(1234)
+        assertThat(incidentId).isEqualTo(INCIDENT_ID)
+        assertThat(nomisIncidentId).isEqualTo(NOMIS_INCIDENT_ID)
         assertThat(mappingType).isEqualTo("NOMIS_CREATED")
       }
 
       val duplicateIncident = responseBody.moreInfo?.duplicate!!
       with(duplicateIncident) {
         assertThat(incidentId).isEqualTo("99")
-        assertThat(nomisIncidentId).isEqualTo(1234)
+        assertThat(nomisIncidentId).isEqualTo(NOMIS_INCIDENT_ID)
         assertThat(mappingType).isEqualTo("NOMIS_CREATED")
       }
     }
@@ -231,8 +231,8 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         .body(
           BodyInserters.fromValue(
             """{
-              "nomisIncidentId" : $nomisIncidentNo,
-              "incidentId"      : "$incidentNo",
+              "nomisIncidentId" : $NOMIS_INCIDENT_ID,
+              "incidentId"      : "$INCIDENT_ID",
               "label"           : "2022-01-01",
               "mappingType"     : "INCIDENT_CREATED"
             }""",
@@ -242,27 +242,27 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       val mapping1 =
-        webTestClient.get().uri("/mapping/incidents/nomis-incident-id/$nomisIncidentNo")
+        webTestClient.get().uri("/mapping/incidents/nomis-incident-id/$NOMIS_INCIDENT_ID")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
           .exchange()
           .expectStatus().isOk
           .expectBody(IncidentMappingDto::class.java)
           .returnResult().responseBody!!
 
-      assertThat(mapping1.nomisIncidentId).isEqualTo(nomisIncidentNo)
-      assertThat(mapping1.incidentId).isEqualTo(incidentNo)
+      assertThat(mapping1.nomisIncidentId).isEqualTo(NOMIS_INCIDENT_ID)
+      assertThat(mapping1.incidentId).isEqualTo(INCIDENT_ID)
       assertThat(mapping1.label).isEqualTo("2022-01-01")
       assertThat(mapping1.mappingType).isEqualTo("INCIDENT_CREATED")
 
-      val mapping2 = webTestClient.get().uri("/mapping/incidents/incident-id/$incidentNo")
+      val mapping2 = webTestClient.get().uri("/mapping/incidents/incident-id/$INCIDENT_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
         .exchange()
         .expectStatus().isOk
         .expectBody(IncidentMappingDto::class.java)
         .returnResult().responseBody!!
 
-      assertThat(mapping2.nomisIncidentId).isEqualTo(nomisIncidentNo)
-      assertThat(mapping2.incidentId).isEqualTo(incidentNo)
+      assertThat(mapping2.nomisIncidentId).isEqualTo(NOMIS_INCIDENT_ID)
+      assertThat(mapping2.incidentId).isEqualTo(INCIDENT_ID)
       assertThat(mapping2.label).isEqualTo("2022-01-01")
       assertThat(mapping2.mappingType).isEqualTo("INCIDENT_CREATED")
     }
@@ -276,7 +276,7 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             """{
               "nomisIncidentId" : 101,
-              "incidentId"      : "$incidentNo",
+              "incidentId"      : "$INCIDENT_ID",
               "label"           : "2022-01-01",
               "mappingType"     : "INCIDENT_CREATED"
             }""",
@@ -287,7 +287,7 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
 
       // Emulate calling service simultaneously twice by disabling the duplicate check
       // Note: the spy is automatically reset by ResetMocksTestExecutionListener
-      whenever(repository.findById(incidentNo)).thenReturn(null)
+      whenever(repository.findById(INCIDENT_ID)).thenReturn(null)
 
       val responseBody =
         webTestClient.post().uri("/mapping/incidents")
@@ -297,7 +297,7 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
             BodyInserters.fromValue(
               """{
                 "nomisIncidentId" : 102,
-                "incidentId"      : "$incidentNo",
+                "incidentId"      : "$INCIDENT_ID",
                 "label"           : "2022-01-01",
                 "mappingType"     : "INCIDENT_CREATED"
               }""",
@@ -323,9 +323,9 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
           .body(
             BodyInserters.fromValue(
               """{
-                "nomisIncidentId" : $nomisIncidentNo,
+                "nomisIncidentId" : $NOMIS_INCIDENT_ID,
                 "label"           : "2022-01-01",
-                "incidentId"      : "$incidentNo"
+                "incidentId"      : "$INCIDENT_ID"
               }""",
             ),
           )
@@ -345,9 +345,9 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
           .body(
             BodyInserters.fromValue(
               """{
-                "nomisIncidentId" : $nomisIncidentNo,
+                "nomisIncidentId" : $NOMIS_INCIDENT_ID,
                 "label"           : "2022-01-01",
-                "incidentId"      : "$incidentNo",
+                "incidentId"      : "$INCIDENT_ID",
                 "mappingType"     : "MASSIVELY_LONG_PROPERTY_INCIDENT_CREATED"
               }""",
             ),
@@ -368,7 +368,7 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
           .body(
             BodyInserters.fromValue(
               """{
-            "nomisIncidentId" : $nomisIncidentNo,
+            "nomisIncidentId" : $NOMIS_INCIDENT_ID,
             "label"           : "2022-01-01",
             "mappingType"     : "INCIDENT_CREATED"
           }""",
@@ -395,14 +395,14 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.get().uri("/mapping/incidents/nomis-incident-id/$nomisIncidentNo")
+      webTestClient.get().uri("/mapping/incidents/nomis-incident-id/$NOMIS_INCIDENT_ID")
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.get().uri("/mapping/incidents/nomis-incident-id/$nomisIncidentNo")
+      webTestClient.get().uri("/mapping/incidents/nomis-incident-id/$NOMIS_INCIDENT_ID")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -410,7 +410,7 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden with wrong role`() {
-      webTestClient.get().uri("/mapping/incidents/nomis-incident-id/$nomisIncidentNo")
+      webTestClient.get().uri("/mapping/incidents/nomis-incident-id/$NOMIS_INCIDENT_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -426,15 +426,15 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       val mapping =
-        webTestClient.get().uri("/mapping/incidents/nomis-incident-id/$nomisIncidentNo")
+        webTestClient.get().uri("/mapping/incidents/nomis-incident-id/$NOMIS_INCIDENT_ID")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
           .exchange()
           .expectStatus().isOk
           .expectBody(IncidentMappingDto::class.java)
           .returnResult().responseBody!!
 
-      assertThat(mapping.nomisIncidentId).isEqualTo(nomisIncidentNo)
-      assertThat(mapping.incidentId).isEqualTo(incidentNo)
+      assertThat(mapping.nomisIncidentId).isEqualTo(NOMIS_INCIDENT_ID)
+      assertThat(mapping.incidentId).isEqualTo(INCIDENT_ID)
       assertThat(mapping.label).isEqualTo("2022-01-01")
       assertThat(mapping.mappingType).isEqualTo(NOMIS_CREATED.name)
     }
@@ -460,7 +460,7 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.get().uri("/mapping/incidents/nomis-incident-id/$nomisIncidentNo")
+      webTestClient.get().uri("/mapping/incidents/nomis-incident-id/$NOMIS_INCIDENT_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
         .exchange()
         .expectStatus().isOk
@@ -478,14 +478,14 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.get().uri("/mapping/incidents/incident-id/$incidentNo")
+      webTestClient.get().uri("/mapping/incidents/incident-id/$INCIDENT_ID")
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.get().uri("/mapping/incidents/incident-id/$incidentNo")
+      webTestClient.get().uri("/mapping/incidents/incident-id/$INCIDENT_ID")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -493,7 +493,7 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden with wrong role`() {
-      webTestClient.get().uri("/mapping/incidents/incident-id/$incidentNo")
+      webTestClient.get().uri("/mapping/incidents/incident-id/$INCIDENT_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -508,15 +508,15 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      val mapping = webTestClient.get().uri("/mapping/incidents/incident-id/$incidentNo")
+      val mapping = webTestClient.get().uri("/mapping/incidents/incident-id/$INCIDENT_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
         .exchange()
         .expectStatus().isOk
         .expectBody(IncidentMappingDto::class.java)
         .returnResult().responseBody!!
 
-      assertThat(mapping.nomisIncidentId).isEqualTo(nomisIncidentNo)
-      assertThat(mapping.incidentId).isEqualTo(incidentNo)
+      assertThat(mapping.nomisIncidentId).isEqualTo(NOMIS_INCIDENT_ID)
+      assertThat(mapping.incidentId).isEqualTo(INCIDENT_ID)
       assertThat(mapping.label).isEqualTo("2022-01-01")
       assertThat(mapping.mappingType).isEqualTo(NOMIS_CREATED.name)
     }
@@ -542,10 +542,200 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.get().uri("/mapping/incidents/incident-id/$incidentNo")
+      webTestClient.get().uri("/mapping/incidents/incident-id/$INCIDENT_ID")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
         .exchange()
         .expectStatus().isOk
+    }
+  }
+
+  @DisplayName("DELETE /mapping/incidents/incident-id/{incidentId}")
+  @Nested
+  inner class DeleteMappingTest {
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.delete().uri("/mapping/incidents/incident-id/999")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.delete().uri("/mapping/incidents/incident-id/999")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.delete().uri("/mapping/incidents/incident-id/999")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `delete specific mapping success`() {
+      // create mapping
+      webTestClient.post().uri("/mapping/incidents")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createIncidentMapping()))
+        .exchange()
+        .expectStatus().isCreated
+
+      // it is present after creation by nonAssociation id
+      webTestClient.get().uri("/mapping/incidents/incident-id/$INCIDENT_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isOk
+      // it is also present after creation by nomis id
+      webTestClient.get().uri("/mapping/incidents/nomis-incident-id/$NOMIS_INCIDENT_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isOk
+
+      // delete mapping
+      webTestClient.delete().uri("/mapping/incidents/incident-id/$INCIDENT_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      // no longer present by nonAssociation id
+      webTestClient.get().uri("/mapping/incidents/incident-id/$INCIDENT_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isNotFound
+      // and also no longer present by nomis id
+      webTestClient.get().uri("/mapping/incidents/nomis-incident-id/$NOMIS_INCIDENT_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    internal fun `delete is idempotent`() {
+      // create mapping
+      webTestClient.post().uri("/mapping/incidents")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createIncidentMapping()))
+        .exchange()
+        .expectStatus().isCreated
+
+      // delete mapping
+      webTestClient.delete().uri("/mapping/incidents/incident-id/$INCIDENT_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isNoContent
+      // delete mapping second time still returns success
+      webTestClient.delete().uri("/mapping/incidents/incident-id/$INCIDENT_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isNoContent
+    }
+  }
+
+  @DisplayName("DELETE /mapping/incidents")
+  @Nested
+  inner class DeleteMappingsTest {
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.delete().uri("/mapping/incidents")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.delete().uri("/mapping/incidents")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.delete().uri("/mapping/incidents")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `delete mapping success`() {
+      webTestClient.post().uri("/mapping/incidents")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createIncidentMapping()))
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.get()
+        .uri("/mapping/incidents/nomis-incident-id/$NOMIS_INCIDENT_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isOk
+
+      webTestClient.delete().uri("/mapping/incidents")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      webTestClient.get()
+        .uri("/mapping/incidents/nomis-incident-id/$NOMIS_INCIDENT_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `delete incident mappings - migrated mappings only`() {
+      webTestClient.post().uri("/mapping/incidents")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createIncidentMapping()))
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping/incidents")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createIncidentMapping(
+              nomisIncidentId = 2345,
+              incidentId = "5432",
+              mappingType = IncidentMappingType.MIGRATED.name,
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.get().uri("/mapping/incidents/incident-id/5432")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isOk
+
+      webTestClient.delete().uri("/mapping/incidents?onlyMigrated=true")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      webTestClient.get()
+        .uri("/mapping/incidents/nomis-incident-id/$NOMIS_INCIDENT_ID")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isOk
+
+      webTestClient.get().uri("/mapping/incidents/incident-id/5432")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
+        .exchange()
+        .expectStatus().isNotFound
     }
   }
 
@@ -783,7 +973,7 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
               nomisIncidentId = 99,
               incidentId = "3",
               label = "whatever",
-              mappingType = IncidentMappingType.NOMIS_CREATED.name,
+              mappingType = NOMIS_CREATED.name,
             ),
           ),
         )
@@ -815,7 +1005,7 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
               nomisIncidentId = 77,
               incidentId = "7",
               label = "whatever",
-              mappingType = IncidentMappingType.NOMIS_CREATED.name,
+              mappingType = NOMIS_CREATED.name,
             ),
           ),
         )
