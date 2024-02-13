@@ -44,7 +44,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
     @Nested
     inner class Security {
       @Test
-      fun `access forbidden when no authority`() {
+      fun `access not authorised when no authority`() {
         webTestClient.get()
           .uri("/mapping/alerts/nomis-booking-id/${mapping.nomisBookingId}/nomis-alert-sequence/${mapping.nomisAlertSequence}")
           .exchange()
@@ -61,7 +61,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       }
 
       @Test
-      fun `create visit forbidden with wrong role`() {
+      fun `access forbidden with wrong role`() {
         webTestClient.get()
           .uri("/mapping/alerts/nomis-booking-id/${mapping.nomisBookingId}/nomis-alert-sequence/${mapping.nomisAlertSequence}")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
