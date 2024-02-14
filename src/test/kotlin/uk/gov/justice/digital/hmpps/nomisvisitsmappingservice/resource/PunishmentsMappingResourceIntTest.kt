@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationP
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationPunishmentBatchUpdateMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationPunishmentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationPunishmentNomisIdDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.isDuplicateMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AdjudicationMappingType.ADJUDICATION_CREATED
@@ -685,13 +686,3 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 }
-
-// Update sync service reads as if these are Maps
-class TestDuplicateErrorResponse(
-  val moreInfo: TestDuplicateErrorContent,
-)
-
-data class TestDuplicateErrorContent(
-  val duplicate: Map<String, *>,
-  val existing: Map<String, *>? = null,
-)
