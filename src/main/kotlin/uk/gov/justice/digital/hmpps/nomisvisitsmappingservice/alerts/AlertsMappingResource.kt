@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -63,7 +64,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new alert mapping",
-    description = "Creates a mapping between nomis Incentive ids and Incentive service id. Requires ROLE_NOMIS_ALERTS",
+    description = "Creates a mapping between nomis alert ids and dps alert id. Requires ROLE_NOMIS_ALERTS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = AlertMappingDto::class))],
     ),
@@ -105,6 +106,27 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
         cause = e,
       )
     }
+
+  @DeleteMapping
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes all alert mappings",
+    description = "Deletes all alert mappings regardless of source. This is expected to only ever been used in a non-production environment. Requires ROLE_NOMIS_ALERTS",
+    responses = [
+      ApiResponse(responseCode = "204", description = "Mappings deleted"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteAllMappings() = mappingService.deleteAllMappings()
 
   private suspend fun getExistingMappingSimilarTo(mapping: AlertMappingDto) = runCatching {
     mappingService.getMappingByNomisId(
