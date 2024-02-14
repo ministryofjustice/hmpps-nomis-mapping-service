@@ -13,6 +13,7 @@ import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.alerts.AlertMappingType.MIGRATED
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.alerts.AlertMappingType.NOMIS_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import java.time.LocalDateTime
@@ -423,6 +424,106 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
             .containsEntry("nomisAlertSequence", 99)
             .containsEntry("dpsAlertId", existingMapping.dpsAlertId)
         }
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("DELETE /mapping/alerts")
+  inner class DeleteAllMappings {
+    private lateinit var existingMapping1: AlertMapping
+    private lateinit var existingMapping2: AlertMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      existingMapping1 = repository.save(
+        AlertMapping(
+          dpsAlertId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          nomisBookingId = 54321L,
+          nomisAlertSequence = 2L,
+          label = "2023-01-01T12:45:12",
+          mappingType = MIGRATED,
+        ),
+      )
+      existingMapping2 = repository.save(
+        AlertMapping(
+          dpsAlertId = "4433eb7d-2fa0-4055-99d9-633fefa53288",
+          nomisBookingId = 54321L,
+          nomisAlertSequence = 3L,
+          mappingType = NOMIS_CREATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/alerts")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/alerts")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/alerts")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `returns 204 when all mappings are deleted`() = runTest {
+        assertThat(
+          repository.findOneByNomisBookingIdAndNomisAlertSequence(
+            bookingId = existingMapping1.nomisBookingId,
+            alertSequence = existingMapping1.nomisAlertSequence,
+          ),
+        ).isNotNull
+        assertThat(
+          repository.findOneByNomisBookingIdAndNomisAlertSequence(
+            bookingId = existingMapping2.nomisBookingId,
+            alertSequence = existingMapping2.nomisAlertSequence,
+          ),
+        ).isNotNull
+
+        webTestClient.delete()
+          .uri("/mapping/alerts")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        assertThat(
+          repository.findOneByNomisBookingIdAndNomisAlertSequence(
+            bookingId = existingMapping1.nomisBookingId,
+            alertSequence = existingMapping1.nomisAlertSequence,
+          ),
+        ).isNull()
+        assertThat(
+          repository.findOneByNomisBookingIdAndNomisAlertSequence(
+            bookingId = existingMapping2.nomisBookingId,
+            alertSequence = existingMapping2.nomisAlertSequence,
+          ),
+        ).isNull()
       }
     }
   }

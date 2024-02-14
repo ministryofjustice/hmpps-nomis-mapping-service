@@ -18,6 +18,10 @@ class AlertMappingService(val repository: AlertsMappingRepository) {
   suspend fun createMapping(mapping: AlertMappingDto) {
     repository.save(mapping.fromDto())
   }
+
+  suspend fun deleteAllMappings() {
+    repository.deleteAll()
+  }
 }
 
 fun AlertMapping.toDto() = AlertMappingDto(
