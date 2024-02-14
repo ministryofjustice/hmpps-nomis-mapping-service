@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.2"
   kotlin("plugin.spring") version "1.9.22"
   kotlin("plugin.jpa") version "1.9.22"
   idea
@@ -18,7 +18,7 @@ configurations {
 }
 
 dependencies {
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:0.0.5")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:0.0.6")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
 
@@ -35,15 +35,15 @@ dependencies {
   developmentOnly("org.springframework.boot:spring-boot-devtools")
 
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
-  testImplementation("io.jsonwebtoken:jjwt-impl:0.12.3")
-  testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.3")
+  testImplementation("io.jsonwebtoken:jjwt-impl:0.12.5")
+  testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.5")
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.20") {
     exclude(group = "io.swagger.core.v3")
   }
   testImplementation("io.swagger.core.v3:swagger-core-jakarta:2.2.20")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.testcontainers:postgresql:1.19.3")
+  testImplementation("org.testcontainers:postgresql:1.19.5")
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 }
