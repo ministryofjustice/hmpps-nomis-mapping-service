@@ -20,7 +20,7 @@ data class AlertMappingDto(
   @Schema(description = "Label (a timestamp for migrated ids)")
   val label: String? = null,
 
-  @Schema(description = "Mapping type", allowableValues = ["MIGRATED", "NOMIS_CREATED", "DPS_CREATED"])
+  @Schema(description = "Mapping type")
   val mappingType: AlertMappingType = DPS_CREATED,
 
   @Schema(description = "Date time the mapping was created")
