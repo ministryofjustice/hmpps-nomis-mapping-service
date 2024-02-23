@@ -17,23 +17,23 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.Integr
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
-class CourtSentencingResourceIntTest : IntegrationTestBase() {
+class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
   @Autowired
-  private lateinit var repository: CourtCaseMappingRepository
+  private lateinit var repository: CourtAppearanceMappingRepository
 
   @Nested
-  @DisplayName("GET /mapping/court-sentencing/court-cases/dps-court-case-id/{courtCaseId}")
-  inner class GetMappingByDpsId {
-    lateinit var courtCaseMapping: CourtCaseMapping
+  @DisplayName("GET /mapping/court-sentencing/court-appearances/dps-court-appearance-id/{courtAppearanceId}")
+  inner class GetCourtAppearanceMappingByDpsId {
+    lateinit var courtAppearanceMapping: CourtAppearanceMapping
 
     @BeforeEach
     fun setUp() = runTest {
-      courtCaseMapping = repository.save(
-        CourtCaseMapping(
-          dpsCourtCaseId = "DPS123",
-          nomisCourtCaseId = 4321L,
+      courtAppearanceMapping = repository.save(
+        CourtAppearanceMapping(
+          dpsCourtAppearanceId = "DPS123",
+          nomisCourtAppearanceId = 4321L,
           label = "2023-01-01T12:45:12",
-          mappingType = CourtCaseMappingType.MIGRATED,
+          mappingType = CourtAppearanceMappingType.MIGRATED,
         ),
       )
     }
@@ -48,7 +48,7 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.get()
-          .uri("/mapping/court-sentencing/court-cases/dps-court-case-id/${courtCaseMapping.dpsCourtCaseId}")
+          .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/${courtAppearanceMapping.dpsCourtAppearanceId}")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -56,7 +56,7 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.get()
-          .uri("/mapping/court-sentencing/court-cases/dps-court-case-id/${courtCaseMapping.dpsCourtCaseId}")
+          .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/${courtAppearanceMapping.dpsCourtAppearanceId}")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -65,7 +65,7 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/mapping/court-sentencing/court-cases/dps-court-case-id/${courtCaseMapping.dpsCourtCaseId}")
+          .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/${courtAppearanceMapping.dpsCourtAppearanceId}")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -77,7 +77,7 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 404 when mapping does not exist`() {
         webTestClient.get()
-          .uri("/mapping/court-sentencing/court-cases/dps-court-case-id/DOESNOTEXIST")
+          .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/DOESNOTEXIST")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .exchange()
           .expectStatus().isNotFound
@@ -86,15 +86,15 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 200 when mapping does exist`() {
         webTestClient.get()
-          .uri("/mapping/court-sentencing/court-cases/dps-court-case-id/${courtCaseMapping.dpsCourtCaseId}")
+          .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/${courtAppearanceMapping.dpsCourtAppearanceId}")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCourtCaseId").isEqualTo(courtCaseMapping.nomisCourtCaseId)
-          .jsonPath("dpsCourtCaseId").isEqualTo(courtCaseMapping.dpsCourtCaseId)
-          .jsonPath("mappingType").isEqualTo(courtCaseMapping.mappingType.name)
-          .jsonPath("label").isEqualTo(courtCaseMapping.label!!)
+          .jsonPath("nomisCourtAppearanceId").isEqualTo(courtAppearanceMapping.nomisCourtAppearanceId)
+          .jsonPath("dpsCourtAppearanceId").isEqualTo(courtAppearanceMapping.dpsCourtAppearanceId)
+          .jsonPath("mappingType").isEqualTo(courtAppearanceMapping.mappingType.name)
+          .jsonPath("label").isEqualTo(courtAppearanceMapping.label!!)
           .jsonPath("whenCreated").value<String> {
             assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
           }
@@ -103,24 +103,24 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("POST /mapping/court-sentencing/court-cases")
-  inner class CreateMapping {
-    private lateinit var existingMapping: CourtCaseMapping
-    private val mapping = CourtCaseMappingDto(
-      dpsCourtCaseId = "DPS123",
-      nomisCourtCaseId = 54321L,
+  @DisplayName("POST /mapping/court-sentencing/court-appearances")
+  inner class CreateCourtAppearanceMapping {
+    private lateinit var existingMapping: CourtAppearanceMapping
+    private val mapping = CourtAppearanceMappingDto(
+      dpsCourtAppearanceId = "DPS123",
+      nomisCourtAppearanceId = 54321L,
       label = "2023-01-01T12:45:12",
-      mappingType = CourtCaseMappingType.DPS_CREATED,
+      mappingType = CourtAppearanceMappingType.DPS_CREATED,
     )
 
     @BeforeEach
     fun setUp() = runTest {
       existingMapping = repository.save(
-        CourtCaseMapping(
-          dpsCourtCaseId = "DPS321",
-          nomisCourtCaseId = 98765L,
+        CourtAppearanceMapping(
+          dpsCourtAppearanceId = "DPS321",
+          nomisCourtAppearanceId = 98765L,
           label = "2023-01-01T12:45:12",
-          mappingType = CourtCaseMappingType.MIGRATED,
+          mappingType = CourtAppearanceMappingType.MIGRATED,
         ),
       )
     }
@@ -135,7 +135,7 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.post()
-          .uri("/mapping/court-sentencing/court-cases")
+          .uri("/mapping/court-sentencing/court-appearances")
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -145,7 +145,7 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.post()
-          .uri("/mapping/court-sentencing/court-cases")
+          .uri("/mapping/court-sentencing/court-appearances")
           .headers(setAuthorisation(roles = listOf()))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
@@ -156,7 +156,7 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.post()
-          .uri("/mapping/court-sentencing/court-cases")
+          .uri("/mapping/court-sentencing/court-appearances")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
@@ -170,7 +170,7 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 201 when mapping created`() = runTest {
         webTestClient.post()
-          .uri("/mapping/court-sentencing/court-cases")
+          .uri("/mapping/court-sentencing/court-appearances")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
@@ -179,12 +179,12 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
 
         val createdMapping =
           repository.findById(
-            id = mapping.dpsCourtCaseId,
+            id = mapping.dpsCourtAppearanceId,
           )!!
 
         assertThat(createdMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
-        assertThat(createdMapping.nomisCourtCaseId).isEqualTo(mapping.nomisCourtCaseId)
-        assertThat(createdMapping.dpsCourtCaseId).isEqualTo(mapping.dpsCourtCaseId)
+        assertThat(createdMapping.nomisCourtAppearanceId).isEqualTo(mapping.nomisCourtAppearanceId)
+        assertThat(createdMapping.dpsCourtAppearanceId).isEqualTo(mapping.dpsCourtAppearanceId)
         assertThat(createdMapping.mappingType).isEqualTo(mapping.mappingType)
         assertThat(createdMapping.label).isEqualTo(mapping.label)
       }
@@ -192,7 +192,7 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `can create with minimal data`() = runTest {
         webTestClient.post()
-          .uri("/mapping/court-sentencing/court-cases")
+          .uri("/mapping/court-sentencing/court-appearances")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -200,8 +200,8 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "nomisCourtCaseId": "65432",
-                  "dpsCourtCaseId": "DPS123"
+                  "nomisCourtAppearanceId": "65432",
+                  "dpsCourtAppearanceId": "DPS123"
                 }
               """.trimIndent(),
             ),
@@ -215,8 +215,8 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
           )!!
 
         assertThat(createdMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
-        assertThat(createdMapping.nomisCourtCaseId).isEqualTo(65432)
-        assertThat(createdMapping.dpsCourtCaseId).isEqualTo("DPS123")
+        assertThat(createdMapping.nomisCourtAppearanceId).isEqualTo(65432)
+        assertThat(createdMapping.dpsCourtAppearanceId).isEqualTo("DPS123")
         assertThat(createdMapping.mappingType).isEqualTo(mapping.mappingType)
         assertThat(createdMapping.label).isNull()
       }
@@ -224,7 +224,7 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `can post and then get new and existing mapping`() {
         webTestClient.post()
-          .uri("/mapping/court-sentencing/court-cases")
+          .uri("/mapping/court-sentencing/court-appearances")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -232,8 +232,8 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                  {
-                  "nomisCourtCaseId": "54321",
-                  "dpsCourtCaseId": "DPS123"
+                  "nomisCourtAppearanceId": "54321",
+                  "dpsCourtAppearanceId": "DPS123"
                 }
               """.trimIndent(),
             ),
@@ -242,13 +242,13 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isCreated
 
         webTestClient.get()
-          .uri("/mapping/court-sentencing/court-cases/dps-court-case-id/DPS123")
+          .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/DPS123")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .exchange()
           .expectStatus().isOk
 
         webTestClient.get()
-          .uri("/mapping/court-sentencing/court-cases/dps-court-case-id/${existingMapping.dpsCourtCaseId}")
+          .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/${existingMapping.dpsCourtAppearanceId}")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .exchange()
           .expectStatus().isOk
@@ -260,7 +260,7 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 400 when mapping type is invalid`() {
         webTestClient.post()
-          .uri("/mapping/court-sentencing/court-cases")
+          .uri("/mapping/court-sentencing/court-appearances")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -268,8 +268,8 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "nomisCourtCaseId": 54321,
-                  "dpsCourtCaseId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
+                  "nomisCourtAppearanceId": 54321,
+                  "dpsCourtAppearanceId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
                   "mappingType": "INVALID_TYPE"
                 }
               """.trimIndent(),
@@ -282,7 +282,7 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 400 when DPS id is missing`() {
         webTestClient.post()
-          .uri("/mapping/court-sentencing/court-cases")
+          .uri("/mapping/court-sentencing/court-appearances")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -290,7 +290,7 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "nomisCourtCaseId": 54321
+                  "nomisCourtAppearanceId": 54321
                 }
               """.trimIndent(),
             ),
@@ -302,7 +302,7 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 400 when NOMIS id is missing`() {
         webTestClient.post()
-          .uri("/mapping/court-sentencing/court-cases")
+          .uri("/mapping/court-sentencing/court-appearances")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -310,7 +310,7 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "dpsCourtCaseId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
+                  "dpsCourtAppearanceId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
                 }
               """.trimIndent(),
             ),
@@ -322,14 +322,14 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 409 if nomis id already exist`() {
         val duplicateResponse = webTestClient.post()
-          .uri("/mapping/court-sentencing/court-cases")
+          .uri("/mapping/court-sentencing/court-appearances")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CourtCaseMappingDto(
-                nomisCourtCaseId = existingMapping.nomisCourtCaseId,
-                dpsCourtCaseId = "DPS888",
+              CourtAppearanceMappingDto(
+                nomisCourtAppearanceId = existingMapping.nomisCourtAppearanceId,
+                dpsCourtAppearanceId = "DPS888",
               ),
             ),
           )
@@ -344,25 +344,25 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
         with(duplicateResponse!!) {
           // since this is an untyped map an int will be assumed for such small numbers
           assertThat(this.moreInfo.existing)
-            .containsEntry("nomisCourtCaseId", existingMapping.nomisCourtCaseId.toInt())
-            .containsEntry("dpsCourtCaseId", existingMapping.dpsCourtCaseId)
+            .containsEntry("nomisCourtAppearanceId", existingMapping.nomisCourtAppearanceId.toInt())
+            .containsEntry("dpsCourtAppearanceId", existingMapping.dpsCourtAppearanceId)
           assertThat(this.moreInfo.duplicate)
-            .containsEntry("nomisCourtCaseId", existingMapping.nomisCourtCaseId.toInt())
-            .containsEntry("dpsCourtCaseId", "DPS888")
+            .containsEntry("nomisCourtAppearanceId", existingMapping.nomisCourtAppearanceId.toInt())
+            .containsEntry("dpsCourtAppearanceId", "DPS888")
         }
       }
 
       @Test
       fun `returns 409 if dps id already exists`() {
         val duplicateResponse = webTestClient.post()
-          .uri("/mapping/court-sentencing/court-cases")
+          .uri("/mapping/court-sentencing/court-appearances")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CourtCaseMappingDto(
-                nomisCourtCaseId = 8877,
-                dpsCourtCaseId = existingMapping.dpsCourtCaseId,
+              CourtAppearanceMappingDto(
+                nomisCourtAppearanceId = 8877,
+                dpsCourtAppearanceId = existingMapping.dpsCourtAppearanceId,
               ),
             ),
           )
@@ -377,11 +377,11 @@ class CourtSentencingResourceIntTest : IntegrationTestBase() {
         with(duplicateResponse!!) {
           // since this is an untyped map an int will be assumed for such small numbers
           assertThat(this.moreInfo.existing)
-            .containsEntry("nomisCourtCaseId", existingMapping.nomisCourtCaseId.toInt())
-            .containsEntry("dpsCourtCaseId", existingMapping.dpsCourtCaseId)
+            .containsEntry("nomisCourtAppearanceId", existingMapping.nomisCourtAppearanceId.toInt())
+            .containsEntry("dpsCourtAppearanceId", existingMapping.dpsCourtAppearanceId)
           assertThat(this.moreInfo.duplicate)
-            .containsEntry("nomisCourtCaseId", 8877)
-            .containsEntry("dpsCourtCaseId", existingMapping.dpsCourtCaseId)
+            .containsEntry("nomisCourtAppearanceId", 8877)
+            .containsEntry("dpsCourtAppearanceId", existingMapping.dpsCourtAppearanceId)
         }
       }
     }
