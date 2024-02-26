@@ -17,9 +17,20 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.Integr
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
+private const val nomisCourtAppearance1Id = 54321L
+private const val nomisCourtAppearance2Id = 65432L
+private const val dpsCourtAppearance1Id = "dpsca1"
+private const val dpsCourtAppearance2Id = "dpsca2"
+private const val nomisCourtCase1Id = 54321L
+private const val dpsCourtCaseId = "dps123"
+private const val existingDpsCourtCaseId = "DPS321"
+private const val existingNomisCourtCaseId = 98765L
+
 class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var repository: CourtCaseMappingRepository
+  @Autowired
+  private lateinit var courtAppearanceRepository: CourtAppearanceMappingRepository
 
   @Nested
   @DisplayName("GET /mapping/court-sentencing/court-cases/dps-court-case-id/{courtCaseId}")
@@ -30,7 +41,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
     fun setUp() = runTest {
       courtCaseMapping = repository.save(
         CourtCaseMapping(
-          dpsCourtCaseId = "DPS123",
+          dpsCourtCaseId = dpsCourtCaseId,
           nomisCourtCaseId = 4321L,
           label = "2023-01-01T12:45:12",
           mappingType = CourtCaseMappingType.MIGRATED,
@@ -107,18 +118,32 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
   inner class CreateMapping {
     private lateinit var existingMapping: CourtCaseMapping
     private val mapping = CourtCaseMappingDto(
-      dpsCourtCaseId = "DPS123",
-      nomisCourtCaseId = 54321L,
+      dpsCourtCaseId = dpsCourtCaseId,
+      nomisCourtCaseId = nomisCourtAppearance1Id,
       label = "2023-01-01T12:45:12",
       mappingType = CourtCaseMappingType.DPS_CREATED,
+      courtAppearances = listOf(
+        CourtAppearanceMappingDto(
+          dpsCourtAppearanceId = dpsCourtAppearance1Id,
+          nomisCourtAppearanceId = nomisCourtAppearance1Id,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtAppearanceMappingType.DPS_CREATED,
+        ),
+        CourtAppearanceMappingDto(
+          dpsCourtAppearanceId = dpsCourtAppearance2Id,
+          nomisCourtAppearanceId = nomisCourtAppearance2Id,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtAppearanceMappingType.DPS_CREATED,
+        ),
+      ),
     )
 
     @BeforeEach
     fun setUp() = runTest {
       existingMapping = repository.save(
         CourtCaseMapping(
-          dpsCourtCaseId = "DPS321",
-          nomisCourtCaseId = 98765L,
+          dpsCourtCaseId = existingDpsCourtCaseId,
+          nomisCourtCaseId = existingNomisCourtCaseId,
           label = "2023-01-01T12:45:12",
           mappingType = CourtCaseMappingType.MIGRATED,
         ),
@@ -128,6 +153,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
     @AfterEach
     fun tearDown() = runTest {
       repository.deleteAll()
+      courtAppearanceRepository.deleteAll()
     }
 
     @Nested
@@ -182,43 +208,31 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
             id = mapping.dpsCourtCaseId,
           )!!
 
+        val createdCourtAppearance1Mapping =
+          courtAppearanceRepository.findById(
+            id = dpsCourtAppearance1Id,
+          )!!
+
+        val createdCourtAppearance2Mapping =
+          courtAppearanceRepository.findById(
+            id = dpsCourtAppearance2Id,
+          )!!
+
         assertThat(createdMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         assertThat(createdMapping.nomisCourtCaseId).isEqualTo(mapping.nomisCourtCaseId)
         assertThat(createdMapping.dpsCourtCaseId).isEqualTo(mapping.dpsCourtCaseId)
         assertThat(createdMapping.mappingType).isEqualTo(mapping.mappingType)
         assertThat(createdMapping.label).isEqualTo(mapping.label)
-      }
-
-      @Test
-      fun `can create with minimal data`() = runTest {
-        webTestClient.post()
-          .uri("/mapping/court-sentencing/court-cases")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(
-            BodyInserters.fromValue(
-              //language=JSON
-              """
-                {
-                  "nomisCourtCaseId": "65432",
-                  "dpsCourtCaseId": "DPS123"
-                }
-              """.trimIndent(),
-            ),
-          )
-          .exchange()
-          .expectStatus().isCreated
-
-        val createdMapping =
-          repository.findById(
-            id = "DPS123",
-          )!!
-
-        assertThat(createdMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
-        assertThat(createdMapping.nomisCourtCaseId).isEqualTo(65432)
-        assertThat(createdMapping.dpsCourtCaseId).isEqualTo("DPS123")
-        assertThat(createdMapping.mappingType).isEqualTo(mapping.mappingType)
-        assertThat(createdMapping.label).isNull()
+        assertThat(createdCourtAppearance1Mapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        assertThat(createdCourtAppearance1Mapping.nomisCourtAppearanceId).isEqualTo(nomisCourtAppearance1Id)
+        assertThat(createdCourtAppearance1Mapping.dpsCourtAppearanceId).isEqualTo(dpsCourtAppearance1Id)
+        assertThat(createdCourtAppearance1Mapping.mappingType).isEqualTo(CourtAppearanceMappingType.DPS_CREATED)
+        assertThat(createdCourtAppearance1Mapping.label).isEqualTo(mapping.courtAppearances[0].label)
+        assertThat(createdCourtAppearance2Mapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        assertThat(createdCourtAppearance2Mapping.nomisCourtAppearanceId).isEqualTo(nomisCourtAppearance2Id)
+        assertThat(createdCourtAppearance2Mapping.dpsCourtAppearanceId).isEqualTo(dpsCourtAppearance2Id)
+        assertThat(createdCourtAppearance2Mapping.mappingType).isEqualTo(CourtAppearanceMappingType.DPS_CREATED)
+        assertThat(createdCourtAppearance2Mapping.label).isEqualTo(mapping.courtAppearances[1].label)
       }
 
       @Test
@@ -232,8 +246,8 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                  {
-                  "nomisCourtCaseId": "54321",
-                  "dpsCourtCaseId": "DPS123"
+                  "nomisCourtCaseId": $nomisCourtCase1Id,
+                  "dpsCourtCaseId": "$dpsCourtCaseId"
                 }
               """.trimIndent(),
             ),
@@ -242,13 +256,13 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
           .expectStatus().isCreated
 
         webTestClient.get()
-          .uri("/mapping/court-sentencing/court-cases/dps-court-case-id/DPS123")
+          .uri("/mapping/court-sentencing/court-cases/dps-court-case-id/$dpsCourtCaseId")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .exchange()
           .expectStatus().isOk
 
         webTestClient.get()
-          .uri("/mapping/court-sentencing/court-cases/dps-court-case-id/${existingMapping.dpsCourtCaseId}")
+          .uri("/mapping/court-sentencing/court-cases/dps-court-case-id/${existingDpsCourtCaseId}")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .exchange()
           .expectStatus().isOk
