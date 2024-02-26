@@ -29,6 +29,7 @@ private const val existingNomisCourtCaseId = 98765L
 class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var repository: CourtCaseMappingRepository
+
   @Autowired
   private lateinit var courtAppearanceRepository: CourtAppearanceMappingRepository
 
@@ -262,7 +263,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
           .expectStatus().isOk
 
         webTestClient.get()
-          .uri("/mapping/court-sentencing/court-cases/dps-court-case-id/${existingDpsCourtCaseId}")
+          .uri("/mapping/court-sentencing/court-cases/dps-court-case-id/$existingDpsCourtCaseId")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .exchange()
           .expectStatus().isOk
