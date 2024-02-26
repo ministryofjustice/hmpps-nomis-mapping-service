@@ -15,7 +15,7 @@ data class CourtCaseMappingDto(
   @Schema(description = "DPS court case id", example = "123456")
   val dpsCourtCaseId: String,
 
-  @Schema(description = "Appearance mappings", required = true)
+  @Schema(description = "Court Appearance mappings")
   val courtAppearances: List<CourtAppearanceMappingDto> = emptyList(),
 
   @Schema(description = "Label (a timestamp for migrated ids)")
