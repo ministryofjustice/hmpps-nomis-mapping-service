@@ -61,8 +61,8 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   @PostMapping("/court-cases")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
-    summary = "Creates a new court case mapping",
-    description = "Creates a mapping between nomis Court Case ID and DPS Court Case ID. Requires ROLE_NOMIS_COURT_SENTENCING",
+    summary = "Creates a new court case hierarchical mapping",
+    description = "Creates a mapping between nomis Court Case ID and DPS Court Case ID, plus child Court appearances Requires ROLE_NOMIS_COURT_SENTENCING",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = CourtCaseMappingDto::class))],
     ),

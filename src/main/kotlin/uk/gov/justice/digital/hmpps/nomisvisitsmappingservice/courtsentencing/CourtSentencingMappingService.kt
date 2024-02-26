@@ -20,16 +20,20 @@ class CourtSentencingMappingService(
   @Transactional
   suspend fun createMapping(createMappingRequest: CourtCaseMappingDto) =
     with(createMappingRequest) {
-      courtCaseMappingRepository.save(createMappingRequest.toCourtCaseMapping()).also {
-        telemetryClient.trackEvent(
-          "court-case-mapping-created",
-          mapOf(
-            "dpsCourtCaseId" to dpsCourtCaseId,
-            "nomisCourtCaseId" to nomisCourtCaseId.toString(),
-          ),
-          null,
-        )
-      }
+      courtCaseMappingRepository.save(createMappingRequest.toCourtCaseMapping())
+        .also {
+          createMappingRequest.courtAppearances.forEach {
+            createCourtAppearanceMapping(it)
+          }
+          telemetryClient.trackEvent(
+            "court-case-mapping-created",
+            mapOf(
+              "dpsCourtCaseId" to dpsCourtCaseId,
+              "nomisCourtCaseId" to nomisCourtCaseId.toString(),
+            ),
+            null,
+          )
+        }
     }
 
   suspend fun getCourtCaseMappingByDpsId(courtCaseId: String): CourtCaseMappingDto =
