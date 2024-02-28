@@ -62,9 +62,14 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new court case hierarchical mapping",
-    description = "Creates a mapping between nomis Court Case ID and DPS Court Case ID, plus child Court appearances Requires ROLE_NOMIS_COURT_SENTENCING",
+    description = "Creates a mapping between nomis Court Case ID and DPS Court Case ID. Also maps child entities: Court appearances and charges. Requires ROLE_NOMIS_COURT_SENTENCING",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = CourtCaseMappingDto::class))],
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = CourtCaseAllMappingDto::class),
+        ),
+      ],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Mapping created"),
@@ -92,7 +97,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   )
   suspend fun createMapping(
     @RequestBody @Valid
-    mapping: CourtCaseMappingDto,
+    mapping: CourtCaseAllMappingDto,
   ) =
     try {
       mappingService.createMapping(mapping)
@@ -143,7 +148,12 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     summary = "Creates a new court appearance mapping",
     description = "Creates a mapping between nomis Court appearance ID and DPS Court appearance ID. Requires ROLE_NOMIS_COURT_SENTENCING",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = CourtAppearanceMappingDto::class))],
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = CourtAppearanceMappingDto::class),
+        ),
+      ],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Mapping created"),
@@ -184,7 +194,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
       )
     }
 
-  private suspend fun getExistingMappingSimilarTo(mapping: CourtCaseMappingDto) = runCatching {
+  private suspend fun getExistingMappingSimilarTo(mapping: CourtCaseAllMappingDto) = runCatching {
     mappingService.getCourtCaseMappingByNomisId(
       courtCaseId = mapping.nomisCourtCaseId,
     )

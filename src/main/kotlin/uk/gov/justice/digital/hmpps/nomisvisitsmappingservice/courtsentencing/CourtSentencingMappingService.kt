@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundEx
 class CourtSentencingMappingService(
   private val courtCaseMappingRepository: CourtCaseMappingRepository,
   private val courtAppearanceMappingRepository: CourtAppearanceMappingRepository,
+  private val courtChargeMappingRepository: CourtChargeMappingRepository,
   private val telemetryClient: TelemetryClient,
 ) {
   private companion object {
@@ -18,12 +19,15 @@ class CourtSentencingMappingService(
   }
 
   @Transactional
-  suspend fun createMapping(createMappingRequest: CourtCaseMappingDto) =
+  suspend fun createMapping(createMappingRequest: CourtCaseAllMappingDto) =
     with(createMappingRequest) {
       courtCaseMappingRepository.save(createMappingRequest.toCourtCaseMapping())
         .also {
           createMappingRequest.courtAppearances.forEach {
             createCourtAppearanceMapping(it)
+          }
+          createMappingRequest.courtCharges.forEach {
+            createCourtChargeMapping(it)
           }
           telemetryClient.trackEvent(
             "court-case-mapping-created",
@@ -59,6 +63,21 @@ class CourtSentencingMappingService(
       }
     }
 
+  @Transactional
+  suspend fun createCourtChargeMapping(createMappingRequest: CourtChargeMappingDto) =
+    with(createMappingRequest) {
+      courtChargeMappingRepository.save(createMappingRequest.toCourtChargeMapping()).also {
+        telemetryClient.trackEvent(
+          "court-charge-mapping-created",
+          mapOf(
+            "dpsCourtChargeId" to dpsCourtChargeId,
+            "nomisCourtChargeId" to nomisCourtChargeId.toString(),
+          ),
+          null,
+        )
+      }
+    }
+
   suspend fun getCourtAppearanceMappingByDpsId(courtAppearanceId: String): CourtAppearanceMappingDto =
     courtAppearanceMappingRepository.findById(courtAppearanceId)?.toCourtAppearanceMappingDto()
       ?: throw NotFoundException("DPS Court case Id =$courtAppearanceId")
@@ -76,7 +95,7 @@ fun CourtCaseMapping.toCourtCaseMappingDto(): CourtCaseMappingDto = CourtCaseMap
   whenCreated = this.whenCreated,
 )
 
-fun CourtCaseMappingDto.toCourtCaseMapping(): CourtCaseMapping = CourtCaseMapping(
+fun CourtCaseAllMappingDto.toCourtCaseMapping(): CourtCaseMapping = CourtCaseMapping(
   dpsCourtCaseId = this.dpsCourtCaseId,
   nomisCourtCaseId = this.nomisCourtCaseId,
   label = this.label,
@@ -96,4 +115,19 @@ fun CourtAppearanceMappingDto.toCourtAppearanceMapping(): CourtAppearanceMapping
   nomisCourtAppearanceId = this.nomisCourtAppearanceId,
   label = this.label,
   mappingType = mappingType ?: CourtAppearanceMappingType.DPS_CREATED,
+)
+
+fun CourtChargeMapping.toCourtChargeMappingDto(): CourtChargeMappingDto = CourtChargeMappingDto(
+  dpsCourtChargeId = this.dpsCourtChargeId,
+  nomisCourtChargeId = this.nomisCourtChargeId,
+  label = this.label,
+  mappingType = this.mappingType,
+  whenCreated = this.whenCreated,
+)
+
+fun CourtChargeMappingDto.toCourtChargeMapping(): CourtChargeMapping = CourtChargeMapping(
+  dpsCourtChargeId = this.dpsCourtChargeId,
+  nomisCourtChargeId = this.nomisCourtChargeId,
+  label = this.label,
+  mappingType = mappingType ?: CourtChargeMappingType.DPS_CREATED,
 )
