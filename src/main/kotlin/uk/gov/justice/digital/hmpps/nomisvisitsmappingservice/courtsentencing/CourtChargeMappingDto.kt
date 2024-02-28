@@ -9,10 +9,10 @@ import java.time.LocalDateTime
 @Schema(description = "Court Charge mapping")
 data class CourtChargeMappingDto(
 
-  @Schema(description = "NOMIS court case id", required = true, example = "123456")
+  @Schema(description = "NOMIS court charge id", required = true, example = "123456")
   val nomisCourtChargeId: Long,
 
-  @Schema(description = "DPS court case id", required = true, example = "123456")
+  @Schema(description = "DPS court charge id", required = true, example = "123456")
   val dpsCourtChargeId: String,
 
   @Schema(description = "Label (a timestamp for migrated ids)")
