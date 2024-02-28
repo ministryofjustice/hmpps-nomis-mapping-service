@@ -108,6 +108,7 @@ fun CourtAppearanceMapping.toCourtAppearanceMappingDto(): CourtAppearanceMapping
   label = this.label,
   mappingType = this.mappingType,
   whenCreated = this.whenCreated,
+  nomisNextCourtAppearanceId = this.nomisNextCourtAppearanceId,
 )
 
 fun CourtAppearanceMappingDto.toCourtAppearanceMapping(): CourtAppearanceMapping = CourtAppearanceMapping(
@@ -115,6 +116,7 @@ fun CourtAppearanceMappingDto.toCourtAppearanceMapping(): CourtAppearanceMapping
   nomisCourtAppearanceId = this.nomisCourtAppearanceId,
   label = this.label,
   mappingType = mappingType ?: CourtAppearanceMappingType.DPS_CREATED,
+  nomisNextCourtAppearanceId = this.nomisNextCourtAppearanceId,
 )
 
 fun CourtChargeMapping.toCourtChargeMappingDto(): CourtChargeMappingDto = CourtChargeMappingDto(

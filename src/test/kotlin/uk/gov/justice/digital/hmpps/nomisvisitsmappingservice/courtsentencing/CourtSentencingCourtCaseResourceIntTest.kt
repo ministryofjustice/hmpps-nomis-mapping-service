@@ -18,6 +18,7 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 private const val NOMIS_COURT_APPEARANCE_1_ID = 54321L
+private const val NOMIS_NEXT_COURT_APPEARANCE_1_ID = 76543L
 private const val NOMIS_COURT_APPEARANCE_2_ID = 65432L
 private const val NOMIS_COURT_CHARGE_1_ID = 32121L
 private const val NOMIS_COURT_CHARGE_2_ID = 87676L
@@ -142,6 +143,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
           nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_2_ID,
           label = "2023-01-01T12:45:12",
           mappingType = CourtAppearanceMappingType.DPS_CREATED,
+          nomisNextCourtAppearanceId = NOMIS_NEXT_COURT_APPEARANCE_1_ID,
         ),
       ),
       courtCharges = listOf(
@@ -264,6 +266,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
         assertThat(createdCourtAppearance1Mapping.dpsCourtAppearanceId).isEqualTo(DPS_COURT_APPEARANCE_1_ID)
         assertThat(createdCourtAppearance1Mapping.mappingType).isEqualTo(CourtAppearanceMappingType.DPS_CREATED)
         assertThat(createdCourtAppearance1Mapping.label).isEqualTo(mapping.courtAppearances[0].label)
+        assertThat(createdCourtAppearance1Mapping.nomisNextCourtAppearanceId).isNull()
         assertThat(createdCourtAppearance2Mapping.whenCreated).isCloseTo(
           LocalDateTime.now(),
           within(10, ChronoUnit.SECONDS),
@@ -272,6 +275,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
         assertThat(createdCourtAppearance2Mapping.dpsCourtAppearanceId).isEqualTo(DPS_COURT_APPEARANCE_2_ID)
         assertThat(createdCourtAppearance2Mapping.mappingType).isEqualTo(CourtAppearanceMappingType.DPS_CREATED)
         assertThat(createdCourtAppearance2Mapping.label).isEqualTo(mapping.courtAppearances[1].label)
+        assertThat(createdCourtAppearance2Mapping.nomisNextCourtAppearanceId).isEqualTo(NOMIS_NEXT_COURT_APPEARANCE_1_ID)
         assertThat(createdCourtCharge1Mapping.nomisCourtChargeId).isEqualTo(NOMIS_COURT_CHARGE_1_ID)
         assertThat(createdCourtCharge1Mapping.dpsCourtChargeId).isEqualTo(DPS_COURT_CHARGE_1_ID)
         assertThat(createdCourtCharge1Mapping.mappingType).isEqualTo(CourtChargeMappingType.DPS_CREATED)
@@ -448,6 +452,90 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
             .containsEntry("nomisCourtCaseId", 8877)
             .containsEntry("dpsCourtCaseId", existingMapping.dpsCourtCaseId)
         }
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/court-sentencing/court-appearances/dps-court-appearance-id/{courtAppearanceId}")
+  inner class GetCourtAppearanceMappingByDpsId {
+    lateinit var courtAppearanceMapping: CourtAppearanceMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      courtAppearanceMapping = courtAppearanceRepository.save(
+        CourtAppearanceMapping(
+          dpsCourtAppearanceId = DPS_COURT_APPEARANCE_1_ID,
+          nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_1_ID,
+          nomisNextCourtAppearanceId = NOMIS_NEXT_COURT_APPEARANCE_1_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtAppearanceMappingType.MIGRATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      repository.deleteAll()
+      courtAppearanceRepository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/${courtAppearanceMapping.dpsCourtAppearanceId}")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/${courtAppearanceMapping.dpsCourtAppearanceId}")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/${courtAppearanceMapping.dpsCourtAppearanceId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 404 when mapping does not exist`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/DOESNOTEXIST")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+
+      @Test
+      fun `will return 200 when mapping does exist`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/${courtAppearanceMapping.dpsCourtAppearanceId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisCourtAppearanceId").isEqualTo(courtAppearanceMapping.nomisCourtAppearanceId)
+          .jsonPath("dpsCourtAppearanceId").isEqualTo(courtAppearanceMapping.dpsCourtAppearanceId)
+          .jsonPath("nomisNextCourtAppearanceId").isEqualTo(courtAppearanceMapping.nomisNextCourtAppearanceId!!)
+          .jsonPath("mappingType").isEqualTo(courtAppearanceMapping.mappingType.name)
+          .jsonPath("label").isEqualTo(courtAppearanceMapping.label!!)
+          .jsonPath("whenCreated").value<String> {
+            assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+          }
       }
     }
   }
