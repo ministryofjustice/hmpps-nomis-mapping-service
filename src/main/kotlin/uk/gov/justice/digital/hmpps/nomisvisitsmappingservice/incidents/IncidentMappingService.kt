@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service
+package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.incidents
 
 import com.microsoft.applicationinsights.TelemetryClient
 import kotlinx.coroutines.async
@@ -11,10 +11,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.IncidentMappingDto
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncidentMapping
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncidentMappingType
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.IncidentMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
 @Service
 @Transactional(readOnly = true)

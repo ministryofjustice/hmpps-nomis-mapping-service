@@ -1,9 +1,8 @@
-package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data
+package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.incidents
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Size
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncidentMapping
 import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
