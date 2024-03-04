@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
+package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.incidents
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -21,13 +21,9 @@ import org.springframework.test.util.ReflectionTestUtils
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.IncidentMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.incidents.IncidentMappingType.INCIDENT_CREATED
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.incidents.IncidentMappingType.NOMIS_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncidentMappingType
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncidentMappingType.INCIDENT_CREATED
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncidentMappingType.NOMIS_CREATED
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.IncidentMappingRepository
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.IncidentMappingService
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
