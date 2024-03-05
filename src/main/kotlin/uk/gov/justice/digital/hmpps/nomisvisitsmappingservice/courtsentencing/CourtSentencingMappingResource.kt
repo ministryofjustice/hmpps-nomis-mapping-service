@@ -119,7 +119,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CourtAppearanceMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = CourtAppearanceAllMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -134,12 +134,44 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
       ),
     ],
   )
-  suspend fun getCourtAppearanceMappingByNomisId(
+  suspend fun getCourtAppearanceMappingByDpsId(
     @Schema(description = "DPS court appearance id", example = "D123", required = true)
     @PathVariable
     courtAppearanceId: String,
   ): CourtAppearanceMappingDto = mappingService.getCourtAppearanceMappingByDpsId(
     courtAppearanceId = courtAppearanceId,
+  )
+
+  @GetMapping("/court-charges/dps-court-charge-id/{courtChargeId}")
+  @Operation(
+    summary = "get court charge mapping",
+    description = "Retrieves a mapping by DPS id. Requires role NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = CourtAppearanceAllMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getCourtChargeMappingByDpsId(
+    @Schema(description = "DPS court charge id", example = "D123", required = true)
+    @PathVariable
+    courtChargeId: String,
+  ): CourtChargeMappingDto = mappingService.getCourtCourtMappingByDpsId(
+    courtChargeId = courtChargeId,
   )
 
   @PostMapping("/court-appearances")
@@ -151,7 +183,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = CourtAppearanceMappingDto::class),
+          schema = Schema(implementation = CourtAppearanceAllMappingDto::class),
         ),
       ],
     ),
@@ -181,10 +213,10 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   )
   suspend fun createCourtAppearanceMapping(
     @RequestBody @Valid
-    mapping: CourtAppearanceMappingDto,
+    mapping: CourtAppearanceAllMappingDto,
   ) =
     try {
-      mappingService.createCourtAppearanceMapping(mapping)
+      mappingService.createCourtAppearanceAllMapping(mapping)
     } catch (e: DuplicateKeyException) {
       throw DuplicateMappingException(
         messageIn = "Court Case mapping already exists",
@@ -204,7 +236,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     )
   }
 
-  private suspend fun getExistingCourtAppearanceMappingSimilarTo(mapping: CourtAppearanceMappingDto) = runCatching {
+  private suspend fun getExistingCourtAppearanceMappingSimilarTo(mapping: CourtAppearanceAllMappingDto) = runCatching {
     mappingService.getCourtAppearanceMappingByNomisId(
       courtAppearanceId = mapping.nomisCourtAppearanceId,
     )
