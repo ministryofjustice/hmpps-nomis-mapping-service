@@ -108,6 +108,89 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("GET /mapping/alerts/dps-alert-id/{dpsAlertId}")
+  inner class GetMappingByDpsId {
+    lateinit var mapping: AlertMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      mapping = repository.save(
+        AlertMapping(
+          dpsAlertId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          nomisBookingId = 54321L,
+          nomisAlertSequence = 2L,
+          label = "2023-01-01T12:45:12",
+          mappingType = MIGRATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/alerts/dps-alert-id/${mapping.dpsAlertId}")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/alerts/dps-alert-id/${mapping.dpsAlertId}")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/alerts/dps-alert-id/${mapping.dpsAlertId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 404 when mapping does not exist`() {
+        webTestClient.get()
+          .uri("/mapping/alerts/dps-alert-id/DOESNOTEXIST")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+
+      @Test
+      fun `will return 200 when mapping does exist`() {
+        webTestClient.get()
+          .uri("/mapping/alerts/dps-alert-id/${mapping.dpsAlertId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisBookingId").isEqualTo(mapping.nomisBookingId)
+          .jsonPath("nomisAlertSequence").isEqualTo(mapping.nomisAlertSequence)
+          .jsonPath("dpsAlertId").isEqualTo(mapping.dpsAlertId)
+          .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
+          .jsonPath("label").isEqualTo(mapping.label!!)
+          .jsonPath("whenCreated").value<String> {
+            assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+          }
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("POST /mapping/alerts")
   inner class CreateMapping {
     private lateinit var existingMapping: AlertMapping
