@@ -64,6 +64,24 @@ class CourtSentencingMappingService(
     }
 
   @Transactional
+  suspend fun createCourtAppearanceAllMapping(createMappingRequest: CourtAppearanceAllMappingDto) =
+    with(createMappingRequest) {
+      courtAppearanceMappingRepository.save(createMappingRequest.toCourtAppearanceMapping()).also {
+        createMappingRequest.courtCharges.forEach {
+          createCourtChargeMapping(it)
+        }
+        telemetryClient.trackEvent(
+          "court-appearance-mapping-created",
+          mapOf(
+            "dpsCourtAppearanceId" to dpsCourtAppearanceId,
+            "nomisCourtAppearanceId" to nomisCourtAppearanceId.toString(),
+          ),
+          null,
+        )
+      }
+    }
+
+  @Transactional
   suspend fun createCourtChargeMapping(createMappingRequest: CourtChargeMappingDto) =
     with(createMappingRequest) {
       courtChargeMappingRepository.save(createMappingRequest.toCourtChargeMapping()).also {
@@ -85,6 +103,10 @@ class CourtSentencingMappingService(
   suspend fun getCourtAppearanceMappingByNomisId(courtAppearanceId: Long): CourtAppearanceMappingDto =
     courtAppearanceMappingRepository.findByNomisCourtAppearanceId(courtAppearanceId)?.toCourtAppearanceMappingDto()
       ?: throw NotFoundException("Nomis Court appearance Id =$courtAppearanceId")
+
+  suspend fun getCourtCourtMappingByDpsId(courtChargeId: String): CourtChargeMappingDto =
+    courtChargeMappingRepository.findById(courtChargeId)?.toCourtChargeMappingDto()
+      ?: throw NotFoundException("DPS Court case Id =$courtChargeId")
 }
 
 fun CourtCaseMapping.toCourtCaseMappingDto(): CourtCaseMappingDto = CourtCaseMappingDto(
@@ -112,6 +134,14 @@ fun CourtAppearanceMapping.toCourtAppearanceMappingDto(): CourtAppearanceMapping
 )
 
 fun CourtAppearanceMappingDto.toCourtAppearanceMapping(): CourtAppearanceMapping = CourtAppearanceMapping(
+  dpsCourtAppearanceId = this.dpsCourtAppearanceId,
+  nomisCourtAppearanceId = this.nomisCourtAppearanceId,
+  label = this.label,
+  mappingType = mappingType ?: CourtAppearanceMappingType.DPS_CREATED,
+  nomisNextCourtAppearanceId = this.nomisNextCourtAppearanceId,
+)
+
+fun CourtAppearanceAllMappingDto.toCourtAppearanceMapping(): CourtAppearanceMapping = CourtAppearanceMapping(
   dpsCourtAppearanceId = this.dpsCourtAppearanceId,
   nomisCourtAppearanceId = this.nomisCourtAppearanceId,
   label = this.label,

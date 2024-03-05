@@ -17,9 +17,16 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.Integr
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
+private const val NOMIS_COURT_CHARGE_1_ID = 32121L
+private const val NOMIS_COURT_CHARGE_2_ID = 87676L
+private const val DPS_COURT_CHARGE_1_ID = "dpscha1"
+private const val DPS_COURT_CHARGE_2_ID = "dpscha2"
 class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var repository: CourtAppearanceMappingRepository
+
+  @Autowired
+  private lateinit var courtChargeRepository: CourtChargeMappingRepository
 
   @Nested
   @DisplayName("GET /mapping/court-sentencing/court-appearances/dps-court-appearance-id/{courtAppearanceId}")
@@ -106,11 +113,25 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
   @DisplayName("POST /mapping/court-sentencing/court-appearances")
   inner class CreateCourtAppearanceMapping {
     private lateinit var existingMapping: CourtAppearanceMapping
-    private val mapping = CourtAppearanceMappingDto(
+    private val mapping = CourtAppearanceAllMappingDto(
       dpsCourtAppearanceId = "DPS123",
       nomisCourtAppearanceId = 54321L,
       label = "2023-01-01T12:45:12",
       mappingType = CourtAppearanceMappingType.DPS_CREATED,
+      courtCharges = listOf(
+        CourtChargeMappingDto(
+          dpsCourtChargeId = DPS_COURT_CHARGE_1_ID,
+          nomisCourtChargeId = NOMIS_COURT_CHARGE_1_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtChargeMappingType.DPS_CREATED,
+        ),
+        CourtChargeMappingDto(
+          dpsCourtChargeId = DPS_COURT_CHARGE_2_ID,
+          nomisCourtChargeId = NOMIS_COURT_CHARGE_2_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtChargeMappingType.DPS_CREATED,
+        ),
+      ),
     )
 
     @BeforeEach
@@ -182,11 +203,33 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
             id = mapping.dpsCourtAppearanceId,
           )!!
 
+        val createdCourtCharge1Mapping =
+          courtChargeRepository.findById(
+            id = DPS_COURT_CHARGE_1_ID,
+          )!!
+
+        val createdCourtCharge2Mapping =
+          courtChargeRepository.findById(
+            id = DPS_COURT_CHARGE_2_ID,
+          )!!
+
         assertThat(createdMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         assertThat(createdMapping.nomisCourtAppearanceId).isEqualTo(mapping.nomisCourtAppearanceId)
         assertThat(createdMapping.dpsCourtAppearanceId).isEqualTo(mapping.dpsCourtAppearanceId)
         assertThat(createdMapping.mappingType).isEqualTo(mapping.mappingType)
         assertThat(createdMapping.label).isEqualTo(mapping.label)
+
+        assertThat(createdCourtCharge1Mapping.dpsCourtChargeId).isEqualTo(DPS_COURT_CHARGE_1_ID)
+        assertThat(createdCourtCharge1Mapping.mappingType).isEqualTo(CourtChargeMappingType.DPS_CREATED)
+        assertThat(createdCourtCharge1Mapping.label).isEqualTo(mapping.courtCharges[0].label)
+        assertThat(createdCourtCharge2Mapping.whenCreated).isCloseTo(
+          LocalDateTime.now(),
+          within(10, ChronoUnit.SECONDS),
+        )
+        assertThat(createdCourtCharge2Mapping.nomisCourtChargeId).isEqualTo(NOMIS_COURT_CHARGE_2_ID)
+        assertThat(createdCourtCharge2Mapping.dpsCourtChargeId).isEqualTo(DPS_COURT_CHARGE_2_ID)
+        assertThat(createdCourtCharge2Mapping.mappingType).isEqualTo(CourtChargeMappingType.DPS_CREATED)
+        assertThat(createdCourtCharge2Mapping.label).isEqualTo(mapping.courtCharges[1].label)
       }
 
       @Test
@@ -327,7 +370,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CourtAppearanceMappingDto(
+              CourtAppearanceAllMappingDto(
                 nomisCourtAppearanceId = existingMapping.nomisCourtAppearanceId,
                 dpsCourtAppearanceId = "DPS888",
               ),
@@ -360,7 +403,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CourtAppearanceMappingDto(
+              CourtAppearanceAllMappingDto(
                 nomisCourtAppearanceId = 8877,
                 dpsCourtAppearanceId = existingMapping.dpsCourtAppearanceId,
               ),
