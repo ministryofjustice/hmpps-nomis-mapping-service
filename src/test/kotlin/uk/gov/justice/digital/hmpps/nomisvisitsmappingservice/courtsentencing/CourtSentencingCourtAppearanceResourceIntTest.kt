@@ -149,6 +149,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
     @AfterEach
     fun tearDown() = runTest {
       repository.deleteAll()
+      courtChargeRepository.deleteAll()
     }
 
     @Nested
