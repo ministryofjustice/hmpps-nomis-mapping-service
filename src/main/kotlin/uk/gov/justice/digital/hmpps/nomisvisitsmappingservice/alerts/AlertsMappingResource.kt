@@ -60,6 +60,36 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
     alertSequence: Long,
   ): AlertMappingDto = mappingService.getMappingByNomisId(bookingId = bookingId, alertSequence = alertSequence)
 
+  @GetMapping("/dps-alert-id/{dpsAlertId}")
+  @Operation(
+    summary = "get mapping",
+    description = "Retrieves a mapping by DPS id. Requires role NOMIS_ALERTS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = AlertMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getMappingByDpsId(
+    @Schema(description = "DPS alert id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
+    @PathVariable
+    dpsAlertId: String,
+  ): AlertMappingDto = mappingService.getMappingByDpsId(alertId = dpsAlertId)
+
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
