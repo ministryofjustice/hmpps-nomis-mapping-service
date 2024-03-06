@@ -1053,4 +1053,142 @@ class SentencingAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         .jsonPath("size").isEqualTo(2)
     }
   }
+
+  @DisplayName("GET /mapping/sentencing/adjustments")
+  @Nested
+  inner class GetAllMappingsTest {
+
+    @AfterEach
+    internal fun deleteData() = runBlocking {
+      repository.deleteAll()
+    }
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/sentencing/adjustments")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/sentencing/adjustments")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get sentence adjustments forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/sentencing/adjustments")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get sentence adjustment mappings success`() {
+      (1L..4L).forEach {
+        postCreateSentenceAdjustmentMappingRequest(
+          nomisAdjustmentId = it,
+          nomisAdjustmentCategory = "SENTENCE",
+          adjustmentId = "$it",
+          label = "2022-01-01",
+          mappingType = "MIGRATED",
+        )
+      }
+      (5L..9L).forEach {
+        postCreateSentenceAdjustmentMappingRequest(
+          nomisAdjustmentId = it,
+          nomisAdjustmentCategory = "SENTENCE",
+          adjustmentId = "$it",
+          label = "2099-01-01",
+          mappingType = "MIGRATED",
+        )
+      }
+      postCreateSentenceAdjustmentMappingRequest(
+        nomisAdjustmentId = 12,
+        nomisAdjustmentCategory = "SENTENCE",
+        adjustmentId = "12",
+        mappingType = SENTENCING_CREATED.name,
+      )
+
+      webTestClient.get().uri("/mapping/sentencing/adjustments")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(10)
+        .jsonPath("$.content..nomisAdjustmentId").value(
+          Matchers.contains(
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            12,
+          ),
+        )
+        .jsonPath("$.content[0].whenCreated").isNotEmpty
+    }
+
+    @Test
+    fun `can request a different page size`() {
+      (1L..6L).forEach {
+        postCreateSentenceAdjustmentMappingRequest(
+          nomisAdjustmentId = it,
+          nomisAdjustmentCategory = "SENTENCE",
+          adjustmentId = "$it",
+          label = "2022-01-01",
+          mappingType = "MIGRATED",
+        )
+      }
+      webTestClient.get().uri {
+        it.path("/mapping/sentencing/adjustments")
+          .queryParam("size", "2")
+          .build()
+      }
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(6)
+        .jsonPath("numberOfElements").isEqualTo(2)
+        .jsonPath("number").isEqualTo(0)
+        .jsonPath("totalPages").isEqualTo(3)
+        .jsonPath("size").isEqualTo(2)
+    }
+
+    @Test
+    fun `can request a different page`() {
+      (1L..3L).forEach {
+        postCreateSentenceAdjustmentMappingRequest(
+          nomisAdjustmentId = it,
+          nomisAdjustmentCategory = "SENTENCE",
+          adjustmentId = "$it",
+          label = "2022-01-01",
+          mappingType = "MIGRATED",
+        )
+      }
+      webTestClient.get().uri {
+        it.path("/mapping/sentencing/adjustments")
+          .queryParam("size", "2")
+          .queryParam("page", "1")
+          .build()
+      }
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_SENTENCING")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(3)
+        .jsonPath("numberOfElements").isEqualTo(1)
+        .jsonPath("number").isEqualTo(1)
+        .jsonPath("totalPages").isEqualTo(2)
+        .jsonPath("size").isEqualTo(2)
+    }
+  }
 }
