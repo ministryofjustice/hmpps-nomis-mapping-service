@@ -146,6 +146,27 @@ class SentencingMappingService(
       )
     }
 
+  suspend fun getAllSentenceAdjustmentMappings(
+    pageRequest: Pageable,
+  ): Page<SentencingAdjustmentMappingDto> =
+    coroutineScope {
+      val sentenceAdjustmentMapping = async {
+        sentenceAdjustmentRepository.findAllBy(
+          pageRequest,
+        )
+      }
+
+      val count = async {
+        sentenceAdjustmentRepository.count()
+      }
+
+      PageImpl(
+        sentenceAdjustmentMapping.await().toList().map { SentencingAdjustmentMappingDto(it) },
+        pageRequest,
+        count.await(),
+      )
+    }
+
   suspend fun getSentencingAdjustmentMappingForLatestMigrated(): SentencingAdjustmentMappingDto =
     sentenceAdjustmentRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(MIGRATED)
       ?.let { SentencingAdjustmentMappingDto(it) }
