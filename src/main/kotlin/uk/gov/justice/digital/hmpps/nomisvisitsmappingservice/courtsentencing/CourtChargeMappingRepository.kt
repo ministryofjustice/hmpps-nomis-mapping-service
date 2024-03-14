@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository
 @Repository
 interface CourtChargeMappingRepository : CoroutineCrudRepository<CourtChargeMapping, String> {
   suspend fun findByNomisCourtChargeId(nomisId: Long): CourtChargeMapping?
+  suspend fun deleteByNomisCourtChargeId(nomisCourtChargeIdId: Long)
 }

@@ -96,6 +96,30 @@ class CourtSentencingMappingService(
       }
     }
 
+  @Transactional
+  suspend fun createAndDeleteCourtChargeMappings(request: CourtChargeBatchUpdateMappingDto) {
+    createCourtChargeMappings(request.courtChargesToCreate)
+    deleteCourtChargeMappings(request.courtChargesToDelete)
+  }
+
+  @Transactional
+  suspend fun createCourtChargeMappings(courtCharges: List<CourtChargeMappingDto>) =
+    courtCharges.forEach { createCourtChargeMapping(it) }
+
+  private suspend fun deleteCourtChargeMappings(courtCharges: List<CourtChargeNomisIdDto>) =
+    courtCharges.forEach {
+      courtChargeMappingRepository.deleteByNomisCourtChargeId(
+        it.nomisCourtChargeId,
+      )
+      telemetryClient.trackEvent(
+        "court-charge-mapping-deleted",
+        mapOf(
+          "nomisCourtChargeId" to it.nomisCourtChargeId.toString(),
+        ),
+        null,
+      )
+    }
+
   suspend fun getCourtAppearanceMappingByDpsId(courtAppearanceId: String): CourtAppearanceMappingDto =
     courtAppearanceMappingRepository.findById(courtAppearanceId)?.toCourtAppearanceMappingDto()
       ?: throw NotFoundException("DPS Court case Id =$courtAppearanceId")
