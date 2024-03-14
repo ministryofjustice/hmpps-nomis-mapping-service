@@ -13,6 +13,7 @@ import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -222,6 +223,45 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
         messageIn = "Court Case mapping already exists",
         duplicate = mapping,
         existing = getExistingCourtAppearanceMappingSimilarTo(mapping),
+        cause = e,
+      )
+    }
+
+  @PutMapping("/court-charges")
+  @Operation(
+    summary = "Creates a new set of court charge mapping and deletes ones no longer required",
+    description = "Creates a record of a DPS court charge id and NOMIS court charge id. The ones that require deleting are removed by NOMIS id. Requires NOMIS_COURT_SENTENCING",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = CourtChargeBatchUpdateMappingDto::class),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping entries created"),
+      ApiResponse(
+        responseCode = "409",
+        description = "One of the court charge mappings already exist",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun courtChargeBatchUpdateMappings(
+    @RequestBody @Valid
+    updateMappingRequest: CourtChargeBatchUpdateMappingDto,
+  ) =
+    try {
+      mappingService.createAndDeleteCourtChargeMappings(updateMappingRequest)
+    } catch (e: DuplicateKeyException) {
+      throw DuplicateMappingException(
+        messageIn = "Court Charge mapping already exists, detected by $e",
+        duplicate = updateMappingRequest,
         cause = e,
       )
     }
