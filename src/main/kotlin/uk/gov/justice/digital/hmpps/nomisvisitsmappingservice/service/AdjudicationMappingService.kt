@@ -270,4 +270,8 @@ class AdjudicationMappingService(
     adjudicationPunishmentMappingRepository.findById(dpsPunishmentId)
       ?.let { AdjudicationPunishmentMappingDto(it) }
       ?: throw NotFoundException("DPS punishment Id=$dpsPunishmentId")
+
+  @Transactional
+  suspend fun deletePunishmentMappingByDpsId(dpsPunishmentId: String) =
+    adjudicationPunishmentMappingRepository.deleteById(dpsPunishmentId)
 }

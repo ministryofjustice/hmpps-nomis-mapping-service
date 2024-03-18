@@ -685,4 +685,62 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
       }
     }
   }
+
+  @DisplayName("DELETE /mapping/punishments/:dpsPunishmentId")
+  @Nested
+  inner class DeleteMappingTest {
+    @BeforeEach
+    fun setUp() {
+      postCreateSingleMappingRequest(
+        dpsPunishmentId = DPS_PUNISHMENT_ID,
+        nomisBookingId = NOMIS_BOOKING_ID,
+        nomisSanctionSequence = NOMIS_SANCTION_SEQUENCE,
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access forbidden when no authority`() {
+        webTestClient.delete().uri("/mapping/punishments/$DPS_PUNISHMENT_ID")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete().uri("/mapping/punishments/$DPS_PUNISHMENT_ID")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `create forbidden with wrong role`() {
+        webTestClient.delete().uri("/mapping/punishments/$DPS_PUNISHMENT_ID")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `can delete punishment mapping`() = runTest {
+        webTestClient.get().uri("/mapping/punishments/$DPS_PUNISHMENT_ID")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .exchange()
+          .expectStatus().isOk
+        webTestClient.delete().uri("/mapping/punishments/$DPS_PUNISHMENT_ID")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .exchange()
+          .expectStatus().isNoContent
+        webTestClient.get().uri("/mapping/punishments/$DPS_PUNISHMENT_ID")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+  }
 }
