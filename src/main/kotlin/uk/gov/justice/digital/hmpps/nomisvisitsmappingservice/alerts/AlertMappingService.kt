@@ -15,6 +15,9 @@ class AlertMappingService(val repository: AlertsMappingRepository) {
       ?.toDto()
       ?: throw NotFoundException("No alert mapping found for dpsAlertId=$alertId")
 
+  suspend fun deleteMappingByDpsId(alertId: String) =
+    repository.deleteById(alertId)
+
   suspend fun createMapping(mapping: AlertMappingDto) {
     repository.save(mapping.fromDto())
   }

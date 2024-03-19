@@ -90,6 +90,34 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
     dpsAlertId: String,
   ): AlertMappingDto = mappingService.getMappingByDpsId(alertId = dpsAlertId)
 
+  @DeleteMapping("/dps-alert-id/{dpsAlertId}")
+  @Operation(
+    summary = "Deletes mapping",
+    description = "Deletes a mapping by DPS id. Requires role NOMIS_ALERTS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Mapping Deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  suspend fun deleteMappingByDpsId(
+    @Schema(description = "DPS alert id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
+    @PathVariable
+    dpsAlertId: String,
+  ) = mappingService.deleteMappingByDpsId(alertId = dpsAlertId)
+
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
