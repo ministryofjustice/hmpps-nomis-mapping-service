@@ -20,7 +20,6 @@ import org.springframework.http.MediaType
 import org.springframework.test.util.ReflectionTestUtils
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.CreateRoomMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.RoomMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.VisitMappingDto
@@ -28,6 +27,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.Re
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.VisitIdRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.VisitMappingService
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
@@ -152,14 +152,14 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         assertThat(errorCode).isEqualTo(1409)
       }
 
-      val existingVisit = responseBody.moreInfo?.existing!!
+      val existingVisit = responseBody.moreInfo.existing
       with(existingVisit) {
         assertThat(vsipId).isEqualTo("12345678")
         assertThat(nomisId).isEqualTo(1234)
         assertThat(mappingType).isEqualTo("ONLINE")
       }
 
-      val duplicateVisit = responseBody.moreInfo?.duplicate!!
+      val duplicateVisit = responseBody.moreInfo.duplicate
       with(duplicateVisit) {
         assertThat(vsipId).isEqualTo("other")
         assertThat(nomisId).isEqualTo(1234)

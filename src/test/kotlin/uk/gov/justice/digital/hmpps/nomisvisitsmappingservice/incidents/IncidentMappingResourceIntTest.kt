@@ -20,10 +20,10 @@ import org.springframework.http.MediaType
 import org.springframework.test.util.ReflectionTestUtils
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.incidents.IncidentMappingType.INCIDENT_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.incidents.IncidentMappingType.NOMIS_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
@@ -135,14 +135,14 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         assertThat(errorCode).isEqualTo(1409)
       }
 
-      val existingIncident = responseBody.moreInfo?.existing!!
+      val existingIncident = responseBody.moreInfo.existing
       with(existingIncident) {
         assertThat(incidentId).isEqualTo(INCIDENT_ID)
         assertThat(nomisIncidentId).isEqualTo(NOMIS_INCIDENT_ID)
         assertThat(mappingType).isEqualTo("NOMIS_CREATED")
       }
 
-      val duplicateIncident = responseBody.moreInfo?.duplicate!!
+      val duplicateIncident = responseBody.moreInfo.duplicate
       with(duplicateIncident) {
         assertThat(incidentId).isEqualTo(INCIDENT_ID)
         assertThat(nomisIncidentId).isEqualTo(21)
@@ -204,14 +204,14 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         assertThat(errorCode).isEqualTo(1409)
       }
 
-      val existingIncident = responseBody.moreInfo?.existing!!
+      val existingIncident = responseBody.moreInfo.existing
       with(existingIncident) {
         assertThat(incidentId).isEqualTo(INCIDENT_ID)
         assertThat(nomisIncidentId).isEqualTo(NOMIS_INCIDENT_ID)
         assertThat(mappingType).isEqualTo("NOMIS_CREATED")
       }
 
-      val duplicateIncident = responseBody.moreInfo?.duplicate!!
+      val duplicateIncident = responseBody.moreInfo.duplicate
       with(duplicateIncident) {
         assertThat(incidentId).isEqualTo("99")
         assertThat(nomisIncidentId).isEqualTo(NOMIS_INCIDENT_ID)
