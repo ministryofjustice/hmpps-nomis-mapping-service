@@ -10,24 +10,24 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.reactive.resource.NoResourceFoundException
 import org.springframework.web.server.ServerWebInputException
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestControllerAdvice
 class NomisMappingServiceExceptionHandler {
   @ExceptionHandler(AccessDeniedException::class)
-  fun handleAccessDeniedException(e: AccessDeniedException): ResponseEntity<ErrorResponse> {
-    log.debug("Forbidden (403) returned with message {}", e.message)
-    return ResponseEntity
-      .status(HttpStatus.FORBIDDEN)
-      .body(ErrorResponse(status = (HttpStatus.FORBIDDEN.value())))
-  }
+  fun handleAccessDeniedException(e: AccessDeniedException): ResponseEntity<ErrorResponse> = ResponseEntity
+    .status(HttpStatus.FORBIDDEN)
+    .body(ErrorResponse(status = (HttpStatus.FORBIDDEN.value()))).also {
+      log.debug("Forbidden (403) returned with message {}", e.message)
+    }
 
   // handles kotlin exceptions when parsing request objects and hitting non-nullable fields
   // The useful property name is in the nested exception
   @ExceptionHandler(ServerWebInputException::class)
   fun handleSpring400Exception(e: ServerWebInputException): ResponseEntity<ErrorResponse> {
-    log.info("Validation exception: {}", e.message)
     val message = e.cause?.message ?: e.message
     return ResponseEntity
       .status(BAD_REQUEST)
@@ -37,93 +37,80 @@ class NomisMappingServiceExceptionHandler {
           userMessage = "Validation failure: $message",
           developerMessage = message,
         ),
-      )
+      ).also { log.info("Validation exception: {}", message) }
   }
 
   @ExceptionHandler(ValidationException::class)
-  fun handleValidationException(e: Exception): ResponseEntity<ErrorResponse> {
-    log.info("Validation exception: {}", e.message)
-    return ResponseEntity
-      .status(BAD_REQUEST)
-      .body(
-        ErrorResponse(
-          status = BAD_REQUEST,
-          userMessage = "Validation failure: ${e.message}",
-          developerMessage = e.message,
-        ),
-      )
-  }
+  fun handleValidationException(e: Exception): ResponseEntity<ErrorResponse> = ResponseEntity
+    .status(BAD_REQUEST)
+    .body(
+      ErrorResponse(
+        status = BAD_REQUEST,
+        userMessage = "Validation failure: ${e.message}",
+        developerMessage = e.message,
+      ),
+    ).also { log.info("Validation exception: {}", e.message) }
 
+  @Suppress("UNCHECKED_CAST")
   @ExceptionHandler(DuplicateMappingException::class)
-  fun handleDuplicateException(e: DuplicateMappingException): ResponseEntity<ErrorResponse> {
-    log.error("Duplicate mapping exception: {}", e.message)
-    return ResponseEntity
-      .status(CONFLICT)
-      .body(
-        DuplicateMappingErrorResponse(
-          moreInfo = DuplicateErrorContent(
-            duplicate = e.duplicate,
-            existing = e.existing,
-          ),
-          userMessage = "Conflict: ${e.message}",
-          developerMessage = e.message,
+  fun <MAPPING> handleDuplicateException(e: DuplicateMappingException): ResponseEntity<DuplicateMappingErrorResponse<MAPPING>> = ResponseEntity
+    .status(CONFLICT)
+    .body(
+      DuplicateMappingErrorResponse(
+        moreInfo = DuplicateErrorContent(
+          duplicate = e.duplicate,
+          existing = e.existing,
         ),
-      )
-  }
+        userMessage = "Conflict: ${e.message}",
+        developerMessage = e.message,
+      ) as DuplicateMappingErrorResponse<MAPPING>,
+    ).also { log.error("Duplicate mapping exception: {}", e.message) }
 
   @ExceptionHandler(NotFoundException::class)
-  fun handleNotFoundException(e: Exception): ResponseEntity<ErrorResponse?>? {
-    log.info("Not Found: {}", e.message)
-    return ResponseEntity
-      .status(HttpStatus.NOT_FOUND)
-      .body(
-        ErrorResponse(
-          status = HttpStatus.NOT_FOUND,
-          userMessage = "Not Found: ${e.message}",
-          developerMessage = e.message,
-        ),
-      )
-  }
+  fun handleNotFoundException(e: Exception): ResponseEntity<ErrorResponse> = ResponseEntity
+    .status(HttpStatus.NOT_FOUND)
+    .body(
+      ErrorResponse(
+        status = HttpStatus.NOT_FOUND,
+        userMessage = "Not Found: ${e.message}",
+        developerMessage = e.message,
+      ),
+    ).also { log.info("Not Found: {}", e.message) }
 
-  @ExceptionHandler(java.lang.Exception::class)
-  fun handleException(e: java.lang.Exception): ResponseEntity<ErrorResponse?>? {
-    log.error("Unexpected exception", e)
-    return ResponseEntity
-      .status(INTERNAL_SERVER_ERROR)
-      .body(
-        ErrorResponse(
-          status = INTERNAL_SERVER_ERROR,
-          userMessage = "Unexpected error: ${e.message}",
-          developerMessage = e.message,
-        ),
-      )
-  }
+  @ExceptionHandler(NoResourceFoundException::class)
+  fun handleNoResourceFoundException(e: NoResourceFoundException): ResponseEntity<ErrorResponse> = ResponseEntity
+    .status(HttpStatus.NOT_FOUND)
+    .body(
+      ErrorResponse(
+        status = HttpStatus.NOT_FOUND,
+        userMessage = "No resource found failure: ${e.message}",
+        developerMessage = e.message,
+      ),
+    ).also { log.info("No resource found exception: {}", e.message) }
+
+  @ExceptionHandler(Exception::class)
+  fun handleException(e: Exception): ResponseEntity<ErrorResponse> = ResponseEntity
+    .status(INTERNAL_SERVER_ERROR)
+    .body(
+      ErrorResponse(
+        status = INTERNAL_SERVER_ERROR,
+        userMessage = "Unexpected error: ${e.message}",
+        developerMessage = e.message,
+      ),
+    ).also { log.error("Unexpected exception", e) }
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 }
 
-open class ErrorResponse(
-  val status: Int,
-  val errorCode: Int? = null,
-  val userMessage: String? = null,
-  val developerMessage: String? = null,
-) {
-  constructor(
-    status: HttpStatus,
-    errorCode: Int? = null,
-    userMessage: String? = null,
-    developerMessage: String? = null,
-
-  ) : this(status.value(), errorCode, userMessage, developerMessage)
-}
-
 class DuplicateMappingErrorResponse<MAPPING>(
-  val moreInfo: DuplicateErrorContent<MAPPING>? = null,
-  userMessage: String?,
-  developerMessage: String?,
-) : ErrorResponse(status = 409, errorCode = 1409, userMessage = userMessage, developerMessage = developerMessage)
+  val moreInfo: DuplicateErrorContent<MAPPING>,
+  val status: HttpStatus = CONFLICT,
+  val errorCode: Int = 1409,
+  val userMessage: String,
+  val developerMessage: String?,
+)
 
 data class DuplicateErrorContent<MAPPING>(
   val duplicate: MAPPING,

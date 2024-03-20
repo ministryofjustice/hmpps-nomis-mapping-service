@@ -21,7 +21,6 @@ import org.springframework.http.MediaType
 import org.springframework.test.util.ReflectionTestUtils
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.NonAssociationMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.NonAssociationRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
@@ -30,6 +29,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.NonAssociation
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.NonAssociationMappingType.NOMIS_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.NonAssociationMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NonAssociationMappingService
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
@@ -194,7 +194,7 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         assertThat(errorCode).isEqualTo(1409)
       }
 
-      val existingNonAssociation = responseBody.moreInfo?.existing!!
+      val existingNonAssociation = responseBody.moreInfo.existing
       with(existingNonAssociation) {
         assertThat(nonAssociationId).isEqualTo(1234)
         assertThat(firstOffenderNo).isEqualTo("A1234BC")
@@ -203,7 +203,7 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         assertThat(mappingType).isEqualTo("NOMIS_CREATED")
       }
 
-      val duplicateNonAssociation = responseBody.moreInfo?.duplicate!!
+      val duplicateNonAssociation = responseBody.moreInfo.duplicate
       with(duplicateNonAssociation) {
         assertThat(nonAssociationId).isEqualTo(99)
         assertThat(firstOffenderNo).isEqualTo("A1234BC")
@@ -233,7 +233,7 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         assertThat(errorCode).isEqualTo(1409)
       }
 
-      val existingNonAssociation = responseBody.moreInfo?.existing!!
+      val existingNonAssociation = responseBody.moreInfo.existing
       with(existingNonAssociation) {
         assertThat(nonAssociationId).isEqualTo(1234)
         assertThat(firstOffenderNo).isEqualTo("A1234BC")
@@ -242,7 +242,7 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         assertThat(mappingType).isEqualTo("NOMIS_CREATED")
       }
 
-      val duplicateNonAssociation = responseBody.moreInfo?.duplicate!!
+      val duplicateNonAssociation = responseBody.moreInfo.duplicate
       with(duplicateNonAssociation) {
         assertThat(nonAssociationId).isEqualTo(1234)
         assertThat(firstOffenderNo).isEqualTo("A1234BC")
