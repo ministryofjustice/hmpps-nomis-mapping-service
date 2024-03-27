@@ -1,6 +1,13 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.alerts
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.toList
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.alerts.AlertMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
 @Service
@@ -24,6 +31,29 @@ class AlertMappingService(val repository: AlertsMappingRepository) {
 
   suspend fun deleteAllMappings() {
     repository.deleteAll()
+  }
+
+  suspend fun getByMigrationId(pageRequest: Pageable, migrationId: String): Page<AlertMappingDto> = coroutineScope {
+    val mappings = async {
+      repository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+        label = migrationId,
+        mappingType = MIGRATED,
+        pageRequest = pageRequest,
+      )
+    }
+
+    val count = async {
+      repository.countAllByLabelAndMappingType(
+        migrationId = migrationId,
+        mappingType = MIGRATED,
+      )
+    }
+
+    PageImpl(
+      mappings.await().toList().map { it.toDto() },
+      pageRequest,
+      count.await(),
+    )
   }
 }
 
