@@ -6,10 +6,11 @@ plugins {
 }
 
 dependencyCheck {
-  suppressionFiles.add("reactive-suppressions.xml")
-  // Please remove the below suppressions once it has been suppressed in the DependencyCheck plugin (see this issue: https://github.com/jeremylong/DependencyCheck/issues/4616)
-  suppressionFiles.add("postgres-suppressions.xml")
+  // Suppression till can upgrade to 3.2.5
+  suppressionFiles.add("spring-suppressions.xml")
 }
+// Temporarily pin as can't upgrade to latest gradle plugin
+ext["netty.version"] = "4.1.108.Final"
 
 configurations {
   implementation { exclude(module = "spring-boot-starter-web") }
