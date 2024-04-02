@@ -49,6 +49,14 @@ class CourtSentencingMappingService(
       ?: throw NotFoundException("Nomis Court case Id =$courtCaseId")
 
   @Transactional
+  suspend fun deleteCourtCaseMappingByDpsId(courtCaseId: String) =
+    courtCaseMappingRepository.deleteById(courtCaseId)
+
+  @Transactional
+  suspend fun deleteCourtCaseMappingByNomisId(courtCaseId: Long) =
+    courtCaseMappingRepository.deleteByNomisCourtCaseId(courtCaseId)
+
+  @Transactional
   suspend fun createCourtAppearanceMapping(createMappingRequest: CourtAppearanceMappingDto) =
     with(createMappingRequest) {
       courtAppearanceMappingRepository.save(createMappingRequest.toCourtAppearanceMapping()).also {
