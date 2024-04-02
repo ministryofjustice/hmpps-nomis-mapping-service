@@ -7,10 +7,12 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.alerts.AlertMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
 @Service
+@Transactional(readOnly = true)
 class AlertMappingService(val repository: AlertsMappingRepository) {
   suspend fun getMappingByNomisId(bookingId: Long, alertSequence: Long) =
     repository.findOneByNomisBookingIdAndNomisAlertSequence(bookingId = bookingId, alertSequence = alertSequence)
@@ -22,13 +24,16 @@ class AlertMappingService(val repository: AlertsMappingRepository) {
       ?.toDto()
       ?: throw NotFoundException("No alert mapping found for dpsAlertId=$alertId")
 
+  @Transactional
   suspend fun deleteMappingByDpsId(alertId: String) =
     repository.deleteById(alertId)
 
+  @Transactional
   suspend fun createMapping(mapping: AlertMappingDto) {
     repository.save(mapping.fromDto())
   }
 
+  @Transactional
   suspend fun deleteAllMappings() {
     repository.deleteAll()
   }
