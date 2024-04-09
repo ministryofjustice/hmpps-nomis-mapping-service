@@ -49,4 +49,5 @@ data class CourtAppearanceMapping(
 enum class CourtAppearanceMappingType {
   MIGRATED,
   DPS_CREATED,
+  NOMIS_CREATED,
 }
