@@ -110,6 +110,87 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("GET /mapping/court-sentencing/court-appearances/nomis-court-appearance-id/{courtAppearanceId}")
+  inner class GetCourtAppearanceMappingByNomisId {
+    lateinit var courtAppearanceMapping: CourtAppearanceMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      courtAppearanceMapping = repository.save(
+        CourtAppearanceMapping(
+          dpsCourtAppearanceId = "DPS123",
+          nomisCourtAppearanceId = 4321L,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtAppearanceMappingType.MIGRATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-appearances/nomis-court-appearance-id/${courtAppearanceMapping.nomisCourtAppearanceId}")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-appearances/nomis-court-appearance-id/${courtAppearanceMapping.nomisCourtAppearanceId}")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-appearances/nomis-court-appearance-id/${courtAppearanceMapping.nomisCourtAppearanceId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 404 when mapping does not exist`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-appearances/nomis-court-appearance-id/9878987")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+
+      @Test
+      fun `will return 200 when mapping does exist`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-appearances/nomis-court-appearance-id/${courtAppearanceMapping.nomisCourtAppearanceId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisCourtAppearanceId").isEqualTo(courtAppearanceMapping.nomisCourtAppearanceId)
+          .jsonPath("dpsCourtAppearanceId").isEqualTo(courtAppearanceMapping.dpsCourtAppearanceId)
+          .jsonPath("mappingType").isEqualTo(courtAppearanceMapping.mappingType.name)
+          .jsonPath("label").isEqualTo(courtAppearanceMapping.label!!)
+          .jsonPath("whenCreated").value<String> {
+            assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+          }
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("POST /mapping/court-sentencing/court-appearances")
   inner class CreateCourtAppearanceMapping {
     private lateinit var existingMapping: CourtAppearanceMapping
@@ -286,13 +367,13 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
           .expectStatus().isCreated
 
         webTestClient.get()
-          .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/DPS123")
+          .uri("/mapping/court-sentencing/court-appearances/nomis-court-appearance-id/DPS123")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .exchange()
           .expectStatus().isOk
 
         webTestClient.get()
-          .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/${existingMapping.dpsCourtAppearanceId}")
+          .uri("/mapping/court-sentencing/court-appearances/nomis-court-appearance-id/${existingMapping.dpsCourtAppearanceId}")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .exchange()
           .expectStatus().isOk
