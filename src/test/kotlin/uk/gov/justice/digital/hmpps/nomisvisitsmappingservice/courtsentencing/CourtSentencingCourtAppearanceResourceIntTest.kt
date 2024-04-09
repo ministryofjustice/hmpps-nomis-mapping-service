@@ -367,13 +367,13 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
           .expectStatus().isCreated
 
         webTestClient.get()
-          .uri("/mapping/court-sentencing/court-appearances/nomis-court-appearance-id/DPS123")
+          .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/DPS123")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .exchange()
           .expectStatus().isOk
 
         webTestClient.get()
-          .uri("/mapping/court-sentencing/court-appearances/nomis-court-appearance-id/${existingMapping.dpsCourtAppearanceId}")
+          .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/${existingMapping.dpsCourtAppearanceId}")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .exchange()
           .expectStatus().isOk
