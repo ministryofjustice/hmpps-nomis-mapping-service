@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.alerts
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -168,6 +169,62 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
       )
     }
 
+  @PostMapping("/all")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates a set of new alert mapping",
+    description = "Creates a mapping between all the nomis alert ids and dps alert id. Requires ROLE_NOMIS_ALERTS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          array = ArraySchema(schema = Schema(implementation = AlertMappingDto::class)),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createMappings(
+    @RequestBody @Valid
+    mappings: List<AlertMappingDto>,
+  ) =
+    try {
+      mappingService.createMappings(mappings)
+    } catch (e: DuplicateKeyException) {
+      val duplicateMapping = getMappingThatIsDuplicate(mappings)
+      if (duplicateMapping != null) {
+        throw DuplicateMappingException(
+          messageIn = "Alert mapping already exists",
+          duplicate = duplicateMapping,
+          existing = getExistingMappingSimilarTo(duplicateMapping),
+          cause = e,
+        )
+      }
+      throw e
+    }
+
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
@@ -228,4 +285,10 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
       alertId = mapping.dpsAlertId,
     )
   }
+
+  private suspend fun getMappingThatIsDuplicate(mappings: List<AlertMappingDto>): AlertMappingDto? =
+    mappings.find {
+      // look for each mapping until I find one (i.e. that is there is no exception thrown)
+      kotlin.runCatching { getExistingMappingSimilarTo(it) }.map { true }.getOrElse { false }
+    }
 }
