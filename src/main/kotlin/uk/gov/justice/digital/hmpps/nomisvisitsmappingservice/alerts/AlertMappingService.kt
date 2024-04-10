@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.alerts
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -32,6 +33,10 @@ class AlertMappingService(val repository: AlertsMappingRepository) {
   suspend fun createMapping(mapping: AlertMappingDto) {
     repository.save(mapping.fromDto())
   }
+
+  @Transactional
+  suspend fun createMappings(mappings: List<AlertMappingDto>) =
+    repository.saveAll(mappings.map { it.fromDto() }).collect()
 
   @Transactional
   suspend fun deleteAllMappings() {
