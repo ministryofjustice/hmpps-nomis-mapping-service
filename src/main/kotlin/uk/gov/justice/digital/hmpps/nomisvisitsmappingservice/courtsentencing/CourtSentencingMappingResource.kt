@@ -262,7 +262,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
 
   @DeleteMapping("/court-appearances/nomis-court-appearance-id/{nomisCourtAppearanceId}")
   @Operation(
-    summary = "Deletes court case mapping",
+    summary = "Deletes court appearance mapping",
     description = "Deletes a court appearance mapping by NOMIS id. Requires role NOMIS_COURT_SENTENCING",
     responses = [
       ApiResponse(
