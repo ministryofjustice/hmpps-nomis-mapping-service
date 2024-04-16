@@ -232,6 +232,62 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     courtAppearanceId = courtAppearanceId,
   )
 
+  @DeleteMapping("/court-appearances/dps-court-appearance-id/{dpsCourtAppearanceId}")
+  @Operation(
+    summary = "Deletes court appearances mapping",
+    description = "Deletes a court appearances mapping by DPS id. Requires role NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Mapping Deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  suspend fun deleteCourtAppearanceMappingByDpsId(
+    @Schema(description = "DPS court appearances id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
+    @PathVariable
+    dpsCourtAppearanceId: String,
+  ) = mappingService.deleteCourtAppearanceMappingByDpsId(courtAppearanceId = dpsCourtAppearanceId)
+
+  @DeleteMapping("/court-appearances/nomis-court-appearance-id/{nomisCourtAppearanceId}")
+  @Operation(
+    summary = "Deletes court appearance mapping",
+    description = "Deletes a court appearance mapping by NOMIS id. Requires role NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Mapping Deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  suspend fun deleteCourtAppearanceMappingByNomisId(
+    @Schema(description = "NOMIS court appearance id", example = "33", required = true)
+    @PathVariable
+    nomisCourtAppearanceId: Long,
+  ) = mappingService.deleteCourtAppearanceMappingByNomisId(courtAppearanceId = nomisCourtAppearanceId)
+
   @GetMapping("/court-charges/dps-court-charge-id/{courtChargeId}")
   @Operation(
     summary = "get court charge mapping",

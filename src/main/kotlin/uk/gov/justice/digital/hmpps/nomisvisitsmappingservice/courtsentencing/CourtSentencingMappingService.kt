@@ -90,6 +90,14 @@ class CourtSentencingMappingService(
     }
 
   @Transactional
+  suspend fun deleteCourtAppearanceMappingByDpsId(courtAppearanceId: String) =
+    courtAppearanceMappingRepository.deleteById(courtAppearanceId)
+
+  @Transactional
+  suspend fun deleteCourtAppearanceMappingByNomisId(courtAppearanceId: Long) =
+    courtAppearanceMappingRepository.deleteByNomisCourtAppearanceId(courtAppearanceId)
+
+  @Transactional
   suspend fun createCourtChargeMapping(createMappingRequest: CourtChargeMappingDto) =
     with(createMappingRequest) {
       courtChargeMappingRepository.save(createMappingRequest.toCourtChargeMapping()).also {
