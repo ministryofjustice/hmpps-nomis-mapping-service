@@ -14,7 +14,10 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundEx
 
 @Service
 @Transactional(readOnly = true)
-class AlertMappingService(val repository: AlertsMappingRepository) {
+class AlertMappingService(
+  val repository: AlertsMappingRepository,
+  val prisonerMappingRepository: AlertPrisonerMappingRepository,
+) {
   suspend fun getMappingByNomisId(bookingId: Long, alertSequence: Long) =
     repository.findOneByNomisBookingIdAndNomisAlertSequence(bookingId = bookingId, alertSequence = alertSequence)
       ?.toDto()
@@ -35,12 +38,49 @@ class AlertMappingService(val repository: AlertsMappingRepository) {
   }
 
   @Transactional
-  suspend fun createMappings(mappings: List<AlertMappingDto>) =
+  suspend fun createMappings(mappings: List<AlertMappingDto>) {
     repository.saveAll(mappings.map { it.fromDto() }).collect()
+    // respect backward compatibility, offenderNo can be null still until we move to method below
+    mappings.firstOrNull { it.offenderNo != null }?.apply {
+      prisonerMappingRepository.save(
+        AlertPrisonerMapping(
+          offenderNo = this.offenderNo!!,
+          count = mappings.size,
+          mappingType = this.mappingType,
+          label = this.label,
+        ),
+      )
+    }
+  }
+
+  @Transactional
+  suspend fun createMappings(offenderNo: String, prisonerMapping: PrisonerAlertMappingsDto) {
+    repository.saveAll(
+      prisonerMapping.mappings.map {
+        AlertMapping(
+          dpsAlertId = it.dpsAlertId,
+          nomisBookingId = it.nomisBookingId,
+          nomisAlertSequence = it.nomisAlertSequence,
+          offenderNo = offenderNo,
+          label = prisonerMapping.label,
+          mappingType = prisonerMapping.mappingType,
+        )
+      },
+    ).collect()
+    prisonerMappingRepository.save(
+      AlertPrisonerMapping(
+        offenderNo = offenderNo,
+        count = prisonerMapping.mappings.size,
+        mappingType = prisonerMapping.mappingType,
+        label = prisonerMapping.label,
+      ),
+    )
+  }
 
   @Transactional
   suspend fun deleteAllMappings() {
     repository.deleteAll()
+    prisonerMappingRepository.deleteAll()
   }
 
   suspend fun getByMigrationId(pageRequest: Pageable, migrationId: String): Page<AlertMappingDto> = coroutineScope {
@@ -65,12 +105,39 @@ class AlertMappingService(val repository: AlertsMappingRepository) {
       count.await(),
     )
   }
+
+  suspend fun getByMigrationIdGroupedByPrisoner(
+    pageRequest: Pageable,
+    migrationId: String,
+  ): Page<PrisonerAlertMappingsSummaryDto> = coroutineScope {
+    val mappings = async {
+      prisonerMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+        label = migrationId,
+        mappingType = MIGRATED,
+        pageRequest = pageRequest,
+      )
+    }
+
+    val count = async {
+      prisonerMappingRepository.countAllByLabelAndMappingType(
+        migrationId = migrationId,
+        mappingType = MIGRATED,
+      )
+    }
+
+    PageImpl(
+      mappings.await().toList().map { PrisonerAlertMappingsSummaryDto(it.offenderNo, it.count) },
+      pageRequest,
+      count.await(),
+    )
+  }
 }
 
 fun AlertMapping.toDto() = AlertMappingDto(
   nomisBookingId = nomisBookingId,
   nomisAlertSequence = nomisAlertSequence,
   dpsAlertId = dpsAlertId,
+  offenderNo = offenderNo,
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,
@@ -80,6 +147,7 @@ fun AlertMappingDto.fromDto() = AlertMapping(
   dpsAlertId = dpsAlertId,
   nomisBookingId = nomisBookingId,
   nomisAlertSequence = nomisAlertSequence,
+  offenderNo = offenderNo,
   label = label,
   mappingType = mappingType,
 )

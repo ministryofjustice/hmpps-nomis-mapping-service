@@ -225,6 +225,74 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
       throw e
     }
 
+  @PostMapping("{offenderNo}/all")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates a set of new alert mapping for a prisoner",
+    description = "Creates a mapping between all the nomis alert ids and dps alert id. Requires ROLE_NOMIS_ALERTS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = PrisonerAlertMappingsDto::class),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createMappingsForPrisoner(
+    @Schema(description = "NOMIS offender no", example = "A1234KT", required = true)
+    @PathVariable
+    offenderNo: String,
+    @RequestBody @Valid
+    prisonerMapping: PrisonerAlertMappingsDto,
+  ) =
+    try {
+      mappingService.createMappings(offenderNo, prisonerMapping)
+    } catch (e: DuplicateKeyException) {
+      val duplicateMapping = getMappingIdThatIsDuplicate(prisonerMapping.mappings)
+      if (duplicateMapping != null) {
+        throw DuplicateMappingException(
+          messageIn = "Alert mapping already exists",
+          duplicate = duplicateMapping.let {
+            AlertMappingDto(
+              dpsAlertId = it.dpsAlertId,
+              nomisBookingId = it.nomisBookingId,
+              nomisAlertSequence = it.nomisAlertSequence,
+              offenderNo = offenderNo,
+              label = prisonerMapping.label,
+              mappingType = prisonerMapping.mappingType,
+            )
+          },
+          existing = getExistingMappingSimilarTo(duplicateMapping),
+          cause = e,
+        )
+      }
+      throw e
+    }
+
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
@@ -275,6 +343,35 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
   ): Page<AlertMappingDto> =
     mappingService.getByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
+  @GetMapping("/migration-id/{migrationId}/grouped-by-prisoner")
+  @Operation(
+    summary = "Get paged mappings by migration id grouped by prisoner",
+    description = "Retrieve all mappings of type 'MIGRATED' for the given migration id (identifies a single migration run) grouped by prisoner. Results are paged.",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping page returned",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getMappingsByMigrationIdGroupByPrisoner(
+    @PageableDefault pageRequest: Pageable,
+    @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
+    @PathVariable
+    migrationId: String,
+  ): Page<PrisonerAlertMappingsSummaryDto> =
+    mappingService.getByMigrationIdGroupedByPrisoner(pageRequest = pageRequest, migrationId = migrationId)
+
   private suspend fun getExistingMappingSimilarTo(mapping: AlertMappingDto) = runCatching {
     mappingService.getMappingByNomisId(
       bookingId = mapping.nomisBookingId,
@@ -286,7 +383,24 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
     )
   }
 
+  private suspend fun getExistingMappingSimilarTo(mapping: AlertMappingIdDto) = runCatching {
+    mappingService.getMappingByNomisId(
+      bookingId = mapping.nomisBookingId,
+      alertSequence = mapping.nomisAlertSequence,
+    )
+  }.getOrElse {
+    mappingService.getMappingByDpsId(
+      alertId = mapping.dpsAlertId,
+    )
+  }
+
   private suspend fun getMappingThatIsDuplicate(mappings: List<AlertMappingDto>): AlertMappingDto? =
+    mappings.find {
+      // look for each mapping until I find one (i.e. that is there is no exception thrown)
+      kotlin.runCatching { getExistingMappingSimilarTo(it) }.map { true }.getOrElse { false }
+    }
+
+  private suspend fun getMappingIdThatIsDuplicate(mappings: List<AlertMappingIdDto>): AlertMappingIdDto? =
     mappings.find {
       // look for each mapping until I find one (i.e. that is there is no exception thrown)
       kotlin.runCatching { getExistingMappingSimilarTo(it) }.map { true }.getOrElse { false }
