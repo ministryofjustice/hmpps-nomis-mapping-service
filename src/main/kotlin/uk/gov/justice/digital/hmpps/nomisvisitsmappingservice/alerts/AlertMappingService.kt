@@ -38,23 +38,9 @@ class AlertMappingService(
   }
 
   @Transactional
-  suspend fun createMappings(mappings: List<AlertMappingDto>) {
-    repository.saveAll(mappings.map { it.fromDto() }).collect()
-    // respect backward compatibility, offenderNo can be null still until we move to method below
-    mappings.firstOrNull { it.offenderNo != null }?.apply {
-      prisonerMappingRepository.save(
-        AlertPrisonerMapping(
-          offenderNo = this.offenderNo!!,
-          count = mappings.size,
-          mappingType = this.mappingType,
-          label = this.label,
-        ),
-      )
-    }
-  }
-
-  @Transactional
   suspend fun createMappings(offenderNo: String, prisonerMapping: PrisonerAlertMappingsDto) {
+    // since we are replacing all alerts remove old mappings so they they can all be recreated
+    repository.deleteAllByOffenderNo(offenderNo)
     repository.saveAll(
       prisonerMapping.mappings.map {
         AlertMapping(
