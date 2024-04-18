@@ -92,6 +92,8 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .exchange()
           .expectStatus().isNotFound
+          .expectBody()
+          .jsonPath("developerMessage").isEqualTo("DPS Court appearance Id =DOESNOTEXIST")
       }
 
       @Test
@@ -173,6 +175,8 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .exchange()
           .expectStatus().isNotFound
+          .expectBody()
+          .jsonPath("developerMessage").isEqualTo("Nomis Court appearance Id =9878987")
       }
 
       @Test

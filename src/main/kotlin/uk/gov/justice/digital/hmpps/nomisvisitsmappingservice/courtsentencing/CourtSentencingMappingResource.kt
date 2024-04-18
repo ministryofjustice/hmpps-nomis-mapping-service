@@ -316,7 +316,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     @Schema(description = "DPS court charge id", example = "D123", required = true)
     @PathVariable
     courtChargeId: String,
-  ): CourtChargeMappingDto = mappingService.getCourtCourtMappingByDpsId(
+  ): CourtChargeMappingDto = mappingService.getCourtChargeMappingByDpsId(
     courtChargeId = courtChargeId,
   )
 
@@ -348,7 +348,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     @Schema(description = "NOMIS court charge id", example = "123", required = true)
     @PathVariable
     courtChargeId: Long,
-  ): CourtChargeMappingDto = mappingService.getCourtCourtMappingByNomisId(
+  ): CourtChargeMappingDto = mappingService.getCourtChargeMappingByNomisId(
     courtChargeId = courtChargeId,
   )
 

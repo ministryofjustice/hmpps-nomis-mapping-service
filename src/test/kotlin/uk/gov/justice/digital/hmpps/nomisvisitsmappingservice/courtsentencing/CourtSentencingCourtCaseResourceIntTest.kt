@@ -101,6 +101,8 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .exchange()
           .expectStatus().isNotFound
+          .expectBody()
+          .jsonPath("developerMessage").isEqualTo("DPS Court case Id =DOESNOTEXIST")
       }
 
       @Test
