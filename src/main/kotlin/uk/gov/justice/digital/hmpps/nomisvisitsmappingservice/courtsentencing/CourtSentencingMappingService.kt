@@ -138,15 +138,19 @@ class CourtSentencingMappingService(
 
   suspend fun getCourtAppearanceMappingByDpsId(courtAppearanceId: String): CourtAppearanceMappingDto =
     courtAppearanceMappingRepository.findById(courtAppearanceId)?.toCourtAppearanceMappingDto()
-      ?: throw NotFoundException("DPS Court case Id =$courtAppearanceId")
+      ?: throw NotFoundException("DPS Court appearance Id =$courtAppearanceId")
 
   suspend fun getCourtAppearanceMappingByNomisId(courtAppearanceId: Long): CourtAppearanceMappingDto =
     courtAppearanceMappingRepository.findByNomisCourtAppearanceId(courtAppearanceId)?.toCourtAppearanceMappingDto()
       ?: throw NotFoundException("Nomis Court appearance Id =$courtAppearanceId")
 
-  suspend fun getCourtCourtMappingByDpsId(courtChargeId: String): CourtChargeMappingDto =
+  suspend fun getCourtChargeMappingByDpsId(courtChargeId: String): CourtChargeMappingDto =
     courtChargeMappingRepository.findById(courtChargeId)?.toCourtChargeMappingDto()
-      ?: throw NotFoundException("DPS Court case Id =$courtChargeId")
+      ?: throw NotFoundException("DPS Court charge Id =$courtChargeId")
+
+  suspend fun getCourtChargeMappingByNomisId(courtChargeId: Long): CourtChargeMappingDto =
+    courtChargeMappingRepository.findByNomisCourtChargeId(courtChargeId)?.toCourtChargeMappingDto()
+      ?: throw NotFoundException("NOMIS Court charge Id =$courtChargeId")
 }
 
 fun CourtCaseMapping.toCourtCaseMappingDto(): CourtCaseMappingDto = CourtCaseMappingDto(
