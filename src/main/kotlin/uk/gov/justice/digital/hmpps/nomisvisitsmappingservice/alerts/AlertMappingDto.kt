@@ -38,6 +38,9 @@ data class PrisonerAlertMappingsSummaryDto(
 
   @Schema(description = "Count of the number mappings migrated (does not include subsequent alerts synchronised")
   val mappingsCount: Int,
+
+  @Schema(description = "Date time the mapping was created")
+  val whenCreated: LocalDateTime?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

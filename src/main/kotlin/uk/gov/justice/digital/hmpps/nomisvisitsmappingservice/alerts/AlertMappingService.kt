@@ -112,7 +112,14 @@ class AlertMappingService(
     }
 
     PageImpl(
-      mappings.await().toList().map { PrisonerAlertMappingsSummaryDto(it.offenderNo, it.count) },
+      mappings.await().toList()
+        .map {
+          PrisonerAlertMappingsSummaryDto(
+            offenderNo = it.offenderNo,
+            mappingsCount = it.count,
+            whenCreated = it.whenCreated,
+          )
+        },
       pageRequest,
       count.await(),
     )

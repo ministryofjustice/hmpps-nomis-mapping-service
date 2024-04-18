@@ -1226,6 +1226,20 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
             2,
           ),
         )
+      webTestClient.get().uri("/mapping/alerts/migration-id/2023-01-01T12:45:12/grouped-by-prisoner?size=1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(2)
+        .jsonPath("numberOfElements").isEqualTo(1)
+        .jsonPath("$.content[0].offenderNo").isEqualTo("A1111KT")
+        .jsonPath("$.content[0].whenCreated").value<String> {
+          assertThat(LocalDateTime.parse(it)).isCloseTo(
+            LocalDateTime.now(),
+            within(10, ChronoUnit.MINUTES),
+          )
+        }
     }
 
     @Test
