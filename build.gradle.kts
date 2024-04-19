@@ -5,13 +5,6 @@ plugins {
   idea
 }
 
-dependencyCheck {
-  // Suppression till can upgrade to 3.2.5
-  suppressionFiles.add("spring-suppressions.xml")
-}
-// Temporarily pin as can't upgrade to latest gradle plugin
-ext["netty.version"] = "4.1.108.Final"
-
 configurations {
   implementation { exclude(module = "spring-boot-starter-web") }
   implementation { exclude(module = "spring-boot-starter-tomcat") }
