@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository
+package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.incidents
 
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -9,8 +9,7 @@ import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestBase
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncidentMapping
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncidentMappingType.MIGRATED
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.incidents.IncidentMappingType.MIGRATED
 
 @DataR2dbcTest
 @ActiveProfiles("test")

@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa
+package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.incidents
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.annotation.Id

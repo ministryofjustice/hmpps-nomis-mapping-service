@@ -1,11 +1,9 @@
-package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository
+package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.incidents
 
 import kotlinx.coroutines.flow.Flow
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.stereotype.Repository
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncidentMapping
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncidentMappingType
 
 @Repository
 interface IncidentMappingRepository : CoroutineCrudRepository<IncidentMapping, String> {

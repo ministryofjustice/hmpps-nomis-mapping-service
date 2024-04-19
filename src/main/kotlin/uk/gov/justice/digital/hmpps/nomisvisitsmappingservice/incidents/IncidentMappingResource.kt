@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
+package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.incidents
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -25,9 +25,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.IncidentMappingDto
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.IncidentMappingService
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated

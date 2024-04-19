@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.alerts
+package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.courtsentencing
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.annotation.Id
@@ -6,21 +6,19 @@ import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 
-data class AlertMapping(
+data class CourtChargeMapping(
 
   @Id
-  val dpsAlertId: String,
+  val dpsCourtChargeId: String,
 
-  val nomisBookingId: Long,
-  val nomisAlertSequence: Long,
-  val offenderNo: String?,
+  val nomisCourtChargeId: Long,
 
   /**
    * ISO timestamp of batch job if a migration
    */
   val label: String? = null,
 
-  val mappingType: AlertMappingType,
+  val mappingType: CourtChargeMappingType,
 
   @Transient
   @Value("false")
@@ -32,24 +30,21 @@ data class AlertMapping(
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is AlertMapping) return false
+    if (other !is CourtChargeMapping) return false
 
-    if (dpsAlertId != other.dpsAlertId) return false
-
-    return true
+    return dpsCourtChargeId == other.dpsCourtChargeId
   }
 
   override fun hashCode(): Int {
-    return dpsAlertId.hashCode()
+    return dpsCourtChargeId.hashCode()
   }
 
   override fun isNew(): Boolean = new
 
-  override fun getId(): String = dpsAlertId
+  override fun getId(): String = dpsCourtChargeId
 }
 
-enum class AlertMappingType {
+enum class CourtChargeMappingType {
   MIGRATED,
   DPS_CREATED,
-  NOMIS_CREATED,
 }

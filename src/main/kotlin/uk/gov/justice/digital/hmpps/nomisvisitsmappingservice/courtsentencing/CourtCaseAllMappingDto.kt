@@ -6,17 +6,20 @@ import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Court appearance mapping")
-data class CourtAppearanceMappingDto(
+@Schema(description = "Court case mapping including child entity mapping")
+data class CourtCaseAllMappingDto(
 
-  @Schema(description = "NOMIS court appearance id", example = "123456")
-  val nomisCourtAppearanceId: Long,
+  @Schema(description = "NOMIS court case id", example = "123456")
+  val nomisCourtCaseId: Long,
 
-  @Schema(description = "DPS court appearance id", example = "123456")
-  val dpsCourtAppearanceId: String,
+  @Schema(description = "DPS court case id", example = "123456")
+  val dpsCourtCaseId: String,
 
-  @Schema(description = "optional NOMIS next court appearance id", example = "123456")
-  val nomisNextCourtAppearanceId: Long? = null,
+  @Schema(description = "Court Appearance mappings")
+  val courtAppearances: List<CourtAppearanceMappingDto> = emptyList(),
+
+  @Schema(description = "Court Charge mappings")
+  val courtCharges: List<CourtChargeMappingDto> = emptyList(),
 
   @Schema(description = "Label (a timestamp for migrated ids)")
   @field:Size(max = 20)
@@ -26,7 +29,7 @@ data class CourtAppearanceMappingDto(
     description = "Mapping type",
     defaultValue = "DPS_CREATED",
   )
-  val mappingType: CourtAppearanceMappingType? = null,
+  val mappingType: CourtCaseMappingType? = null,
 
   @Schema(description = "Date-time the mapping was created")
   val whenCreated: LocalDateTime? = null,

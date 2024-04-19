@@ -20,13 +20,13 @@ import org.springframework.test.util.ReflectionTestUtils
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AppointmentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AppointmentMappingType.APPOINTMENT_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.AppointmentMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.AppointmentMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.AppointmentMappingService
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
@@ -138,13 +138,13 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
         assertThat(errorCode).isEqualTo(1409)
       }
 
-      val existing = responseBody.moreInfo?.existing!!
+      val existing = responseBody.moreInfo.existing
       with(existing) {
         assertThat(appointmentInstanceId).isEqualTo(4444)
         assertThat(nomisEventId).isEqualTo(1234)
       }
 
-      val duplicate = responseBody.moreInfo?.duplicate!!
+      val duplicate = responseBody.moreInfo.duplicate
       with(duplicate) {
         assertThat(appointmentInstanceId).isEqualTo(4444)
         assertThat(nomisEventId).isEqualTo(21)
@@ -202,13 +202,13 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
         assertThat(errorCode).isEqualTo(1409)
       }
 
-      val existing = responseBody.moreInfo?.existing!!
+      val existing = responseBody.moreInfo.existing
       with(existing) {
         assertThat(appointmentInstanceId).isEqualTo(4444)
         assertThat(nomisEventId).isEqualTo(1234)
       }
 
-      val duplicate = responseBody.moreInfo?.duplicate!!
+      val duplicate = responseBody.moreInfo.duplicate
       with(duplicate) {
         assertThat(appointmentInstanceId).isEqualTo(99)
         assertThat(nomisEventId).isEqualTo(1234)

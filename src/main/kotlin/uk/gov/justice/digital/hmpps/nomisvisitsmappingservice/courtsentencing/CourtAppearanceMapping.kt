@@ -13,6 +13,8 @@ data class CourtAppearanceMapping(
 
   val nomisCourtAppearanceId: Long,
 
+  val nomisNextCourtAppearanceId: Long? = null,
+
   /**
    * ISO timestamp of batch job if a migration
    */
@@ -47,4 +49,5 @@ data class CourtAppearanceMapping(
 enum class CourtAppearanceMappingType {
   MIGRATED,
   DPS_CREATED,
+  NOMIS_CREATED,
 }

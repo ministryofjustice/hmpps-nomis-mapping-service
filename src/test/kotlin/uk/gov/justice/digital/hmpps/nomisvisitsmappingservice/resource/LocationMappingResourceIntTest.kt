@@ -21,13 +21,13 @@ import org.springframework.http.MediaType
 import org.springframework.test.util.ReflectionTestUtils
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.LocationMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.LocationRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.LocationMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.LocationMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.LocationMappingService
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
@@ -183,14 +183,14 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         assertThat(errorCode).isEqualTo(1409)
       }
 
-      val existingLocation = responseBody.moreInfo?.existing!!
+      val existingLocation = responseBody.moreInfo.existing
       with(existingLocation) {
         assertThat(dpsLocationId).isEqualTo(DPS_LOCATION_ID)
         assertThat(nomisLocationId).isEqualTo(NOMIS_LOCATION_ID)
         assertThat(mappingType).isEqualTo("NOMIS_CREATED")
       }
 
-      val duplicateLocation = responseBody.moreInfo?.duplicate!!
+      val duplicateLocation = responseBody.moreInfo.duplicate
       with(duplicateLocation) {
         assertThat(dpsLocationId).isEqualTo("other-dps-location-id")
         assertThat(nomisLocationId).isEqualTo(NOMIS_LOCATION_ID)
@@ -218,14 +218,14 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         assertThat(errorCode).isEqualTo(1409)
       }
 
-      val existingLocation = responseBody.moreInfo?.existing!!
+      val existingLocation = responseBody.moreInfo.existing
       with(existingLocation) {
         assertThat(dpsLocationId).isEqualTo(DPS_LOCATION_ID)
         assertThat(nomisLocationId).isEqualTo(NOMIS_LOCATION_ID)
         assertThat(mappingType).isEqualTo("NOMIS_CREATED")
       }
 
-      val duplicateLocation = responseBody.moreInfo?.duplicate!!
+      val duplicateLocation = responseBody.moreInfo.duplicate
       with(duplicateLocation) {
         assertThat(dpsLocationId).isEqualTo(DPS_LOCATION_ID)
         assertThat(nomisLocationId).isEqualTo(9999)

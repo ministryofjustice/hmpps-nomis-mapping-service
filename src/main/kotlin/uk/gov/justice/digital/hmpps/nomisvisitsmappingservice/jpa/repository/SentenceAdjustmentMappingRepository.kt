@@ -22,5 +22,9 @@ interface SentenceAdjustmentMappingRepository : CoroutineCrudRepository<Sentenci
     pageable: Pageable,
   ): Flow<SentencingAdjustmentMapping>
 
+  fun findAllBy(
+    pageable: Pageable,
+  ): Flow<SentencingAdjustmentMapping>
+
   suspend fun deleteByMappingTypeEquals(mappingType: SentencingMappingType): SentencingAdjustmentMapping?
 }

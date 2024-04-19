@@ -20,7 +20,6 @@ import org.springframework.http.MediaType
 import org.springframework.test.util.ReflectionTestUtils
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.IncentiveMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.IncentiveRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
@@ -29,6 +28,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncentiveMappi
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.IncentiveMappingType.NOMIS_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.IncentiveMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.IncentiveMappingService
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
@@ -186,7 +186,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
         assertThat(errorCode).isEqualTo(1409)
       }
 
-      val existingIncentive = responseBody.moreInfo?.existing!!
+      val existingIncentive = responseBody.moreInfo.existing
       with(existingIncentive) {
         assertThat(incentiveId).isEqualTo(4444)
         assertThat(nomisBookingId).isEqualTo(1234)
@@ -194,7 +194,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
         assertThat(mappingType).isEqualTo("NOMIS_CREATED")
       }
 
-      val duplicateIncentive = responseBody.moreInfo?.duplicate!!
+      val duplicateIncentive = responseBody.moreInfo.duplicate
       with(duplicateIncentive) {
         assertThat(incentiveId).isEqualTo(99)
         assertThat(nomisBookingId).isEqualTo(1234)
@@ -223,7 +223,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
         assertThat(errorCode).isEqualTo(1409)
       }
 
-      val existingIncentive = responseBody.moreInfo?.existing!!
+      val existingIncentive = responseBody.moreInfo.existing
       with(existingIncentive) {
         assertThat(incentiveId).isEqualTo(4444)
         assertThat(nomisBookingId).isEqualTo(1234)
@@ -231,7 +231,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
         assertThat(mappingType).isEqualTo("NOMIS_CREATED")
       }
 
-      val duplicateIncentive = responseBody.moreInfo?.duplicate!!
+      val duplicateIncentive = responseBody.moreInfo.duplicate
       with(duplicateIncentive) {
         assertThat(incentiveId).isEqualTo(4444)
         assertThat(nomisBookingId).isEqualTo(21)

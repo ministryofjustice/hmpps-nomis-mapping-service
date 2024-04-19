@@ -1,8 +1,10 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.alerts
 
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
+import org.hamcrest.Matchers
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -24,6 +26,9 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var repository: AlertsMappingRepository
 
+  @Autowired
+  private lateinit var alertPrisonerRepository: AlertPrisonerMappingRepository
+
   @Nested
   @DisplayName("GET /mapping/alerts/nomis-booking-id/{bookingId}/nomis-alert-sequence/{alertSequence}")
   inner class GetMappingByNomisId {
@@ -36,6 +41,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
           dpsAlertId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisBookingId = 54321L,
           nomisAlertSequence = 2L,
+          offenderNo = "A1234KT",
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -44,6 +50,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
 
     @AfterEach
     fun tearDown() = runTest {
+      alertPrisonerRepository.deleteAll()
       repository.deleteAll()
     }
 
@@ -99,10 +106,185 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
           .jsonPath("nomisAlertSequence").isEqualTo(mapping.nomisAlertSequence)
           .jsonPath("dpsAlertId").isEqualTo(mapping.dpsAlertId)
           .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
+          .jsonPath("offenderNo").isEqualTo(mapping.offenderNo!!)
           .jsonPath("label").isEqualTo(mapping.label!!)
           .jsonPath("whenCreated").value<String> {
             assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
           }
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/alerts/dps-alert-id/{dpsAlertId}")
+  inner class GetMappingByDpsId {
+    lateinit var mapping: AlertMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      mapping = repository.save(
+        AlertMapping(
+          dpsAlertId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          nomisBookingId = 54321L,
+          nomisAlertSequence = 2L,
+          offenderNo = null,
+          label = "2023-01-01T12:45:12",
+          mappingType = MIGRATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      alertPrisonerRepository.deleteAll()
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/alerts/dps-alert-id/${mapping.dpsAlertId}")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/alerts/dps-alert-id/${mapping.dpsAlertId}")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/alerts/dps-alert-id/${mapping.dpsAlertId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 404 when mapping does not exist`() {
+        webTestClient.get()
+          .uri("/mapping/alerts/dps-alert-id/DOESNOTEXIST")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+
+      @Test
+      fun `will return 200 when mapping does exist`() {
+        webTestClient.get()
+          .uri("/mapping/alerts/dps-alert-id/${mapping.dpsAlertId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisBookingId").isEqualTo(mapping.nomisBookingId)
+          .jsonPath("nomisAlertSequence").isEqualTo(mapping.nomisAlertSequence)
+          .jsonPath("dpsAlertId").isEqualTo(mapping.dpsAlertId)
+          .jsonPath("offenderNo").doesNotExist()
+          .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
+          .jsonPath("label").isEqualTo(mapping.label!!)
+          .jsonPath("whenCreated").value<String> {
+            assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+          }
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("DELETE /mapping/alerts/dps-alert-id/{dpsAlertId}")
+  inner class DeleteMappingByDpsId {
+    lateinit var mapping: AlertMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      mapping = repository.save(
+        AlertMapping(
+          dpsAlertId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          nomisBookingId = 54321L,
+          nomisAlertSequence = 2L,
+          offenderNo = "A1234KT",
+          label = "2023-01-01T12:45:12",
+          mappingType = MIGRATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      alertPrisonerRepository.deleteAll()
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/alerts/dps-alert-id/${mapping.dpsAlertId}")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/alerts/dps-alert-id/${mapping.dpsAlertId}")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/alerts/dps-alert-id/${mapping.dpsAlertId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 204 even when mapping does not exist`() {
+        webTestClient.delete()
+          .uri("/mapping/alerts/dps-alert-id/DOESNOTEXIST")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .exchange()
+          .expectStatus().isNoContent
+      }
+
+      @Test
+      fun `will return 204 when mapping does exist and is deleted`() {
+        webTestClient.get()
+          .uri("/mapping/alerts/dps-alert-id/${mapping.dpsAlertId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .exchange()
+          .expectStatus().isOk
+
+        webTestClient.delete()
+          .uri("/mapping/alerts/dps-alert-id/${mapping.dpsAlertId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        webTestClient.get()
+          .uri("/mapping/alerts/dps-alert-id/${mapping.dpsAlertId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .exchange()
+          .expectStatus().isNotFound
       }
     }
   }
@@ -115,6 +297,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       dpsAlertId = "e52d7268-6e10-41a8-a0b9-2319b32520d6",
       nomisBookingId = 54321L,
       nomisAlertSequence = 3L,
+      offenderNo = "A1234KT",
       label = "2023-01-01T12:45:12",
       mappingType = MIGRATED,
     )
@@ -127,6 +310,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
           nomisBookingId = 54321L,
           nomisAlertSequence = 2L,
           label = "2023-01-01T12:45:12",
+          offenderNo = "A1234KT",
           mappingType = MIGRATED,
         ),
       )
@@ -134,6 +318,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
 
     @AfterEach
     fun tearDown() = runTest {
+      alertPrisonerRepository.deleteAll()
       repository.deleteAll()
     }
 
@@ -366,6 +551,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
                 nomisBookingId = existingMapping.nomisBookingId,
                 nomisAlertSequence = existingMapping.nomisAlertSequence,
                 dpsAlertId = dpsAlertId,
+                offenderNo = existingMapping.offenderNo,
               ),
             ),
           )
@@ -402,6 +588,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
                 nomisBookingId = existingMapping.nomisBookingId,
                 nomisAlertSequence = 99,
                 dpsAlertId = existingMapping.dpsAlertId,
+                offenderNo = existingMapping.offenderNo,
               ),
             ),
           )
@@ -429,6 +616,270 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("POST /mapping/alerts/{offenderNo}/all")
+  inner class CreateMappingsForPrisoner {
+    private lateinit var existingMapping: AlertMapping
+    private val prisonerMappings = PrisonerAlertMappingsDto(
+      label = "2023-01-01T12:45:12",
+      mappingType = MIGRATED,
+      mappings = listOf(
+        AlertMappingIdDto(
+          dpsAlertId = "e52d7268-6e10-41a8-a0b9-2319b32520d6",
+          nomisBookingId = 54321L,
+          nomisAlertSequence = 3L,
+        ),
+        AlertMappingIdDto(
+          dpsAlertId = "fd4e55a8-0805-439b-9e27-647583b96e4e",
+          nomisBookingId = 54321L,
+          nomisAlertSequence = 4L,
+        ),
+      ),
+    )
+
+    @BeforeEach
+    fun setUp() = runTest {
+      existingMapping = repository.save(
+        AlertMapping(
+          dpsAlertId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          nomisBookingId = 54321L,
+          nomisAlertSequence = 2L,
+          label = "2023-01-01T12:45:12",
+          mappingType = MIGRATED,
+          offenderNo = "A1234KT",
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      alertPrisonerRepository.deleteAll()
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/alerts/A1234KT/all")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(prisonerMappings))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(prisonerMappings))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(prisonerMappings))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `returns 201 when mapping created`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(prisonerMappings))
+          .exchange()
+          .expectStatus().isCreated
+
+        val createdMapping1 =
+          repository.findOneByNomisBookingIdAndNomisAlertSequence(
+            bookingId = prisonerMappings.mappings[0].nomisBookingId,
+            alertSequence = prisonerMappings.mappings[0].nomisAlertSequence,
+          )!!
+
+        assertThat(createdMapping1.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        assertThat(createdMapping1.nomisBookingId).isEqualTo(prisonerMappings.mappings[0].nomisBookingId)
+        assertThat(createdMapping1.nomisAlertSequence).isEqualTo(prisonerMappings.mappings[0].nomisAlertSequence)
+        assertThat(createdMapping1.dpsAlertId).isEqualTo(prisonerMappings.mappings[0].dpsAlertId)
+        assertThat(createdMapping1.mappingType).isEqualTo(prisonerMappings.mappingType)
+        assertThat(createdMapping1.label).isEqualTo(prisonerMappings.label)
+        val createdMapping2 =
+          repository.findOneByNomisBookingIdAndNomisAlertSequence(
+            bookingId = prisonerMappings.mappings[1].nomisBookingId,
+            alertSequence = prisonerMappings.mappings[1].nomisAlertSequence,
+          )!!
+
+        assertThat(createdMapping2.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        assertThat(createdMapping2.nomisBookingId).isEqualTo(prisonerMappings.mappings[1].nomisBookingId)
+        assertThat(createdMapping2.nomisAlertSequence).isEqualTo(prisonerMappings.mappings[1].nomisAlertSequence)
+        assertThat(createdMapping2.dpsAlertId).isEqualTo(prisonerMappings.mappings[1].dpsAlertId)
+        assertThat(createdMapping2.mappingType).isEqualTo(prisonerMappings.mappingType)
+        assertThat(createdMapping2.label).isEqualTo(prisonerMappings.label)
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `returns 400 when mapping type is invalid`() {
+        webTestClient.post()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              //language=JSON
+              """
+                {
+                  "mappingType": "INVALID_TYPE",
+                  "mappings": [
+                    {
+                      "nomisBookingId": 54321,
+                      "nomisAlertSequence": 3,
+                      "dpsAlertId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
+                    }
+                  ]
+                }
+              """.trimIndent(),
+            ),
+          )
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+
+      @Test
+      fun `returns 400 when DPS id is missing`() {
+        webTestClient.post()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              //language=JSON
+              """
+                {
+                  "mappingType": "MIGRATED",
+                  "mappings": [
+                    {
+                      "nomisBookingId": 54321,
+                      "nomisAlertSequence": 3
+                    }
+                  ]
+                }
+              """.trimIndent(),
+            ),
+          )
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+
+      @Test
+      fun `returns 400 when NOMIS ids are missing`() {
+        webTestClient.post()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              //language=JSON
+              """
+                {
+                  "mappingType": "MIGRATED",
+                  "mappings": [
+                    {
+                      "dpsAlertId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
+                      "nomisAlertSequence": 3
+                    }
+                  ]
+                }
+              """.trimIndent(),
+            ),
+          )
+          .exchange()
+          .expectStatus().isBadRequest
+
+        webTestClient.post()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              //language=JSON
+              """
+                {
+                  "mappingType": "MIGRATED",
+                  "mappings": [
+                    {
+                      "nomisBookingId": 54321,
+                      "dpsAlertId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
+                    }
+                  ]
+                }
+              """.trimIndent(),
+            ),
+          )
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+
+      @Test
+      fun `will not return 409 if nomis ids already exist since it will be deleted`() {
+        val dpsAlertId = UUID.randomUUID().toString()
+        webTestClient.post()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              prisonerMappings.copy(
+                mappings = prisonerMappings.mappings + AlertMappingIdDto(
+                  nomisBookingId = existingMapping.nomisBookingId,
+                  nomisAlertSequence = existingMapping.nomisAlertSequence,
+                  dpsAlertId = dpsAlertId,
+                ),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isEqualTo(201)
+      }
+
+      @Test
+      fun `will not return 409 if dps id already exist since it will be deleted`() {
+        webTestClient.post()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              prisonerMappings.copy(
+                mappings = prisonerMappings.mappings + AlertMappingIdDto(
+                  nomisBookingId = existingMapping.nomisBookingId,
+                  nomisAlertSequence = 99,
+                  dpsAlertId = existingMapping.dpsAlertId,
+                ),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isEqualTo(201)
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("DELETE /mapping/alerts")
   inner class DeleteAllMappings {
     private lateinit var existingMapping1: AlertMapping
@@ -443,6 +894,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
           nomisAlertSequence = 2L,
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
+          offenderNo = "A1234KT",
         ),
       )
       existingMapping2 = repository.save(
@@ -451,12 +903,14 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
           nomisBookingId = 54321L,
           nomisAlertSequence = 3L,
           mappingType = NOMIS_CREATED,
+          offenderNo = "A1234KT",
         ),
       )
     }
 
     @AfterEach
     fun tearDown() = runTest {
+      alertPrisonerRepository.deleteAll()
       repository.deleteAll()
     }
 
@@ -525,6 +979,309 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
           ),
         ).isNull()
       }
+    }
+  }
+
+  @DisplayName("GET /mapping/alerts/migration-id/{migrationId}")
+  @Nested
+  inner class GetMappingByMigrationIdTest {
+
+    @AfterEach
+    internal fun deleteData() = runBlocking {
+      alertPrisonerRepository.deleteAll()
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get().uri("/mapping/alerts/migration-id/2022-01-01T00:00:00")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get().uri("/mapping/alerts/migration-id/2022-01-01T00:00:00")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get().uri("/mapping/alerts/migration-id/2022-01-01T00:00:00")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Test
+    fun `can retrieve all mappings by migration Id`() = runTest {
+      (1L..4L).forEach {
+        repository.save(
+          AlertMapping(
+            dpsAlertId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
+            nomisBookingId = 54321L,
+            nomisAlertSequence = it,
+            label = "2023-01-01T12:45:12",
+            mappingType = MIGRATED,
+            offenderNo = "A1234KT",
+          ),
+        )
+      }
+
+      repository.save(
+        AlertMapping(
+          dpsAlertId = "edcd118c-91ba-42ea-b5c4-404b453ad58b",
+          nomisBookingId = 54321L,
+          nomisAlertSequence = 99,
+          label = "2022-01-01T12:43:12",
+          mappingType = MIGRATED,
+          offenderNo = "A1234KT",
+        ),
+      )
+
+      webTestClient.get().uri("/mapping/alerts/migration-id/2023-01-01T12:45:12")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(4)
+        .jsonPath("$.content..nomisAlertSequence").value(
+          Matchers.contains(
+            1,
+            2,
+            3,
+            4,
+          ),
+        )
+        .jsonPath("$.content[0].whenCreated").isNotEmpty
+    }
+
+    @Test
+    fun `200 response even when no mappings are found`() {
+      webTestClient.get().uri("/mapping/alerts/migration-id/2044-01-01")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(0)
+        .jsonPath("content").isEmpty
+    }
+
+    @Test
+    fun `can request a different page size`() = runTest {
+      (1L..6L).forEach {
+        repository.save(
+          AlertMapping(
+            dpsAlertId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
+            nomisBookingId = 54321L,
+            nomisAlertSequence = it,
+            label = "2023-01-01T12:45:12",
+            mappingType = MIGRATED,
+            offenderNo = "A1234KT",
+          ),
+        )
+      }
+      webTestClient.get().uri {
+        it.path("/mapping/alerts/migration-id/2023-01-01T12:45:12")
+          .queryParam("size", "2")
+          .queryParam("sort", "nomisAlertSequence,asc")
+          .build()
+      }
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(6)
+        .jsonPath("numberOfElements").isEqualTo(2)
+        .jsonPath("number").isEqualTo(0)
+        .jsonPath("totalPages").isEqualTo(3)
+        .jsonPath("size").isEqualTo(2)
+    }
+  }
+
+  @DisplayName("GET /mapping/alerts/migration-id/{migrationId}/grouped-by-prisoner")
+  @Nested
+  inner class GetMappingByMigrationIdGroupedByPrisoner {
+
+    @AfterEach
+    internal fun deleteData() = runBlocking {
+      alertPrisonerRepository.deleteAll()
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get().uri("/mapping/alerts/migration-id/2022-01-01T00:00:00/grouped-by-prisoner")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get().uri("/mapping/alerts/migration-id/2022-01-01T00:00:00/grouped-by-prisoner")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get().uri("/mapping/alerts/migration-id/2022-01-01T00:00:00/grouped-by-prisoner")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Test
+    fun `can retrieve all mappings by migration Id`() = runTest {
+      webTestClient.post()
+        .uri("/mapping/alerts/A1111KT/all")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            PrisonerAlertMappingsDto(
+              label = "2023-01-01T12:45:12",
+              mappingType = MIGRATED,
+              mappings = (1L..4L).map {
+                AlertMappingIdDto(
+                  dpsAlertId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
+                  nomisBookingId = 54321L,
+                  nomisAlertSequence = it,
+                )
+              },
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post()
+        .uri("/mapping/alerts/A2222KT/all")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            PrisonerAlertMappingsDto(
+              label = "2023-01-01T12:45:12",
+              mappingType = MIGRATED,
+              mappings = (5L..6L).map {
+                AlertMappingIdDto(
+                  dpsAlertId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
+                  nomisBookingId = 54321L,
+                  nomisAlertSequence = it,
+                )
+              },
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post()
+        .uri("/mapping/alerts/A1234KT/all")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            PrisonerAlertMappingsDto(
+              label = "2022-01-01T12:43:12",
+              mappingType = MIGRATED,
+              mappings = listOf(
+                AlertMappingIdDto(
+                  dpsAlertId = "edcd118c-91ba-42ea-b5c4-404b453ad58b",
+                  nomisBookingId = 54321L,
+                  nomisAlertSequence = 99,
+                ),
+              ),
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.get().uri("/mapping/alerts/migration-id/2023-01-01T12:45:12/grouped-by-prisoner")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(2)
+        .jsonPath("$.content..offenderNo").value(
+          Matchers.contains(
+            "A1111KT",
+            "A2222KT",
+          ),
+        )
+        .jsonPath("$.content..mappingsCount").value(
+          Matchers.contains(
+            4,
+            2,
+          ),
+        )
+      webTestClient.get().uri("/mapping/alerts/migration-id/2023-01-01T12:45:12/grouped-by-prisoner?size=1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(2)
+        .jsonPath("numberOfElements").isEqualTo(1)
+        .jsonPath("$.content[0].offenderNo").isEqualTo("A1111KT")
+        .jsonPath("$.content[0].whenCreated").value<String> {
+          assertThat(LocalDateTime.parse(it)).isCloseTo(
+            LocalDateTime.now(),
+            within(10, ChronoUnit.MINUTES),
+          )
+        }
+    }
+
+    @Test
+    fun `200 response even when no mappings are found`() {
+      webTestClient.get().uri("/mapping/alerts/migration-id/2044-01-01")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(0)
+        .jsonPath("content").isEmpty
+    }
+
+    @Test
+    fun `can request a different page size`() = runTest {
+      (1L..6L).forEach {
+        repository.save(
+          AlertMapping(
+            dpsAlertId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
+            nomisBookingId = 54321L,
+            nomisAlertSequence = it,
+            label = "2023-01-01T12:45:12",
+            mappingType = MIGRATED,
+            offenderNo = "A1234KT",
+          ),
+        )
+      }
+      webTestClient.get().uri {
+        it.path("/mapping/alerts/migration-id/2023-01-01T12:45:12")
+          .queryParam("size", "2")
+          .queryParam("sort", "nomisAlertSequence,asc")
+          .build()
+      }
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(6)
+        .jsonPath("numberOfElements").isEqualTo(2)
+        .jsonPath("number").isEqualTo(0)
+        .jsonPath("totalPages").isEqualTo(3)
+        .jsonPath("size").isEqualTo(2)
     }
   }
 }

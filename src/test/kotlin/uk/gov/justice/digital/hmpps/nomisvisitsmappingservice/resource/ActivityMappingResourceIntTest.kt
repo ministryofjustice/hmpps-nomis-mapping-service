@@ -24,7 +24,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.ActivityMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.ActivityScheduleMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.ActivityRepository
@@ -37,6 +36,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivitySchedu
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.ActivityMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.ActivityMappingService
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 class ActivityMappingResourceIntTest : IntegrationTestBase() {
 

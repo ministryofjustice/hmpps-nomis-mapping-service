@@ -7,7 +7,7 @@ import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Court appearance mapping")
-data class CourtAppearanceMappingDto(
+data class CourtAppearanceAllMappingDto(
 
   @Schema(description = "NOMIS court appearance id", example = "123456")
   val nomisCourtAppearanceId: Long,
@@ -17,6 +17,9 @@ data class CourtAppearanceMappingDto(
 
   @Schema(description = "optional NOMIS next court appearance id", example = "123456")
   val nomisNextCourtAppearanceId: Long? = null,
+
+  @Schema(description = "Court Charge mappings")
+  val courtCharges: List<CourtChargeMappingDto> = emptyList(),
 
   @Schema(description = "Label (a timestamp for migrated ids)")
   @field:Size(max = 20)

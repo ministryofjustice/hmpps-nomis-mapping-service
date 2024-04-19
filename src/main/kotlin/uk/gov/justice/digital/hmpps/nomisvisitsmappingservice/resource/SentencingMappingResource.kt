@@ -25,9 +25,9 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.SentencingAdjustmentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.SentencingMappingService
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
@@ -291,4 +291,33 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     migrationId: String,
   ): Page<SentencingAdjustmentMappingDto> =
     mappingService.getSentenceAdjustmentMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
+  @GetMapping("/mapping/sentencing/adjustments")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(
+    summary = "get all paged mappings",
+    description = "Retrieve all mappings . Results are paged.",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping page returned",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = SentencingAdjustmentMappingDto::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getAllSentenceAdjustmentMappings(
+    @PageableDefault pageRequest: Pageable,
+  ): Page<SentencingAdjustmentMappingDto> =
+    mappingService.getAllSentenceAdjustmentMappings(pageRequest = pageRequest)
 }

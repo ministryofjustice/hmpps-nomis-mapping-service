@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -19,11 +20,11 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationPunishmentBatchMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationPunishmentBatchUpdateMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationPunishmentMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.AdjudicationMappingService
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
@@ -141,4 +142,33 @@ class PunishmentsMappingResource(private val mappingService: AdjudicationMapping
     @PathVariable
     dpsPunishmentId: String,
   ): AdjudicationPunishmentMappingDto = mappingService.getPunishmentMappingByDpsId(dpsPunishmentId)
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @DeleteMapping("/mapping/punishments/{dpsPunishmentId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete mapping",
+    description = "Deletes a mapping by DPS punishment id. Requires role NOMIS_ADJUDICATIONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Record deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access denied to this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteMappingByDpsId(
+    @Schema(description = "DPS Punishment Id", example = "12345", required = true)
+    @PathVariable
+    dpsPunishmentId: String,
+  ): Unit = mappingService.deletePunishmentMappingByDpsId(dpsPunishmentId)
 }

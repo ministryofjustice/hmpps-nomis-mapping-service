@@ -6,7 +6,7 @@ generic-service:
     host: nomis-sync-prisoner-mapping.hmpps.service.justice.gov.uk
 
   env:
-    API_BASE_URL_OAUTH: https://sign-in.hmpps.service.justice.gov.uk/auth
+    API_BASE_URL_HMPPS_AUTH: https://sign-in.hmpps.service.justice.gov.uk/auth
 
   postgresDatabaseRestore:
     enabled: true
