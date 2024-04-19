@@ -227,12 +227,46 @@ class LocationMappingResource(private val mappingService: LocationMappingService
         description = "Unauthorized to access this endpoint",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Mapping does not exist",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
     ],
   )
-  suspend fun deleteMapping(
-    @Schema(description = "DPS Location Id", example = "12345678", required = true)
+  suspend fun deleteMappingGivenDpsId(
+    @Schema(description = "DPS Location Id", example = "1234abcd-5678-1234-5678-0123456789ab", required = true)
     @PathVariable
     locationId: String,
+  ) = mappingService.deleteMapping(locationId)
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_LOCATIONS')")
+  @DeleteMapping("/mapping/locations/nomis/{locationId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes a specific location mapping by Nomis location id",
+    description = "Deletes the location from the mapping table. Requires role NOMIS_LOCATIONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Location mapping deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Mapping does not exist",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteMappingGivenNomisId(
+    @Schema(description = "Nomis Location Id", example = "12345678", required = true)
+    @PathVariable
+    locationId: Long,
   ) = mappingService.deleteMapping(locationId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_LOCATIONS')")

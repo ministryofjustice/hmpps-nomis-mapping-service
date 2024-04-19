@@ -14,4 +14,5 @@ interface LocationMappingRepository : CoroutineCrudRepository<LocationMapping, S
   suspend fun countAllByLabelAndMappingType(label: String, mappingType: LocationMappingType): Long
   fun findAllByLabelAndMappingTypeOrderByLabelDesc(label: String, mappingType: LocationMappingType, pageable: Pageable): Flow<LocationMapping>
   suspend fun deleteByMappingTypeEquals(mappingType: LocationMappingType): LocationMapping?
+  suspend fun deleteByNomisLocationId(nomisLocationId: Long)
 }
