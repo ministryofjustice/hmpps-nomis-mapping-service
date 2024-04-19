@@ -129,7 +129,10 @@ class LocationMappingService(
       ?: throw NotFoundException("No migrated mapping found")
 
   @Transactional
-  suspend fun deleteMapping(locationId: String) = locationMappingRepository.deleteById(locationId)
+  suspend fun deleteMapping(dpsLocationId: String) = locationMappingRepository.deleteById(dpsLocationId)
+
+  @Transactional
+  suspend fun deleteMapping(nomisLocationId: Long) = locationMappingRepository.deleteByNomisLocationId(nomisLocationId)
 
   @Transactional
   suspend fun deleteMappings(onlyMigrated: Boolean) =

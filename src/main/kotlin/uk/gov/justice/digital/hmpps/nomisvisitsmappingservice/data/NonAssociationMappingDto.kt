@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.NonAssociation
 import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Non-association mapping (same value for NOMIS and DPS)")
+@Schema(description = "Non-association mapping")
 data class NonAssociationMappingDto(
 
   @Schema(description = "Non-Association id", required = true)

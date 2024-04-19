@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.LocationMappin
 import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Location mapping (same value for NOMIS and DPS)")
+@Schema(description = "Location mapping")
 data class LocationMappingDto(
 
   @Schema(description = "Location id in DPS", required = true)

@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Incident mapping (same value for NOMIS and DPS)")
+@Schema(description = "Incident mapping")
 data class IncidentMappingDto(
 
   @Schema(description = "NOMIS Incident id", required = true)
