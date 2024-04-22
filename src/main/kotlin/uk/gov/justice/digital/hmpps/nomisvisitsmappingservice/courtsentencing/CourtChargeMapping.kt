@@ -47,4 +47,5 @@ data class CourtChargeMapping(
 enum class CourtChargeMappingType {
   MIGRATED,
   DPS_CREATED,
+  NOMIS_CREATED,
 }
