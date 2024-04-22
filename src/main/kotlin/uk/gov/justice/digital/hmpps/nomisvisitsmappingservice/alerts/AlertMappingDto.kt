@@ -18,7 +18,7 @@ data class AlertMappingDto(
   val nomisAlertSequence: Long,
 
   @Schema(description = "Prisoner number")
-  val offenderNo: String?,
+  val offenderNo: String,
 
   @Schema(description = "Label (a timestamp for migrated ids)")
   val label: String? = null,
