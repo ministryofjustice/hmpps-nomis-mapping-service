@@ -13,7 +13,7 @@ data class AlertMapping(
 
   val nomisBookingId: Long,
   val nomisAlertSequence: Long,
-  val offenderNo: String?,
+  val offenderNo: String,
 
   /**
    * ISO timestamp of batch job if a migration

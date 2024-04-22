@@ -106,7 +106,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
           .jsonPath("nomisAlertSequence").isEqualTo(mapping.nomisAlertSequence)
           .jsonPath("dpsAlertId").isEqualTo(mapping.dpsAlertId)
           .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
-          .jsonPath("offenderNo").isEqualTo(mapping.offenderNo!!)
+          .jsonPath("offenderNo").isEqualTo(mapping.offenderNo)
           .jsonPath("label").isEqualTo(mapping.label!!)
           .jsonPath("whenCreated").value<String> {
             assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
@@ -127,7 +127,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
           dpsAlertId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisBookingId = 54321L,
           nomisAlertSequence = 2L,
-          offenderNo = null,
+          offenderNo = "A1234KT",
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -191,7 +191,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
           .jsonPath("nomisBookingId").isEqualTo(mapping.nomisBookingId)
           .jsonPath("nomisAlertSequence").isEqualTo(mapping.nomisAlertSequence)
           .jsonPath("dpsAlertId").isEqualTo(mapping.dpsAlertId)
-          .jsonPath("offenderNo").doesNotExist()
+          .jsonPath("offenderNo").isEqualTo(mapping.offenderNo)
           .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
           .jsonPath("label").isEqualTo(mapping.label!!)
           .jsonPath("whenCreated").value<String> {
@@ -396,6 +396,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
                 {
                   "nomisBookingId": 54321,
                   "nomisAlertSequence": 3,
+                  "offenderNo": "A1234KT",
                   "dpsAlertId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
                 }
               """.trimIndent(),
@@ -430,6 +431,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
               """
                 {
                   "nomisBookingId": 54321,
+                  "offenderNo": "A1234KT",
                   "nomisAlertSequence": 3,
                   "dpsAlertId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
                 }
