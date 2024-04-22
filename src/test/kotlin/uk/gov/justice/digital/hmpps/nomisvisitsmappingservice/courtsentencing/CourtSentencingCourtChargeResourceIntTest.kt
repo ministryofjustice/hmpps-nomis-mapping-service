@@ -352,6 +352,97 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
     }
   }
 
+  @DisplayName("POST /mapping/court-sentencing/court-charges")
+  @Nested
+  inner class CourtChargeMappingTest {
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access forbidden when no authority`() {
+        webTestClient.post().uri("/mapping/court-sentencing/court-charges")
+          .body(BodyInserters.fromValue(createMapping()))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post().uri("/mapping/court-sentencing/court-charges")
+          .headers(setAuthorisation(roles = listOf()))
+          .body(BodyInserters.fromValue(createMapping()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `create forbidden with wrong role`() {
+        webTestClient.post().uri("/mapping/court-sentencing/court-charges")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .body(BodyInserters.fromValue(createMapping()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `can create a single court charge mapping`() = runTest {
+        postCourtChargeMappingRequest()
+
+        val mappings = courtChargeRepository.findAll().toList()
+
+        assertThat(mappings).hasSize(1)
+        val mapping = mappings[0]
+        assertThat(mapping.dpsCourtChargeId).isEqualTo(DPS_COURT_CHARGE_ID)
+        assertThat(mapping.nomisCourtChargeId).isEqualTo(NOMIS_COURT_CHARGE_ID)
+        assertThat(mapping.mappingType).isEqualTo(CourtChargeMappingType.DPS_CREATED)
+        assertThat(mapping.label).isNull()
+        assertThat(mapping.whenCreated)
+          .isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+      }
+    }
+
+    @Nested
+    inner class Failures {
+      @Test
+      fun `create mapping failure - court charge exists`() {
+        postCourtChargeMappingRequest()
+
+        webTestClient.post().uri("/mapping/court-sentencing/court-charges")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CourtChargeMappingDto(
+                dpsCourtChargeId = DPS_COURT_CHARGE_ID,
+                nomisCourtChargeId = 5434231,
+              ),
+            ),
+
+          )
+          .exchange()
+          .expectStatus().isDuplicateMapping
+
+        webTestClient.post().uri("/mapping/court-sentencing/court-charges")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CourtChargeMappingDto(
+                dpsCourtChargeId = "7656543",
+                nomisCourtChargeId = NOMIS_COURT_CHARGE_ID,
+              ),
+
+            ),
+          )
+          .exchange()
+          .expectStatus().isDuplicateMapping
+      }
+    }
+  }
+
   @AfterEach
   fun tearDown() = runTest {
     courtChargeRepository.deleteAll()
@@ -390,5 +481,21 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
       )
       .exchange()
       .expectStatus().isOk
+  }
+
+  private fun postCourtChargeMappingRequest(
+    courtCharge: CourtChargeMappingDto = CourtChargeMappingDto(
+      dpsCourtChargeId = DPS_COURT_CHARGE_ID,
+      nomisCourtChargeId = NOMIS_COURT_CHARGE_ID,
+    ),
+  ) {
+    webTestClient.post().uri("/mapping/court-sentencing/court-charges")
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        BodyInserters.fromValue(courtCharge),
+      )
+      .exchange()
+      .expectStatus().isCreated
   }
 }

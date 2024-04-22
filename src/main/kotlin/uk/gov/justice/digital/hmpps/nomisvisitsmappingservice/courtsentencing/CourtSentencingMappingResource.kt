@@ -443,6 +443,58 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
       )
     }
 
+  @PostMapping("/court-charges")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates a new single charge mapping",
+    description = "Creates a mapping between nomis offender charge ID and DPS charge ID. Requires ROLE_NOMIS_COURT_SENTENCING",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = CourtChargeMappingDto::class),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createCourtChargeMapping(
+    @RequestBody @Valid
+    mapping: CourtChargeMappingDto,
+  ) =
+    try {
+      mappingService.createCourtChargeMapping(mapping)
+    } catch (e: DuplicateKeyException) {
+      throw DuplicateMappingException(
+        messageIn = "Court charge mapping already exists",
+        duplicate = mapping,
+        existing = getExistingChargeMappingSimilarTo(mapping),
+        cause = e,
+      )
+    }
+
   private suspend fun getExistingMappingSimilarTo(mapping: CourtCaseAllMappingDto) = runCatching {
     mappingService.getCourtCaseMappingByNomisId(
       courtCaseId = mapping.nomisCourtCaseId,
@@ -460,6 +512,16 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   }.getOrElse {
     mappingService.getCourtAppearanceMappingByDpsId(
       courtAppearanceId = mapping.dpsCourtAppearanceId,
+    )
+  }
+
+  private suspend fun getExistingChargeMappingSimilarTo(mapping: CourtChargeMappingDto) = runCatching {
+    mappingService.getCourtChargeMappingByNomisId(
+      courtChargeId = mapping.nomisCourtChargeId,
+    )
+  }.getOrElse {
+    mappingService.getCourtChargeMappingByDpsId(
+      courtChargeId = mapping.dpsCourtChargeId,
     )
   }
 }
