@@ -116,6 +116,122 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("PUT /mapping/alerts/nomis-booking-id/{bookingId}/nomis-alert-sequence/{alertSequence}")
+  inner class UpdateMappingByNomisId {
+    lateinit var mapping: AlertMapping
+    val newBookingId = 65432L
+
+    @BeforeEach
+    fun setUp() = runTest {
+      mapping = repository.save(
+        AlertMapping(
+          dpsAlertId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          nomisBookingId = 54321L,
+          nomisAlertSequence = 2L,
+          offenderNo = "A1234KT",
+          label = "2023-01-01T12:45:12",
+          mappingType = MIGRATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      alertPrisonerRepository.deleteAll()
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.put()
+          .uri("/mapping/alerts/nomis-booking-id/${mapping.nomisBookingId}/nomis-alert-sequence/${mapping.nomisAlertSequence}")
+          .bodyValue(NomisMappingIdUpdate(bookingId = newBookingId))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.put()
+          .uri("/mapping/alerts/nomis-booking-id/${mapping.nomisBookingId}/nomis-alert-sequence/${mapping.nomisAlertSequence}")
+          .bodyValue(NomisMappingIdUpdate(bookingId = newBookingId))
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.put()
+          .uri("/mapping/alerts/nomis-booking-id/${mapping.nomisBookingId}/nomis-alert-sequence/${mapping.nomisAlertSequence}")
+          .bodyValue(NomisMappingIdUpdate(bookingId = newBookingId))
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `will return 404 when mapping does not exist`() {
+        webTestClient.put()
+          .uri("/mapping/alerts/nomis-booking-id/9999/nomis-alert-sequence/${mapping.nomisAlertSequence}")
+          .bodyValue(NomisMappingIdUpdate(bookingId = newBookingId))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+
+      @Test
+      fun `will update and return 200 when mapping does exist`() {
+        webTestClient.put()
+          .uri("/mapping/alerts/nomis-booking-id/${mapping.nomisBookingId}/nomis-alert-sequence/${mapping.nomisAlertSequence}")
+          .bodyValue(NomisMappingIdUpdate(bookingId = newBookingId))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisBookingId").isEqualTo(newBookingId)
+          .jsonPath("nomisAlertSequence").isEqualTo(mapping.nomisAlertSequence)
+          .jsonPath("dpsAlertId").isEqualTo(mapping.dpsAlertId)
+          .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
+          .jsonPath("offenderNo").isEqualTo(mapping.offenderNo)
+          .jsonPath("label").isEqualTo(mapping.label!!)
+          .jsonPath("whenCreated").value<String> {
+            assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+          }
+      }
+
+      @Test
+      fun `will return mapping using new bookingId`() {
+        webTestClient.put()
+          .uri("/mapping/alerts/nomis-booking-id/${mapping.nomisBookingId}/nomis-alert-sequence/${mapping.nomisAlertSequence}")
+          .bodyValue(NomisMappingIdUpdate(bookingId = newBookingId))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .exchange()
+          .expectStatus().isOk
+
+        webTestClient.get()
+          .uri("/mapping/alerts/nomis-booking-id/$newBookingId/nomis-alert-sequence/${mapping.nomisAlertSequence}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisBookingId").isEqualTo(newBookingId)
+          .jsonPath("nomisAlertSequence").isEqualTo(mapping.nomisAlertSequence)
+          .jsonPath("dpsAlertId").isEqualTo(mapping.dpsAlertId)
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("GET /mapping/alerts/dps-alert-id/{dpsAlertId}")
   inner class GetMappingByDpsId {
     lateinit var mapping: AlertMapping
