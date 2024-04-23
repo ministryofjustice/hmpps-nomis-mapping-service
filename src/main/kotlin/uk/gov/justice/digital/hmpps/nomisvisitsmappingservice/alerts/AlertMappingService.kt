@@ -124,6 +124,17 @@ class AlertMappingService(
       count.await(),
     )
   }
+
+  @Transactional
+  suspend fun updateMappingByNomisId(previousBookingId: Long, alertSequence: Long, newBookingId: Long) =
+    repository.findOneByNomisBookingIdAndNomisAlertSequence(
+      bookingId = previousBookingId,
+      alertSequence = alertSequence,
+    )
+      ?.let {
+        repository.save(it.copy(nomisBookingId = newBookingId)).toDto()
+      }
+      ?: throw NotFoundException("No alert mapping found for bookingId=$previousBookingId,alertSequence=$alertSequence")
 }
 
 fun AlertMapping.toDto() = AlertMappingDto(

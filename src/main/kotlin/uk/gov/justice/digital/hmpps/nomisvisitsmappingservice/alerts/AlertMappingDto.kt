@@ -71,3 +71,10 @@ data class AlertMappingIdDto(
   @Schema(description = "NOMIS alert sequence")
   val nomisAlertSequence: Long,
 )
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Update mapping NOMIS Ids")
+data class NomisMappingIdUpdate(
+  @Schema(description = "NOMIS booking id")
+  val bookingId: Long,
+)
