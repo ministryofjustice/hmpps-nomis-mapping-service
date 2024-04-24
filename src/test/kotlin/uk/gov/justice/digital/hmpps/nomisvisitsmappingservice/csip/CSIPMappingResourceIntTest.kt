@@ -344,7 +344,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
                 "nomisCSIPId" : $NOMIS_CSIP_ID,
                 "label"       : "2022-01-01",
                 "dpsCSIPId"   : "$DPS_CSIP_ID",
-                "mappingType" : "MASSIVELY_LONG_PROPERTY_CSIP_CREATED"
+                "mappingType" : "MASSIVELY_LONG_PROPERTY_DPS_CREATED"
               }""",
             ),
           )
