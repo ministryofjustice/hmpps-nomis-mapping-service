@@ -443,6 +443,92 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
     }
   }
 
+  @Nested
+  @DisplayName("DELETE /mapping/court-sentencing/court-charges/nomis-court-charge-id/{courtChargeId}")
+  inner class DeleteMappingByNomisId {
+    lateinit var mapping: CourtChargeMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      mapping = courtChargeRepository.save(
+        CourtChargeMapping(
+          dpsCourtChargeId = DPS_COURT_CHARGE_ID,
+          nomisCourtChargeId = NOMIS_COURT_CHARGE_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtChargeMappingType.MIGRATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      courtChargeRepository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/court-charges/nomis-court-charge-id/${mapping.nomisCourtChargeId}")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/court-charges/nomis-court-charge-id/${mapping.nomisCourtChargeId}")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/court-charges/nomis-court-charge-id/${mapping.nomisCourtChargeId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 204 even when mapping does not exist`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/court-charges/nomis-court-charge-id/13333")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNoContent
+      }
+
+      @Test
+      fun `will return 204 when mapping does exist and is deleted`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-charges/dps-court-charge-id/${mapping.dpsCourtChargeId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isOk
+
+        // delete using nomis id
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/court-charges/nomis-court-charge-id/${mapping.nomisCourtChargeId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-charges/dps-court-charge-id/${mapping.dpsCourtChargeId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+  }
+
   @AfterEach
   fun tearDown() = runTest {
     courtChargeRepository.deleteAll()

@@ -151,6 +151,10 @@ class CourtSentencingMappingService(
   suspend fun getCourtChargeMappingByNomisId(courtChargeId: Long): CourtChargeMappingDto =
     courtChargeMappingRepository.findByNomisCourtChargeId(courtChargeId)?.toCourtChargeMappingDto()
       ?: throw NotFoundException("NOMIS Court charge Id =$courtChargeId")
+
+  @Transactional
+  suspend fun deleteCourtChargeMappingByNomisId(courtChargeId: Long) =
+    courtChargeMappingRepository.deleteByNomisCourtChargeId(courtChargeId)
 }
 
 fun CourtCaseMapping.toCourtCaseMappingDto(): CourtCaseMappingDto = CourtCaseMappingDto(

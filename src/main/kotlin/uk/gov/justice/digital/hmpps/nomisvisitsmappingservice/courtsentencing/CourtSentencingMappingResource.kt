@@ -495,6 +495,34 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
       )
     }
 
+  @DeleteMapping("/court-charges/nomis-court-charge-id/{nomisCourtChargeId}")
+  @Operation(
+    summary = "Deletes court charge mapping",
+    description = "Deletes a court charge mapping by NOMIS id. Requires role NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Mapping Deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  suspend fun deleteCourtChargeMappingByNomisId(
+    @Schema(description = "NOMIS court charge id", example = "33", required = true)
+    @PathVariable
+    nomisCourtChargeId: Long,
+  ) = mappingService.deleteCourtChargeMappingByNomisId(courtChargeId = nomisCourtChargeId)
+
   private suspend fun getExistingMappingSimilarTo(mapping: CourtCaseAllMappingDto) = runCatching {
     mappingService.getCourtCaseMappingByNomisId(
       courtCaseId = mapping.nomisCourtCaseId,
