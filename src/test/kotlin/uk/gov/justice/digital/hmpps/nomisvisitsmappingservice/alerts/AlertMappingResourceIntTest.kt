@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.alerts.AlertMappingType.DPS_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.alerts.AlertMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.alerts.AlertMappingType.NOMIS_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestDuplicateErrorResponse
@@ -111,6 +112,131 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
           .jsonPath("whenCreated").value<String> {
             assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
           }
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/alerts/{offenderNo}/all")
+  inner class GetMappingByPrisoner {
+    private var mapping1: AlertMapping = AlertMapping(
+      dpsAlertId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+      nomisBookingId = 54321L,
+      nomisAlertSequence = 2L,
+      offenderNo = "A1234KT",
+      mappingType = DPS_CREATED,
+    )
+    private var mapping2: AlertMapping = AlertMapping(
+      dpsAlertId = "85665bb9-ab28-458a-8386-b8cc91b311f7",
+      nomisBookingId = 11111L,
+      nomisAlertSequence = 1L,
+      offenderNo = "A1234KT",
+      mappingType = DPS_CREATED,
+    )
+    private val prisonerMappings = PrisonerAlertMappingsDto(
+      label = "2023-01-01T12:45:12",
+      mappingType = MIGRATED,
+      mappings = listOf(
+        AlertMappingIdDto(
+          dpsAlertId = "e52d7268-6e10-41a8-a0b9-2319b32520d6",
+          nomisBookingId = 54321L,
+          nomisAlertSequence = 3L,
+        ),
+        AlertMappingIdDto(
+          dpsAlertId = "fd4e55a8-0805-439b-9e27-647583b96e4e",
+          nomisBookingId = 54321L,
+          nomisAlertSequence = 4L,
+        ),
+      ),
+    )
+
+    @BeforeEach
+    fun setUp() = runTest {
+      webTestClient.post()
+        .uri("/mapping/alerts/A1234KT/all")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(prisonerMappings))
+        .exchange()
+        .expectStatus().isCreated
+      mapping1 = repository.save(mapping1)
+      mapping2 = repository.save(mapping2)
+      repository.save(
+        AlertMapping(
+          dpsAlertId = "fd4e55a8-41ba-42ea-b5c4-404b453ad99b",
+          nomisBookingId = 9999L,
+          nomisAlertSequence = 1L,
+          offenderNo = "A1111KT",
+          mappingType = MIGRATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      alertPrisonerRepository.deleteAll()
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/alerts/A1234KT/all")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 200 when no mappings found for prisoner`() {
+        webTestClient.get()
+          .uri("/mapping/alerts/A9999KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("mappings.size()").isEqualTo(0)
+      }
+
+      @Test
+      fun `will return all mappings for prisoner`() {
+        webTestClient.get()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("mappings.size()").isEqualTo(4)
+          .jsonPath("mappings[0].nomisBookingId").isEqualTo(11111)
+          .jsonPath("mappings[0].nomisAlertSequence").isEqualTo(1)
+          .jsonPath("mappings[1].nomisBookingId").isEqualTo(54321L)
+          .jsonPath("mappings[1].nomisAlertSequence").isEqualTo(2)
+          .jsonPath("mappings[2].nomisBookingId").isEqualTo(54321L)
+          .jsonPath("mappings[2].nomisAlertSequence").isEqualTo(3)
+          .jsonPath("mappings[3].nomisBookingId").isEqualTo(54321L)
+          .jsonPath("mappings[3].nomisAlertSequence").isEqualTo(4)
       }
     }
   }

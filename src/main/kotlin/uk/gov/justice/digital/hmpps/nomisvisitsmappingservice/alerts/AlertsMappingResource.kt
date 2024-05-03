@@ -237,6 +237,34 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
       throw e
     }
 
+  @GetMapping("{offenderNo}/all")
+  @Operation(
+    summary = "Gets all alert mappings for a prisoner",
+    description = "Gets all the mapping between nomis alert ids and dps alert id related to specific prisoner created either via migration or synchronisation. Requires ROLE_NOMIS_ALERTS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mappings for prisoner",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = AllPrisonerAlertMappingsDto::class))],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getMappingsForPrisoner(
+    @Schema(description = "NOMIS offender no", example = "A1234KT", required = true)
+    @PathVariable
+    offenderNo: String,
+  ) = mappingService.getMappings(offenderNo)
+
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(

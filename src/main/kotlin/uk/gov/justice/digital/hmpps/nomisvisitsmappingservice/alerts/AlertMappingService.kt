@@ -135,6 +135,9 @@ class AlertMappingService(
         repository.save(it.copy(nomisBookingId = newBookingId)).toDto()
       }
       ?: throw NotFoundException("No alert mapping found for bookingId=$previousBookingId,alertSequence=$alertSequence")
+
+  suspend fun getMappings(offenderNo: String): AllPrisonerAlertMappingsDto =
+    repository.findAllByOffenderNoOrderByNomisBookingIdAscNomisAlertSequenceAsc(offenderNo).map { it.toDto() }.let { AllPrisonerAlertMappingsDto(it) }
 }
 
 fun AlertMapping.toDto() = AlertMappingDto(

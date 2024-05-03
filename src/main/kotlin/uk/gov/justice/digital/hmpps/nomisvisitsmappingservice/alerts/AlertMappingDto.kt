@@ -78,3 +78,9 @@ data class NomisMappingIdUpdate(
   @Schema(description = "NOMIS booking id")
   val bookingId: Long,
 )
+
+@Schema(description = "All mappings for a prisoner created either via migration or synchronisation")
+data class AllPrisonerAlertMappingsDto(
+  @Schema(description = "Mappings")
+  val mappings: List<AlertMappingDto>,
+)
