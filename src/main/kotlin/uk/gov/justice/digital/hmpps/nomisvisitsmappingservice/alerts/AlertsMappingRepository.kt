@@ -11,6 +11,8 @@ interface AlertsMappingRepository : CoroutineCrudRepository<AlertMapping, String
   suspend fun findOneByDpsAlertId(dpsAlertId: String): AlertMapping?
   suspend fun findAllByLabelAndMappingTypeOrderByLabelDesc(label: String, mappingType: AlertMappingType, pageRequest: Pageable): Flow<AlertMapping>
 
+  fun findAllBy(pageRequest: Pageable): Flow<AlertMapping>
   suspend fun countAllByLabelAndMappingType(migrationId: String, mappingType: AlertMappingType): Long
   suspend fun deleteAllByOffenderNo(offenderNo: String)
+  suspend fun findAllByOffenderNoOrderByNomisBookingIdAscNomisAlertSequenceAsc(offenderNo: String): List<AlertMapping>
 }

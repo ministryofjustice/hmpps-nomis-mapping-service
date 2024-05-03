@@ -38,8 +38,13 @@ class AlertMappingService(
   }
 
   @Transactional
+  suspend fun createMappings(mappings: List<AlertMappingDto>) {
+    repository.saveAll(mappings.map { it.fromDto() }).collect()
+  }
+
+  @Transactional
   suspend fun createMappings(offenderNo: String, prisonerMapping: PrisonerAlertMappingsDto) {
-    // since we are replacing all alerts remove old mappings so they they can all be recreated
+    // since we are replacing all alerts remove old mappings so they can all be recreated
     repository.deleteAllByOffenderNo(offenderNo)
     repository.saveAll(
       prisonerMapping.mappings.map {
@@ -92,6 +97,22 @@ class AlertMappingService(
     )
   }
 
+  suspend fun getMappings(pageRequest: Pageable): Page<AlertMappingDto> = coroutineScope {
+    val mappings = repository.findAllBy(
+      pageRequest = pageRequest,
+    )
+
+    val count = async {
+      repository.count()
+    }
+
+    PageImpl(
+      mappings.toList().map { it.toDto() },
+      pageRequest,
+      count.await(),
+    )
+  }
+
   suspend fun getByMigrationIdGroupedByPrisoner(
     pageRequest: Pageable,
     migrationId: String,
@@ -135,6 +156,9 @@ class AlertMappingService(
         repository.save(it.copy(nomisBookingId = newBookingId)).toDto()
       }
       ?: throw NotFoundException("No alert mapping found for bookingId=$previousBookingId,alertSequence=$alertSequence")
+
+  suspend fun getMappings(offenderNo: String): AllPrisonerAlertMappingsDto =
+    repository.findAllByOffenderNoOrderByNomisBookingIdAscNomisAlertSequenceAsc(offenderNo).map { it.toDto() }.let { AllPrisonerAlertMappingsDto(it) }
 }
 
 fun AlertMapping.toDto() = AlertMappingDto(
