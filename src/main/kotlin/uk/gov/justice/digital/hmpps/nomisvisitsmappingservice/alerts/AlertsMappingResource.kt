@@ -367,6 +367,32 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
   ): Page<AlertMappingDto> =
     mappingService.getByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
+  @GetMapping
+  @Operation(
+    summary = "Get all paged mappings",
+    description = "Retrieve all mappings. Results are paged.",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping page returned",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getMappings(
+    @PageableDefault pageRequest: Pageable,
+  ): Page<AlertMappingDto> =
+    mappingService.getMappings(pageRequest = pageRequest)
+
   @GetMapping("/migration-id/{migrationId}/grouped-by-prisoner")
   @Operation(
     summary = "Get paged mappings by migration id grouped by prisoner",

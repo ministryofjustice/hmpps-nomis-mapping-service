@@ -97,6 +97,22 @@ class AlertMappingService(
     )
   }
 
+  suspend fun getMappings(pageRequest: Pageable): Page<AlertMappingDto> = coroutineScope {
+    val mappings = repository.findAllBy(
+      pageRequest = pageRequest,
+    )
+
+    val count = async {
+      repository.count()
+    }
+
+    PageImpl(
+      mappings.toList().map { it.toDto() },
+      pageRequest,
+      count.await(),
+    )
+  }
+
   suspend fun getByMigrationIdGroupedByPrisoner(
     pageRequest: Pageable,
     migrationId: String,
