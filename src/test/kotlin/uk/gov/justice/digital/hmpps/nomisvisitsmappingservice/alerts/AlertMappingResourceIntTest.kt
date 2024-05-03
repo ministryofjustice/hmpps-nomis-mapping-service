@@ -1124,6 +1124,213 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("POST /mapping/alerts/batch")
+  inner class CreateMappings {
+    private var existingMapping: AlertMapping = AlertMapping(
+      dpsAlertId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+      nomisBookingId = 54321L,
+      nomisAlertSequence = 2L,
+      label = "2023-01-01T12:45:12",
+      mappingType = MIGRATED,
+      offenderNo = "A1234KT",
+    )
+    private val mappings = listOf(
+      AlertMappingDto(
+        dpsAlertId = "e52d7268-6e10-41a8-a0b9-2319b32520d6",
+        offenderNo = "A1234KT",
+        nomisBookingId = 54321L,
+        nomisAlertSequence = 3L,
+        mappingType = DPS_CREATED,
+      ),
+      AlertMappingDto(
+        dpsAlertId = "fd4e55a8-0805-439b-9e27-647583b96e4e",
+        offenderNo = "A1234KT",
+        nomisBookingId = 54321L,
+        nomisAlertSequence = 4L,
+        mappingType = NOMIS_CREATED,
+      ),
+    )
+
+    @BeforeEach
+    fun setUp() = runTest {
+      existingMapping = repository.save(existingMapping)
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/alerts/batch")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mappings))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/alerts/batch")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mappings))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/alerts/batch")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mappings))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `returns 201 when mappings created`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/alerts/batch")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mappings))
+          .exchange()
+          .expectStatus().isCreated
+
+        val createdMapping1 =
+          repository.findOneByNomisBookingIdAndNomisAlertSequence(
+            bookingId = mappings[0].nomisBookingId,
+            alertSequence = mappings[0].nomisAlertSequence,
+          )!!
+
+        assertThat(createdMapping1.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        assertThat(createdMapping1.nomisBookingId).isEqualTo(mappings[0].nomisBookingId)
+        assertThat(createdMapping1.nomisAlertSequence).isEqualTo(mappings[0].nomisAlertSequence)
+        assertThat(createdMapping1.dpsAlertId).isEqualTo(mappings[0].dpsAlertId)
+        assertThat(createdMapping1.mappingType).isEqualTo(mappings[0].mappingType)
+        assertThat(createdMapping1.label).isEqualTo(mappings[0].label)
+        val createdMapping2 =
+          repository.findOneByNomisBookingIdAndNomisAlertSequence(
+            bookingId = mappings[1].nomisBookingId,
+            alertSequence = mappings[1].nomisAlertSequence,
+          )!!
+
+        assertThat(createdMapping2.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        assertThat(createdMapping2.nomisBookingId).isEqualTo(mappings[1].nomisBookingId)
+        assertThat(createdMapping2.nomisAlertSequence).isEqualTo(mappings[1].nomisAlertSequence)
+        assertThat(createdMapping2.dpsAlertId).isEqualTo(mappings[1].dpsAlertId)
+        assertThat(createdMapping2.mappingType).isEqualTo(mappings[1].mappingType)
+        assertThat(createdMapping2.label).isEqualTo(mappings[1].label)
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `returns 400 when mapping type is invalid`() {
+        webTestClient.post()
+          .uri("/mapping/alerts/batch")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              //language=JSON
+              """
+                [
+                    {
+                      "offenderNo": "A1234KT",
+                      "nomisBookingId": 54321,
+                      "nomisAlertSequence": 3,
+                      "dpsAlertId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
+                      "mappingType": "INVALID_TYPE"
+                    }
+                  ]
+              """.trimIndent(),
+            ),
+          )
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+
+      @Test
+      fun `will return 409 if nomis ids already exist`() {
+        val dpsAlertId = UUID.randomUUID().toString()
+        val duplicateResponse = webTestClient.post()
+          .uri("/mapping/alerts/batch")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              mappings + existingMapping.copy(dpsAlertId = dpsAlertId),
+            ),
+          )
+          .exchange()
+          .expectStatus().isEqualTo(409)
+          .expectBody(
+            object :
+              ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
+          )
+          .returnResult().responseBody
+
+        with(duplicateResponse!!) {
+          // since this is an untyped map an int will be assumed for such small numbers
+          assertThat(this.moreInfo.existing)
+            .containsEntry("nomisBookingId", existingMapping.nomisBookingId.toInt())
+            .containsEntry("nomisAlertSequence", existingMapping.nomisAlertSequence.toInt())
+            .containsEntry("dpsAlertId", existingMapping.dpsAlertId)
+          assertThat(this.moreInfo.duplicate)
+            .containsEntry("nomisBookingId", existingMapping.nomisBookingId.toInt())
+            .containsEntry("nomisAlertSequence", existingMapping.nomisAlertSequence.toInt())
+            .containsEntry("dpsAlertId", dpsAlertId)
+        }
+      }
+
+      @Test
+      fun `will return 409 if dps ids already exist`() {
+        val duplicateResponse = webTestClient.post()
+          .uri("/mapping/alerts/batch")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              mappings + existingMapping.copy(nomisAlertSequence = 99),
+            ),
+          )
+          .exchange()
+          .expectStatus().isEqualTo(409)
+          .expectBody(
+            object :
+              ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
+          )
+          .returnResult().responseBody
+
+        with(duplicateResponse!!) {
+          // since this is an untyped map an int will be assumed for such small numbers
+          assertThat(this.moreInfo.existing)
+            .containsEntry("nomisBookingId", existingMapping.nomisBookingId.toInt())
+            .containsEntry("nomisAlertSequence", existingMapping.nomisAlertSequence.toInt())
+            .containsEntry("dpsAlertId", existingMapping.dpsAlertId)
+          assertThat(this.moreInfo.duplicate)
+            .containsEntry("nomisBookingId", existingMapping.nomisBookingId.toInt())
+            .containsEntry("nomisAlertSequence", 99)
+            .containsEntry("dpsAlertId", existingMapping.dpsAlertId)
+        }
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("DELETE /mapping/alerts")
   inner class DeleteAllMappings {
     private lateinit var existingMapping1: AlertMapping
