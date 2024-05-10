@@ -4,12 +4,13 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
+import org.springframework.data.relational.core.mapping.Column
 import java.time.LocalDateTime
 
 data class IncidentMapping(
-
+  @Column(value = "incident_id")
   @Id
-  val incidentId: String,
+  val dpsIncidentId: String,
 
   val nomisIncidentId: Long,
 
@@ -32,20 +33,20 @@ data class IncidentMapping(
     if (this === other) return true
     if (other !is IncidentMapping) return false
 
-    return incidentId != other.incidentId
+    return dpsIncidentId != other.dpsIncidentId
   }
 
   override fun hashCode(): Int {
-    return incidentId.hashCode()
+    return dpsIncidentId.hashCode()
   }
 
   override fun isNew(): Boolean = new
 
-  override fun getId(): String = incidentId
+  override fun getId(): String = dpsIncidentId
 }
 
 enum class IncidentMappingType {
   MIGRATED,
   NOMIS_CREATED,
-  INCIDENT_CREATED,
+  DPS_CREATED,
 }

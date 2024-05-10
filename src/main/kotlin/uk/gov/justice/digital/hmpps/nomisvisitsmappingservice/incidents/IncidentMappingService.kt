@@ -36,7 +36,7 @@ class IncidentMappingService(
   suspend fun createIncidentMapping(createMappingRequest: IncidentMappingDto) =
     with(createMappingRequest) {
       log.debug("creating incident {}", createMappingRequest)
-      incidentMappingRepository.findById(incidentId)?.run {
+      incidentMappingRepository.findById(dpsIncidentId)?.run {
         if (this@run.nomisIncidentId == this@with.nomisIncidentId) {
           log.debug(
             "Not creating. All OK: {}",
@@ -72,7 +72,7 @@ class IncidentMappingService(
 
       incidentMappingRepository.save(
         IncidentMapping(
-          incidentId = incidentId,
+          dpsIncidentId = dpsIncidentId,
           nomisIncidentId = nomisIncidentId,
           label = label,
           mappingType = IncidentMappingType.valueOf(mappingType),
@@ -81,29 +81,29 @@ class IncidentMappingService(
       telemetryClient.trackEvent(
         "incident-mapping-created",
         mapOf(
-          "incidentId" to incidentId,
+          "dpsIncidentId" to dpsIncidentId,
           "nomisIncidentId" to nomisIncidentId.toString(),
           "batchId" to label,
         ),
         null,
       )
-      log.debug("Mapping created with incidentId = $incidentId, nomisIncidentId=$nomisIncidentId")
+      log.debug("Mapping created with dpsIncidentId = $dpsIncidentId, nomisIncidentId=$nomisIncidentId")
     }
 
-  suspend fun getIncidentMappingByNomisId(nomisIncidentId: Long): IncidentMappingDto =
+  suspend fun getMappingByNomisId(nomisIncidentId: Long): IncidentMappingDto =
     incidentMappingRepository.findOneByNomisIncidentId(
       nomisIncidentId = nomisIncidentId,
     )
       ?.let { IncidentMappingDto(it) }
       ?: throw NotFoundException("Incident with nomisIncidentId=$nomisIncidentId not found")
 
-  suspend fun getIncidentMappingByIncidentId(incidentId: String): IncidentMappingDto =
-    incidentMappingRepository.findById(incidentId)
+  suspend fun getMappingByDPSId(dpsIncidentId: String): IncidentMappingDto =
+    incidentMappingRepository.findById(dpsIncidentId)
       ?.let { IncidentMappingDto(it) }
-      ?: throw NotFoundException("incidentId=$incidentId")
+      ?: throw NotFoundException("dpsIncidentId=$dpsIncidentId")
 
   @Transactional
-  suspend fun deleteIncidentMapping(incidentId: String) = incidentMappingRepository.deleteById(incidentId)
+  suspend fun deleteMappingByDPSId(dpsIncidentId: String) = incidentMappingRepository.deleteById(dpsIncidentId)
 
   @Transactional
   suspend fun deleteMappings(onlyMigrated: Boolean) =
@@ -113,7 +113,7 @@ class IncidentMappingService(
       incidentMappingRepository.deleteAll()
     }
 
-  suspend fun getIncidentMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<IncidentMappingDto> =
+  suspend fun getMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<IncidentMappingDto> =
     coroutineScope {
       val incidentMapping = async {
         incidentMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
@@ -134,7 +134,7 @@ class IncidentMappingService(
       )
     }
 
-  suspend fun getIncidentMappingForLatestMigrated(): IncidentMappingDto =
+  suspend fun getMappingForLatestMigrated(): IncidentMappingDto =
     incidentMappingRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(IncidentMappingType.MIGRATED)
       ?.let { IncidentMappingDto(it) }
       ?: throw NotFoundException("No migrated mapping found")

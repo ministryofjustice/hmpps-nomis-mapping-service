@@ -12,14 +12,14 @@ data class IncidentMappingDto(
   @Schema(description = "NOMIS Incident id", required = true)
   val nomisIncidentId: Long,
 
-  @Schema(description = "Incident id from incidents service", required = true)
-  val incidentId: String,
+  @Schema(description = "DPS Incident id from incident reporting service", required = true)
+  val dpsIncidentId: String,
 
   @Schema(description = "Label (a timestamp for migrated ids)")
   @field:Size(max = 20)
   val label: String? = null,
 
-  @Schema(description = "Mapping type", allowableValues = ["MIGRATED", "NOMIS_CREATED", "INCIDENT_CREATED"])
+  @Schema(description = "Mapping type", allowableValues = ["MIGRATED", "NOMIS_CREATED", "DPS_CREATED"])
   @field:Size(max = 20, message = "mappingType has a maximum length of 20")
   val mappingType: String,
 
@@ -27,7 +27,7 @@ data class IncidentMappingDto(
   val whenCreated: LocalDateTime? = null,
 ) {
   constructor(mapping: IncidentMapping) : this(
-    incidentId = mapping.incidentId,
+    dpsIncidentId = mapping.dpsIncidentId,
     nomisIncidentId = mapping.nomisIncidentId,
 
     label = mapping.label,

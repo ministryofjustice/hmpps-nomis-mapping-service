@@ -103,13 +103,13 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
       ),
     ],
   )
-  suspend fun getIncidentMappingGivenNomisId(
+  suspend fun getMappingByNomisId(
     @Schema(description = "Nomis Incident Id", required = true)
     @PathVariable
     nomisIncidentId: Long,
-  ): IncidentMappingDto = mappingService.getIncidentMappingByNomisId(nomisIncidentId)
+  ): IncidentMappingDto = mappingService.getMappingByNomisId(nomisIncidentId)
 
-  @GetMapping("/incident-id/{incidentId}")
+  @GetMapping("/dps-incident-id/{dpsIncidentId}")
   @Operation(
     summary = "get mapping",
     description = "Retrieves a mapping by DPS Incident Id. Requires role NOMIS_INCIDENTS",
@@ -128,21 +128,21 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
       ),
       ApiResponse(
         responseCode = "404",
-        description = "Incident id does not exist in mapping table",
+        description = "DPS Incident id does not exist in mapping table",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
     ],
   )
-  suspend fun getIncidentMappingGivenIncidentId(
-    @Schema(description = "Incident id", example = "12345", required = true)
+  suspend fun getMappingByDPSId(
+    @Schema(description = "DPS Incident id", example = "12345", required = true)
     @PathVariable
-    incidentId: String,
-  ): IncidentMappingDto = mappingService.getIncidentMappingByIncidentId(incidentId)
+    dpsIncidentId: String,
+  ): IncidentMappingDto = mappingService.getMappingByDPSId(dpsIncidentId)
 
-  @DeleteMapping("/incident-id/{incidentId}")
+  @DeleteMapping("/dps-incident-id/{dpsIncidentId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
-    summary = "Deletes a specific incident mapping by incident id",
+    summary = "Deletes a specific incident mapping by DPS incident id",
     description = "Deletes the incident from the mapping table. Requires role NOMIS_INCIDENTS",
     responses = [
       ApiResponse(
@@ -156,11 +156,11 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
       ),
     ],
   )
-  suspend fun deleteIncidentMapping(
-    @Schema(description = "Incident Id", example = "4321", required = true)
+  suspend fun deleteMapping(
+    @Schema(description = "DPS Incident Id", example = "4321", required = true)
     @PathVariable
-    incidentId: String,
-  ) = mappingService.deleteIncidentMapping(incidentId)
+    dpsIncidentId: String,
+  ) = mappingService.deleteMappingByDPSId(dpsIncidentId)
 
   @DeleteMapping()
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -179,7 +179,7 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
       ),
     ],
   )
-  suspend fun deleteIncidentMappings(
+  suspend fun deleteMappings(
     @RequestParam(value = "onlyMigrated", required = false, defaultValue = "false")
     @Parameter(
       description = "if true delete mapping entries created by the migration process only (synchronisation records are unaffected)",
@@ -211,12 +211,12 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
       ),
     ],
   )
-  suspend fun getMigratedIncidentMappingsByMigrationId(
+  suspend fun getMigratedMappingsByMigrationId(
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<IncidentMappingDto> = mappingService.getIncidentMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<IncidentMappingDto> = mappingService.getMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   @GetMapping("/migrated/latest")
   @Operation(
@@ -245,6 +245,5 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
       ),
     ],
   )
-  suspend fun getLatestMigratedIncidentMapping(): IncidentMappingDto =
-    mappingService.getIncidentMappingForLatestMigrated()
+  suspend fun getMappingForLatestMigrated(): IncidentMappingDto = mappingService.getMappingForLatestMigrated()
 }

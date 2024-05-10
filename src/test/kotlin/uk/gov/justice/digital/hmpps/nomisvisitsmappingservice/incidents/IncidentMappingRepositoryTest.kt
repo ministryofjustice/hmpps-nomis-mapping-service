@@ -23,7 +23,7 @@ class IncidentMappingRepositoryTest : TestBase() {
   fun saveIncidentMapping(): Unit = runBlocking {
     repository.save(
       IncidentMapping(
-        incidentId = "123",
+        dpsIncidentId = "123",
         nomisIncidentId = 456,
         label = "TIMESTAMP",
         mappingType = MIGRATED,
@@ -32,7 +32,7 @@ class IncidentMappingRepositoryTest : TestBase() {
 
     val persistedIncidentMappingByIncidentId = repository.findById("123") ?: throw RuntimeException("123L not found")
     with(persistedIncidentMappingByIncidentId) {
-      assertThat(incidentId).isEqualTo("123")
+      assertThat(dpsIncidentId).isEqualTo("123")
       assertThat(nomisIncidentId).isEqualTo(456L)
       assertThat(label).isEqualTo("TIMESTAMP")
       assertThat(mappingType).isEqualTo(MIGRATED)
@@ -40,7 +40,7 @@ class IncidentMappingRepositoryTest : TestBase() {
 
     val persistedIncidentMappingByNomisId = repository.findOneByNomisIncidentId(456L) ?: throw RuntimeException("456L not found")
     with(persistedIncidentMappingByNomisId) {
-      assertThat(incidentId).isEqualTo("123")
+      assertThat(dpsIncidentId).isEqualTo("123")
       assertThat(nomisIncidentId).isEqualTo(456L)
       assertThat(label).isEqualTo("TIMESTAMP")
       assertThat(mappingType).isEqualTo(MIGRATED)
