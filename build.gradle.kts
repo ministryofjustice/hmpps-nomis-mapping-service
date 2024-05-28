@@ -1,7 +1,7 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.6"
-  kotlin("plugin.spring") version "1.9.23"
-  kotlin("plugin.jpa") version "1.9.23"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.0"
+  kotlin("plugin.spring") version "2.0.0"
+  kotlin("plugin.jpa") version "2.0.0"
   idea
 }
 
@@ -16,8 +16,8 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
 
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.0")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.1")
 
   implementation("org.flywaydb:flyway-core")
   runtimeOnly("org.postgresql:r2dbc-postgresql:1.0.5.RELEASE")
@@ -35,11 +35,11 @@ dependencies {
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.22") {
     exclude(group = "io.swagger.core.v3")
   }
-  testImplementation("io.swagger.core.v3:swagger-core-jakarta:2.2.21")
+  testImplementation("io.swagger.core.v3:swagger-core-jakarta:2.2.22")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.testcontainers:postgresql:1.19.8")
   testImplementation("io.projectreactor:reactor-test")
-  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
 }
 
 kotlin {
@@ -48,8 +48,6 @@ kotlin {
 
 tasks {
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-      jvmTarget = "21"
-    }
+    compilerOptions.jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
   }
 }
