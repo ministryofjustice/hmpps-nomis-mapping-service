@@ -271,6 +271,11 @@ class AdjudicationMappingService(
       ?.let { AdjudicationPunishmentMappingDto(it) }
       ?: throw NotFoundException("DPS punishment Id=$dpsPunishmentId")
 
+  suspend fun getPunishmentMappingByNomisId(bookingId: Long, sanctionSequence: Int): AdjudicationPunishmentMappingDto =
+    adjudicationPunishmentMappingRepository.findByNomisBookingIdAndNomisSanctionSequence(nomisBookingId = bookingId, nomisSanctionSequence = sanctionSequence)
+      ?.let { AdjudicationPunishmentMappingDto(it) }
+      ?: throw NotFoundException("NOMIS booking Id=$bookingId, sanction sequence=$sanctionSequence")
+
   @Transactional
   suspend fun deletePunishmentMappingByDpsId(dpsPunishmentId: String) =
     adjudicationPunishmentMappingRepository.deleteById(dpsPunishmentId)
