@@ -144,6 +144,40 @@ class PunishmentsMappingResource(private val mappingService: AdjudicationMapping
   ): AdjudicationPunishmentMappingDto = mappingService.getPunishmentMappingByDpsId(dpsPunishmentId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @GetMapping("/mapping/punishments/nomis-booking-id/{nomisBookingId}/nomis-sanction-sequence/{nomisSanctionSequence}")
+  @Operation(
+    summary = "get mapping",
+    description = "Retrieves a mapping by NOMIS booking id and sanction sequence. Requires role NOMIS_ADJUDICATIONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = AdjudicationPunishmentMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getMappingGivenNomisId(
+    @Schema(description = "NOMIS Booking Id", example = "12345", required = true)
+    @PathVariable
+    nomisBookingId: Long,
+    @Schema(description = "NOMIS sanction sequence", example = "12", required = true)
+    @PathVariable
+    nomisSanctionSequence: Int,
+  ): AdjudicationPunishmentMappingDto = mappingService.getPunishmentMappingByNomisId(nomisBookingId, nomisSanctionSequence)
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
   @DeleteMapping("/mapping/punishments/{dpsPunishmentId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(

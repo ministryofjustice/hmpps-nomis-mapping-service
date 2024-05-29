@@ -623,7 +623,7 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
 
   @DisplayName("GET /mapping/punishments/:dpsPunishmentId")
   @Nested
-  inner class GetMappingTest {
+  inner class GetByDpsIdMappingTest {
     @BeforeEach
     fun setUp() {
       postCreateSingleMappingRequest(
@@ -675,6 +675,75 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `can read punishment mapping`() = runTest {
         webTestClient.get().uri("/mapping/punishments/$DPS_PUNISHMENT_ID")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisBookingId").isEqualTo("$NOMIS_BOOKING_ID")
+          .jsonPath("nomisSanctionSequence").isEqualTo("$NOMIS_SANCTION_SEQUENCE")
+          .jsonPath("dpsPunishmentId").isEqualTo(DPS_PUNISHMENT_ID)
+      }
+    }
+  }
+
+  @DisplayName("GET /mapping/punishments/nomis-booking-id/:nomisBookingId/nomis-sanction-sequence/:nomisSanctionSequence")
+  @Nested
+  inner class GetByNomisIdMappingTest {
+    @BeforeEach
+    fun setUp() {
+      postCreateSingleMappingRequest(
+        dpsPunishmentId = DPS_PUNISHMENT_ID,
+        nomisBookingId = NOMIS_BOOKING_ID,
+        nomisSanctionSequence = NOMIS_SANCTION_SEQUENCE,
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access forbidden when no authority`() {
+        webTestClient.get().uri("mapping/punishments/nomis-booking-id/$NOMIS_BOOKING_ID/nomis-sanction-sequence/$NOMIS_SANCTION_SEQUENCE")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get().uri("mapping/punishments/nomis-booking-id/$NOMIS_BOOKING_ID/nomis-sanction-sequence/$NOMIS_SANCTION_SEQUENCE")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `create forbidden with wrong role`() {
+        webTestClient.get().uri("mapping/punishments/nomis-booking-id/$NOMIS_BOOKING_ID/nomis-sanction-sequence/$NOMIS_SANCTION_SEQUENCE")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class NotFound {
+      @Test
+      fun `not found when mapping does not exist`() = runTest {
+        webTestClient.get().uri("mapping/punishments/nomis-booking-id/$NOMIS_BOOKING_ID/nomis-sanction-sequence/9999")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .exchange()
+          .expectStatus().isNotFound
+        webTestClient.get().uri("mapping/punishments/nomis-booking-id/9999/nomis-sanction-sequence/$NOMIS_SANCTION_SEQUENCE")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `can read punishment mapping`() = runTest {
+        webTestClient.get().uri("mapping/punishments/nomis-booking-id/$NOMIS_BOOKING_ID/nomis-sanction-sequence/$NOMIS_SANCTION_SEQUENCE")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
           .exchange()
           .expectStatus().isOk

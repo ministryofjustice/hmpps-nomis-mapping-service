@@ -10,4 +10,5 @@ interface AdjudicationPunishmentMappingRepository : CoroutineCrudRepository<Adju
   suspend fun deleteByLabel(label: String)
   suspend fun deleteAllByMappingType(adjudicationMappingType: AdjudicationMappingType)
   suspend fun deleteByNomisBookingIdAndNomisSanctionSequence(nomisBookingId: Long, nomisSanctionSequence: Int)
+  suspend fun findByNomisBookingIdAndNomisSanctionSequence(nomisBookingId: Long, nomisSanctionSequence: Int): AdjudicationPunishmentMapping?
 }
