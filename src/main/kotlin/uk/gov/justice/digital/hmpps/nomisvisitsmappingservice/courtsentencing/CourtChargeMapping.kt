@@ -6,7 +6,7 @@ import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 
-data class OffenderChargeMapping(
+data class CourtChargeMapping(
 
   @Id
   val dpsCourtChargeId: String,
@@ -30,7 +30,7 @@ data class OffenderChargeMapping(
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is OffenderChargeMapping) return false
+    if (other !is CourtChargeMapping) return false
 
     return dpsCourtChargeId == other.dpsCourtChargeId
   }

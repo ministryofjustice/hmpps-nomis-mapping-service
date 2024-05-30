@@ -29,7 +29,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
   @Nested
   @DisplayName("GET /mapping/court-sentencing/court-charges/dps-court-charge-id/{courtChargeId}")
   inner class GetCourtChargeMappingByDpsId {
-    lateinit var courtChargeMapping: OffenderChargeMapping
+    lateinit var courtChargeMapping: CourtChargeMapping
 
     @BeforeEach
     fun setUp() = runTest {
@@ -107,7 +107,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
   @Nested
   @DisplayName("GET /mapping/court-sentencing/court-charges/nomis-court-charge-id/{courtChargeId}")
   inner class GetCourtChargeMappingByNomisId {
-    lateinit var courtChargeMapping: OffenderChargeMapping
+    lateinit var courtChargeMapping: CourtChargeMapping
 
     @BeforeEach
     fun setUp() = runTest {
@@ -446,12 +446,12 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
   @Nested
   @DisplayName("DELETE /mapping/court-sentencing/court-charges/nomis-court-charge-id/{courtChargeId}")
   inner class DeleteMappingByNomisId {
-    lateinit var mapping: OffenderChargeMapping
+    lateinit var mapping: CourtChargeMapping
 
     @BeforeEach
     fun setUp() = runTest {
       mapping = courtChargeRepository.save(
-        OffenderChargeMapping(
+        CourtChargeMapping(
           dpsCourtChargeId = DPS_COURT_CHARGE_ID,
           nomisCourtChargeId = NOMIS_COURT_CHARGE_ID,
           label = "2023-01-01T12:45:12",

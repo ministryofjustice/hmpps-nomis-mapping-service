@@ -224,7 +224,7 @@ fun CourtAppearanceAllMappingDto.toCourtAppearanceMapping(): CourtAppearanceMapp
   nomisNextCourtAppearanceId = this.nomisNextCourtAppearanceId,
 )
 
-fun OffenderChargeMapping.toOffenderChargeMappingDto(): OffenderChargeMappingDto = OffenderChargeMappingDto(
+fun CourtChargeMapping.toOffenderChargeMappingDto(): OffenderChargeMappingDto = OffenderChargeMappingDto(
   dpsCourtChargeId = this.dpsCourtChargeId,
   nomisCourtChargeId = this.nomisCourtChargeId,
   label = this.label,
@@ -232,7 +232,7 @@ fun OffenderChargeMapping.toOffenderChargeMappingDto(): OffenderChargeMappingDto
   whenCreated = this.whenCreated,
 )
 
-fun OffenderChargeMappingDto.toOffenderChargeMapping(): OffenderChargeMapping = OffenderChargeMapping(
+fun OffenderChargeMappingDto.toOffenderChargeMapping(): CourtChargeMapping = CourtChargeMapping(
   dpsCourtChargeId = this.dpsCourtChargeId,
   nomisCourtChargeId = this.nomisCourtChargeId,
   label = this.label,
