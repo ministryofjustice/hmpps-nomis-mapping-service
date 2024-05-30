@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 @Schema(description = "Batch of Court Charge mappings to create and delete")
 data class CourtChargeBatchUpdateMappingDto(
   @Schema(description = "Court Charge mappings to create")
-  val courtChargesToCreate: List<OffenderChargeMappingDto> = emptyList(),
+  val courtChargesToCreate: List<CourtChargeMappingDto> = emptyList(),
 
   @Schema(description = "Court Charge mappings to delete")
   val courtChargesToDelete: List<CourtChargeNomisIdDto> = emptyList(),

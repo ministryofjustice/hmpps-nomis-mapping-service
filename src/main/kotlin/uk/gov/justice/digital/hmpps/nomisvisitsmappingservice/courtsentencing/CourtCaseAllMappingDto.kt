@@ -19,7 +19,7 @@ data class CourtCaseAllMappingDto(
   val courtAppearances: List<CourtAppearanceMappingDto> = emptyList(),
 
   @Schema(description = "Court Charge mappings")
-  val courtCharges: List<OffenderChargeMappingDto> = emptyList(),
+  val courtCharges: List<CourtChargeMappingDto> = emptyList(),
 
   @Schema(description = "Label (a timestamp for migrated ids)")
   @field:Size(max = 20)

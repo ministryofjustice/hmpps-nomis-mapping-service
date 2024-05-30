@@ -19,7 +19,7 @@ data class SentenceAllMappingDto(
   val dpsSentenceId: String,
 
   @Schema(description = "Offender Charges related to a sentence")
-  val sentenceCharges: List<OffenderChargeMappingDto> = emptyList(),
+  val sentenceCharges: List<CourtChargeMappingDto> = emptyList(),
 
   @Schema(description = "Label (a timestamp for migrated ids)")
   @field:Size(max = 20)

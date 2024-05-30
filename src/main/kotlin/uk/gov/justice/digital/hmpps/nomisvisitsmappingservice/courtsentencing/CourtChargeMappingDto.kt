@@ -7,7 +7,7 @@ import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Offender Charge mapping")
-data class OffenderChargeMappingDto(
+data class CourtChargeMappingDto(
 
   @Schema(description = "NOMIS offender charge id", required = true, example = "123456")
   val nomisCourtChargeId: Long,

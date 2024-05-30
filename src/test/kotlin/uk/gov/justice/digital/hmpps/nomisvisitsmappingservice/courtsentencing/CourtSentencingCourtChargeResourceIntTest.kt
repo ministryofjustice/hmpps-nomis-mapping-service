@@ -221,7 +221,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
       fun `can create a single court charge mapping`() = runTest {
         putUpdateMappingsRequest(
           courtCharges = listOf(
-            OffenderChargeMappingDto(
+            CourtChargeMappingDto(
               dpsCourtChargeId = DPS_COURT_CHARGE_ID,
               nomisCourtChargeId = NOMIS_COURT_CHARGE_ID,
             ),
@@ -244,7 +244,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
       fun `can create and delete court charge mapping`() = runTest {
         putUpdateMappingsRequest(
           courtCharges = listOf(
-            OffenderChargeMappingDto(
+            CourtChargeMappingDto(
               dpsCourtChargeId = DPS_COURT_CHARGE_ID,
               nomisCourtChargeId = NOMIS_COURT_CHARGE_ID,
             ),
@@ -310,7 +310,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
       fun `create mapping failure - court charge exists`() {
         putUpdateMappingsRequest(
           courtCharges = listOf(
-            OffenderChargeMappingDto(
+            CourtChargeMappingDto(
               dpsCourtChargeId = DPS_COURT_CHARGE_ID,
               nomisCourtChargeId = NOMIS_COURT_CHARGE_ID,
             ),
@@ -415,7 +415,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              OffenderChargeMappingDto(
+              CourtChargeMappingDto(
                 dpsCourtChargeId = DPS_COURT_CHARGE_ID,
                 nomisCourtChargeId = 5434231,
               ),
@@ -430,7 +430,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              OffenderChargeMappingDto(
+              CourtChargeMappingDto(
                 dpsCourtChargeId = "7656543",
                 nomisCourtChargeId = NOMIS_COURT_CHARGE_ID,
               ),
@@ -534,7 +534,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
     courtChargeRepository.deleteAll()
   }
 
-  private fun updateMappingBatch(mapping: OffenderChargeMappingDto = createMapping()): CourtChargeBatchUpdateMappingDto =
+  private fun updateMappingBatch(mapping: CourtChargeMappingDto = createMapping()): CourtChargeBatchUpdateMappingDto =
     CourtChargeBatchUpdateMappingDto(
       courtChargesToCreate = listOf(mapping),
     )
@@ -543,7 +543,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
     dpsCourtChargeId: String = DPS_COURT_CHARGE_ID,
     nomisCourtChargeId: Long = NOMIS_COURT_CHARGE_ID,
     label: String? = null,
-  ): OffenderChargeMappingDto = OffenderChargeMappingDto(
+  ): CourtChargeMappingDto = CourtChargeMappingDto(
     dpsCourtChargeId = dpsCourtChargeId,
     nomisCourtChargeId = nomisCourtChargeId,
     mappingType = CourtChargeMappingType.DPS_CREATED,
@@ -551,7 +551,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
   )
 
   private fun putUpdateMappingsRequest(
-    courtCharges: List<OffenderChargeMappingDto>,
+    courtCharges: List<CourtChargeMappingDto>,
     courtChargesToDelete: List<CourtChargeNomisIdDto> = emptyList(),
   ) {
     webTestClient.put().uri("/mapping/court-sentencing/court-charges")
@@ -570,7 +570,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
   }
 
   private fun postCourtChargeMappingRequest(
-    courtCharge: OffenderChargeMappingDto = OffenderChargeMappingDto(
+    courtCharge: CourtChargeMappingDto = CourtChargeMappingDto(
       dpsCourtChargeId = DPS_COURT_CHARGE_ID,
       nomisCourtChargeId = NOMIS_COURT_CHARGE_ID,
     ),

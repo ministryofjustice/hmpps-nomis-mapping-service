@@ -149,13 +149,13 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
         ),
       ),
       courtCharges = listOf(
-        OffenderChargeMappingDto(
+        CourtChargeMappingDto(
           dpsCourtChargeId = DPS_COURT_CHARGE_1_ID,
           nomisCourtChargeId = NOMIS_COURT_CHARGE_1_ID,
           label = "2023-01-01T12:45:12",
           mappingType = CourtChargeMappingType.DPS_CREATED,
         ),
-        OffenderChargeMappingDto(
+        CourtChargeMappingDto(
           dpsCourtChargeId = DPS_COURT_CHARGE_2_ID,
           nomisCourtChargeId = NOMIS_COURT_CHARGE_2_ID,
           label = "2023-01-01T12:45:12",

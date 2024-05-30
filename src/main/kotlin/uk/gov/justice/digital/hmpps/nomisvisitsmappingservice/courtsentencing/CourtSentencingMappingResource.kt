@@ -325,7 +325,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     @Schema(description = "DPS court charge id", example = "D123", required = true)
     @PathVariable
     courtChargeId: String,
-  ): OffenderChargeMappingDto = mappingService.getCourtChargeMappingByDpsId(
+  ): CourtChargeMappingDto = mappingService.getCourtChargeMappingByDpsId(
     courtChargeId = courtChargeId,
   )
 
@@ -360,7 +360,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     @Schema(description = "NOMIS court charge id", example = "123", required = true)
     @PathVariable
     courtChargeId: Long,
-  ): OffenderChargeMappingDto = mappingService.getCourtChargeMappingByNomisId(
+  ): CourtChargeMappingDto = mappingService.getCourtChargeMappingByNomisId(
     courtChargeId = courtChargeId,
   )
 
@@ -464,7 +464,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = OffenderChargeMappingDto::class),
+          schema = Schema(implementation = CourtChargeMappingDto::class),
         ),
       ],
     ),
@@ -494,7 +494,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   )
   suspend fun createCourtChargeMapping(
     @RequestBody @Valid
-    mapping: OffenderChargeMappingDto,
+    mapping: CourtChargeMappingDto,
   ) =
     try {
       mappingService.createCourtChargeMapping(mapping)
@@ -639,7 +639,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     )
   }
 
-  private suspend fun getExistingChargeMappingSimilarTo(mapping: OffenderChargeMappingDto) = runCatching {
+  private suspend fun getExistingChargeMappingSimilarTo(mapping: CourtChargeMappingDto) = runCatching {
     mappingService.getCourtChargeMappingByNomisId(
       courtChargeId = mapping.nomisCourtChargeId,
     )
