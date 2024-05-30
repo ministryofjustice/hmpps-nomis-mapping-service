@@ -101,7 +101,7 @@ class CourtSentencingMappingService(
   @Transactional
   suspend fun createCourtChargeMapping(createMappingRequest: CourtChargeMappingDto) =
     with(createMappingRequest) {
-      courtChargeMappingRepository.save(createMappingRequest.toOffenderChargeMapping()).also {
+      courtChargeMappingRepository.save(createMappingRequest.toCourtChargeMapping()).also {
         telemetryClient.trackEvent(
           "court-charge-mapping-created",
           mapOf(
@@ -126,7 +126,7 @@ class CourtSentencingMappingService(
   @Transactional
   suspend fun createSentenceAllMapping(createSentenceMappingRequest: SentenceAllMappingDto) =
     with(createSentenceMappingRequest) {
-      sentenceMappingRepository.save(createSentenceMappingRequest.toSentenceeMapping())
+      sentenceMappingRepository.save(createSentenceMappingRequest.toSentenceMapping())
         .also {
           // TODO sentence charge creation
           telemetryClient.trackEvent(
@@ -164,11 +164,11 @@ class CourtSentencingMappingService(
       ?: throw NotFoundException("Nomis Court appearance Id =$courtAppearanceId")
 
   suspend fun getCourtChargeMappingByDpsId(courtChargeId: String): CourtChargeMappingDto =
-    courtChargeMappingRepository.findById(courtChargeId)?.toOffenderChargeMappingDto()
+    courtChargeMappingRepository.findById(courtChargeId)?.toCourtChargeMappingDto()
       ?: throw NotFoundException("DPS Court charge Id =$courtChargeId")
 
   suspend fun getCourtChargeMappingByNomisId(courtChargeId: Long): CourtChargeMappingDto =
-    courtChargeMappingRepository.findByNomisCourtChargeId(courtChargeId)?.toOffenderChargeMappingDto()
+    courtChargeMappingRepository.findByNomisCourtChargeId(courtChargeId)?.toCourtChargeMappingDto()
       ?: throw NotFoundException("NOMIS Court charge Id =$courtChargeId")
 
   suspend fun getSentenceAllMappingByDpsId(dpsSentenceId: String): SentenceAllMappingDto =
@@ -224,7 +224,7 @@ fun CourtAppearanceAllMappingDto.toCourtAppearanceMapping(): CourtAppearanceMapp
   nomisNextCourtAppearanceId = this.nomisNextCourtAppearanceId,
 )
 
-fun CourtChargeMapping.toOffenderChargeMappingDto(): CourtChargeMappingDto = CourtChargeMappingDto(
+fun CourtChargeMapping.toCourtChargeMappingDto(): CourtChargeMappingDto = CourtChargeMappingDto(
   dpsCourtChargeId = this.dpsCourtChargeId,
   nomisCourtChargeId = this.nomisCourtChargeId,
   label = this.label,
@@ -232,7 +232,7 @@ fun CourtChargeMapping.toOffenderChargeMappingDto(): CourtChargeMappingDto = Cou
   whenCreated = this.whenCreated,
 )
 
-fun CourtChargeMappingDto.toOffenderChargeMapping(): CourtChargeMapping = CourtChargeMapping(
+fun CourtChargeMappingDto.toCourtChargeMapping(): CourtChargeMapping = CourtChargeMapping(
   dpsCourtChargeId = this.dpsCourtChargeId,
   nomisCourtChargeId = this.nomisCourtChargeId,
   label = this.label,
@@ -249,7 +249,7 @@ fun SentenceMapping.toSentenceAllMappingDto(): SentenceAllMappingDto = SentenceA
   // TODO return sentence charges
 )
 
-fun SentenceAllMappingDto.toSentenceeMapping(): SentenceMapping = SentenceMapping(
+fun SentenceAllMappingDto.toSentenceMapping(): SentenceMapping = SentenceMapping(
   dpsSentenceId = this.dpsSentenceId,
   nomisSentenceSequence = this.nomisSentenceSequence,
   nomisBookingId = this.nomisBookingId,

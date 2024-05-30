@@ -21,7 +21,7 @@ private const val DPS_SENTENCE_ID = "dps123"
 private const val NOMIS_BOOKING_ID = 12345L
 private const val NOMIS_SENTENCE_SEQUENCE = 2
 private const val EXISTING_NOMIS_SENTENCE_SEQUENCE = 1
-private const val EXISTING_NDPS_SENTENCE_ID = "dps456"
+private const val EXISTING_DPS_SENTENCE_ID = "dps456"
 class SentenceResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var repository: SentenceMappingRepository
@@ -129,7 +129,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
     fun setUp() = runTest {
       existingMapping = repository.save(
         SentenceMapping(
-          dpsSentenceId = EXISTING_NDPS_SENTENCE_ID,
+          dpsSentenceId = EXISTING_DPS_SENTENCE_ID,
           nomisSentenceSequence = EXISTING_NOMIS_SENTENCE_SEQUENCE,
           nomisBookingId = NOMIS_BOOKING_ID,
           label = "2023-01-01T12:45:12",
@@ -233,7 +233,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
           .expectStatus().isOk
 
         webTestClient.get()
-          .uri("/mapping/court-sentencing/sentences/dps-sentence-id/$EXISTING_NDPS_SENTENCE_ID")
+          .uri("/mapping/court-sentencing/sentences/dps-sentence-id/$EXISTING_DPS_SENTENCE_ID")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .exchange()
           .expectStatus().isOk
