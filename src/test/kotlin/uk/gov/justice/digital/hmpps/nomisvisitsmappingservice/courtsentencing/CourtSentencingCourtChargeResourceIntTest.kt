@@ -38,7 +38,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
           dpsCourtChargeId = DPS_COURT_CHARGE_ID,
           nomisCourtChargeId = NOMIS_COURT_CHARGE_ID,
           label = "2023-01-01T12:45:12",
-        ).toOffenderChargeMapping(),
+        ).toCourtChargeMapping(),
       )
     }
 
@@ -116,7 +116,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
           dpsCourtChargeId = DPS_COURT_CHARGE_ID,
           nomisCourtChargeId = NOMIS_COURT_CHARGE_ID,
           label = "2023-01-01T12:45:12",
-        ).toOffenderChargeMapping(),
+        ).toCourtChargeMapping(),
       )
     }
 
