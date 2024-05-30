@@ -6,13 +6,13 @@ import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Court Charge mapping")
-data class CourtChargeMappingDto(
+@Schema(description = "Offender Charge mapping")
+data class OffenderChargeMappingDto(
 
-  @Schema(description = "NOMIS court charge id", required = true, example = "123456")
+  @Schema(description = "NOMIS offender charge id", required = true, example = "123456")
   val nomisCourtChargeId: Long,
 
-  @Schema(description = "DPS court charge id", required = true, example = "123456")
+  @Schema(description = "DPS offender charge id", required = true, example = "123456")
   val dpsCourtChargeId: String,
 
   @Schema(description = "Label (a timestamp for migrated ids)")

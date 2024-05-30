@@ -177,7 +177,10 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CourtAppearanceAllMappingDto::class)),
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = CourtAppearanceAllMappingDto::class),
+          ),
         ],
       ),
       ApiResponse(
@@ -209,7 +212,10 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CourtAppearanceAllMappingDto::class)),
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = CourtAppearanceAllMappingDto::class),
+          ),
         ],
       ),
       ApiResponse(
@@ -297,7 +303,10 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CourtAppearanceAllMappingDto::class)),
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = CourtAppearanceAllMappingDto::class),
+          ),
         ],
       ),
       ApiResponse(
@@ -316,7 +325,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     @Schema(description = "DPS court charge id", example = "D123", required = true)
     @PathVariable
     courtChargeId: String,
-  ): CourtChargeMappingDto = mappingService.getCourtChargeMappingByDpsId(
+  ): OffenderChargeMappingDto = mappingService.getCourtChargeMappingByDpsId(
     courtChargeId = courtChargeId,
   )
 
@@ -329,7 +338,10 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CourtAppearanceAllMappingDto::class)),
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = CourtAppearanceAllMappingDto::class),
+          ),
         ],
       ),
       ApiResponse(
@@ -348,7 +360,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     @Schema(description = "NOMIS court charge id", example = "123", required = true)
     @PathVariable
     courtChargeId: Long,
-  ): CourtChargeMappingDto = mappingService.getCourtChargeMappingByNomisId(
+  ): OffenderChargeMappingDto = mappingService.getCourtChargeMappingByNomisId(
     courtChargeId = courtChargeId,
   )
 
@@ -452,7 +464,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = CourtChargeMappingDto::class),
+          schema = Schema(implementation = OffenderChargeMappingDto::class),
         ),
       ],
     ),
@@ -482,7 +494,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   )
   suspend fun createCourtChargeMapping(
     @RequestBody @Valid
-    mapping: CourtChargeMappingDto,
+    mapping: OffenderChargeMappingDto,
   ) =
     try {
       mappingService.createCourtChargeMapping(mapping)
@@ -523,6 +535,90 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     nomisCourtChargeId: Long,
   ) = mappingService.deleteCourtChargeMappingByNomisId(courtChargeId = nomisCourtChargeId)
 
+  @GetMapping("/sentences/dps-sentence-id/{sentenceId}")
+  @Operation(
+    summary = "get sentence mapping",
+    description = "Retrieves a mapping by DPS id. Requires role NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = SentenceAllMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getSentenceMappingByNomisId(
+    @Schema(description = "DPS sentence id", example = "D123", required = true)
+    @PathVariable
+    sentenceId: String,
+  ): SentenceAllMappingDto = mappingService.getSentenceAllMappingByDpsId(
+    dpsSentenceId = sentenceId,
+  )
+
+  @PostMapping("/sentences")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates a new sentence hierarchical mapping",
+    description = "Creates a mapping between nomis sentence ID (booking id and sentence seq) and DPS Sentence ID. Also maps child charge entities. Requires ROLE_NOMIS_COURT_SENTENCING",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = SentenceAllMappingDto::class),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createSentenceMapping(
+    @RequestBody @Valid
+    mapping: SentenceAllMappingDto,
+  ) =
+    try {
+      mappingService.createSentenceAllMapping(mapping)
+    } catch (e: DuplicateKeyException) {
+      throw DuplicateMappingException(
+        messageIn = "Sentence mapping already exists",
+        duplicate = mapping,
+        existing = getExistingSentenceAllMappingSimilarTo(mapping),
+        cause = e,
+      )
+    }
+
   private suspend fun getExistingMappingSimilarTo(mapping: CourtCaseAllMappingDto) = runCatching {
     mappingService.getCourtCaseMappingByNomisId(
       courtCaseId = mapping.nomisCourtCaseId,
@@ -543,13 +639,24 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     )
   }
 
-  private suspend fun getExistingChargeMappingSimilarTo(mapping: CourtChargeMappingDto) = runCatching {
+  private suspend fun getExistingChargeMappingSimilarTo(mapping: OffenderChargeMappingDto) = runCatching {
     mappingService.getCourtChargeMappingByNomisId(
       courtChargeId = mapping.nomisCourtChargeId,
     )
   }.getOrElse {
     mappingService.getCourtChargeMappingByDpsId(
       courtChargeId = mapping.dpsCourtChargeId,
+    )
+  }
+
+  private suspend fun getExistingSentenceAllMappingSimilarTo(mapping: SentenceAllMappingDto) = runCatching {
+    mappingService.getSentenceAllMappingByNomisId(
+      nomisBookingId = mapping.nomisBookingId,
+      nomisSentenceSeq = mapping.nomisSentenceSequence,
+    )
+  }.getOrElse {
+    mappingService.getSentenceAllMappingByDpsId(
+      dpsSentenceId = mapping.dpsSentenceId,
     )
   }
 }
