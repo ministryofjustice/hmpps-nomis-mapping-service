@@ -559,12 +559,48 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
       ),
     ],
   )
-  suspend fun getSentenceMappingByNomisId(
+  suspend fun getSentenceMappingByDpsId(
     @Schema(description = "DPS sentence id", example = "D123", required = true)
     @PathVariable
     sentenceId: String,
   ): SentenceAllMappingDto = mappingService.getSentenceAllMappingByDpsId(
     dpsSentenceId = sentenceId,
+  )
+
+  @GetMapping("/sentences/nomis-booking-id/{bookingId}/nomis-sentence-sequence/{sentenceSequence}")
+  @Operation(
+    summary = "get sentence mapping",
+    description = "Retrieves a mapping by DPS id. Requires role NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = SentenceAllMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getSentenceMappingByNomisId(
+    @Schema(description = "NOMIS booking id", example = "123432", required = true)
+    @PathVariable
+    bookingId: Long,
+    @Schema(description = "NOMIS sentence sequence", example = "1", required = true)
+    @PathVariable
+    sentenceSequence: Int,
+  ): SentenceAllMappingDto = mappingService.getSentenceAllMappingByNomisId(
+    nomisSentenceSeq = sentenceSequence,
+    nomisBookingId = bookingId,
   )
 
   @PostMapping("/sentences")
