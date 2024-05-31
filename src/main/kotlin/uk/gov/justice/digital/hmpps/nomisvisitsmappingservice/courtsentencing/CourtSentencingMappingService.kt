@@ -141,6 +141,31 @@ class CourtSentencingMappingService(
         }
     }
 
+  @Transactional
+  suspend fun deleteSentenceMappingByNomisId(bookingId: Long, sentenceSequence: Int) =
+    sentenceMappingRepository.deleteByNomisBookingIdAndNomisSentenceSequence(nomisBookingId = bookingId, nomisSentenceSeq = sentenceSequence).also {
+      telemetryClient.trackEvent(
+        "sentence-mapping-deleted",
+        mapOf(
+          "nomisBookingId" to bookingId.toString(),
+          "nomisSentenceSeq" to sentenceSequence.toString(),
+        ),
+        null,
+      )
+    }
+
+  @Transactional
+  suspend fun deleteSentenceMappingByDpsId(sentenceId: String) =
+    sentenceMappingRepository.deleteById(sentenceId).also {
+      telemetryClient.trackEvent(
+        "sentence-mapping-deleted",
+        mapOf(
+          "dpsSentenceId" to sentenceId,
+        ),
+        null,
+      )
+    }
+
   private suspend fun deleteCourtChargeMappings(courtCharges: List<CourtChargeNomisIdDto>) =
     courtCharges.forEach {
       courtChargeMappingRepository.deleteByNomisCourtChargeId(

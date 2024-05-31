@@ -391,4 +391,177 @@ class SentenceResourceIntTest : IntegrationTestBase() {
       }
     }
   }
+
+  @Nested
+  @DisplayName("DELETE /mapping/court-sentencing/sentences/dps-sentences-id/{sentenceId}")
+  inner class DeleteMappingByDpsId {
+    lateinit var mapping: SentenceMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      mapping = repository.save(
+        SentenceMapping(
+          dpsSentenceId = DPS_SENTENCE_ID,
+          nomisBookingId = NOMIS_BOOKING_ID,
+          nomisSentenceSequence = NOMIS_SENTENCE_SEQUENCE,
+          label = "2023-01-01T12:45:12",
+          mappingType = SentenceMappingType.MIGRATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/sentences/dps-sentence-id/${mapping.dpsSentenceId}")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/sentences/dps-sentence-id/${mapping.dpsSentenceId}")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/sentences/dps-sentence-id/${mapping.dpsSentenceId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 204 even when mapping does not exist`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/sentences/dps-sentence-id/NOPE")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNoContent
+      }
+
+      @Test
+      fun `will return 204 when mapping does exist and is deleted`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/sentences/dps-sentence-id/${mapping.dpsSentenceId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isOk
+
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/sentences/dps-sentence-id/${mapping.dpsSentenceId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/sentences/dps-sentence-id/${mapping.dpsSentenceId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("DELETE /mapping/court-sentencing/sentences/nomis-booking-id/{bookingId}/nomis-sentence-sequence/{sentenceSequence}")
+  inner class DeleteMappingByNomisId {
+    lateinit var mapping: SentenceMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      mapping = repository.save(
+        SentenceMapping(
+          dpsSentenceId = DPS_SENTENCE_ID,
+          nomisBookingId = NOMIS_BOOKING_ID,
+          nomisSentenceSequence = NOMIS_SENTENCE_SEQUENCE,
+          label = "2023-01-01T12:45:12",
+          mappingType = SentenceMappingType.MIGRATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/sentences/nomis-booking-id/${mapping.nomisBookingId}/nomis-sentence-sequence/${mapping.nomisSentenceSequence}")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/sentences/nomis-booking-id/${mapping.nomisBookingId}/nomis-sentence-sequence/${mapping.nomisSentenceSequence}")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/sentences/nomis-booking-id/${mapping.nomisBookingId}/nomis-sentence-sequence/${mapping.nomisSentenceSequence}")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 204 even when mapping does not exist`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/sentences/nomis-booking-id/${mapping.nomisBookingId}/nomis-sentence-sequence/33")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNoContent
+      }
+
+      @Test
+      fun `will return 204 when mapping does exist and is deleted`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/sentences/dps-sentence-id/${mapping.dpsSentenceId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isOk
+
+        // delete using nomis id
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/sentences/nomis-booking-id/${mapping.nomisBookingId}/nomis-sentence-sequence/${mapping.nomisSentenceSequence}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/sentences/dps-sentence-id/${mapping.dpsSentenceId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+  }
 }
