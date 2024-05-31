@@ -198,11 +198,11 @@ class CourtSentencingMappingService(
 
   suspend fun getSentenceAllMappingByDpsId(dpsSentenceId: String): SentenceAllMappingDto =
     sentenceMappingRepository.findById(dpsSentenceId)?.toSentenceAllMappingDto()
-      ?: throw NotFoundException("DPS Sentence Id =$dpsSentenceId")
+      ?: throw NotFoundException("Sentence mapping not found with dpsSentenceId =$dpsSentenceId")
 
   suspend fun getSentenceAllMappingByNomisId(nomisBookingId: Long, nomisSentenceSeq: Int): SentenceAllMappingDto =
     sentenceMappingRepository.findByNomisBookingIdAndNomisSentenceSequence(nomisBookingId = nomisBookingId, nomisSentenceSeq = nomisSentenceSeq)?.toSentenceAllMappingDto()
-      ?: throw NotFoundException("NOMIS Sentence,  bookingId =$nomisBookingId, sentenceSeq =$nomisSentenceSeq")
+      ?: throw NotFoundException("Sentence mapping not found with nomisBookingId =$nomisBookingId, nomisSentenceSeq =$nomisSentenceSeq")
 
   @Transactional
   suspend fun deleteCourtChargeMappingByNomisId(courtChargeId: Long) =

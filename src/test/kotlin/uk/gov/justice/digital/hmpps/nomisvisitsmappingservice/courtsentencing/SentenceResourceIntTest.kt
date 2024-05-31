@@ -88,7 +88,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isNotFound
           .expectBody()
-          .jsonPath("developerMessage").isEqualTo("DPS Sentence Id =DOESNOTEXIST")
+          .jsonPath("developerMessage").isEqualTo("Sentence mapping not found with dpsSentenceId =DOESNOTEXIST")
       }
 
       @Test
@@ -104,6 +104,103 @@ class SentenceResourceIntTest : IntegrationTestBase() {
           .jsonPath("dpsSentenceId").isEqualTo(sentenceMapping.dpsSentenceId)
           .jsonPath("mappingType").isEqualTo(sentenceMapping.mappingType.name)
           .jsonPath("label").isEqualTo(sentenceMapping.label!!)
+          .jsonPath("whenCreated").value<String> {
+            assertThat(LocalDateTime.parse(it))
+              .isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+          }
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/court-sentencing/sentences/nomis-booking-id/{bookingId}/nomis-sentence-sequence/{sentenceSequence}")
+  inner class GetMappingByNomisId {
+    lateinit var mapping: SentenceMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      mapping = repository.save(
+        SentenceMapping(
+          dpsSentenceId = DPS_SENTENCE_ID,
+          nomisBookingId = NOMIS_BOOKING_ID,
+          nomisSentenceSequence = NOMIS_SENTENCE_SEQUENCE,
+          label = "2023-01-01T12:45:12",
+          mappingType = SentenceMappingType.MIGRATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/sentences/nomis-booking-id/${mapping.nomisBookingId}/nomis-sentence-sequence/${mapping.nomisSentenceSequence}")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/sentences/nomis-booking-id/${mapping.nomisBookingId}/nomis-sentence-sequence/${mapping.nomisSentenceSequence}")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/sentences/nomis-booking-id/${mapping.nomisBookingId}/nomis-sentence-sequence/${mapping.nomisSentenceSequence}")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 404 when mapping does not exist for sentence sequence`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/sentences/nomis-booking-id/${mapping.nomisBookingId}/nomis-sentence-sequence/78")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNotFound
+          .expectBody()
+          .jsonPath("developerMessage").isEqualTo("Sentence mapping not found with nomisBookingId =12345, nomisSentenceSeq =78")
+      }
+
+      @Test
+      fun `will return 404 when mapping does not exist for booking id`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/sentences/nomis-booking-id/8989/nomis-sentence-sequence/${mapping.nomisSentenceSequence}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNotFound
+          .expectBody()
+          .jsonPath("developerMessage").isEqualTo("Sentence mapping not found with nomisBookingId =8989, nomisSentenceSeq =2")
+      }
+
+      @Test
+      fun `will return 200 when mapping does exist`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/sentences/nomis-booking-id/${mapping.nomisBookingId}/nomis-sentence-sequence/${mapping.nomisSentenceSequence}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisBookingId").isEqualTo(mapping.nomisBookingId)
+          .jsonPath("nomisSentenceSequence").isEqualTo(mapping.nomisSentenceSequence)
+          .jsonPath("dpsSentenceId").isEqualTo(mapping.dpsSentenceId)
+          .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
+          .jsonPath("label").isEqualTo(mapping.label!!)
           .jsonPath("whenCreated").value<String> {
             assertThat(LocalDateTime.parse(it))
               .isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
