@@ -211,4 +211,28 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
     ],
   )
   suspend fun getAllMappings() = mappingService.getAllMappings()
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @DeleteMapping("/mapping/schedules/max-nomis-schedule-id/{maxCourseScheduleId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete all mappings with a nomis schedule id greater than the given value",
+    description = "Used to delete mappings records in preprod that have been copied from prod but don't have any NOMIS data.",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Success",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteCourseSchedulesAfterId(
+    @Schema(description = "Max NOMIS course schedule ID to retain", example = "12345")
+    @PathVariable
+    maxCourseScheduleId: Long,
+  ) = mappingService.deleteCourseSchedulesAfterId(maxCourseScheduleId)
 }

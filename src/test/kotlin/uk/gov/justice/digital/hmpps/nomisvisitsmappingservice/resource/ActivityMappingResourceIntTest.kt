@@ -857,4 +857,83 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isNoContent
     }
   }
+
+  @DisplayName("DELETE /mapping/schedules/max-nomis-schedule-id/{maxCourseScheduleId}")
+  @Nested
+  inner class DeleteMaxScheduleIdTest {
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.delete().uri("/mapping/schedules/max-nomis-schedule-id/999")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.delete().uri("/mapping/schedules/max-nomis-schedule-id/999")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.delete().uri("/mapping/schedules/max-nomis-schedule-id/999")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `delete specific mapping success with schedules`() = runTest {
+      // create mapping
+      webTestClient.post().uri("/mapping/activities")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(createMapping(scheduledInstanceMappings = listOf(Pair(1, 1), Pair(2, 2)))),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      // Schedules exist
+      webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId/scheduled-instance-id/1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+      webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId/scheduled-instance-id/2")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+
+      // and present on the database
+      scheduleRepository.findAllByActivityScheduleId(activityScheduleId).also {
+        assertThat(it).extracting(ActivityScheduleMapping::nomisCourseScheduleId)
+          .containsExactlyInAnyOrder(tuple(1L), tuple(2L))
+      }
+
+      // delete everything after course schedule id 1
+      webTestClient.delete().uri("/mapping/schedules/max-nomis-schedule-id/1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      // Only the first schedule exists
+      webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId/scheduled-instance-id/1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+      webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId/scheduled-instance-id/2")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isNotFound
+
+      // and present on the database
+      scheduleRepository.findAllByActivityScheduleId(activityScheduleId).also {
+        assertThat(it).extracting(ActivityScheduleMapping::nomisCourseScheduleId)
+          .containsExactlyInAnyOrder(tuple(1L))
+      }
+    }
+  }
 }
