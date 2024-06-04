@@ -13,4 +13,6 @@ interface ActivityScheduleMappingRepository : CoroutineCrudRepository<ActivitySc
   suspend fun findAllByActivityScheduleId(activityScheduleId: Long): List<ActivityScheduleMapping>
 
   suspend fun deleteAllByActivityScheduleId(activityScheduleId: Long)
+
+  suspend fun deleteByNomisCourseScheduleIdGreaterThan(nomisCourseScheduleId: Long)
 }

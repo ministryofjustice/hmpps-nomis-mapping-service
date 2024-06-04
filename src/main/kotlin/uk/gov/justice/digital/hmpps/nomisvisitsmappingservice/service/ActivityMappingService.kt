@@ -161,4 +161,7 @@ class ActivityMappingService(
           ActivityMappingDto(activityMapping, scheduleMappingDtos.toList())
         }
     }
+
+  @Transactional
+  suspend fun deleteCourseSchedulesAfterId(maxCourseScheduleId: Long) = activityScheduleMappingRepository.deleteByNomisCourseScheduleIdGreaterThan(maxCourseScheduleId)
 }
