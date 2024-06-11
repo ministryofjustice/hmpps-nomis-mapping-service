@@ -124,11 +124,10 @@ class CourtSentencingMappingService(
     courtCharges.forEach { createCourtChargeMapping(it) }
 
   @Transactional
-  suspend fun createSentenceAllMapping(createSentenceMappingRequest: SentenceAllMappingDto) =
+  suspend fun createSentenceAllMapping(createSentenceMappingRequest: SentenceMappingDto) =
     with(createSentenceMappingRequest) {
       sentenceMappingRepository.save(createSentenceMappingRequest.toSentenceMapping())
         .also {
-          // TODO sentence charge creation
           telemetryClient.trackEvent(
             "sentence-mapping-created",
             mapOf(
@@ -196,11 +195,11 @@ class CourtSentencingMappingService(
     courtChargeMappingRepository.findByNomisCourtChargeId(courtChargeId)?.toCourtChargeMappingDto()
       ?: throw NotFoundException("NOMIS Court charge Id =$courtChargeId")
 
-  suspend fun getSentenceAllMappingByDpsId(dpsSentenceId: String): SentenceAllMappingDto =
+  suspend fun getSentenceAllMappingByDpsId(dpsSentenceId: String): SentenceMappingDto =
     sentenceMappingRepository.findById(dpsSentenceId)?.toSentenceAllMappingDto()
       ?: throw NotFoundException("Sentence mapping not found with dpsSentenceId =$dpsSentenceId")
 
-  suspend fun getSentenceAllMappingByNomisId(nomisBookingId: Long, nomisSentenceSeq: Int): SentenceAllMappingDto =
+  suspend fun getSentenceAllMappingByNomisId(nomisBookingId: Long, nomisSentenceSeq: Int): SentenceMappingDto =
     sentenceMappingRepository.findByNomisBookingIdAndNomisSentenceSequence(nomisBookingId = nomisBookingId, nomisSentenceSeq = nomisSentenceSeq)?.toSentenceAllMappingDto()
       ?: throw NotFoundException("Sentence mapping not found with nomisBookingId =$nomisBookingId, nomisSentenceSeq =$nomisSentenceSeq")
 
@@ -264,21 +263,19 @@ fun CourtChargeMappingDto.toCourtChargeMapping(): CourtChargeMapping = CourtChar
   mappingType = mappingType ?: CourtChargeMappingType.DPS_CREATED,
 )
 
-fun SentenceMapping.toSentenceAllMappingDto(): SentenceAllMappingDto = SentenceAllMappingDto(
+fun SentenceMapping.toSentenceAllMappingDto(): SentenceMappingDto = SentenceMappingDto(
   dpsSentenceId = this.dpsSentenceId,
   nomisSentenceSequence = this.nomisSentenceSequence,
   nomisBookingId = this.nomisBookingId,
   label = this.label,
   mappingType = this.mappingType,
   whenCreated = this.whenCreated,
-  // TODO return sentence charges
 )
 
-fun SentenceAllMappingDto.toSentenceMapping(): SentenceMapping = SentenceMapping(
+fun SentenceMappingDto.toSentenceMapping(): SentenceMapping = SentenceMapping(
   dpsSentenceId = this.dpsSentenceId,
   nomisSentenceSequence = this.nomisSentenceSequence,
   nomisBookingId = this.nomisBookingId,
   label = this.label,
   mappingType = mappingType ?: SentenceMappingType.DPS_CREATED,
-  // TODO sentence charges
 )

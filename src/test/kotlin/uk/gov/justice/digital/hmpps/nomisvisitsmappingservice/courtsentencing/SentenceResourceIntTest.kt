@@ -213,7 +213,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
   @DisplayName("POST /mapping/court-sentencing/sentences")
   inner class CreateMapping {
     private lateinit var existingMapping: SentenceMapping
-    private val mapping = SentenceAllMappingDto(
+    private val mapping = SentenceMappingDto(
       dpsSentenceId = DPS_SENTENCE_ID,
       nomisBookingId = NOMIS_BOOKING_ID,
       nomisSentenceSequence = NOMIS_SENTENCE_SEQUENCE,
@@ -423,7 +423,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              SentenceAllMappingDto(
+              SentenceMappingDto(
                 nomisSentenceSequence = existingMapping.nomisSentenceSequence,
                 nomisBookingId = existingMapping.nomisBookingId,
                 dpsSentenceId = "DPS888",
@@ -459,7 +459,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              SentenceAllMappingDto(
+              SentenceMappingDto(
                 nomisBookingId = NOMIS_BOOKING_ID,
                 nomisSentenceSequence = NOMIS_SENTENCE_SEQUENCE,
                 dpsSentenceId = existingMapping.dpsSentenceId,
