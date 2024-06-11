@@ -544,7 +544,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = SentenceAllMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = SentenceMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -563,7 +563,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     @Schema(description = "DPS sentence id", example = "D123", required = true)
     @PathVariable
     sentenceId: String,
-  ): SentenceAllMappingDto = mappingService.getSentenceAllMappingByDpsId(
+  ): SentenceMappingDto = mappingService.getSentenceAllMappingByDpsId(
     dpsSentenceId = sentenceId,
   )
 
@@ -576,7 +576,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = SentenceAllMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = SentenceMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -598,7 +598,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     @Schema(description = "NOMIS sentence sequence", example = "1", required = true)
     @PathVariable
     sentenceSequence: Int,
-  ): SentenceAllMappingDto = mappingService.getSentenceAllMappingByNomisId(
+  ): SentenceMappingDto = mappingService.getSentenceAllMappingByNomisId(
     nomisSentenceSeq = sentenceSequence,
     nomisBookingId = bookingId,
   )
@@ -612,7 +612,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = SentenceAllMappingDto::class),
+          schema = Schema(implementation = SentenceMappingDto::class),
         ),
       ],
     ),
@@ -642,7 +642,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   )
   suspend fun createSentenceMapping(
     @RequestBody @Valid
-    mapping: SentenceAllMappingDto,
+    mapping: SentenceMappingDto,
   ) =
     try {
       mappingService.createSentenceAllMapping(mapping)
@@ -744,7 +744,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     )
   }
 
-  private suspend fun getExistingSentenceAllMappingSimilarTo(mapping: SentenceAllMappingDto) = runCatching {
+  private suspend fun getExistingSentenceAllMappingSimilarTo(mapping: SentenceMappingDto) = runCatching {
     mappingService.getSentenceAllMappingByNomisId(
       nomisBookingId = mapping.nomisBookingId,
       nomisSentenceSeq = mapping.nomisSentenceSequence,

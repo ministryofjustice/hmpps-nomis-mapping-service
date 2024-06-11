@@ -6,8 +6,8 @@ import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Sentence mapping including child entity mapping")
-data class SentenceAllMappingDto(
+@Schema(description = "Sentence mapping")
+data class SentenceMappingDto(
 
   @Schema(description = "NOMIS booking id", required = true, example = "123456")
   val nomisBookingId: Long,
@@ -17,9 +17,6 @@ data class SentenceAllMappingDto(
 
   @Schema(description = "DPS sentence id", example = "123456")
   val dpsSentenceId: String,
-
-  @Schema(description = "Offender Charges related to a sentence")
-  val sentenceCharges: List<CourtChargeMappingDto> = emptyList(),
 
   @Schema(description = "Label (a timestamp for migrated ids)")
   @field:Size(max = 20)
