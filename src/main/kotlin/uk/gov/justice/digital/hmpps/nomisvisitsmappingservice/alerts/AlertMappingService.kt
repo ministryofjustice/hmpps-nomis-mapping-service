@@ -69,6 +69,23 @@ class AlertMappingService(
   }
 
   @Transactional
+  suspend fun replaceMappings(offenderNo: String, prisonerMapping: PrisonerAlertMappingsDto) {
+    repository.deleteAllByOffenderNo(offenderNo)
+    repository.saveAll(
+      prisonerMapping.mappings.map {
+        AlertMapping(
+          dpsAlertId = it.dpsAlertId,
+          nomisBookingId = it.nomisBookingId,
+          nomisAlertSequence = it.nomisAlertSequence,
+          offenderNo = offenderNo,
+          label = prisonerMapping.label,
+          mappingType = prisonerMapping.mappingType,
+        )
+      },
+    ).collect()
+  }
+
+  @Transactional
   suspend fun deleteAllMappings() {
     repository.deleteAll()
     prisonerMappingRepository.deleteAll()
