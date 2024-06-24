@@ -288,6 +288,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
       }
       throw e
     }
+
   @PutMapping("{offenderNo}/all")
   @Operation(
     summary = "Replaces a set of new alert mapping for a prisoner",

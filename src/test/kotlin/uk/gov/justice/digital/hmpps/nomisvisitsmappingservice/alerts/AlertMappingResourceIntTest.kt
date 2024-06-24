@@ -1122,6 +1122,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       }
     }
   }
+
   @Nested
   @DisplayName("PUT /mapping/alerts/{offenderNo}/all")
   inner class ReplaceMappingsForPrisoner {
