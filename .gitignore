@@ -72,3 +72,4 @@ ecr.repo
 **/Chart.lock
 sonar-project.properties
 helm_deploy/hmpps-nomis-mapping-service/charts
+.kotlin
