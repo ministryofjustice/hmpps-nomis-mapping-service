@@ -289,6 +289,40 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
       throw e
     }
 
+  @PutMapping("{offenderNo}/all")
+  @Operation(
+    summary = "Replaces a set of new alert mapping for a prisoner",
+    description = "Replaces the mappings between all the nomis alert ids and dps alert id. Requires ROLE_NOMIS_ALERTS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = PrisonerAlertMappingsDto::class),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "200", description = "Mappings replaced"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun replaceMappingsForPrisoner(
+    @Schema(description = "NOMIS offender no", example = "A1234KT", required = true)
+    @PathVariable
+    offenderNo: String,
+    @RequestBody @Valid
+    prisonerMapping: PrisonerAlertMappingsDto,
+  ) = mappingService.replaceMappings(offenderNo, prisonerMapping)
+
   @GetMapping("{offenderNo}/all")
   @Operation(
     summary = "Gets all alert mappings for a prisoner",

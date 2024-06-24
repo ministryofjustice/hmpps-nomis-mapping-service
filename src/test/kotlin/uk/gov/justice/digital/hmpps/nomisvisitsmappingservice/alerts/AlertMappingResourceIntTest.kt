@@ -1124,6 +1124,269 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("PUT /mapping/alerts/{offenderNo}/all")
+  inner class ReplaceMappingsForPrisoner {
+    private lateinit var existingMapping: AlertMapping
+    private val prisonerMappings = PrisonerAlertMappingsDto(
+      label = "2023-01-01T12:45:12",
+      mappingType = MIGRATED,
+      mappings = listOf(
+        AlertMappingIdDto(
+          dpsAlertId = "e52d7268-6e10-41a8-a0b9-2319b32520d6",
+          nomisBookingId = 54321L,
+          nomisAlertSequence = 3L,
+        ),
+        AlertMappingIdDto(
+          dpsAlertId = "fd4e55a8-0805-439b-9e27-647583b96e4e",
+          nomisBookingId = 54321L,
+          nomisAlertSequence = 4L,
+        ),
+      ),
+    )
+
+    @BeforeEach
+    fun setUp() = runTest {
+      existingMapping = repository.save(
+        AlertMapping(
+          dpsAlertId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          nomisBookingId = 54321L,
+          nomisAlertSequence = 2L,
+          label = "2023-01-01T12:45:12",
+          mappingType = MIGRATED,
+          offenderNo = "A1234KT",
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.put()
+          .uri("/mapping/alerts/A1234KT/all")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(prisonerMappings))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.put()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(prisonerMappings))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.put()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(prisonerMappings))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `returns 200 when mapping created`() = runTest {
+        webTestClient.put()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(prisonerMappings))
+          .exchange()
+          .expectStatus().isOk
+
+        val createdMapping1 =
+          repository.findOneByNomisBookingIdAndNomisAlertSequence(
+            bookingId = prisonerMappings.mappings[0].nomisBookingId,
+            alertSequence = prisonerMappings.mappings[0].nomisAlertSequence,
+          )!!
+
+        assertThat(createdMapping1.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        assertThat(createdMapping1.nomisBookingId).isEqualTo(prisonerMappings.mappings[0].nomisBookingId)
+        assertThat(createdMapping1.nomisAlertSequence).isEqualTo(prisonerMappings.mappings[0].nomisAlertSequence)
+        assertThat(createdMapping1.dpsAlertId).isEqualTo(prisonerMappings.mappings[0].dpsAlertId)
+        assertThat(createdMapping1.mappingType).isEqualTo(prisonerMappings.mappingType)
+        assertThat(createdMapping1.label).isEqualTo(prisonerMappings.label)
+        val createdMapping2 =
+          repository.findOneByNomisBookingIdAndNomisAlertSequence(
+            bookingId = prisonerMappings.mappings[1].nomisBookingId,
+            alertSequence = prisonerMappings.mappings[1].nomisAlertSequence,
+          )!!
+
+        assertThat(createdMapping2.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        assertThat(createdMapping2.nomisBookingId).isEqualTo(prisonerMappings.mappings[1].nomisBookingId)
+        assertThat(createdMapping2.nomisAlertSequence).isEqualTo(prisonerMappings.mappings[1].nomisAlertSequence)
+        assertThat(createdMapping2.dpsAlertId).isEqualTo(prisonerMappings.mappings[1].dpsAlertId)
+        assertThat(createdMapping2.mappingType).isEqualTo(prisonerMappings.mappingType)
+        assertThat(createdMapping2.label).isEqualTo(prisonerMappings.label)
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `returns 400 when mapping type is invalid`() {
+        webTestClient.put()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              //language=JSON
+              """
+                {
+                  "mappingType": "INVALID_TYPE",
+                  "mappings": [
+                    {
+                      "nomisBookingId": 54321,
+                      "nomisAlertSequence": 3,
+                      "dpsAlertId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
+                    }
+                  ]
+                }
+              """.trimIndent(),
+            ),
+          )
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+
+      @Test
+      fun `returns 400 when DPS id is missing`() {
+        webTestClient.put()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              //language=JSON
+              """
+                {
+                  "mappingType": "MIGRATED",
+                  "mappings": [
+                    {
+                      "nomisBookingId": 54321,
+                      "nomisAlertSequence": 3
+                    }
+                  ]
+                }
+              """.trimIndent(),
+            ),
+          )
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+
+      @Test
+      fun `returns 400 when NOMIS ids are missing`() {
+        webTestClient.put()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              //language=JSON
+              """
+                {
+                  "mappingType": "MIGRATED",
+                  "mappings": [
+                    {
+                      "dpsAlertId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
+                      "nomisAlertSequence": 3
+                    }
+                  ]
+                }
+              """.trimIndent(),
+            ),
+          )
+          .exchange()
+          .expectStatus().isBadRequest
+
+        webTestClient.put()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              //language=JSON
+              """
+                {
+                  "mappingType": "MIGRATED",
+                  "mappings": [
+                    {
+                      "nomisBookingId": 54321,
+                      "dpsAlertId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
+                    }
+                  ]
+                }
+              """.trimIndent(),
+            ),
+          )
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+
+      @Test
+      fun `will not return 409 if nomis ids already exist since it will be deleted`() {
+        val dpsAlertId = UUID.randomUUID().toString()
+        webTestClient.put()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              prisonerMappings.copy(
+                mappings = prisonerMappings.mappings + AlertMappingIdDto(
+                  nomisBookingId = existingMapping.nomisBookingId,
+                  nomisAlertSequence = existingMapping.nomisAlertSequence,
+                  dpsAlertId = dpsAlertId,
+                ),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isOk
+      }
+
+      @Test
+      fun `will not return 409 if dps id already exist since it will be deleted`() {
+        webTestClient.put()
+          .uri("/mapping/alerts/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              prisonerMappings.copy(
+                mappings = prisonerMappings.mappings + AlertMappingIdDto(
+                  nomisBookingId = existingMapping.nomisBookingId,
+                  nomisAlertSequence = 99,
+                  dpsAlertId = existingMapping.dpsAlertId,
+                ),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isOk
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("POST /mapping/alerts/batch")
   inner class CreateMappings {
     private var existingMapping: AlertMapping = AlertMapping(
