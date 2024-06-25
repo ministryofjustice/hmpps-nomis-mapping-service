@@ -19,7 +19,7 @@ data class CaseNoteMappingDto(
   @field:Size(max = 20)
   val label: String? = null,
 
-  @Schema(description = "Mapping type", allowableValues = ["MIGRATED", "NOMIS_CREATED", "DPS_CREATED"])
+  @Schema(description = "Mapping type")
   val mappingType: CaseNoteMappingType = CaseNoteMappingType.DPS_CREATED,
 
   @Schema(description = "Date-time the mapping was created")

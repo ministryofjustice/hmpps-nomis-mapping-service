@@ -2,8 +2,10 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.casenotes
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
+import org.hamcrest.Matchers
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -15,13 +17,52 @@ import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
+private const val DPS_CASENOTE_ID = "e52d7268-6e10-41a8-a0b9-2319b32520d6"
+private const val NOMIS_CASENOTE_ID = 543211L
+
 class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var repository: CaseNoteMappingRepository
+
+  private fun createMapping(
+    nomisId: Long = NOMIS_CASENOTE_ID,
+    caseNoteId: String = DPS_CASENOTE_ID,
+    label: String = "2022-01-01",
+    mappingType: CaseNoteMappingType = CaseNoteMappingType.DPS_CREATED,
+  ): CaseNoteMappingDto = CaseNoteMappingDto(
+    nomisCaseNoteId = nomisId,
+    dpsCaseNoteId = caseNoteId,
+    label = label,
+    mappingType = mappingType,
+  )
+
+  private fun postCreateMappingRequest(
+    nomisId: Long = NOMIS_CASENOTE_ID,
+    caseNoteId: String = DPS_CASENOTE_ID,
+    label: String = "2022-01-01",
+    mappingType: CaseNoteMappingType = CaseNoteMappingType.DPS_CREATED,
+  ) {
+    webTestClient.post().uri("/mapping/casenotes")
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(
+        BodyInserters.fromValue(
+          createMapping(
+            nomisId = nomisId,
+            caseNoteId = caseNoteId,
+            label = label,
+            mappingType = mappingType,
+          ),
+        ),
+      )
+      .exchange()
+      .expectStatus().isCreated
+  }
 
   @AfterEach
   internal fun deleteData() = runBlocking {
@@ -33,8 +74,8 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
   inner class CreateMapping {
     private lateinit var existingMapping: CaseNoteMapping
     private val mapping = CaseNoteMappingDto(
-      dpsCaseNoteId = "e52d7268-6e10-41a8-a0b9-2319b32520d6",
-      nomisCaseNoteId = 543211L,
+      dpsCaseNoteId = DPS_CASENOTE_ID,
+      nomisCaseNoteId = NOMIS_CASENOTE_ID,
       label = "2024-02-01T12:45:12",
       mappingType = CaseNoteMappingType.MIGRATED,
     )
@@ -120,7 +161,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
               """
                 {
                   "nomisCaseNoteId": 54321,
-                  "dpsCaseNoteId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
+                  "dpsCaseNoteId": "$DPS_CASENOTE_ID"
                 }
               """.trimIndent(),
             ),
@@ -133,7 +174,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
 
         assertThat(createdMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         assertThat(createdMapping.nomisCaseNoteId).isEqualTo(54321L)
-        assertThat(createdMapping.dpsCaseNoteId).isEqualTo("e52d7268-6e10-41a8-a0b9-2319b32520d6")
+        assertThat(createdMapping.dpsCaseNoteId).isEqualTo(DPS_CASENOTE_ID)
         assertThat(createdMapping.mappingType).isEqualTo(CaseNoteMappingType.DPS_CREATED)
         assertThat(createdMapping.label).isNull()
       }
@@ -186,7 +227,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
               """
                 {
                   "nomisCaseNoteId": 54321,
-                  "dpsCaseNoteId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
+                  "dpsCaseNoteId": "$DPS_CASENOTE_ID",
                   "mappingType": "INVALID_TYPE"
                 }
               """.trimIndent(),
@@ -228,7 +269,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "dpsCaseNoteId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
+                  "dpsCaseNoteId": "$DPS_CASENOTE_ID",
                   "mappingType": "MIGRATED"
                 }
               """.trimIndent(),
@@ -421,7 +462,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
                 [
                     {
                       "nomisCaseNoteId": 54321,
-                      "dpsCaseNoteId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
+                      "dpsCaseNoteId": "$DPS_CASENOTE_ID",
                       "mappingType": "INVALID_TYPE"
                     }
                   ]
@@ -752,8 +793,255 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
+  @DisplayName("GET /mapping/casenotes/migration-id/{migrationId}")
   @Nested
-  @DisplayName("DELETE /mapping/casenotes/nomis-casenote-id/{nomisCaseNoteId}")
+  inner class GetMappingByMigrationIdTest {
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/casenotes/migration-id/2022-01-01T00:00:00")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/casenotes/migration-id/2022-01-01T00:00:00")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get casenote mappings by migration id forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/casenotes/migration-id/2022-01-01T00:00:00")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get casenote mappings by migration id success`() {
+      (1L..4L).forEach {
+        postCreateMappingRequest(it, "edcd118c-41ba-42ea-b5c4-00000000000$it", label = "2022-01-01", mappingType = CaseNoteMappingType.MIGRATED)
+      }
+      (5L..9L).forEach {
+        postCreateMappingRequest(it, "edcd118c-41ba-42ea-b5c4-00000000000$it", label = "2099-01-01", mappingType = CaseNoteMappingType.MIGRATED)
+      }
+      postCreateMappingRequest(12, "edcd118c-41ba-42ea-b5c4-000000000012", mappingType = CaseNoteMappingType.DPS_CREATED)
+
+      webTestClient.get().uri("/mapping/casenotes/migration-id/2022-01-01")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(4)
+        .jsonPath("$.content..nomisCaseNoteId").value(
+          Matchers.contains(1, 2, 3, 4),
+        )
+        .jsonPath("$.content[0].whenCreated").isNotEmpty
+    }
+
+    @Test
+    fun `get casenote mappings by migration id - no records exist`() {
+      (1L..4L).forEach {
+        postCreateMappingRequest(it, "edcd118c-41ba-42ea-b5c4-00000000000$it", label = "2022-01-01", mappingType = CaseNoteMappingType.MIGRATED)
+      }
+
+      webTestClient.get().uri("/mapping/casenotes/migration-id/2044-01-01")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(0)
+        .jsonPath("content").isEmpty
+    }
+
+    @Test
+    fun `can request a different page size`() {
+      (1L..6L).forEach {
+        postCreateMappingRequest(it, "edcd118c-41ba-42ea-b5c4-00000000000$it", label = "2022-01-01", mappingType = CaseNoteMappingType.MIGRATED)
+      }
+      webTestClient.get().uri {
+        it.path("/mapping/casenotes/migration-id/2022-01-01")
+          .queryParam("size", "2")
+          .queryParam("sort", "nomisCaseNoteId,asc")
+          .build()
+      }
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(6)
+        .jsonPath("numberOfElements").isEqualTo(2)
+        .jsonPath("number").isEqualTo(0)
+        .jsonPath("totalPages").isEqualTo(3)
+        .jsonPath("size").isEqualTo(2)
+    }
+
+    @Test
+    fun `can request a different page`() {
+      (1L..3L).forEach {
+        postCreateMappingRequest(it, "edcd118c-41ba-42ea-b5c4-00000000000$it", label = "2022-01-01", mappingType = CaseNoteMappingType.MIGRATED)
+      }
+      webTestClient.get().uri {
+        it.path("/mapping/casenotes/migration-id/2022-01-01")
+          .queryParam("size", "2")
+          .queryParam("page", "1")
+          .queryParam("sort", "nomisCaseNoteId,asc")
+          .build()
+      }
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(3)
+        .jsonPath("numberOfElements").isEqualTo(1)
+        .jsonPath("number").isEqualTo(1)
+        .jsonPath("totalPages").isEqualTo(2)
+        .jsonPath("size").isEqualTo(2)
+    }
+  }
+
+  @DisplayName("GET /mapping/casenotes/migrated/latest")
+  @Nested
+  inner class GeMappingMigratedLatestTest {
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/casenotes/migrated/latest")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/casenotes/migrated/latest")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/casenotes/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `get retrieves latest migrated mapping`() {
+      webTestClient.post().uri("/mapping/casenotes")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createMapping(
+              nomisId = 10,
+              caseNoteId = "edcd118c-41ba-42ea-b5c4-000000000010",
+              label = "2022-01-01T00:00:00",
+              mappingType = CaseNoteMappingType.MIGRATED,
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping/casenotes")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createMapping(
+              nomisId = 20,
+              caseNoteId = "edcd118c-41ba-42ea-b5c4-000000000020",
+              label = "2022-01-02T00:00:00",
+              mappingType = CaseNoteMappingType.MIGRATED,
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping/casenotes")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createMapping(
+              nomisId = 1,
+              caseNoteId = "edcd118c-41ba-42ea-b5c4-000000000001",
+              label = "2022-01-02T10:00:00",
+              mappingType = CaseNoteMappingType.MIGRATED,
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post().uri("/mapping/casenotes")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createMapping(
+              nomisId = 99,
+              caseNoteId = "edcd118c-41ba-42ea-b5c4-000000000199",
+              label = "whatever",
+              mappingType = CaseNoteMappingType.DPS_CREATED,
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      val mapping = webTestClient.get().uri("/mapping/casenotes/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody(CaseNoteMappingDto::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(mapping.nomisCaseNoteId).isEqualTo(1)
+      assertThat(mapping.dpsCaseNoteId).isEqualTo("edcd118c-41ba-42ea-b5c4-000000000001")
+      assertThat(mapping.label).isEqualTo("2022-01-02T10:00:00")
+      assertThat(mapping.mappingType).isEqualTo(CaseNoteMappingType.MIGRATED)
+      assertThat(mapping.whenCreated)
+        .isCloseTo(LocalDateTime.now(), Assertions.byLessThan(5, ChronoUnit.SECONDS))
+    }
+
+    @Test
+    fun `404 when no migrated mapping found`() {
+      webTestClient.post().uri("/mapping/casenotes")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            createMapping(
+              nomisId = 77,
+              caseNoteId = "edcd118c-41ba-42ea-b5c4-000000000077",
+              label = "whatever",
+              mappingType = CaseNoteMappingType.DPS_CREATED,
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      val error = webTestClient.get().uri("/mapping/casenotes/migrated/latest")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+        .exchange()
+        .expectStatus().isNotFound
+        .expectBody(ErrorResponse::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(error.userMessage).isEqualTo("Not Found: No migrated mapping found")
+    }
+  }
+
+  @Nested
+  @DisplayName("DELETE /mapping/casenotes/nomis-casenote-id/{nomiscaseNoteId}")
   inner class DeleteMappingByNomisId {
     lateinit var mapping: CaseNoteMapping
 
