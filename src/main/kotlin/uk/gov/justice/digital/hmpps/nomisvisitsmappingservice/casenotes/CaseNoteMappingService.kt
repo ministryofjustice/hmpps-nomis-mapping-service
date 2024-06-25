@@ -107,7 +107,7 @@ class CaseNoteMappingService(
     migrationId: String,
   ): Page<CaseNoteMappingDto> =
     coroutineScope {
-      val CaseNoteMapping = async {
+      val caseNoteMapping = async {
         repository.findAllByLabelAndMappingTypeOrderByLabelDesc(
           label = migrationId,
           CaseNoteMappingType.MIGRATED,
@@ -120,7 +120,7 @@ class CaseNoteMappingService(
       }
 
       PageImpl(
-        CaseNoteMapping.await().toList().map { CaseNoteMappingDto(it) },
+        caseNoteMapping.await().toList().map { CaseNoteMappingDto(it) },
         pageRequest,
         count.await(),
       )
