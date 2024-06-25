@@ -1,8 +1,14 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.casenotes
 
 import com.microsoft.applicationinsights.TelemetryClient
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
@@ -95,6 +101,35 @@ class CaseNoteMappingService(
     repository.findById(dpsCaseNoteId)
       ?.let { CaseNoteMappingDto(it) }
       ?: throw NotFoundException("CaseNote with dpsCaseNoteId=$dpsCaseNoteId not found")
+
+  suspend fun getMappingsByMigrationId(
+    pageRequest: Pageable,
+    migrationId: String,
+  ): Page<CaseNoteMappingDto> =
+    coroutineScope {
+      val caseNoteMapping = async {
+        repository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+          label = migrationId,
+          CaseNoteMappingType.MIGRATED,
+          pageRequest,
+        )
+      }
+
+      val count = async {
+        repository.countAllByLabelAndMappingType(migrationId, mappingType = CaseNoteMappingType.MIGRATED)
+      }
+
+      PageImpl(
+        caseNoteMapping.await().toList().map { CaseNoteMappingDto(it) },
+        pageRequest,
+        count.await(),
+      )
+    }
+
+  suspend fun getMappingForLatestMigrated(): CaseNoteMappingDto =
+    repository.findFirstByMappingTypeOrderByWhenCreatedDesc(CaseNoteMappingType.MIGRATED)
+      ?.let { CaseNoteMappingDto(it) }
+      ?: throw NotFoundException("No migrated mapping found")
 
   @Transactional
   suspend fun deleteMapping(dpsCaseNoteId: String) = repository.deleteById(dpsCaseNoteId)
