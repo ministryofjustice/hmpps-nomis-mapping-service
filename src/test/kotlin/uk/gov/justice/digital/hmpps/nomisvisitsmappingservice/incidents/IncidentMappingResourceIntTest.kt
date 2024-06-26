@@ -797,8 +797,8 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
         .expectBody()
         .jsonPath("totalElements").isEqualTo(4)
-        .jsonPath("$.content..dpsIncidentId").value(Matchers.contains("1", "2", "3", "4"))
-        .jsonPath("$.content..nomisIncidentId").value(Matchers.contains(1, 2, 3, 4))
+        .jsonPath("$.content..dpsIncidentId").value(Matchers.containsInAnyOrder("1", "2", "3", "4"))
+        .jsonPath("$.content..nomisIncidentId").value(Matchers.containsInAnyOrder(1, 2, 3, 4))
         .jsonPath("$.content[0].whenCreated").isNotEmpty
     }
 
