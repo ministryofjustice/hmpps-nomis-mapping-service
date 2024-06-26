@@ -1387,6 +1387,146 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("PUT /mapping/alerts/{offenderNo}/merge")
+  inner class ReplaceMappingsForMergedPrisoner {
+    private lateinit var existingMapping: AlertMapping
+    private lateinit var existingMappingForRemovedPrisoner: AlertMapping
+    private val mergedPrisonerMappings = MergedPrisonerAlertMappingsDto(
+      removedOffenderNo = "A9999KT",
+      PrisonerAlertMappingsDto(
+        label = "2023-01-01T12:45:12",
+        mappingType = MIGRATED,
+        mappings = listOf(
+          AlertMappingIdDto(
+            dpsAlertId = "46b1c0a3-4b1c-4b7e-bf0b-d78331a8870f",
+            nomisBookingId = 54321L,
+            nomisAlertSequence = 1L,
+          ),
+          AlertMappingIdDto(
+            dpsAlertId = "fd4e55a8-0805-439b-9e27-647583b96e4e",
+            nomisBookingId = 54321L,
+            nomisAlertSequence = 2L,
+          ),
+        ),
+      ),
+    )
+
+    @BeforeEach
+    fun setUp() = runTest {
+      existingMapping = repository.save(
+        AlertMapping(
+          dpsAlertId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          nomisBookingId = 54321L,
+          nomisAlertSequence = 1L,
+          label = "2023-01-01T12:45:12",
+          mappingType = MIGRATED,
+          offenderNo = "A1234KT",
+        ),
+      )
+      existingMappingForRemovedPrisoner = repository.save(
+        AlertMapping(
+          dpsAlertId = "71dcabf9-e727-43c9-a8da-0da2ea5ba918",
+          nomisBookingId = 99321L,
+          nomisAlertSequence = 1L,
+          label = "2023-01-01T12:45:12",
+          mappingType = MIGRATED,
+          offenderNo = "A9999KT",
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.put()
+          .uri("/mapping/alerts/A1234KT/merge")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mergedPrisonerMappings))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.put()
+          .uri("/mapping/alerts/A1234KT/merge")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mergedPrisonerMappings))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.put()
+          .uri("/mapping/alerts/A1234KT/merge")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mergedPrisonerMappings))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @BeforeEach
+      fun setUp() {
+        webTestClient.put()
+          .uri("/mapping/alerts/A1234KT/merge")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mergedPrisonerMappings))
+          .exchange()
+          .expectStatus().isOk
+      }
+
+      @Test
+      fun `returns 200 when mapping created`() = runTest {
+        val createdMapping1 =
+          repository.findOneByNomisBookingIdAndNomisAlertSequence(
+            bookingId = mergedPrisonerMappings.prisonerMapping.mappings[0].nomisBookingId,
+            alertSequence = mergedPrisonerMappings.prisonerMapping.mappings[0].nomisAlertSequence,
+          )!!
+
+        assertThat(createdMapping1.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        assertThat(createdMapping1.nomisBookingId).isEqualTo(mergedPrisonerMappings.prisonerMapping.mappings[0].nomisBookingId)
+        assertThat(createdMapping1.nomisAlertSequence).isEqualTo(mergedPrisonerMappings.prisonerMapping.mappings[0].nomisAlertSequence)
+        assertThat(createdMapping1.dpsAlertId).isEqualTo(mergedPrisonerMappings.prisonerMapping.mappings[0].dpsAlertId)
+        assertThat(createdMapping1.mappingType).isEqualTo(mergedPrisonerMappings.prisonerMapping.mappingType)
+        val createdMapping2 =
+          repository.findOneByNomisBookingIdAndNomisAlertSequence(
+            bookingId = mergedPrisonerMappings.prisonerMapping.mappings[1].nomisBookingId,
+            alertSequence = mergedPrisonerMappings.prisonerMapping.mappings[1].nomisAlertSequence,
+          )!!
+
+        assertThat(createdMapping2.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        assertThat(createdMapping2.nomisBookingId).isEqualTo(mergedPrisonerMappings.prisonerMapping.mappings[1].nomisBookingId)
+        assertThat(createdMapping2.nomisAlertSequence).isEqualTo(mergedPrisonerMappings.prisonerMapping.mappings[1].nomisAlertSequence)
+        assertThat(createdMapping2.dpsAlertId).isEqualTo(mergedPrisonerMappings.prisonerMapping.mappings[1].dpsAlertId)
+        assertThat(createdMapping2.mappingType).isEqualTo(mergedPrisonerMappings.prisonerMapping.mappingType)
+      }
+
+      @Test
+      fun `old mappings from retained prisoner deleted`() = runTest {
+        assertThat(repository.findOneByDpsAlertId(existingMapping.dpsAlertId)).isNull()
+      }
+
+      @Test
+      fun `old mappings from removed prisoner deleted`() = runTest {
+        assertThat(repository.findOneByDpsAlertId(existingMappingForRemovedPrisoner.dpsAlertId)).isNull()
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("POST /mapping/alerts/batch")
   inner class CreateMappings {
     private var existingMapping: AlertMapping = AlertMapping(

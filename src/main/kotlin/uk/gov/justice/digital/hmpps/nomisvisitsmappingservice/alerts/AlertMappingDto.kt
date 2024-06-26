@@ -59,6 +59,13 @@ data class PrisonerAlertMappingsDto(
   val mappings: List<AlertMappingIdDto>,
 )
 
+data class MergedPrisonerAlertMappingsDto(
+  @Schema(description = "Prisoner whose mappings need removing")
+  val removedOffenderNo: String,
+  @Schema(description = "Mappings for a prisoner after the merge")
+  val prisonerMapping: PrisonerAlertMappingsDto,
+)
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "NOMIS to Alert mapping IDs")
 data class AlertMappingIdDto(
