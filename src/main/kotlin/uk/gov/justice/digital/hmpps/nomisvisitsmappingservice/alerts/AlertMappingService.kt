@@ -86,6 +86,12 @@ class AlertMappingService(
   }
 
   @Transactional
+  suspend fun replaceMappingsAfterMerge(offenderNo: String, prisonerMapping: PrisonerAlertMappingsDto, removedOffenderNo: String) {
+    repository.deleteAllByOffenderNo(removedOffenderNo)
+    replaceMappings(offenderNo, prisonerMapping)
+  }
+
+  @Transactional
   suspend fun deleteAllMappings() {
     repository.deleteAll()
     prisonerMappingRepository.deleteAll()

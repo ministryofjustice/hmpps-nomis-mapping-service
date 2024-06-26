@@ -323,6 +323,44 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
     prisonerMapping: PrisonerAlertMappingsDto,
   ) = mappingService.replaceMappings(offenderNo, prisonerMapping)
 
+  @PutMapping("{offenderNo}/merge")
+  @Operation(
+    summary = "Replaces a set of new alert mappings for a prisoner and removes mappings for the removed prisoner record",
+    description = "Replaces the mappings between all the nomis alert ids and dps alert id. Any mappings on the removed prisoner record are deleted. Requires ROLE_NOMIS_ALERTS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = MergedPrisonerAlertMappingsDto::class),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "200", description = "Mappings replaced"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun replaceMappingsForPrisonerAfterMerge(
+    @Schema(description = "Retained NOMIS offender no", example = "A1234KT", required = true)
+    @PathVariable
+    offenderNo: String,
+    @RequestBody @Valid
+    mergedPrisonerMapping: MergedPrisonerAlertMappingsDto,
+  ) = mappingService.replaceMappingsAfterMerge(
+    offenderNo = offenderNo,
+    prisonerMapping = mergedPrisonerMapping.prisonerMapping,
+    removedOffenderNo = mergedPrisonerMapping.removedOffenderNo,
+  )
+
   @GetMapping("{offenderNo}/all")
   @Operation(
     summary = "Gets all alert mappings for a prisoner",
