@@ -6,15 +6,15 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest
-import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestBase
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivityMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.ActivityMappingType
+import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 
 @DataR2dbcTest
 @ActiveProfiles("test")
-@WithMockUser
+@WithMockAuthUser
 class ActivityMappingRepositoryTest : TestBase() {
   @Qualifier("activityMappingRepository")
   @Autowired
