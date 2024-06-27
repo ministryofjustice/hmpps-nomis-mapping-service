@@ -4,10 +4,7 @@ import com.microsoft.applicationinsights.TelemetryClient
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -87,6 +84,23 @@ class CaseNoteMappingService(
     repository.saveAll(mappings.map { it.fromDto() }).collect()
   }
 
+  @Transactional
+  suspend fun createMappings(offenderNo: String, prisonerMapping: PrisonerCaseNoteMappingsDto) {
+    repository.deleteAllByOffenderNo(offenderNo)
+    repository.saveAll(
+      prisonerMapping.mappings.map {
+        CaseNoteMapping(
+          dpsCaseNoteId = it.dpsCaseNoteId,
+          nomisCaseNoteId = it.nomisCaseNoteId,
+          nomisBookingId = it.nomisBookingId,
+          offenderNo = offenderNo,
+          label = prisonerMapping.label,
+          mappingType = prisonerMapping.mappingType,
+        )
+      },
+    ).collect()
+  }
+
   suspend fun getMappingByNomisId(nomisCaseNoteId: Long): CaseNoteMappingDto =
     repository.findOneByNomisCaseNoteId(nomisCaseNoteId)
       ?.let { CaseNoteMappingDto(it) }
@@ -102,34 +116,59 @@ class CaseNoteMappingService(
       ?.let { CaseNoteMappingDto(it) }
       ?: throw NotFoundException("CaseNote with dpsCaseNoteId=$dpsCaseNoteId not found")
 
-  suspend fun getMappingsByMigrationId(
-    pageRequest: Pageable,
-    migrationId: String,
-  ): Page<CaseNoteMappingDto> =
-    coroutineScope {
-      val caseNoteMapping = async {
-        repository.findAllByLabelAndMappingTypeOrderByLabelDesc(
-          label = migrationId,
-          CaseNoteMappingType.MIGRATED,
-          pageRequest,
-        )
-      }
-
-      val count = async {
-        repository.countAllByLabelAndMappingType(migrationId, mappingType = CaseNoteMappingType.MIGRATED)
-      }
-
-      PageImpl(
-        caseNoteMapping.await().toList().map { CaseNoteMappingDto(it) },
-        pageRequest,
-        count.await(),
-      )
-    }
+//  suspend fun getMappingsByMigrationId(
+//    pageRequest: Pageable,
+//    migrationId: String,
+//  ): Page<CaseNoteMappingDto> =
+//    coroutineScope {
+//      val caseNoteMapping = async {
+//        repository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+//          label = migrationId,
+//          CaseNoteMappingType.MIGRATED,
+//          pageRequest,
+//        )
+//      }
+//
+//      val count = async {
+//        repository.countAllByLabelAndMappingType(migrationId, mappingType = CaseNoteMappingType.MIGRATED)
+//      }
+//
+//      PageImpl(
+//        caseNoteMapping.await().toList().map { CaseNoteMappingDto(it) },
+//        pageRequest,
+//        count.await(),
+//      )
+//    }
 
   suspend fun getMappingForLatestMigrated(): CaseNoteMappingDto =
     repository.findFirstByMappingTypeOrderByWhenCreatedDesc(CaseNoteMappingType.MIGRATED)
       ?.let { CaseNoteMappingDto(it) }
       ?: throw NotFoundException("No migrated mapping found")
+
+  suspend fun getCountByMigrationIdGroupedByPrisoner(
+    pageRequest: Pageable,
+    migrationId: String,
+  ): Long = coroutineScope {
+//    val mappings = async {
+//      repository.findPrisonersByLabelAndMappingType(
+//        label = migrationId,
+//        mappingType = CaseNoteMappingType.MIGRATED,
+//        pageable = pageRequest,
+//      )
+//    }
+    // only the count is needed - TBC
+
+    val count = async {
+      repository.countDistinctPrisoners(label = migrationId, mappingType = CaseNoteMappingType.MIGRATED)
+    }
+    count.await()
+
+//    PageImpl(
+//      mappings.await().toList(),
+//      pageRequest,
+//      count.await(),
+//    )
+  }
 
   @Transactional
   suspend fun deleteMapping(dpsCaseNoteId: String) = repository.deleteById(dpsCaseNoteId)
@@ -146,9 +185,16 @@ class CaseNoteMappingService(
     }
   }
 
+  suspend fun getMappings(offenderNo: String): AllPrisonerCaseNoteMappingsDto =
+    repository.findAllByOffenderNoOrderByNomisBookingIdAscNomisCaseNoteIdAsc(offenderNo)
+      .map { it.toDto() }
+      .let { AllPrisonerCaseNoteMappingsDto(it) }
+
   fun CaseNoteMapping.toDto() = CaseNoteMappingDto(
     dpsCaseNoteId = dpsCaseNoteId,
     nomisCaseNoteId = nomisCaseNoteId,
+    nomisBookingId = nomisBookingId,
+    offenderNo = offenderNo,
     label = label,
     mappingType = mappingType,
     whenCreated = whenCreated,
@@ -157,6 +203,8 @@ class CaseNoteMappingService(
   fun CaseNoteMappingDto.fromDto() = CaseNoteMapping(
     dpsCaseNoteId = dpsCaseNoteId,
     nomisCaseNoteId = nomisCaseNoteId,
+    offenderNo = offenderNo,
+    nomisBookingId = nomisBookingId,
     label = label,
     mappingType = mappingType,
   )
