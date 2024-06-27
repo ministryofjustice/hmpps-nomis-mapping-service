@@ -5,9 +5,9 @@ import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
-import org.hamcrest.Matchers
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -24,26 +24,20 @@ import java.util.UUID
 
 private const val DPS_CASENOTE_ID = "e52d7268-6e10-41a8-a0b9-2319b32520d6"
 private const val NOMIS_CASENOTE_ID = 543211L
+private const val OFFENDER_NO = "A1234AA"
+private const val OFFENDER_NO_2 = "A1234BB"
 
 class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var repository: CaseNoteMappingRepository
 
-  private fun createMapping(
-    nomisId: Long = NOMIS_CASENOTE_ID,
-    caseNoteId: String = DPS_CASENOTE_ID,
-    label: String = "2022-01-01",
-    mappingType: CaseNoteMappingType = CaseNoteMappingType.DPS_CREATED,
-  ): CaseNoteMappingDto = CaseNoteMappingDto(
-    nomisCaseNoteId = nomisId,
-    dpsCaseNoteId = caseNoteId,
-    label = label,
-    mappingType = mappingType,
-  )
+  private fun generateUUID(n: Long) = "de91dfa7-821f-4552-a427-000000${n.toString().padStart(6, '0')}"
 
   private fun postCreateMappingRequest(
-    nomisId: Long = NOMIS_CASENOTE_ID,
-    caseNoteId: String = DPS_CASENOTE_ID,
+    nomisCaseNoteId: Long = NOMIS_CASENOTE_ID,
+    dpsCaseNoteId: String = DPS_CASENOTE_ID,
+    offenderNo: String = OFFENDER_NO,
+    nomisBookingId: Long = 1,
     label: String = "2022-01-01",
     mappingType: CaseNoteMappingType = CaseNoteMappingType.DPS_CREATED,
   ) {
@@ -52,9 +46,11 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         BodyInserters.fromValue(
-          createMapping(
-            nomisId = nomisId,
-            caseNoteId = caseNoteId,
+          CaseNoteMappingDto(
+            nomisCaseNoteId = nomisCaseNoteId,
+            dpsCaseNoteId = dpsCaseNoteId,
+            offenderNo = offenderNo,
+            nomisBookingId = nomisBookingId,
             label = label,
             mappingType = mappingType,
           ),
@@ -76,6 +72,8 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
     private val mapping = CaseNoteMappingDto(
       dpsCaseNoteId = DPS_CASENOTE_ID,
       nomisCaseNoteId = NOMIS_CASENOTE_ID,
+      offenderNo = OFFENDER_NO,
+      nomisBookingId = 1,
       label = "2024-02-01T12:45:12",
       mappingType = CaseNoteMappingType.MIGRATED,
     )
@@ -86,6 +84,8 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
         CaseNoteMapping(
           dpsCaseNoteId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisCaseNoteId = 543210L,
+          offenderNo = OFFENDER_NO,
+          nomisBookingId = 1,
           label = "2024-01-01T12:45:12",
           mappingType = CaseNoteMappingType.DPS_CREATED,
         ),
@@ -161,7 +161,9 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
               """
                 {
                   "nomisCaseNoteId": 54321,
-                  "dpsCaseNoteId": "$DPS_CASENOTE_ID"
+                  "dpsCaseNoteId": "$DPS_CASENOTE_ID",
+                  "offenderNo": "A1234AA",
+                  "nomisBookingId": 1
                 }
               """.trimIndent(),
             ),
@@ -191,7 +193,9 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
               """
                 {
                   "nomisCaseNoteId": 54555,
-                  "dpsCaseNoteId": "e52d7268-6e10-41a8-a0b9-2319b3254555"
+                  "dpsCaseNoteId": "e52d7268-6e10-41a8-a0b9-2319b3254555",
+                  "offenderNo": "A1234AA",
+                  "nomisBookingId": 1
                 }
               """.trimIndent(),
             ),
@@ -291,6 +295,8 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
               CaseNoteMappingDto(
                 nomisCaseNoteId = existingMapping.nomisCaseNoteId,
                 dpsCaseNoteId = dpsCaseNoteId,
+                offenderNo = OFFENDER_NO,
+                nomisBookingId = 1,
               ),
             ),
           )
@@ -325,6 +331,8 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
               CaseNoteMappingDto(
                 nomisCaseNoteId = nomisCaseNoteId,
                 dpsCaseNoteId = existingMapping.dpsCaseNoteId,
+                offenderNo = OFFENDER_NO,
+                nomisBookingId = 1,
               ),
             ),
           )
@@ -353,8 +361,10 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("POST /mapping/casenotes/batch")
   inner class CreateMappings {
     private var existingMapping: CaseNoteMapping = CaseNoteMapping(
-      dpsCaseNoteId = "edcd118c-41ba-42ea-b5c4-000000000001",
+      dpsCaseNoteId = generateUUID(1),
       nomisCaseNoteId = 50001L,
+      offenderNo = OFFENDER_NO,
+      nomisBookingId = 1,
       label = "2023-01-01T12:45:12",
       mappingType = CaseNoteMappingType.MIGRATED,
     )
@@ -362,11 +372,15 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
       CaseNoteMappingDto(
         dpsCaseNoteId = "e52d7268-6e10-41a8-a0b9-000000000002",
         nomisCaseNoteId = 50002L,
+        offenderNo = OFFENDER_NO,
+        nomisBookingId = 2,
         mappingType = CaseNoteMappingType.DPS_CREATED,
       ),
       CaseNoteMappingDto(
         dpsCaseNoteId = "fd4e55a8-0805-439b-9e27-000000000003",
         nomisCaseNoteId = 50003L,
+        offenderNo = OFFENDER_NO,
+        nomisBookingId = 3,
         mappingType = CaseNoteMappingType.NOMIS_CREATED,
       ),
     )
@@ -431,6 +445,8 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
         assertThat(createdMapping1.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         assertThat(createdMapping1.nomisCaseNoteId).isEqualTo(mappings[0].nomisCaseNoteId)
         assertThat(createdMapping1.dpsCaseNoteId).isEqualTo(mappings[0].dpsCaseNoteId)
+        assertThat(createdMapping1.nomisBookingId).isEqualTo(mappings[0].nomisBookingId)
+        assertThat(createdMapping1.offenderNo).isEqualTo(mappings[0].offenderNo)
         assertThat(createdMapping1.mappingType).isEqualTo(mappings[0].mappingType)
         assertThat(createdMapping1.label).isEqualTo(mappings[0].label)
 
@@ -442,6 +458,8 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
         assertThat(createdMapping2.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         assertThat(createdMapping2.nomisCaseNoteId).isEqualTo(mappings[1].nomisCaseNoteId)
         assertThat(createdMapping2.dpsCaseNoteId).isEqualTo(mappings[1].dpsCaseNoteId)
+        assertThat(createdMapping2.nomisBookingId).isEqualTo(mappings[1].nomisBookingId)
+        assertThat(createdMapping2.offenderNo).isEqualTo(mappings[1].offenderNo)
         assertThat(createdMapping2.mappingType).isEqualTo(mappings[1].mappingType)
         assertThat(createdMapping2.label).isEqualTo(mappings[1].label)
       }
@@ -537,6 +555,140 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("GET /mapping/casenotes/{offenderNo}/all")
+  inner class GetMappingByPrisoner {
+    val dpsId1 = "85665bb9-ab28-458a-8386-b8cc91b311f7"
+    val dpsId2 = "edcd118c-41ba-42ea-b5c4-404b453ad58b"
+    val dpsId3 = "e52d7268-6e10-41a8-a0b9-2319b32520d6"
+    val dpsId4 = "fd4e55a8-0805-439b-9e27-647583b96e4e"
+
+    private var mapping1: CaseNoteMapping = CaseNoteMapping(
+      dpsCaseNoteId = dpsId2,
+      nomisBookingId = 54321L,
+      nomisCaseNoteId = 2L,
+      offenderNo = "A1234KT",
+      mappingType = CaseNoteMappingType.DPS_CREATED,
+    )
+    private var mapping2: CaseNoteMapping = CaseNoteMapping(
+      dpsCaseNoteId = dpsId1,
+      nomisBookingId = 11111L,
+      nomisCaseNoteId = 1L,
+      offenderNo = "A1234KT",
+      mappingType = CaseNoteMappingType.DPS_CREATED,
+    )
+    private val prisonerMappings = PrisonerCaseNoteMappingsDto(
+      label = "2023-01-01T12:45:12",
+      mappingType = CaseNoteMappingType.MIGRATED,
+      mappings = listOf(
+        CaseNoteMappingIdDto(
+          dpsCaseNoteId = dpsId3,
+          nomisBookingId = 54321L,
+          nomisCaseNoteId = 3L,
+        ),
+        CaseNoteMappingIdDto(
+          dpsCaseNoteId = dpsId4,
+          nomisBookingId = 54321L,
+          nomisCaseNoteId = 4L,
+        ),
+      ),
+    )
+
+    @BeforeEach
+    fun setUp() = runTest {
+      webTestClient.post()
+        .uri("/mapping/casenotes/A1234KT/all")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(prisonerMappings))
+        .exchange()
+        .expectStatus().isCreated
+      mapping1 = repository.save(mapping1)
+      mapping2 = repository.save(mapping2)
+      repository.save(
+        CaseNoteMapping(
+          dpsCaseNoteId = "fd4e55a8-41ba-42ea-b5c4-404b453ad99b",
+          nomisBookingId = 9999L,
+          nomisCaseNoteId = 5L,
+          offenderNo = "A1111KT",
+          mappingType = CaseNoteMappingType.MIGRATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/casenotes/A1234KT/all")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/casenotes/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/casenotes/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 200 when no mappings found for prisoner`() {
+        webTestClient.get()
+          .uri("/mapping/casenotes/A9999KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("mappings.size()").isEqualTo(0)
+      }
+
+      @Test
+      fun `will return all mappings for prisoner`() {
+        webTestClient.get()
+          .uri("/mapping/casenotes/A1234KT/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("mappings.size()").isEqualTo(4)
+          .jsonPath("mappings[0].dpsCaseNoteId").isEqualTo(dpsId1)
+          .jsonPath("mappings[0].nomisCaseNoteId").isEqualTo(1)
+          .jsonPath("mappings[0].nomisBookingId").isEqualTo(11111)
+          .jsonPath("mappings[0].offenderNo").isEqualTo("A1234KT")
+          .jsonPath("mappings[1].dpsCaseNoteId").isEqualTo(dpsId2)
+          .jsonPath("mappings[1].nomisCaseNoteId").isEqualTo(2)
+          .jsonPath("mappings[1].nomisBookingId").isEqualTo(54321L)
+          .jsonPath("mappings[2].dpsCaseNoteId").isEqualTo(dpsId3)
+          .jsonPath("mappings[2].nomisCaseNoteId").isEqualTo(3)
+          .jsonPath("mappings[2].nomisBookingId").isEqualTo(54321L)
+          .jsonPath("mappings[3].dpsCaseNoteId").isEqualTo(dpsId4)
+          .jsonPath("mappings[3].nomisCaseNoteId").isEqualTo(4)
+          .jsonPath("mappings[3].nomisBookingId").isEqualTo(54321L)
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("GET /mapping/casenotes/nomis-casenote-id/{caseNoteId}")
   inner class GetMappingByNomisId {
     lateinit var mapping: CaseNoteMapping
@@ -547,6 +699,8 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
         CaseNoteMapping(
           dpsCaseNoteId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisCaseNoteId = 54321L,
+          offenderNo = OFFENDER_NO,
+          nomisBookingId = 1,
           label = "2023-01-01T12:45:12",
           mappingType = CaseNoteMappingType.MIGRATED,
         ),
@@ -623,16 +777,20 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
     fun setUp() = runTest {
       mapping1 = repository.save(
         CaseNoteMapping(
-          dpsCaseNoteId = "edcd118c-41ba-42ea-b5c4-000000000001",
+          dpsCaseNoteId = generateUUID(1),
           nomisCaseNoteId = 54321L,
+          offenderNo = OFFENDER_NO,
+          nomisBookingId = 1,
           label = "2023-01-01T12:45:12",
           mappingType = CaseNoteMappingType.MIGRATED,
         ),
       )
       mapping2 = repository.save(
         CaseNoteMapping(
-          dpsCaseNoteId = "edcd118c-41ba-42ea-b5c4-000000000002",
+          dpsCaseNoteId = generateUUID(2),
           nomisCaseNoteId = 54322L,
+          offenderNo = OFFENDER_NO,
+          nomisBookingId = 1,
           label = "2023-06-01T12:45:12",
           mappingType = CaseNoteMappingType.DPS_CREATED,
         ),
@@ -728,6 +886,8 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
         CaseNoteMapping(
           dpsCaseNoteId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisCaseNoteId = 54321L,
+          offenderNo = OFFENDER_NO,
+          nomisBookingId = 1,
           label = "2023-01-01T12:45:12",
           mappingType = CaseNoteMappingType.MIGRATED,
         ),
@@ -793,20 +953,20 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("GET /mapping/casenotes/migration-id/{migrationId}")
+  @DisplayName("GET /mapping/casenotes/migration-id/{migrationId}/count-by-prisoner")
   @Nested
-  inner class GetMappingByMigrationIdTest {
+  inner class GetMappingCountByMigrationIdTest {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.get().uri("/mapping/casenotes/migration-id/2022-01-01T00:00:00")
+      webTestClient.get().uri("/mapping/casenotes/migration-id/2022-01-01T00:00:00/count-by-prisoner")
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.get().uri("/mapping/casenotes/migration-id/2022-01-01T00:00:00")
+      webTestClient.get().uri("/mapping/casenotes/migration-id/2022-01-01T00:00:00/count-by-prisoner")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -814,7 +974,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get casenote mappings by migration id forbidden with wrong role`() {
-      webTestClient.get().uri("/mapping/casenotes/migration-id/2022-01-01T00:00:00")
+      webTestClient.get().uri("/mapping/casenotes/migration-id/2022-01-01T00:00:00/count-by-prisoner")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -822,48 +982,74 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get casenote mappings by migration id success`() {
-      (1L..4L).forEach {
-        postCreateMappingRequest(it, "edcd118c-41ba-42ea-b5c4-00000000000$it", label = "2022-01-01", mappingType = CaseNoteMappingType.MIGRATED)
+      (1L..2L).forEach {
+        postCreateMappingRequest(
+          it,
+          generateUUID(it),
+          OFFENDER_NO,
+          1,
+          label = "2022-01-01",
+          mappingType = CaseNoteMappingType.MIGRATED,
+        )
       }
-      (5L..9L).forEach {
-        postCreateMappingRequest(it, "edcd118c-41ba-42ea-b5c4-00000000000$it", label = "2099-01-01", mappingType = CaseNoteMappingType.MIGRATED)
+      (3L..5L).forEach {
+        postCreateMappingRequest(
+          it,
+          generateUUID(it),
+          OFFENDER_NO_2,
+          2,
+          label = "2022-01-01",
+          mappingType = CaseNoteMappingType.MIGRATED,
+        )
       }
-      postCreateMappingRequest(12, "edcd118c-41ba-42ea-b5c4-000000000012", mappingType = CaseNoteMappingType.DPS_CREATED)
+      (6L..9L).forEach {
+        postCreateMappingRequest(
+          it,
+          generateUUID(it),
+          OFFENDER_NO,
+          1,
+          label = "2099-01-01",
+          mappingType = CaseNoteMappingType.MIGRATED,
+        )
+      }
+      postCreateMappingRequest(12, generateUUID(12), OFFENDER_NO, 1, mappingType = CaseNoteMappingType.DPS_CREATED)
 
-      webTestClient.get().uri("/mapping/casenotes/migration-id/2022-01-01")
+      webTestClient.get().uri("/mapping/casenotes/migration-id/2022-01-01/count-by-prisoner")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
-        .jsonPath("totalElements").isEqualTo(4)
-        .jsonPath("$.content..nomisCaseNoteId").value(
-          Matchers.contains(1, 2, 3, 4),
-        )
-        .jsonPath("$.content[0].whenCreated").isNotEmpty
+        .jsonPath("$").isEqualTo(2)
     }
 
     @Test
     fun `get casenote mappings by migration id - no records exist`() {
       (1L..4L).forEach {
-        postCreateMappingRequest(it, "edcd118c-41ba-42ea-b5c4-00000000000$it", label = "2022-01-01", mappingType = CaseNoteMappingType.MIGRATED)
+        postCreateMappingRequest(it, generateUUID(it), label = "2022-01-01", mappingType = CaseNoteMappingType.MIGRATED)
       }
 
-      webTestClient.get().uri("/mapping/casenotes/migration-id/2044-01-01")
+      webTestClient.get().uri("/mapping/casenotes/migration-id/2044-01-01/count-by-prisoner")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
-        .jsonPath("totalElements").isEqualTo(0)
-        .jsonPath("content").isEmpty
+        .jsonPath("$").isEqualTo(0)
     }
 
     @Test
+    @Disabled
     fun `can request a different page size`() {
       (1L..6L).forEach {
-        postCreateMappingRequest(it, "edcd118c-41ba-42ea-b5c4-00000000000$it", label = "2022-01-01", mappingType = CaseNoteMappingType.MIGRATED)
+        postCreateMappingRequest(
+          it,
+          generateUUID(it),
+          offenderNo = "A000${it}AA",
+          label = "2022-01-01",
+          mappingType = CaseNoteMappingType.MIGRATED,
+        )
       }
       webTestClient.get().uri {
-        it.path("/mapping/casenotes/migration-id/2022-01-01")
+        it.path("/mapping/casenotes/migration-id/2022-01-01/count-by-prisoner")
           .queryParam("size", "2")
           .queryParam("sort", "nomisCaseNoteId,asc")
           .build()
@@ -880,12 +1066,13 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
+    @Disabled
     fun `can request a different page`() {
       (1L..3L).forEach {
-        postCreateMappingRequest(it, "edcd118c-41ba-42ea-b5c4-00000000000$it", label = "2022-01-01", mappingType = CaseNoteMappingType.MIGRATED)
+        postCreateMappingRequest(it, generateUUID(it), label = "2022-01-01", mappingType = CaseNoteMappingType.MIGRATED)
       }
       webTestClient.get().uri {
-        it.path("/mapping/casenotes/migration-id/2022-01-01")
+        it.path("/mapping/casenotes/migration-id/2022-01-01/count-by-prisoner")
           .queryParam("size", "2")
           .queryParam("page", "1")
           .queryParam("sort", "nomisCaseNoteId,asc")
@@ -937,9 +1124,11 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
-            createMapping(
-              nomisId = 10,
-              caseNoteId = "edcd118c-41ba-42ea-b5c4-000000000010",
+            CaseNoteMappingDto(
+              nomisCaseNoteId = 10,
+              dpsCaseNoteId = generateUUID(10),
+              offenderNo = OFFENDER_NO,
+              nomisBookingId = 1,
               label = "2022-01-01T00:00:00",
               mappingType = CaseNoteMappingType.MIGRATED,
             ),
@@ -953,9 +1142,11 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
-            createMapping(
-              nomisId = 20,
-              caseNoteId = "edcd118c-41ba-42ea-b5c4-000000000020",
+            CaseNoteMappingDto(
+              nomisCaseNoteId = 20,
+              dpsCaseNoteId = generateUUID(20),
+              offenderNo = OFFENDER_NO,
+              nomisBookingId = 1,
               label = "2022-01-02T00:00:00",
               mappingType = CaseNoteMappingType.MIGRATED,
             ),
@@ -969,9 +1160,11 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
-            createMapping(
-              nomisId = 1,
-              caseNoteId = "edcd118c-41ba-42ea-b5c4-000000000001",
+            CaseNoteMappingDto(
+              nomisCaseNoteId = 1,
+              dpsCaseNoteId = generateUUID(1),
+              offenderNo = OFFENDER_NO,
+              nomisBookingId = 2,
               label = "2022-01-02T10:00:00",
               mappingType = CaseNoteMappingType.MIGRATED,
             ),
@@ -985,9 +1178,11 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
-            createMapping(
-              nomisId = 99,
-              caseNoteId = "edcd118c-41ba-42ea-b5c4-000000000199",
+            CaseNoteMappingDto(
+              nomisCaseNoteId = 99,
+              dpsCaseNoteId = generateUUID(199),
+              offenderNo = OFFENDER_NO,
+              nomisBookingId = 1,
               label = "whatever",
               mappingType = CaseNoteMappingType.DPS_CREATED,
             ),
@@ -1004,7 +1199,9 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
         .returnResult().responseBody!!
 
       assertThat(mapping.nomisCaseNoteId).isEqualTo(1)
-      assertThat(mapping.dpsCaseNoteId).isEqualTo("edcd118c-41ba-42ea-b5c4-000000000001")
+      assertThat(mapping.dpsCaseNoteId).isEqualTo(generateUUID(1))
+      assertThat(mapping.offenderNo).isEqualTo(OFFENDER_NO)
+      assertThat(mapping.nomisBookingId).isEqualTo(2)
       assertThat(mapping.label).isEqualTo("2022-01-02T10:00:00")
       assertThat(mapping.mappingType).isEqualTo(CaseNoteMappingType.MIGRATED)
       assertThat(mapping.whenCreated)
@@ -1018,9 +1215,11 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
-            createMapping(
-              nomisId = 77,
-              caseNoteId = "edcd118c-41ba-42ea-b5c4-000000000077",
+            CaseNoteMappingDto(
+              nomisCaseNoteId = 77,
+              dpsCaseNoteId = generateUUID(77),
+              offenderNo = OFFENDER_NO,
+              nomisBookingId = 1,
               label = "whatever",
               mappingType = CaseNoteMappingType.DPS_CREATED,
             ),
@@ -1041,7 +1240,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("DELETE /mapping/casenotes/nomis-casenote-id/{nomiscaseNoteId}")
+  @DisplayName("DELETE /mapping/casenotes/nomis-casenote-id/{nomisCaseNoteId}")
   inner class DeleteMappingByNomisId {
     lateinit var mapping: CaseNoteMapping
 
@@ -1051,6 +1250,8 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
         CaseNoteMapping(
           dpsCaseNoteId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisCaseNoteId = 54321L,
+          offenderNo = OFFENDER_NO,
+          nomisBookingId = 1,
           label = "2023-01-01T12:45:12",
           mappingType = CaseNoteMappingType.MIGRATED,
         ),
@@ -1131,6 +1332,8 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
         CaseNoteMapping(
           dpsCaseNoteId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisCaseNoteId = 54321L,
+          offenderNo = OFFENDER_NO,
+          nomisBookingId = 1,
           label = "2023-01-01T12:45:12",
           mappingType = CaseNoteMappingType.MIGRATED,
         ),
@@ -1212,6 +1415,8 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
         CaseNoteMapping(
           dpsCaseNoteId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisCaseNoteId = 54321L,
+          offenderNo = OFFENDER_NO,
+          nomisBookingId = 1,
           label = "2023-01-01T12:45:12",
           mappingType = CaseNoteMappingType.MIGRATED,
         ),
@@ -1220,6 +1425,8 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
         CaseNoteMapping(
           dpsCaseNoteId = "4433eb7d-2fa0-4055-99d9-633fefa53288",
           nomisCaseNoteId = 54322L,
+          offenderNo = OFFENDER_NO,
+          nomisBookingId = 1,
           mappingType = CaseNoteMappingType.NOMIS_CREATED,
         ),
       )

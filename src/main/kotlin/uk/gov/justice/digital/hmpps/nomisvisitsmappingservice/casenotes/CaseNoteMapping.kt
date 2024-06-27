@@ -13,6 +13,10 @@ data class CaseNoteMapping(
 
   val nomisCaseNoteId: Long,
 
+  val offenderNo: String,
+
+  val nomisBookingId: Long,
+
   /**
    * ISO timestamp of batch job if a migration
    */
