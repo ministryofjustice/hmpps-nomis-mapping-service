@@ -273,7 +273,8 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       val mapping1 =
-        webTestClient.get().uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
+        webTestClient.get()
+          .uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
           .exchange()
           .expectStatus().isOk
@@ -365,14 +366,16 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.get().uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
+      webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.get().uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
+      webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -380,7 +383,8 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden with wrong role`() {
-      webTestClient.get().uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
+      webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -396,7 +400,8 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       val mapping =
-        webTestClient.get().uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
+        webTestClient.get()
+          .uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
           .exchange()
           .expectStatus().isOk
@@ -413,7 +418,8 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `mapping not found`() {
-      val error = webTestClient.get().uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/999")
+      val error = webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/999")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
         .exchange()
         .expectStatus().isNotFound
@@ -432,7 +438,8 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.get().uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
+      webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
         .exchange()
         .expectStatus().isOk
@@ -852,7 +859,8 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isOk
       // it is also present after creation by nomis id
-      webTestClient.get().uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
+      webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
         .exchange()
         .expectStatus().isOk
@@ -869,7 +877,8 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isNotFound
       // and also no longer present by nomis id
-      webTestClient.get().uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
+      webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
         .exchange()
         .expectStatus().isNotFound
@@ -934,7 +943,8 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.get().uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
+      webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
         .exchange()
         .expectStatus().isOk
@@ -944,7 +954,8 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isNoContent
 
-      webTestClient.get().uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
+      webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
         .exchange()
         .expectStatus().isNotFound
@@ -981,7 +992,8 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isNoContent
 
-      webTestClient.get().uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
+      webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
         .exchange()
         .expectStatus().isOk
@@ -990,6 +1002,196 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
         .exchange()
         .expectStatus().isNotFound
+    }
+  }
+
+  @DisplayName("PUT /mapping/non-associations/merge/from/{firstOffenderNo}/to/{secondOffenderNo}")
+  @Nested
+  inner class MergeTest {
+
+    @AfterEach
+    internal fun deleteData() = runBlocking {
+      nonAssociationRepository.deleteAll()
+    }
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.put().uri("/mapping/non-associations/merge/from/$FIRST_OFFENDER_NO/to/$SECOND_OFFENDER_NO")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.put().uri("/mapping/non-associations/merge/from/$FIRST_OFFENDER_NO/to/$SECOND_OFFENDER_NO")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.put().uri("/mapping/non-associations/merge/from/$FIRST_OFFENDER_NO/to/$SECOND_OFFENDER_NO")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `Merge success`() {
+      postCreateNonAssociationMappingRequest(
+        nonAssociationId = 1,
+        firstOffenderNo = "A1234AA",
+        secondOffenderNo = "A1234AB",
+      )
+      postCreateNonAssociationMappingRequest(
+        nonAssociationId = 2,
+        firstOffenderNo = "A1234AC",
+        secondOffenderNo = "A1234AD",
+      )
+
+      webTestClient.put().uri("/mapping/non-associations/merge/from/A1234AA/to/B5678BB")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+
+      // existing NA has gone
+      webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/A1234AA/second-offender-no/A1234AB/type-sequence/1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isNotFound
+
+      // NA now has new offender
+      val mapping = webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/B5678BB/second-offender-no/A1234AB/type-sequence/1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody(NonAssociationMappingDto::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(mapping.nonAssociationId).isEqualTo(1)
+      assertThat(mapping.firstOffenderNo).isEqualTo("B5678BB")
+      assertThat(mapping.secondOffenderNo).isEqualTo("A1234AB")
+
+      // other NA is unaffected
+      webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/A1234AC/second-offender-no/A1234AD/type-sequence/1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+    }
+
+    @Test
+    fun `Nothing happens if not found`() {
+      postCreateNonAssociationMappingRequest(
+        nonAssociationId = 1,
+        firstOffenderNo = "A1234AA",
+        secondOffenderNo = "A1234AB",
+      )
+
+      webTestClient.put().uri("/mapping/non-associations/merge/from/Z1234ZZ/to/B5678BB")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+
+      val mapping = webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/A1234AA/second-offender-no/A1234AB/type-sequence/1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody(NonAssociationMappingDto::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(mapping.nonAssociationId).isEqualTo(1)
+      assertThat(mapping.firstOffenderNo).isEqualTo("A1234AA")
+      assertThat(mapping.secondOffenderNo).isEqualTo("A1234AB")
+      assertThat(mapping.nomisTypeSequence).isEqualTo(TYPE_SEQUENCE)
+      assertThat(mapping.label).isEqualTo("2022-01-01")
+      assertThat(mapping.mappingType).isEqualTo(NOMIS_CREATED.name)
+    }
+
+    @Test
+    fun `Error if it would result in both prisoners being the same`() {
+      postCreateNonAssociationMappingRequest(
+        nonAssociationId = 1,
+        firstOffenderNo = "A1234AA",
+        secondOffenderNo = "A1234AB",
+      )
+
+      webTestClient.put().uri("/mapping/non-associations/merge/from/A1234AA/to/A1234AB")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody()
+        .jsonPath("userMessage").value<String> {
+          assertThat(it).matches(
+            "Validation failure: Found NA clash in NonAssociationMapping\\(nonAssociationId=1, firstOffenderNo=A1234AA, secondOffenderNo=A1234AB, nomisTypeSequence=1, label=2022-01-01, mappingType=NOMIS_CREATED, new=false, whenCreated=.+\\) when updating offender id from A1234AA to A1234AB",
+          )
+        }
+
+      // existing NA unaffected
+      webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/A1234AA/second-offender-no/A1234AB/type-sequence/1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+    }
+
+    @Test
+    fun `Merge success - multiple candidates`() {
+      postCreateNonAssociationMappingRequest(
+        nonAssociationId = 1,
+        firstOffenderNo = "A1234AA",
+        secondOffenderNo = "A1234AB",
+      )
+      postCreateNonAssociationMappingRequest(
+        nonAssociationId = 2,
+        firstOffenderNo = "A1234AC",
+        secondOffenderNo = "A1234AA",
+      )
+
+      webTestClient.put().uri("/mapping/non-associations/merge/from/A1234AA/to/B5678BB")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+
+      // existing NAs have gone
+      webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/A1234AA/second-offender-no/A1234AB/type-sequence/1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isNotFound
+      webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/A1234AC/second-offender-no/A1234AA/type-sequence/1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isNotFound
+
+      // NAs now have new offenders
+      webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/B5678BB/second-offender-no/A1234AB/type-sequence/1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody(NonAssociationMappingDto::class.java)
+        .returnResult().responseBody!!.apply {
+          assertThat(nonAssociationId).isEqualTo(1)
+          assertThat(firstOffenderNo).isEqualTo("B5678BB")
+          assertThat(secondOffenderNo).isEqualTo("A1234AB")
+        }
+      webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/A1234AC/second-offender-no/B5678BB/type-sequence/1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody(NonAssociationMappingDto::class.java)
+        .returnResult().responseBody!!.apply {
+          assertThat(nonAssociationId).isEqualTo(2)
+          assertThat(firstOffenderNo).isEqualTo("A1234AC")
+          assertThat(secondOffenderNo).isEqualTo("B5678BB")
+        }
     }
   }
 }
