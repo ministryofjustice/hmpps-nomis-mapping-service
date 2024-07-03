@@ -173,17 +173,13 @@ class NonAssociationMappingService(
           if (newOffenderNo == it.secondOffenderNo) {
             throw ValidationException("Found NA clash in $it when updating offender id from $oldOffenderNo to $newOffenderNo")
           }
-          // it.firstOffenderNo = newOffenderNo
           nonAssociationMappingRepository.updateFirstOffenderNo(it.nonAssociationId, newOffenderNo)
-
         } else if (oldOffenderNo == it.secondOffenderNo) {
           if (it.firstOffenderNo == newOffenderNo) {
             throw ValidationException("Found NA clash in $it when updating offender id from $oldOffenderNo to $newOffenderNo")
           }
-          // it.secondOffenderNo = newOffenderNo
           nonAssociationMappingRepository.updateSecondOffenderNo(it.nonAssociationId, newOffenderNo)
         }
-        // nonAssociationMappingRepository.save(it)
       }
   }
 }

@@ -53,8 +53,13 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
 
   @BeforeEach
   fun setup() {
-    nonAssociationMappingRepository = mock(defaultAnswer = AdditionalAnswers.delegatesTo(realNonAssociationMappingRepository))
-    ReflectionTestUtils.setField(nonAssociationMappingService, "nonAssociationMappingRepository", nonAssociationMappingRepository)
+    nonAssociationMappingRepository =
+      mock(defaultAnswer = AdditionalAnswers.delegatesTo(realNonAssociationMappingRepository))
+    ReflectionTestUtils.setField(
+      nonAssociationMappingService,
+      "nonAssociationMappingRepository",
+      nonAssociationMappingRepository,
+    )
   }
 
   private fun createNonAssociationMapping(
@@ -1177,10 +1182,10 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
         .expectBody(NonAssociationMappingDto::class.java)
         .returnResult().responseBody!!.apply {
-          assertThat(nonAssociationId).isEqualTo(1)
-          assertThat(firstOffenderNo).isEqualTo("B5678BB")
-          assertThat(secondOffenderNo).isEqualTo("A1234AB")
-        }
+        assertThat(nonAssociationId).isEqualTo(1)
+        assertThat(firstOffenderNo).isEqualTo("B5678BB")
+        assertThat(secondOffenderNo).isEqualTo("A1234AB")
+      }
       webTestClient.get()
         .uri("/mapping/non-associations/first-offender-no/A1234AC/second-offender-no/B5678BB/type-sequence/1")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
@@ -1188,10 +1193,10 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
         .expectBody(NonAssociationMappingDto::class.java)
         .returnResult().responseBody!!.apply {
-          assertThat(nonAssociationId).isEqualTo(2)
-          assertThat(firstOffenderNo).isEqualTo("A1234AC")
-          assertThat(secondOffenderNo).isEqualTo("B5678BB")
-        }
+        assertThat(nonAssociationId).isEqualTo(2)
+        assertThat(firstOffenderNo).isEqualTo("A1234AC")
+        assertThat(secondOffenderNo).isEqualTo("B5678BB")
+      }
     }
   }
 }

@@ -121,7 +121,8 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
     @Schema(description = "Nomis type sequence", example = "2", required = true)
     @PathVariable
     typeSequence: Int,
-  ): NonAssociationMappingDto = mappingService.getNonAssociationMappingByNomisId(firstOffenderNo, secondOffenderNo, typeSequence)
+  ): NonAssociationMappingDto =
+    mappingService.getNonAssociationMappingByNomisId(firstOffenderNo, secondOffenderNo, typeSequence)
 
   @GetMapping("/non-association-id/{nonAssociationId}")
   @Operation(
@@ -287,5 +288,6 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
     oldOffenderNo: String,
     @Schema(description = "New prisoner number to use", example = "A3457LZ", required = true)
     @PathVariable
-    newOffenderNo: String) = mappingService.updateMappingsByNomisId(oldOffenderNo, newOffenderNo)
+    newOffenderNo: String,
+  ) = mappingService.updateMappingsByNomisId(oldOffenderNo, newOffenderNo)
 }
