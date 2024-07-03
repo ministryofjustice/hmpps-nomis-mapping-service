@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service
 
 import com.microsoft.applicationinsights.TelemetryClient
+import jakarta.validation.ValidationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
@@ -103,7 +104,11 @@ class NonAssociationMappingService(
       log.debug("Mapping created with nonAssociationId = $nonAssociationId, firstOffenderNo=$firstOffenderNo, secondOffenderNo=$secondOffenderNo, and nomisTypeSequence=$nomisTypeSequence")
     }
 
-  suspend fun getNonAssociationMappingByNomisId(firstOffenderNo: String, secondOffenderNo: String, nomisTypeSequence: Int): NonAssociationMappingDto =
+  suspend fun getNonAssociationMappingByNomisId(
+    firstOffenderNo: String,
+    secondOffenderNo: String,
+    nomisTypeSequence: Int,
+  ): NonAssociationMappingDto =
     nonAssociationMappingRepository.findOneByFirstOffenderNoAndSecondOffenderNoAndNomisTypeSequence(
       firstOffenderNo = firstOffenderNo,
       secondOffenderNo = secondOffenderNo,
@@ -117,7 +122,10 @@ class NonAssociationMappingService(
       ?.let { NonAssociationMappingDto(it) }
       ?: throw NotFoundException("nonAssociationId=$nonAssociationId")
 
-  suspend fun getNonAssociationMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<NonAssociationMappingDto> =
+  suspend fun getNonAssociationMappingsByMigrationId(
+    pageRequest: Pageable,
+    migrationId: String,
+  ): Page<NonAssociationMappingDto> =
     coroutineScope {
       val nonAssociationMapping = async {
         nonAssociationMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
@@ -144,7 +152,8 @@ class NonAssociationMappingService(
       ?: throw NotFoundException("No migrated mapping found")
 
   @Transactional
-  suspend fun deleteNonAssociationMapping(nonAssociationId: Long) = nonAssociationMappingRepository.deleteById(nonAssociationId)
+  suspend fun deleteNonAssociationMapping(nonAssociationId: Long) =
+    nonAssociationMappingRepository.deleteById(nonAssociationId)
 
   @Transactional
   suspend fun deleteNonAssociationMappings(onlyMigrated: Boolean) =
@@ -153,4 +162,24 @@ class NonAssociationMappingService(
     } ?: run {
       nonAssociationMappingRepository.deleteAll()
     }
+
+  @Transactional
+  suspend fun updateMappingsByNomisId(oldOffenderNo: String, newOffenderNo: String) {
+    nonAssociationMappingRepository.findByFirstOffenderNoOrSecondOffenderNo(oldOffenderNo, oldOffenderNo)
+      .forEach {
+        log.info("Merging from $oldOffenderNo to $newOffenderNo: processing mapping $it")
+
+        if (oldOffenderNo == it.firstOffenderNo) {
+          if (newOffenderNo == it.secondOffenderNo) {
+            throw ValidationException("Found NA clash in $it when updating offender id from $oldOffenderNo to $newOffenderNo")
+          }
+          nonAssociationMappingRepository.updateFirstOffenderNo(it.nonAssociationId, newOffenderNo)
+        } else if (oldOffenderNo == it.secondOffenderNo) {
+          if (it.firstOffenderNo == newOffenderNo) {
+            throw ValidationException("Found NA clash in $it when updating offender id from $oldOffenderNo to $newOffenderNo")
+          }
+          nonAssociationMappingRepository.updateSecondOffenderNo(it.nonAssociationId, newOffenderNo)
+        }
+      }
+  }
 }

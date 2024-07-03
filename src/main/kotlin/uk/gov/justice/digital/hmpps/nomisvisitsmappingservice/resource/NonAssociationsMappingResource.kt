@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -31,11 +32,11 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@RequestMapping("/", produces = [MediaType.APPLICATION_JSON_VALUE])
+@RequestMapping("/mapping/non-associations", produces = [MediaType.APPLICATION_JSON_VALUE])
+@PreAuthorize("hasRole('ROLE_NOMIS_NON_ASSOCIATIONS')")
 class NonAssociationsMappingResource(private val mappingService: NonAssociationMappingService) {
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_NON_ASSOCIATIONS')")
-  @PostMapping("/mapping/non-associations")
+  @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new Non-association mapping",
@@ -86,8 +87,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
       )
     }
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_NON_ASSOCIATIONS')")
-  @GetMapping("/mapping/non-associations/first-offender-no/{firstOffenderNo}/second-offender-no/{secondOffenderNo}/type-sequence/{typeSequence}")
+  @GetMapping("/first-offender-no/{firstOffenderNo}/second-offender-no/{secondOffenderNo}/type-sequence/{typeSequence}")
   @Operation(
     summary = "get mapping",
     description = "Retrieves a mapping by firstOffenderNo, secondOffenderNo and Nomis type sequence. Requires role NOMIS_NON_ASSOCIATIONS",
@@ -121,10 +121,10 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
     @Schema(description = "Nomis type sequence", example = "2", required = true)
     @PathVariable
     typeSequence: Int,
-  ): NonAssociationMappingDto = mappingService.getNonAssociationMappingByNomisId(firstOffenderNo, secondOffenderNo, typeSequence)
+  ): NonAssociationMappingDto =
+    mappingService.getNonAssociationMappingByNomisId(firstOffenderNo, secondOffenderNo, typeSequence)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_NON_ASSOCIATIONS')")
-  @GetMapping("/mapping/non-associations/non-association-id/{nonAssociationId}")
+  @GetMapping("/non-association-id/{nonAssociationId}")
   @Operation(
     summary = "get mapping",
     description = "Retrieves a mapping by Non-Association Id. Requires role NOMIS_NON_ASSOCIATIONS",
@@ -154,8 +154,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
     nonAssociationId: Long,
   ): NonAssociationMappingDto = mappingService.getNonAssociationMappingByNonAssociationId(nonAssociationId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_NON_ASSOCIATIONS')")
-  @GetMapping("/mapping/non-associations/migration-id/{migrationId}")
+  @GetMapping("/migration-id/{migrationId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get paged mappings by migration id",
@@ -186,8 +185,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
   ): Page<NonAssociationMappingDto> =
     mappingService.getNonAssociationMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_NON_ASSOCIATIONS')")
-  @GetMapping("/mapping/non-associations/migrated/latest")
+  @GetMapping("/migrated/latest")
   @Operation(
     summary = "get the latest mapping for a migration",
     description = "Requires role NOMIS_NON_ASSOCIATIONS",
@@ -217,8 +215,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
   suspend fun getLatestMigratedNonAssociationMapping(): NonAssociationMappingDto =
     mappingService.getNonAssociationMappingForLatestMigrated()
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_NON_ASSOCIATIONS')")
-  @DeleteMapping("/mapping/non-associations/non-association-id/{nonAssociationId}")
+  @DeleteMapping("/non-association-id/{nonAssociationId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a specific non-association mapping by nonAssociationId",
@@ -241,8 +238,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
     nonAssociationId: Long,
   ) = mappingService.deleteNonAssociationMapping(nonAssociationId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_NON_ASSOCIATIONS')")
-  @DeleteMapping("/mapping/non-associations")
+  @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes non-association mappings.",
@@ -267,4 +263,31 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
     )
     onlyMigrated: Boolean,
   ) = mappingService.deleteNonAssociationMappings(onlyMigrated)
+
+  @PutMapping("/merge/from/{oldOffenderNo}/to/{newOffenderNo}")
+  @Operation(
+    summary = "Replaces all occurrences of the 'from' id with the 'to' id in the mapping table",
+    description = "Used for update after a prisoner number merge. Requires role NOMIS_NON_ASSOCIATIONS",
+    responses = [
+      ApiResponse(responseCode = "200", description = "Replacement made, or not present in table"),
+      ApiResponse(
+        responseCode = "400",
+        description = "Replacement would result in an NA with both prisoner numbers the same - requires manual intervention",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun updateMappingsByNomisId(
+    @Schema(description = "Old prisoner number to replace", example = "A3456KM", required = true)
+    @PathVariable
+    oldOffenderNo: String,
+    @Schema(description = "New prisoner number to use", example = "A3457LZ", required = true)
+    @PathVariable
+    newOffenderNo: String,
+  ) = mappingService.updateMappingsByNomisId(oldOffenderNo, newOffenderNo)
 }
