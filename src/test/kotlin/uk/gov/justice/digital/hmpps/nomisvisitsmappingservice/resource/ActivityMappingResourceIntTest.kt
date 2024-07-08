@@ -716,6 +716,64 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
+  @DisplayName("GET /mapping/activities/schedules/scheduled-instance-id/{scheduledInstanceId}")
+  @Nested
+  inner class GetScheduleByScheduleIdMappingTest {
+
+    @BeforeEach
+    fun setUp() = runTest {
+      activityRepository.save(ActivityMapping(activityScheduleId, activityId, nomisCourseActivityId, ActivityMappingType.ACTIVITY_CREATED))
+      scheduleRepository.save(ActivityScheduleMapping(activityScheduledInstanceId, nomisCourseScheduleId, ActivityScheduleMappingType.ACTIVITY_CREATED, activityScheduleId))
+    }
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/activities/schedules/scheduled-instance-id/$activityScheduledInstanceId")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/activities/schedules/scheduled-instance-id/$activityScheduledInstanceId")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/activities/schedules/scheduled-instance-id/$activityScheduledInstanceId")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `mapping not found for scheduled instance id`() {
+      val error = webTestClient.get().uri("/mapping/activities/schedules/scheduled-instance-id/432")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isNotFound
+        .expectBody(ErrorResponse::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(error.userMessage).isEqualTo("Not Found: Scheduled instance id=432")
+    }
+
+    @Test
+    fun `mapping found`() {
+      webTestClient.get().uri("/mapping/activities/schedules/scheduled-instance-id/$activityScheduledInstanceId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("scheduledInstanceId").isEqualTo(activityScheduledInstanceId)
+        .jsonPath("nomisCourseScheduleId").isEqualTo(nomisCourseScheduleId)
+        .jsonPath("mappingType").isEqualTo("ACTIVITY_CREATED")
+    }
+  }
+
   @DisplayName("GET /mapping/activities")
   @Nested
   inner class GetAllMappingTest {

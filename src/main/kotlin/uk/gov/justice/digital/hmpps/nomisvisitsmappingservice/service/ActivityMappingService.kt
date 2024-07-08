@@ -148,6 +148,11 @@ class ActivityMappingService(
       ?.let { ActivityScheduleMappingDto(it) }
       ?: throw NotFoundException("Activity schedule id=$activityScheduleId, Scheduled instance id=$scheduledInstanceId")
 
+  suspend fun getScheduleMappingByScheduleId(scheduledInstanceId: Long): ActivityScheduleMappingDto =
+    activityScheduleMappingRepository.findOneByScheduledInstanceId(scheduledInstanceId)
+      ?.let { ActivityScheduleMappingDto(it) }
+      ?: throw NotFoundException("Scheduled instance id=$scheduledInstanceId")
+
   @Transactional
   suspend fun deleteMapping(id: Long) =
     activityMappingRepository.deleteById(id)
