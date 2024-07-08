@@ -10,6 +10,8 @@ interface ActivityScheduleMappingRepository : CoroutineCrudRepository<ActivitySc
 
   suspend fun findOneByActivityScheduleIdAndScheduledInstanceId(activityScheduleId: Long, scheduledInstanceId: Long): ActivityScheduleMapping?
 
+  suspend fun findOneByScheduledInstanceId(scheduledInstanceId: Long): ActivityScheduleMapping?
+
   suspend fun findAllByActivityScheduleId(activityScheduleId: Long): List<ActivityScheduleMapping>
 
   suspend fun deleteAllByActivityScheduleId(activityScheduleId: Long)

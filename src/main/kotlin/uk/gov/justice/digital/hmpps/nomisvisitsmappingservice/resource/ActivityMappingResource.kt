@@ -170,6 +170,39 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
   ): ActivityScheduleMappingDto = mappingService.getScheduleMappingById(activityScheduleId, scheduledInstanceId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @GetMapping("/mapping/activities/schedules/scheduled-instance-id/{scheduledInstanceId}")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(
+    summary = "get scheduled instance mapping",
+    description = "Retrieves a mapping by scheduled instance id. Requires role NOMIS_ACTIVITIES",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ActivityMappingDto::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getScheduleInstanceMapping(
+    @Schema(description = "Scheduled instance Id", example = "67890", required = true) @PathVariable scheduledInstanceId: Long,
+  ): ActivityScheduleMappingDto = mappingService.getScheduleMappingByScheduleId(scheduledInstanceId)
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
   @DeleteMapping("/mapping/activities/activity-schedule-id/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
