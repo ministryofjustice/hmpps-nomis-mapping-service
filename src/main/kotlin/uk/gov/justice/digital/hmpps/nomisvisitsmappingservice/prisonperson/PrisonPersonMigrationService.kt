@@ -7,7 +7,15 @@ class PrisonPersonMigrationService(
   private val repository: PrisonPersonMigrationMappingRepository,
 ) {
 
-  suspend fun create(nomisPrisonerNumber: String, label: String) {
-    repository.save(PrisonPersonMigrationMapping(nomisPrisonerNumber = nomisPrisonerNumber, label = label))
+  suspend fun create(mappingRequest: PrisonPersonMigrationMappingRequest) {
+    repository.save(
+      PrisonPersonMigrationMapping(
+        nomisPrisonerNumber = mappingRequest.nomisPrisonerNumber,
+        migrationType = mappingRequest.migrationType,
+        label = mappingRequest.label,
+      ),
+    )
   }
+
+  suspend fun find(nomisPrisonerNumber: String, migrationType: PrisonPersonMigrationType) = repository.findByNomisPrisonerNumberAndMigrationType(nomisPrisonerNumber, migrationType)
 }
