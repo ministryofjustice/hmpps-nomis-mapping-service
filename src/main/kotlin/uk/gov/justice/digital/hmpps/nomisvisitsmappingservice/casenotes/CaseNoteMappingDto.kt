@@ -32,7 +32,7 @@ data class CaseNoteMappingDto(
   val whenCreated: LocalDateTime? = null,
 ) {
   constructor(mapping: CaseNoteMapping) : this(
-    dpsCaseNoteId = mapping.dpsCaseNoteId,
+    dpsCaseNoteId = mapping.dpsCaseNoteId.toString(),
     nomisCaseNoteId = mapping.nomisCaseNoteId,
     offenderNo = mapping.offenderNo,
     nomisBookingId = mapping.nomisBookingId,

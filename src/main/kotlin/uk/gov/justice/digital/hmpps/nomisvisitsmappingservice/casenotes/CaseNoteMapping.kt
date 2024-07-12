@@ -5,11 +5,12 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
+import java.util.UUID
 
 data class CaseNoteMapping(
 
   @Id
-  val dpsCaseNoteId: String,
+  val dpsCaseNoteId: UUID,
 
   val nomisCaseNoteId: Long,
 
@@ -29,7 +30,7 @@ data class CaseNoteMapping(
   val new: Boolean = true,
 
   val whenCreated: LocalDateTime? = null,
-) : Persistable<String> {
+) : Persistable<UUID> {
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -44,7 +45,7 @@ data class CaseNoteMapping(
 
   override fun isNew(): Boolean = new
 
-  override fun getId(): String = dpsCaseNoteId
+  override fun getId(): UUID = dpsCaseNoteId
 }
 
 enum class CaseNoteMappingType {
