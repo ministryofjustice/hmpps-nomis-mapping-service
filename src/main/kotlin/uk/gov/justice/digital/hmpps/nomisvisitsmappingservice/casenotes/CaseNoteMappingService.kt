@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
+import java.util.UUID
 
 @Service
 @Transactional(readOnly = true)
@@ -33,7 +34,6 @@ class CaseNoteMappingService(
   @Transactional
   suspend fun createMapping(createMappingRequest: CaseNoteMappingDto) =
     with(createMappingRequest) {
-      log.debug("creating location {}", createMappingRequest)
       repository.findById(dpsCaseNoteId)?.run {
         if (this@run.nomisCaseNoteId == this@with.nomisCaseNoteId) {
           log.debug(
@@ -90,7 +90,7 @@ class CaseNoteMappingService(
     repository.saveAll(
       prisonerMapping.mappings.map {
         CaseNoteMapping(
-          dpsCaseNoteId = it.dpsCaseNoteId,
+          dpsCaseNoteId = UUID.fromString(it.dpsCaseNoteId),
           nomisCaseNoteId = it.nomisCaseNoteId,
           nomisBookingId = it.nomisBookingId,
           offenderNo = offenderNo,
@@ -191,7 +191,7 @@ class CaseNoteMappingService(
       .let { AllPrisonerCaseNoteMappingsDto(it) }
 
   fun CaseNoteMapping.toDto() = CaseNoteMappingDto(
-    dpsCaseNoteId = dpsCaseNoteId,
+    dpsCaseNoteId = dpsCaseNoteId.toString(),
     nomisCaseNoteId = nomisCaseNoteId,
     nomisBookingId = nomisBookingId,
     offenderNo = offenderNo,
@@ -201,7 +201,7 @@ class CaseNoteMappingService(
   )
 
   fun CaseNoteMappingDto.fromDto() = CaseNoteMapping(
-    dpsCaseNoteId = dpsCaseNoteId,
+    dpsCaseNoteId = UUID.fromString(dpsCaseNoteId),
     nomisCaseNoteId = nomisCaseNoteId,
     offenderNo = offenderNo,
     nomisBookingId = nomisBookingId,

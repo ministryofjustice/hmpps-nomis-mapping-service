@@ -23,6 +23,7 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 private const val DPS_CASENOTE_ID = "e52d7268-6e10-41a8-a0b9-2319b32520d6"
+private const val DPS_CASENOTE_ID2 = "edcd118c-41ba-42ea-b5c4-404b453ad58b"
 private const val NOMIS_CASENOTE_ID = 543211L
 private const val OFFENDER_NO = "A1234AA"
 private const val OFFENDER_NO_2 = "A1234BB"
@@ -31,7 +32,8 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var repository: CaseNoteMappingRepository
 
-  private fun generateUUID(n: Long) = "de91dfa7-821f-4552-a427-000000${n.toString().padStart(6, '0')}"
+  private fun generateUUIDs(n: Long) = "de91dfa7-821f-4552-a427-000000${n.toString().padStart(6, '0')}"
+  private fun generateUUID(n: Long) = UUID.fromString(generateUUIDs(n))
 
   private fun postCreateMappingRequest(
     nomisCaseNoteId: Long = NOMIS_CASENOTE_ID,
@@ -82,7 +84,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
     fun setUp() = runTest {
       existingMapping = repository.save(
         CaseNoteMapping(
-          dpsCaseNoteId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          dpsCaseNoteId = UUID.fromString(DPS_CASENOTE_ID2),
           nomisCaseNoteId = 543210L,
           offenderNo = OFFENDER_NO,
           nomisBookingId = 1,
@@ -144,7 +146,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
 
         assertThat(createdMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         assertThat(createdMapping.nomisCaseNoteId).isEqualTo(mapping.nomisCaseNoteId)
-        assertThat(createdMapping.dpsCaseNoteId).isEqualTo(mapping.dpsCaseNoteId)
+        assertThat(createdMapping.dpsCaseNoteId.toString()).isEqualTo(mapping.dpsCaseNoteId)
         assertThat(createdMapping.mappingType).isEqualTo(mapping.mappingType)
         assertThat(createdMapping.label).isEqualTo(mapping.label)
       }
@@ -176,7 +178,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
 
         assertThat(createdMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         assertThat(createdMapping.nomisCaseNoteId).isEqualTo(54321L)
-        assertThat(createdMapping.dpsCaseNoteId).isEqualTo(DPS_CASENOTE_ID)
+        assertThat(createdMapping.dpsCaseNoteId).isEqualTo(UUID.fromString(DPS_CASENOTE_ID))
         assertThat(createdMapping.mappingType).isEqualTo(CaseNoteMappingType.DPS_CREATED)
         assertThat(createdMapping.label).isNull()
       }
@@ -193,7 +195,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
               """
                 {
                   "nomisCaseNoteId": 54555,
-                  "dpsCaseNoteId": "e52d7268-6e10-41a8-a0b9-2319b3254555",
+                  "dpsCaseNoteId": "$DPS_CASENOTE_ID",
                   "offenderNo": "A1234AA",
                   "nomisBookingId": 1
                 }
@@ -210,7 +212,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isOk
 
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/e52d7268-6e10-41a8-a0b9-2319b3254555")
+          .uri("/mapping/casenotes/dps-casenote-id/$DPS_CASENOTE_ID")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isOk
@@ -312,7 +314,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           // since this is an untyped map an int will be assumed for such small numbers
           assertThat(this.moreInfo.existing)
             .containsEntry("nomisCaseNoteId", existingMapping.nomisCaseNoteId.toInt())
-            .containsEntry("dpsCaseNoteId", existingMapping.dpsCaseNoteId)
+            .containsEntry("dpsCaseNoteId", existingMapping.dpsCaseNoteId.toString())
           assertThat(this.moreInfo.duplicate)
             .containsEntry("nomisCaseNoteId", existingMapping.nomisCaseNoteId.toInt())
             .containsEntry("dpsCaseNoteId", dpsCaseNoteId)
@@ -330,7 +332,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
             BodyInserters.fromValue(
               CaseNoteMappingDto(
                 nomisCaseNoteId = nomisCaseNoteId,
-                dpsCaseNoteId = existingMapping.dpsCaseNoteId,
+                dpsCaseNoteId = existingMapping.dpsCaseNoteId.toString(),
                 offenderNo = OFFENDER_NO,
                 nomisBookingId = 1,
               ),
@@ -348,10 +350,10 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           // since this is an untyped map an int will be assumed for such small numbers
           assertThat(this.moreInfo.existing)
             .containsEntry("nomisCaseNoteId", existingMapping.nomisCaseNoteId.toInt())
-            .containsEntry("dpsCaseNoteId", existingMapping.dpsCaseNoteId)
+            .containsEntry("dpsCaseNoteId", existingMapping.dpsCaseNoteId.toString())
           assertThat(this.moreInfo.duplicate)
             .containsEntry("nomisCaseNoteId", nomisCaseNoteId.toInt())
-            .containsEntry("dpsCaseNoteId", existingMapping.dpsCaseNoteId)
+            .containsEntry("dpsCaseNoteId", existingMapping.dpsCaseNoteId.toString())
         }
       }
     }
@@ -444,7 +446,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
 
         assertThat(createdMapping1.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         assertThat(createdMapping1.nomisCaseNoteId).isEqualTo(mappings[0].nomisCaseNoteId)
-        assertThat(createdMapping1.dpsCaseNoteId).isEqualTo(mappings[0].dpsCaseNoteId)
+        assertThat(createdMapping1.dpsCaseNoteId.toString()).isEqualTo(mappings[0].dpsCaseNoteId)
         assertThat(createdMapping1.nomisBookingId).isEqualTo(mappings[0].nomisBookingId)
         assertThat(createdMapping1.offenderNo).isEqualTo(mappings[0].offenderNo)
         assertThat(createdMapping1.mappingType).isEqualTo(mappings[0].mappingType)
@@ -457,7 +459,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
 
         assertThat(createdMapping2.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         assertThat(createdMapping2.nomisCaseNoteId).isEqualTo(mappings[1].nomisCaseNoteId)
-        assertThat(createdMapping2.dpsCaseNoteId).isEqualTo(mappings[1].dpsCaseNoteId)
+        assertThat(createdMapping2.dpsCaseNoteId.toString()).isEqualTo(mappings[1].dpsCaseNoteId)
         assertThat(createdMapping2.nomisBookingId).isEqualTo(mappings[1].nomisBookingId)
         assertThat(createdMapping2.offenderNo).isEqualTo(mappings[1].offenderNo)
         assertThat(createdMapping2.mappingType).isEqualTo(mappings[1].mappingType)
@@ -500,7 +502,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              mappings + existingMapping.copy(dpsCaseNoteId = dpsCaseNoteId),
+              mappings + existingMapping.copy(dpsCaseNoteId = UUID.fromString(dpsCaseNoteId)),
             ),
           )
           .exchange()
@@ -515,7 +517,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           // since this is an untyped map an int will be assumed for such small numbers
           assertThat(this.moreInfo.existing)
             .containsEntry("nomisCaseNoteId", existingMapping.nomisCaseNoteId.toInt())
-            .containsEntry("dpsCaseNoteId", existingMapping.dpsCaseNoteId)
+            .containsEntry("dpsCaseNoteId", existingMapping.dpsCaseNoteId.toString())
           assertThat(this.moreInfo.duplicate)
             .containsEntry("nomisCaseNoteId", existingMapping.nomisCaseNoteId.toInt())
             .containsEntry("dpsCaseNoteId", dpsCaseNoteId)
@@ -545,10 +547,10 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           // since this is an untyped map an int will be assumed for such small numbers
           assertThat(this.moreInfo.existing)
             .containsEntry("nomisCaseNoteId", existingMapping.nomisCaseNoteId.toInt())
-            .containsEntry("dpsCaseNoteId", existingMapping.dpsCaseNoteId)
+            .containsEntry("dpsCaseNoteId", existingMapping.dpsCaseNoteId.toString())
           assertThat(this.moreInfo.duplicate)
             .containsEntry("nomisCaseNoteId", 99)
-            .containsEntry("dpsCaseNoteId", existingMapping.dpsCaseNoteId)
+            .containsEntry("dpsCaseNoteId", existingMapping.dpsCaseNoteId.toString())
         }
       }
     }
@@ -558,19 +560,19 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("GET /mapping/casenotes/{offenderNo}/all")
   inner class GetMappingByPrisoner {
     val dpsId1 = "85665bb9-ab28-458a-8386-b8cc91b311f7"
-    val dpsId2 = "edcd118c-41ba-42ea-b5c4-404b453ad58b"
+    val dpsId2 = DPS_CASENOTE_ID2
     val dpsId3 = "e52d7268-6e10-41a8-a0b9-2319b32520d6"
     val dpsId4 = "fd4e55a8-0805-439b-9e27-647583b96e4e"
 
     private var mapping1: CaseNoteMapping = CaseNoteMapping(
-      dpsCaseNoteId = dpsId2,
+      dpsCaseNoteId = UUID.fromString(dpsId2),
       nomisBookingId = 54321L,
       nomisCaseNoteId = 2L,
       offenderNo = "A1234KT",
       mappingType = CaseNoteMappingType.DPS_CREATED,
     )
     private var mapping2: CaseNoteMapping = CaseNoteMapping(
-      dpsCaseNoteId = dpsId1,
+      dpsCaseNoteId = UUID.fromString(dpsId1),
       nomisBookingId = 11111L,
       nomisCaseNoteId = 1L,
       offenderNo = "A1234KT",
@@ -606,7 +608,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
       mapping2 = repository.save(mapping2)
       repository.save(
         CaseNoteMapping(
-          dpsCaseNoteId = "fd4e55a8-41ba-42ea-b5c4-404b453ad99b",
+          dpsCaseNoteId = UUID.fromString("fd4e55a8-41ba-42ea-b5c4-404b453ad99b"),
           nomisBookingId = 9999L,
           nomisCaseNoteId = 5L,
           offenderNo = "A1111KT",
@@ -697,7 +699,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
     fun setUp() = runTest {
       mapping = repository.save(
         CaseNoteMapping(
-          dpsCaseNoteId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          dpsCaseNoteId = UUID.fromString(DPS_CASENOTE_ID2),
           nomisCaseNoteId = 54321L,
           offenderNo = OFFENDER_NO,
           nomisBookingId = 1,
@@ -756,7 +758,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isOk
           .expectBody()
           .jsonPath("nomisCaseNoteId").isEqualTo(mapping.nomisCaseNoteId)
-          .jsonPath("dpsCaseNoteId").isEqualTo(mapping.dpsCaseNoteId)
+          .jsonPath("dpsCaseNoteId").isEqualTo(mapping.dpsCaseNoteId.toString())
           .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
           .jsonPath("label").isEqualTo(mapping.label!!)
           .jsonPath("whenCreated").value<String> {
@@ -858,14 +860,14 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isOk
           .expectBody()
           .jsonPath("$[0].nomisCaseNoteId").isEqualTo(mapping1.nomisCaseNoteId)
-          .jsonPath("$[0].dpsCaseNoteId").isEqualTo(mapping1.dpsCaseNoteId)
+          .jsonPath("$[0].dpsCaseNoteId").isEqualTo(mapping1.dpsCaseNoteId.toString())
           .jsonPath("$[0].mappingType").isEqualTo(mapping1.mappingType.name)
           .jsonPath("$[0].label").isEqualTo(mapping1.label!!)
           .jsonPath("$[0].whenCreated").value<String> {
             assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
           }
           .jsonPath("$[1].nomisCaseNoteId").isEqualTo(mapping2.nomisCaseNoteId)
-          .jsonPath("$[1].dpsCaseNoteId").isEqualTo(mapping2.dpsCaseNoteId)
+          .jsonPath("$[1].dpsCaseNoteId").isEqualTo(mapping2.dpsCaseNoteId.toString())
           .jsonPath("$[1].mappingType").isEqualTo(mapping2.mappingType.name)
           .jsonPath("$[1].label").isEqualTo(mapping2.label!!)
           .jsonPath("$[1].whenCreated").value<String> {
@@ -884,7 +886,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
     fun setUp() = runTest {
       mapping = repository.save(
         CaseNoteMapping(
-          dpsCaseNoteId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          dpsCaseNoteId = UUID.fromString(DPS_CASENOTE_ID2),
           nomisCaseNoteId = 54321L,
           offenderNo = OFFENDER_NO,
           nomisBookingId = 1,
@@ -928,7 +930,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 404 when mapping does not exist`() {
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/DOESNOTEXIST")
+          .uri("/mapping/casenotes/dps-casenote-id/00001111-0000-0000-0000-000011112222")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isNotFound
@@ -943,7 +945,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isOk
           .expectBody()
           .jsonPath("nomisCaseNoteId").isEqualTo(mapping.nomisCaseNoteId)
-          .jsonPath("dpsCaseNoteId").isEqualTo(mapping.dpsCaseNoteId)
+          .jsonPath("dpsCaseNoteId").isEqualTo(mapping.dpsCaseNoteId.toString())
           .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
           .jsonPath("label").isEqualTo(mapping.label!!)
           .jsonPath("whenCreated").value<String> {
@@ -985,7 +987,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
       (1L..2L).forEach {
         postCreateMappingRequest(
           it,
-          generateUUID(it),
+          generateUUIDs(it),
           OFFENDER_NO,
           1,
           label = "2022-01-01",
@@ -995,7 +997,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
       (3L..5L).forEach {
         postCreateMappingRequest(
           it,
-          generateUUID(it),
+          generateUUIDs(it),
           OFFENDER_NO_2,
           2,
           label = "2022-01-01",
@@ -1005,14 +1007,14 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
       (6L..9L).forEach {
         postCreateMappingRequest(
           it,
-          generateUUID(it),
+          generateUUIDs(it),
           OFFENDER_NO,
           1,
           label = "2099-01-01",
           mappingType = CaseNoteMappingType.MIGRATED,
         )
       }
-      postCreateMappingRequest(12, generateUUID(12), OFFENDER_NO, 1, mappingType = CaseNoteMappingType.DPS_CREATED)
+      postCreateMappingRequest(12, generateUUIDs(12), OFFENDER_NO, 1, mappingType = CaseNoteMappingType.DPS_CREATED)
 
       webTestClient.get().uri("/mapping/casenotes/migration-id/2022-01-01/count-by-prisoner")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
@@ -1025,7 +1027,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get casenote mappings by migration id - no records exist`() {
       (1L..4L).forEach {
-        postCreateMappingRequest(it, generateUUID(it), label = "2022-01-01", mappingType = CaseNoteMappingType.MIGRATED)
+        postCreateMappingRequest(it, generateUUIDs(it), label = "2022-01-01", mappingType = CaseNoteMappingType.MIGRATED)
       }
 
       webTestClient.get().uri("/mapping/casenotes/migration-id/2044-01-01/count-by-prisoner")
@@ -1042,7 +1044,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
       (1L..6L).forEach {
         postCreateMappingRequest(
           it,
-          generateUUID(it),
+          generateUUIDs(it),
           offenderNo = "A000${it}AA",
           label = "2022-01-01",
           mappingType = CaseNoteMappingType.MIGRATED,
@@ -1069,7 +1071,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
     @Disabled
     fun `can request a different page`() {
       (1L..3L).forEach {
-        postCreateMappingRequest(it, generateUUID(it), label = "2022-01-01", mappingType = CaseNoteMappingType.MIGRATED)
+        postCreateMappingRequest(it, generateUUIDs(it), label = "2022-01-01", mappingType = CaseNoteMappingType.MIGRATED)
       }
       webTestClient.get().uri {
         it.path("/mapping/casenotes/migration-id/2022-01-01/count-by-prisoner")
@@ -1126,7 +1128,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             CaseNoteMappingDto(
               nomisCaseNoteId = 10,
-              dpsCaseNoteId = generateUUID(10),
+              dpsCaseNoteId = generateUUIDs(10),
               offenderNo = OFFENDER_NO,
               nomisBookingId = 1,
               label = "2022-01-01T00:00:00",
@@ -1144,7 +1146,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             CaseNoteMappingDto(
               nomisCaseNoteId = 20,
-              dpsCaseNoteId = generateUUID(20),
+              dpsCaseNoteId = generateUUIDs(20),
               offenderNo = OFFENDER_NO,
               nomisBookingId = 1,
               label = "2022-01-02T00:00:00",
@@ -1162,7 +1164,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             CaseNoteMappingDto(
               nomisCaseNoteId = 1,
-              dpsCaseNoteId = generateUUID(1),
+              dpsCaseNoteId = generateUUIDs(1),
               offenderNo = OFFENDER_NO,
               nomisBookingId = 2,
               label = "2022-01-02T10:00:00",
@@ -1180,7 +1182,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             CaseNoteMappingDto(
               nomisCaseNoteId = 99,
-              dpsCaseNoteId = generateUUID(199),
+              dpsCaseNoteId = generateUUIDs(199),
               offenderNo = OFFENDER_NO,
               nomisBookingId = 1,
               label = "whatever",
@@ -1199,7 +1201,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
         .returnResult().responseBody!!
 
       assertThat(mapping.nomisCaseNoteId).isEqualTo(1)
-      assertThat(mapping.dpsCaseNoteId).isEqualTo(generateUUID(1))
+      assertThat(mapping.dpsCaseNoteId).isEqualTo(generateUUIDs(1))
       assertThat(mapping.offenderNo).isEqualTo(OFFENDER_NO)
       assertThat(mapping.nomisBookingId).isEqualTo(2)
       assertThat(mapping.label).isEqualTo("2022-01-02T10:00:00")
@@ -1217,7 +1219,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           BodyInserters.fromValue(
             CaseNoteMappingDto(
               nomisCaseNoteId = 77,
-              dpsCaseNoteId = generateUUID(77),
+              dpsCaseNoteId = generateUUIDs(77),
               offenderNo = OFFENDER_NO,
               nomisBookingId = 1,
               label = "whatever",
@@ -1248,7 +1250,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
     fun setUp() = runTest {
       mapping = repository.save(
         CaseNoteMapping(
-          dpsCaseNoteId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          dpsCaseNoteId = UUID.fromString(DPS_CASENOTE_ID2),
           nomisCaseNoteId = 54321L,
           offenderNo = OFFENDER_NO,
           nomisBookingId = 1,
@@ -1330,7 +1332,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
     fun setUp() = runTest {
       mapping = repository.save(
         CaseNoteMapping(
-          dpsCaseNoteId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          dpsCaseNoteId = UUID.fromString(DPS_CASENOTE_ID2),
           nomisCaseNoteId = 54321L,
           offenderNo = OFFENDER_NO,
           nomisBookingId = 1,
@@ -1374,7 +1376,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 204 even when mapping does not exist`() {
         webTestClient.delete()
-          .uri("/mapping/casenotes/dps-casenote-id/DOESNOTEXIST")
+          .uri("/mapping/casenotes/dps-casenote-id/00001111-0000-0000-0000-000011112222")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isNoContent
@@ -1413,7 +1415,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
     fun setUp() = runTest {
       existingMapping1 = repository.save(
         CaseNoteMapping(
-          dpsCaseNoteId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          dpsCaseNoteId = UUID.fromString(DPS_CASENOTE_ID2),
           nomisCaseNoteId = 54321L,
           offenderNo = OFFENDER_NO,
           nomisBookingId = 1,
@@ -1423,7 +1425,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
       )
       existingMapping2 = repository.save(
         CaseNoteMapping(
-          dpsCaseNoteId = "4433eb7d-2fa0-4055-99d9-633fefa53288",
+          dpsCaseNoteId = UUID.fromString("4433eb7d-2fa0-4055-99d9-633fefa53288"),
           nomisCaseNoteId = 54322L,
           offenderNo = OFFENDER_NO,
           nomisBookingId = 1,
