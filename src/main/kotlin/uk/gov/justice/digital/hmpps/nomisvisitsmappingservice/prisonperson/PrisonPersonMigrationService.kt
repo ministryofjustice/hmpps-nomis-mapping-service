@@ -12,6 +12,7 @@ class PrisonPersonMigrationService(
       PrisonPersonMigrationMapping(
         nomisPrisonerNumber = mappingRequest.nomisPrisonerNumber,
         migrationType = mappingRequest.migrationType,
+        dpsIds = mappingRequest.dpsIds.toString(),
         label = mappingRequest.label,
       ),
     )
