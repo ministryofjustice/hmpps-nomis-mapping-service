@@ -12,6 +12,8 @@ data class PrisonPersonMigrationMapping(
 
   val migrationType: PrisonPersonMigrationType,
 
+  val dpsIds: String,
+
   val label: String,
 
   @CreatedDate

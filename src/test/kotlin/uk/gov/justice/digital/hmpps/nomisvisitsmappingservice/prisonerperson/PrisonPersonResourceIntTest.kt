@@ -10,8 +10,9 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.PrisonPersonMigrationMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.PrisonPersonMigrationMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.PrisonPersonMigrationMappingRequest
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.PrisonPersonMigrationType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.PrisonPersonMigrationType.PHYSICAL_ATTRIBUTES
 import java.time.LocalDate
 
@@ -34,7 +35,7 @@ class PrisonPersonResourceIntTest : IntegrationTestBase() {
         webTestClient.post()
           .uri("/mapping/prisonperson/migration")
           .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(PrisonPersonMigrationMapping("any", PHYSICAL_ATTRIBUTES, "any")))
+          .body(BodyInserters.fromValue(request()))
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -45,7 +46,7 @@ class PrisonPersonResourceIntTest : IntegrationTestBase() {
           .uri("/mapping/prisonperson/migration")
           .headers(setAuthorisation(roles = listOf()))
           .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(PrisonPersonMigrationMapping("any", PHYSICAL_ATTRIBUTES, "any")))
+          .body(BodyInserters.fromValue(request()))
           .exchange()
           .expectStatus().isForbidden
       }
@@ -56,7 +57,7 @@ class PrisonPersonResourceIntTest : IntegrationTestBase() {
           .uri("/mapping/prisonperson/migration")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(PrisonPersonMigrationMapping("any", PHYSICAL_ATTRIBUTES, "any")))
+          .body(BodyInserters.fromValue(request()))
           .exchange()
           .expectStatus().isForbidden
       }
@@ -66,12 +67,13 @@ class PrisonPersonResourceIntTest : IntegrationTestBase() {
     inner class HappyPath {
       @Test
       fun `should create migration mapping`() = runTest {
-        webTestClient.createMigrationMapping("A1234AA", PHYSICAL_ATTRIBUTES.name, "label")
+        webTestClient.createMigrationMapping(request("A1234AA", PHYSICAL_ATTRIBUTES, listOf(1, 2, 3), "label"))
           .expectStatus().isCreated
 
         val mapping = repository.findByNomisPrisonerNumberAndMigrationType("A1234AA", PHYSICAL_ATTRIBUTES)
         assertThat(mapping?.nomisPrisonerNumber).isEqualTo("A1234AA")
         assertThat(mapping?.migrationType).isEqualTo(PHYSICAL_ATTRIBUTES)
+        assertThat(mapping?.dpsIds).isEqualTo("[1, 2, 3]")
         assertThat(mapping?.label).isEqualTo("label")
         assertThat(mapping?.whenCreated?.toLocalDate()).isEqualTo(LocalDate.now())
       }
@@ -81,32 +83,33 @@ class PrisonPersonResourceIntTest : IntegrationTestBase() {
     inner class Validation {
       @Test
       fun `should return 409 if migration mapping already exists`() = runTest {
-        webTestClient.createMigrationMapping("A1234AA", PHYSICAL_ATTRIBUTES.name, "label")
+        webTestClient.createMigrationMapping(request("A1234AA", PHYSICAL_ATTRIBUTES, listOf(1), "label"))
           .expectStatus().isCreated
 
-        webTestClient.createMigrationMapping("A1234AA", PHYSICAL_ATTRIBUTES.name, "label")
+        webTestClient.createMigrationMapping(request("A1234AA", PHYSICAL_ATTRIBUTES, listOf(1), "label"))
           .expectStatus().isEqualTo(409)
       }
     }
 
-    private fun WebTestClient.createMigrationMapping(prisonerNumber: String, type: String, label: String) =
+    private fun WebTestClient.createMigrationMapping(request: PrisonPersonMigrationMappingRequest) =
       post()
         .uri("/mapping/prisonperson/migration")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_PRISONPERSON")))
         .contentType(MediaType.APPLICATION_JSON)
-        .body(
-          BodyInserters.fromValue(
-            (
-              """ { 
-              "nomisPrisonerNumber": "$prisonerNumber", 
-              "migrationType": "$type",
-              "label": "$label" 
-            
-            } 
-              """.trimIndent()
-              ),
-          ),
-        )
+        .body(BodyInserters.fromValue(request))
         .exchange()
+
+    private fun request(
+      prisonerNumber: String = "any",
+      type: PrisonPersonMigrationType = PHYSICAL_ATTRIBUTES,
+      dpsIds: List<Long> = listOf(1),
+      label: String = "label",
+    ) =
+      PrisonPersonMigrationMappingRequest(
+        nomisPrisonerNumber = prisonerNumber,
+        migrationType = type,
+        dpsIds = dpsIds,
+        label = label,
+      )
   }
 }
