@@ -84,3 +84,5 @@ azure:
   application-insights:
     web:
       enabled: false
+
+casenotes.average-case-notes-per-prisoner: 134

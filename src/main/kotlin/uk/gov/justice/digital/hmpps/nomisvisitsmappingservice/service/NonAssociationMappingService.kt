@@ -167,18 +167,23 @@ class NonAssociationMappingService(
   suspend fun updateMappingsByNomisId(oldOffenderNo: String, newOffenderNo: String) {
     nonAssociationMappingRepository.findByFirstOffenderNoOrSecondOffenderNo(oldOffenderNo, oldOffenderNo)
       .forEach {
-        log.info("Merging from $oldOffenderNo to $newOffenderNo: processing mapping $it")
-
+        val telemetryMap = mapOf(
+          "originalMapping" to it.toString(),
+          "oldOffenderNo" to oldOffenderNo,
+          "newOffenderNo" to newOffenderNo,
+        )
         if (oldOffenderNo == it.firstOffenderNo) {
           if (newOffenderNo == it.secondOffenderNo) {
             throw ValidationException("Found NA clash in $it when updating offender id from $oldOffenderNo to $newOffenderNo")
           }
           nonAssociationMappingRepository.updateFirstOffenderNo(it.nonAssociationId, newOffenderNo)
+          telemetryClient.trackEvent("nonAssociation-mapping-merged", telemetryMap, null)
         } else if (oldOffenderNo == it.secondOffenderNo) {
           if (it.firstOffenderNo == newOffenderNo) {
             throw ValidationException("Found NA clash in $it when updating offender id from $oldOffenderNo to $newOffenderNo")
           }
           nonAssociationMappingRepository.updateSecondOffenderNo(it.nonAssociationId, newOffenderNo)
+          telemetryClient.trackEvent("nonAssociation-mapping-merged", telemetryMap, null)
         }
       }
   }

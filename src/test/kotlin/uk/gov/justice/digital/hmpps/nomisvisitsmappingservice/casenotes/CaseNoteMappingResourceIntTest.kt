@@ -983,8 +983,8 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `get casenote mappings by migration id success`() {
-      (1L..2L).forEach {
+    fun `get casenote mapping count success`() {
+      (1L..5L).forEach {
         postCreateMappingRequest(
           it,
           generateUUIDs(it),
@@ -994,48 +994,13 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           mappingType = CaseNoteMappingType.MIGRATED,
         )
       }
-      (3L..5L).forEach {
-        postCreateMappingRequest(
-          it,
-          generateUUIDs(it),
-          OFFENDER_NO_2,
-          2,
-          label = "2022-01-01",
-          mappingType = CaseNoteMappingType.MIGRATED,
-        )
-      }
-      (6L..9L).forEach {
-        postCreateMappingRequest(
-          it,
-          generateUUIDs(it),
-          OFFENDER_NO,
-          1,
-          label = "2099-01-01",
-          mappingType = CaseNoteMappingType.MIGRATED,
-        )
-      }
-      postCreateMappingRequest(12, generateUUIDs(12), OFFENDER_NO, 1, mappingType = CaseNoteMappingType.DPS_CREATED)
 
       webTestClient.get().uri("/mapping/casenotes/migration-id/2022-01-01/count-by-prisoner")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
-        .jsonPath("$").isEqualTo(2)
-    }
-
-    @Test
-    fun `get casenote mappings by migration id - no records exist`() {
-      (1L..4L).forEach {
-        postCreateMappingRequest(it, generateUUIDs(it), label = "2022-01-01", mappingType = CaseNoteMappingType.MIGRATED)
-      }
-
-      webTestClient.get().uri("/mapping/casenotes/migration-id/2044-01-01/count-by-prisoner")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
-        .exchange()
-        .expectStatus().isOk
-        .expectBody()
-        .jsonPath("$").isEqualTo(0)
+        .jsonPath("$").isEqualTo(2) // i.e. 5 rows divided by average-case-notes-per-prisoner
     }
 
     @Test

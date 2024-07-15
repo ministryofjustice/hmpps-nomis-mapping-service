@@ -1,10 +1,9 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.casenotes
 
 import com.microsoft.applicationinsights.TelemetryClient
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -17,6 +16,7 @@ import java.util.UUID
 class CaseNoteMappingService(
   private val repository: CaseNoteMappingRepository,
   private val telemetryClient: TelemetryClient,
+  @Value("\${casenotes.average-case-notes-per-prisoner}") private val averageCaseNotesPerPrisoner: Int,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -148,27 +148,7 @@ class CaseNoteMappingService(
   suspend fun getCountByMigrationIdGroupedByPrisoner(
     pageRequest: Pageable,
     migrationId: String,
-  ): Long = coroutineScope {
-//    val mappings = async {
-//      repository.findPrisonersByLabelAndMappingType(
-//        label = migrationId,
-//        mappingType = CaseNoteMappingType.MIGRATED,
-//        pageable = pageRequest,
-//      )
-//    }
-    // only the count is needed - TBC
-
-    val count = async {
-      repository.countDistinctPrisoners(label = migrationId, mappingType = CaseNoteMappingType.MIGRATED)
-    }
-    count.await()
-
-//    PageImpl(
-//      mappings.await().toList(),
-//      pageRequest,
-//      count.await(),
-//    )
-  }
+  ): Long = repository.count() / averageCaseNotesPerPrisoner // Approx estimate
 
   @Transactional
   suspend fun deleteMapping(dpsCaseNoteId: String) = repository.deleteById(dpsCaseNoteId)
@@ -183,6 +163,7 @@ class CaseNoteMappingService(
     } else {
       repository.deleteAll()
     }
+    // TODO: this will timeout!
   }
 
   suspend fun getMappings(offenderNo: String): AllPrisonerCaseNoteMappingsDto =
