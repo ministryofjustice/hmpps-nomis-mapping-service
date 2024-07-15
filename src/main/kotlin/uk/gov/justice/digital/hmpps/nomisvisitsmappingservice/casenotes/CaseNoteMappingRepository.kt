@@ -11,22 +11,14 @@ interface CaseNoteMappingRepository : CoroutineCrudRepository<CaseNoteMapping, S
   suspend fun findFirstByMappingTypeOrderByWhenCreatedDesc(mappingType: CaseNoteMappingType): CaseNoteMapping?
 
   @Query(
-    """select count(1) from (select distinct m.OFFENDER_NO from CASE_NOTE_MAPPING m 
-    where m.LABEL = :label and m.MAPPING_TYPE = :mappingType) df""",
+    """select count(distinct m.OFFENDER_NO) from CASE_NOTE_MAPPING m 
+    where m.LABEL = :label and m.MAPPING_TYPE = :mappingType""",
   )
   suspend fun countDistinctPrisoners(label: String, mappingType: CaseNoteMappingType): Long
 
-//  @Query( // TBC: probably not needed
-//    """select count(1) as count, m.OFFENDER_NO
-//       from CASE_NOTE_MAPPING m
-//       where m.LABEL = :label and m.MAPPING_TYPE = :mappingType
-//       group by m.OFFENDER_NO""",
-//  )
-//  fun findPrisonersByLabelAndMappingType(
-//    label: String,
-//    mappingType: CaseNoteMappingType,
-//    pageable: Pageable,
-//  ): Flow<CaseNotePrisoner>
+  // plain distinct count: 814264 in 3m30s
+
+  // plain count(*) 108976723 takes 38s
 
   suspend fun deleteByMappingTypeEquals(mappingType: CaseNoteMappingType): CaseNoteMapping?
   suspend fun deleteByNomisCaseNoteId(nomisCaseNoteId: Long)

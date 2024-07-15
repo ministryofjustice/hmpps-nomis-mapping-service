@@ -983,34 +983,14 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `get casenote mappings by migration id success`() {
-      (1L..2L).forEach {
+    fun `get casenote mapping count success`() {
+      (1L..140L).forEach {
         postCreateMappingRequest(
           it,
           generateUUIDs(it),
           OFFENDER_NO,
           1,
           label = "2022-01-01",
-          mappingType = CaseNoteMappingType.MIGRATED,
-        )
-      }
-      (3L..5L).forEach {
-        postCreateMappingRequest(
-          it,
-          generateUUIDs(it),
-          OFFENDER_NO_2,
-          2,
-          label = "2022-01-01",
-          mappingType = CaseNoteMappingType.MIGRATED,
-        )
-      }
-      (6L..9L).forEach {
-        postCreateMappingRequest(
-          it,
-          generateUUIDs(it),
-          OFFENDER_NO,
-          1,
-          label = "2099-01-01",
           mappingType = CaseNoteMappingType.MIGRATED,
         )
       }
@@ -1021,21 +1001,21 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isOk
         .expectBody()
-        .jsonPath("$").isEqualTo(2)
+        .jsonPath("$").isEqualTo(1) // i.e. over 134 rows
     }
 
     @Test
-    fun `get casenote mappings by migration id - no records exist`() {
+    fun `get casenote mapping count - too few records exist`() {
       (1L..4L).forEach {
         postCreateMappingRequest(it, generateUUIDs(it), label = "2022-01-01", mappingType = CaseNoteMappingType.MIGRATED)
       }
 
-      webTestClient.get().uri("/mapping/casenotes/migration-id/2044-01-01/count-by-prisoner")
+      webTestClient.get().uri("/mapping/casenotes/migration-id/2022-01-01/count-by-prisoner")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
-        .jsonPath("$").isEqualTo(0)
+        .jsonPath("$").isEqualTo(0) // fewer than 134
     }
 
     @Test
