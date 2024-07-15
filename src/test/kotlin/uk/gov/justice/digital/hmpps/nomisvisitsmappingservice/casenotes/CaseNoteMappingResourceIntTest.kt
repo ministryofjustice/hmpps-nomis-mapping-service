@@ -984,7 +984,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `get casenote mapping count success`() {
-      (1L..140L).forEach {
+      (1L..5L).forEach {
         postCreateMappingRequest(
           it,
           generateUUIDs(it),
@@ -994,28 +994,13 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           mappingType = CaseNoteMappingType.MIGRATED,
         )
       }
-      postCreateMappingRequest(12, generateUUIDs(12), OFFENDER_NO, 1, mappingType = CaseNoteMappingType.DPS_CREATED)
 
       webTestClient.get().uri("/mapping/casenotes/migration-id/2022-01-01/count-by-prisoner")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
-        .jsonPath("$").isEqualTo(1) // i.e. over 134 rows
-    }
-
-    @Test
-    fun `get casenote mapping count - too few records exist`() {
-      (1L..4L).forEach {
-        postCreateMappingRequest(it, generateUUIDs(it), label = "2022-01-01", mappingType = CaseNoteMappingType.MIGRATED)
-      }
-
-      webTestClient.get().uri("/mapping/casenotes/migration-id/2022-01-01/count-by-prisoner")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
-        .exchange()
-        .expectStatus().isOk
-        .expectBody()
-        .jsonPath("$").isEqualTo(0) // fewer than 134
+        .jsonPath("$").isEqualTo(2) // i.e. 5 rows divided by average-case-notes-per-prisoner
     }
 
     @Test

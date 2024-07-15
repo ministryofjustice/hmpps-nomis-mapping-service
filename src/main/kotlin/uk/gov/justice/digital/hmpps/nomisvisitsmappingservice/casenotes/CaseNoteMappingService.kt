@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.casenotes
 import com.microsoft.applicationinsights.TelemetryClient
 import kotlinx.coroutines.flow.collect
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -10,13 +11,12 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMa
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 import java.util.UUID
 
-private const val AVERAGE_CASE_NOTES_PER_PRISONER = 134
-
 @Service
 @Transactional(readOnly = true)
 class CaseNoteMappingService(
   private val repository: CaseNoteMappingRepository,
   private val telemetryClient: TelemetryClient,
+  @Value("\${casenotes.average-case-notes-per-prisoner}") private val averageCaseNotesPerPrisoner: Int,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -148,7 +148,7 @@ class CaseNoteMappingService(
   suspend fun getCountByMigrationIdGroupedByPrisoner(
     pageRequest: Pageable,
     migrationId: String,
-  ): Long = repository.count() / AVERAGE_CASE_NOTES_PER_PRISONER // Approx estimate
+  ): Long = repository.count() / averageCaseNotesPerPrisoner // Approx estimate
 
   @Transactional
   suspend fun deleteMapping(dpsCaseNoteId: String) = repository.deleteById(dpsCaseNoteId)
