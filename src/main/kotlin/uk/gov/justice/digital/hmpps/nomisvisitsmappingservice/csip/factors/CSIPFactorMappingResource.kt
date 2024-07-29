@@ -132,7 +132,7 @@ class CSIPFactorMappingResource(
     ],
   )
   suspend fun getCSIPFactorMappingByDpsId(
-    @Schema(description = "DPS alert id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
+    @Schema(description = "DPS CSIP factor id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
     dpsCSIPFactorId: String,
   ): CSIPFactorMappingDto = factorMappingService.getMappingByDpsId(dpsCSIPFactorId = dpsCSIPFactorId)

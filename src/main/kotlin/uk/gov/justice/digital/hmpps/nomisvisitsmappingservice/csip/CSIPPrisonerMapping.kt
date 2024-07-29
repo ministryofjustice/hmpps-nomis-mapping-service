@@ -6,13 +6,12 @@ import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 
-data class CSIPMapping(
+data class CSIPPrisonerMapping(
 
   @Id
-  val dpsCSIPId: String,
-
-  val nomisCSIPId: Long,
   val offenderNo: String,
+
+  val count: Int,
 
   /**
    * ISO timestamp of batch job if a migration
@@ -31,22 +30,18 @@ data class CSIPMapping(
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is CSIPMapping) return false
+    if (other !is CSIPPrisonerMapping) return false
 
-    return dpsCSIPId != other.dpsCSIPId
+    if (offenderNo != other.offenderNo) return false
+
+    return true
   }
 
   override fun hashCode(): Int {
-    return dpsCSIPId.hashCode()
+    return offenderNo.hashCode()
   }
 
   override fun isNew(): Boolean = new
 
-  override fun getId(): String = dpsCSIPId
-}
-
-enum class CSIPMappingType {
-  MIGRATED,
-  NOMIS_CREATED,
-  DPS_CREATED,
+  override fun getId(): String = offenderNo
 }

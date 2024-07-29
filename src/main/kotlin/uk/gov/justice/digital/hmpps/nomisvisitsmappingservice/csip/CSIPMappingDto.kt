@@ -9,6 +9,9 @@ import java.time.LocalDateTime
 @Schema(description = "CSIP mapping")
 data class CSIPMappingDto(
 
+  @Schema(description = "Prisoner number")
+  val offenderNo: String,
+
   @Schema(description = "NOMIS CSIP id", required = true)
   val nomisCSIPId: Long,
 
@@ -19,19 +22,41 @@ data class CSIPMappingDto(
   @field:Size(max = 20)
   val label: String? = null,
 
-  @Schema(description = "Mapping type", allowableValues = ["MIGRATED", "NOMIS_CREATED", "DPS_CREATED"])
-  @field:Size(max = 20, message = "mappingType has a maximum length of 20")
-  val mappingType: String,
+  @Schema(description = "Mapping type")
+  val mappingType: CSIPMappingType = CSIPMappingType.DPS_CREATED,
 
   @Schema(description = "Date-time the mapping was created")
   val whenCreated: LocalDateTime? = null,
-) {
-  constructor(mapping: CSIPMapping) : this(
-    dpsCSIPId = mapping.dpsCSIPId,
-    nomisCSIPId = mapping.nomisCSIPId,
+)
 
-    label = mapping.label,
-    mappingType = mapping.mappingType.name,
-    whenCreated = mapping.whenCreated,
-  )
-}
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Mappings for a prisoner created during migration")
+data class PrisonerCSIPMappingsDto(
+  @Schema(description = "Label (a timestamp for migrated ids)")
+  val label: String? = null,
+
+  @Schema(description = "Mapping type")
+  val mappingType: CSIPMappingType = CSIPMappingType.DPS_CREATED,
+
+  @Schema(description = "Date time the mapping was created")
+  val whenCreated: LocalDateTime? = null,
+
+  @Schema(description = "Mapping IDs")
+  val mappings: List<CSIPMappingIdDto>,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "NOMIS to CSIP mapping IDs")
+data class CSIPMappingIdDto(
+  @Schema(description = "DPS CSIP id")
+  val dpsCSIPId: String,
+
+  @Schema(description = "NOMIS CSIP id")
+  val nomisCSIPId: Long,
+)
+
+@Schema(description = "All csip mappings for a prisoner created either via migration or synchronisation")
+data class AllPrisonerCSIPMappingsDto(
+  @Schema(description = "Mappings")
+  val mappings: List<CSIPMappingDto>,
+)
