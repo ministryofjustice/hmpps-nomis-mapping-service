@@ -1,109 +1,69 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip
 
-import com.microsoft.applicationinsights.TelemetryClient
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
-import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
 @Service
 @Transactional(readOnly = true)
 class CSIPMappingService(
   private val csipMappingRepository: CSIPMappingRepository,
-  private val telemetryClient: TelemetryClient,
+  private val csipPrisonerMappingRepository: CSIPPrisonerMappingRepository,
 ) {
-  private companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
-
-  fun alreadyExistsMessage(
-    duplicateMapping: CSIPMappingDto,
-    existingMapping: CSIPMappingDto,
-  ) =
-    """CSIP mapping already exists.
-       |Existing mapping: $existingMapping
-       |Duplicate mapping: $duplicateMapping
-    """.trimMargin()
 
   @Transactional
-  suspend fun createCSIPMapping(createMappingRequest: CSIPMappingDto) =
-    with(createMappingRequest) {
-      log.debug("creating csip {}", createMappingRequest)
-      csipMappingRepository.findById(dpsCSIPId)?.run {
-        if (this@run.nomisCSIPId == this@with.nomisCSIPId) {
-          log.debug(
-            "Not creating. All OK: {}",
-            alreadyExistsMessage(
-              duplicateMapping = createMappingRequest,
-              existingMapping = CSIPMappingDto(this@run),
-            ),
-          )
-          return
-        }
-        throw DuplicateMappingException(
-          messageIn = alreadyExistsMessage(
-            duplicateMapping = createMappingRequest,
-            existingMapping = CSIPMappingDto(this@run),
-          ),
-          duplicate = createMappingRequest,
-          existing = CSIPMappingDto(this@run),
-        )
-      }
+  suspend fun createCSIPMapping(mapping: CSIPMappingDto) =
+    csipMappingRepository.save(mapping.fromDto())
 
-      csipMappingRepository.findOneByNomisCSIPId(
-        nomisCSIPId = nomisCSIPId,
-      )?.run {
-        throw DuplicateMappingException(
-          messageIn = alreadyExistsMessage(
-            duplicateMapping = createMappingRequest,
-            existingMapping = CSIPMappingDto(this@run),
-          ),
-          duplicate = createMappingRequest,
-          existing = CSIPMappingDto(this),
-        )
-      }
-
-      csipMappingRepository.save(
-        CSIPMapping(
-          dpsCSIPId = dpsCSIPId,
-          nomisCSIPId = nomisCSIPId,
-          label = label,
-          mappingType = CSIPMappingType.valueOf(mappingType),
-        ),
-      )
-      telemetryClient.trackEvent(
-        "csip-mapping-created",
-        mapOf(
-          "dpsCSIPId" to dpsCSIPId,
-          "nomisCSIPId" to nomisCSIPId.toString(),
-          "batchId" to label,
-        ),
-        null,
-      )
-      log.debug("Mapping created with dpsCSIPId = $dpsCSIPId, nomisCSIPId=$nomisCSIPId")
-    }
-
-  suspend fun getMappingByNomisId(nomisCSIPId: Long): CSIPMappingDto =
+  suspend fun getMappingByNomisCSIPId(nomisCSIPId: Long): CSIPMappingDto =
     csipMappingRepository.findOneByNomisCSIPId(
       nomisCSIPId = nomisCSIPId,
     )
-      ?.let { CSIPMappingDto(it) }
-      ?: throw NotFoundException("CSIP with nomisCSIPId=$nomisCSIPId not found")
+      ?.toDto()
+      ?: throw NotFoundException("No CSIP mapping found for nomisCSIPId=$nomisCSIPId")
 
-  suspend fun getMappingByDPSId(dpsCSIPId: String): CSIPMappingDto =
+  suspend fun getMappingByDPSCSIPId(dpsCSIPId: String): CSIPMappingDto =
     csipMappingRepository.findById(dpsCSIPId)
-      ?.let { CSIPMappingDto(it) }
-      ?: throw NotFoundException("dpsCSIPId=$dpsCSIPId")
+      ?.toDto()
+      ?: throw NotFoundException("No CSIP mapping found for dpsCSIPId=$dpsCSIPId")
 
   @Transactional
   suspend fun deleteMappingByDPSId(dpsCSIPId: String) = csipMappingRepository.deleteById(dpsCSIPId)
+
+  @Transactional
+  suspend fun createMappings(offenderNo: String, prisonerMapping: PrisonerCSIPMappingsDto) {
+    // since we are replacing all csip remove old mappings so they can all be recreated
+    csipMappingRepository.deleteAllByOffenderNo(offenderNo)
+    csipMappingRepository.saveAll(
+      prisonerMapping.mappings.map {
+        CSIPMapping(
+          dpsCSIPId = it.dpsCSIPId,
+          nomisCSIPId = it.nomisCSIPId,
+          offenderNo = offenderNo,
+          label = prisonerMapping.label,
+          mappingType = prisonerMapping.mappingType,
+        )
+      },
+    ).collect()
+    csipPrisonerMappingRepository.save(
+      CSIPPrisonerMapping(
+        offenderNo = offenderNo,
+        count = prisonerMapping.mappings.size,
+        mappingType = prisonerMapping.mappingType,
+        label = prisonerMapping.label,
+      ),
+    )
+  }
+
+  suspend fun getMappings(offenderNo: String): AllPrisonerCSIPMappingsDto =
+    csipMappingRepository.findAllByOffenderNoOrderByNomisCSIPIdAsc(offenderNo).map { it.toDto() }.let { AllPrisonerCSIPMappingsDto(it) }
 
   @Transactional
   suspend fun deleteMappings(onlyMigrated: Boolean) =
@@ -113,7 +73,7 @@ class CSIPMappingService(
       csipMappingRepository.deleteAll()
     }
 
-  suspend fun getMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<CSIPMappingDto> =
+  suspend fun getByMigrationId(pageRequest: Pageable, migrationId: String): Page<CSIPMappingDto> =
     coroutineScope {
       val csipMapping = async {
         csipMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
@@ -128,7 +88,7 @@ class CSIPMappingService(
       }
 
       PageImpl(
-        csipMapping.await().toList().map { CSIPMappingDto(it) },
+        csipMapping.await().toList().map { it.toDto() },
         pageRequest,
         count.await(),
       )
@@ -136,6 +96,22 @@ class CSIPMappingService(
 
   suspend fun getMappingForLatestMigrated(): CSIPMappingDto =
     csipMappingRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(CSIPMappingType.MIGRATED)
-      ?.let { CSIPMappingDto(it) }
+      ?.toDto()
       ?: throw NotFoundException("No migrated mapping found")
 }
+fun CSIPMapping.toDto() = CSIPMappingDto(
+  dpsCSIPId = dpsCSIPId,
+  nomisCSIPId = nomisCSIPId,
+  offenderNo = offenderNo,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+fun CSIPMappingDto.fromDto() = CSIPMapping(
+  dpsCSIPId = dpsCSIPId,
+  nomisCSIPId = nomisCSIPId,
+  offenderNo = offenderNo,
+  label = label,
+  mappingType = mappingType,
+)

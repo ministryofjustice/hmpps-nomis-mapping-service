@@ -33,7 +33,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RequestMapping("/mapping/csip", produces = [MediaType.APPLICATION_JSON_VALUE])
 class CSIPMappingResource(private val mappingService: CSIPMappingService) {
 
-  @PostMapping("")
+  @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new CSIP Report mapping",
@@ -73,8 +73,9 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
       mappingService.createCSIPMapping(createMappingRequest)
     } catch (e: DuplicateKeyException) {
       throw DuplicateMappingException(
-        messageIn = "CSIP mapping already exists, detected by $e",
+        messageIn = "CSIP mapping already exists",
         duplicate = createMappingRequest,
+        existing = getExistingMappingSimilarTo(createMappingRequest),
         cause = e,
       )
     }
@@ -107,7 +108,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
     @Schema(description = "Nomis CSIP Id", required = true)
     @PathVariable
     nomisCSIPId: Long,
-  ): CSIPMappingDto = mappingService.getMappingByNomisId(nomisCSIPId)
+  ): CSIPMappingDto = mappingService.getMappingByNomisCSIPId(nomisCSIPId)
 
   @GetMapping("/dps-csip-id/{csipId}")
   @Operation(
@@ -137,7 +138,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
     @Schema(description = "DPS CSIP Id", example = "12345", required = true)
     @PathVariable
     csipId: String,
-  ): CSIPMappingDto = mappingService.getMappingByDPSId(csipId)
+  ): CSIPMappingDto = mappingService.getMappingByDPSCSIPId(csipId)
 
   @DeleteMapping("/dps-csip-id/{dpsCSIPId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -211,12 +212,12 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
       ),
     ],
   )
-  suspend fun getMigratedMappingsByMigrationId(
+  suspend fun getMappingsByMigrationId(
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<CSIPMappingDto> = mappingService.getMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<CSIPMappingDto> = mappingService.getByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   @GetMapping("/migrated/latest")
   @Operation(
@@ -247,4 +248,130 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
   )
   suspend fun getLatestMigratedCSIPMapping(): CSIPMappingDto =
     mappingService.getMappingForLatestMigrated()
+
+  @PostMapping("{offenderNo}/all")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates a set of new csip mapping for a prisoner",
+    description = "Creates a mapping between all the nomis csip ids and dps csip id. Requires ROLE_NOMIS_CSIP",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = PrisonerCSIPMappingsDto::class),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createMappingsForPrisoner(
+    @Schema(description = "NOMIS offender no", example = "A1234KT", required = true)
+    @PathVariable
+    offenderNo: String,
+    @RequestBody @Valid
+    prisonerMapping: PrisonerCSIPMappingsDto,
+  ) =
+    try {
+      mappingService.createMappings(offenderNo, prisonerMapping)
+    } catch (e: DuplicateKeyException) {
+      val duplicateMapping = getMappingIdThatIsDuplicate(prisonerMapping.mappings)
+      if (duplicateMapping != null) {
+        throw DuplicateMappingException(
+          messageIn = "CSIP mapping already exists",
+          duplicate = duplicateMapping.let {
+            CSIPMappingDto(
+              dpsCSIPId = it.dpsCSIPId,
+              nomisCSIPId = it.nomisCSIPId,
+              offenderNo = offenderNo,
+              label = prisonerMapping.label,
+              mappingType = prisonerMapping.mappingType,
+            )
+          },
+          existing = getExistingMappingSimilarTo(duplicateMapping),
+          cause = e,
+        )
+      }
+      throw e
+    }
+
+  @GetMapping("/{offenderNo}/all")
+  @Operation(
+    summary = "Gets all csip mappings for a prisoner",
+    description = "Gets all the mapping between nomis csip ids and dps csip id related to specific prisoner created either via migration or synchronisation. Requires ROLE_NOMIS_CSIP",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mappings for prisoner",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = AllPrisonerCSIPMappingsDto::class))],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getMappingsForPrisoner(
+    @Schema(description = "NOMIS offender no", example = "A1234KT", required = true)
+    @PathVariable
+    offenderNo: String,
+  ) = mappingService.getMappings(offenderNo)
+
+  private suspend fun getExistingMappingSimilarTo(mapping: CSIPMappingDto) = runCatching {
+    mappingService.getMappingByNomisCSIPId(
+      nomisCSIPId = mapping.nomisCSIPId,
+    )
+  }.getOrElse {
+    mappingService.getMappingByDPSCSIPId(
+      dpsCSIPId = mapping.dpsCSIPId,
+    )
+  }
+
+  private suspend fun getExistingMappingSimilarTo(mapping: CSIPMappingIdDto) = runCatching {
+    mappingService.getMappingByNomisCSIPId(
+      nomisCSIPId = mapping.nomisCSIPId,
+    )
+  }.getOrElse {
+    mappingService.getMappingByDPSCSIPId(
+      dpsCSIPId = mapping.dpsCSIPId,
+    )
+  }
+
+  private suspend fun getMappingIdThatIsDuplicate(mappings: List<CSIPMappingIdDto>): CSIPMappingIdDto? =
+    mappings.find {
+      // look for each mapping until I find one (i.e. that is there is no exception thrown)
+      kotlin.runCatching { getExistingMappingSimilarTo(it) }.map { true }.getOrElse { false }
+    }
+  private suspend fun getMappingThatIsDuplicate(mappings: List<CSIPMappingDto>): CSIPMappingDto? =
+    mappings.find {
+      // look for each mapping until I find one (i.e. that is there is no exception thrown)
+      kotlin.runCatching { getExistingMappingSimilarTo(it) }.map { true }.getOrElse { false }
+    }
 }
