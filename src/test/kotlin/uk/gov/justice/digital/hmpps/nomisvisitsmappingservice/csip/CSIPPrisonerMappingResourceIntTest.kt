@@ -1,8 +1,10 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip
 
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
+import org.hamcrest.Matchers
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -367,6 +369,183 @@ class CSIPPrisonerMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isEqualTo(201)
       }
+    }
+  }
+
+  @DisplayName("GET /mapping/csip/migration-id/{migrationId}/grouped-by-prisoner")
+  @Nested
+  inner class GetMappingByMigrationIdGroupedByPrisoner {
+
+    @AfterEach
+    internal fun deleteData() = runBlocking {
+      csipPrisonerRepository.deleteAll()
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get().uri("/mapping/csip/migration-id/2022-01-01T00:00:00/grouped-by-prisoner")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get().uri("/mapping/csip/migration-id/2022-01-01T00:00:00/grouped-by-prisoner")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get().uri("/mapping/csip/migration-id/2022-01-01T00:00:00/grouped-by-prisoner")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Test
+    fun `can retrieve all mappings by migration Id`() = runTest {
+      webTestClient.post()
+        .uri("/mapping/csip/A1111KT/all")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            PrisonerCSIPMappingsDto(
+              label = "2023-01-01T12:45:12",
+              mappingType = MIGRATED,
+              mappings = (1L..4L).map {
+                CSIPMappingIdDto(
+                  dpsCSIPId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
+                  nomisCSIPId = 54320 + it,
+                )
+              },
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post()
+        .uri("/mapping/csip/A2222KT/all")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            PrisonerCSIPMappingsDto(
+              label = "2023-01-01T12:45:12",
+              mappingType = MIGRATED,
+              mappings = (5L..6L).map {
+                CSIPMappingIdDto(
+                  dpsCSIPId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
+                  nomisCSIPId = 54320 + it,
+                )
+              },
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.post()
+        .uri("/mapping/csip/A1234KT/all")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            PrisonerCSIPMappingsDto(
+              label = "2022-01-01T12:43:12",
+              mappingType = MIGRATED,
+              mappings = listOf(
+                CSIPMappingIdDto(
+                  dpsCSIPId = "edcd118c-91ba-42ea-b5c4-404b453ad58b",
+                  nomisCSIPId = 54329L,
+                ),
+              ),
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.get().uri("/mapping/csip/migration-id/2023-01-01T12:45:12/grouped-by-prisoner")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(2)
+        .jsonPath("$.content..offenderNo").value(
+          Matchers.contains(
+            "A1111KT",
+            "A2222KT",
+          ),
+        )
+        .jsonPath("$.content..mappingsCount").value(
+          Matchers.contains(
+            4,
+            2,
+          ),
+        )
+      webTestClient.get().uri("/mapping/csip/migration-id/2023-01-01T12:45:12/grouped-by-prisoner?size=1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(2)
+        .jsonPath("numberOfElements").isEqualTo(1)
+        .jsonPath("$.content[0].offenderNo").isEqualTo("A1111KT")
+        .jsonPath("$.content[0].whenCreated").value<String> {
+          assertThat(LocalDateTime.parse(it)).isCloseTo(
+            LocalDateTime.now(),
+            within(10, ChronoUnit.MINUTES),
+          )
+        }
+    }
+
+    @Test
+    fun `200 response even when no mappings are found`() {
+      webTestClient.get().uri("/mapping/csip/migration-id/2044-01-01")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(0)
+        .jsonPath("content").isEmpty
+    }
+
+    @Test
+    fun `can request a different page size`() = runTest {
+      (1L..6L).forEach {
+        repository.save(
+          CSIPMapping(
+            dpsCSIPId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
+            nomisCSIPId = 54320 + it,
+            label = "2023-01-01T12:45:12",
+            mappingType = MIGRATED,
+            offenderNo = "A1234KT",
+          ),
+        )
+      }
+      webTestClient.get().uri {
+        it.path("/mapping/csip/migration-id/2023-01-01T12:45:12")
+          .queryParam("size", "2")
+          .queryParam("sort", "nomisCSIPId,asc")
+          .build()
+      }
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(6)
+        .jsonPath("numberOfElements").isEqualTo(2)
+        .jsonPath("number").isEqualTo(0)
+        .jsonPath("totalPages").isEqualTo(3)
+        .jsonPath("size").isEqualTo(2)
     }
   }
 }

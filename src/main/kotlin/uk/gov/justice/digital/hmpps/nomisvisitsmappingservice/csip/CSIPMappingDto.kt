@@ -60,3 +60,16 @@ data class AllPrisonerCSIPMappingsDto(
   @Schema(description = "Mappings")
   val mappings: List<CSIPMappingDto>,
 )
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Summary of mappings for a prisoner created during migration")
+data class PrisonerCSIPMappingsSummaryDto(
+  @Schema(description = "The prisoner number for the set of mappings")
+  val offenderNo: String,
+
+  @Schema(description = "Count of the number mappings migrated (does not include subsequent csips synchronised")
+  val mappingsCount: Int,
+
+  @Schema(description = "Date time the mapping was created")
+  val whenCreated: LocalDateTime?,
+)

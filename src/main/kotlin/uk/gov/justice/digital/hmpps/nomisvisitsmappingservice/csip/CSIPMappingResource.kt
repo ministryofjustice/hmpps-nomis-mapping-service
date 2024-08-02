@@ -249,7 +249,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
   suspend fun getLatestMigratedCSIPMapping(): CSIPMappingDto =
     mappingService.getMappingForLatestMigrated()
 
-  @PostMapping("{offenderNo}/all")
+  @PostMapping("/{offenderNo}/all")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a set of new csip mapping for a prisoner",
@@ -343,6 +343,35 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
     @PathVariable
     offenderNo: String,
   ) = mappingService.getMappings(offenderNo)
+
+  @GetMapping("/migration-id/{migrationId}/grouped-by-prisoner")
+  @Operation(
+    summary = "Get paged mappings by migration id grouped by prisoner",
+    description = "Retrieve all mappings of type 'MIGRATED' for the given migration id (identifies a single migration run) grouped by prisoner. Results are paged.",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping page returned",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getMappingsByMigrationIdGroupByPrisoner(
+    @PageableDefault pageRequest: Pageable,
+    @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
+    @PathVariable
+    migrationId: String,
+  ): Page<PrisonerCSIPMappingsSummaryDto> =
+    mappingService.getByMigrationIdGroupedByPrisoner(pageRequest = pageRequest, migrationId = migrationId)
 
   private suspend fun getExistingMappingSimilarTo(mapping: CSIPMappingDto) = runCatching {
     mappingService.getMappingByNomisCSIPId(
