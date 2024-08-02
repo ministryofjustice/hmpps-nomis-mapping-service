@@ -62,6 +62,36 @@ class CSIPMappingService(
     )
   }
 
+  suspend fun getByMigrationIdGroupedByPrisoner(pageRequest: Pageable, migrationId: String): Page<PrisonerCSIPMappingsSummaryDto> = coroutineScope {
+    val mappings = async {
+      csipPrisonerMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+        label = migrationId,
+        mappingType = CSIPMappingType.MIGRATED,
+        pageRequest = pageRequest,
+      )
+    }
+
+    val count = async {
+      csipPrisonerMappingRepository.countAllByLabelAndMappingType(
+        migrationId = migrationId,
+        mappingType = CSIPMappingType.MIGRATED,
+      )
+    }
+
+    PageImpl(
+      mappings.await().toList()
+        .map {
+          PrisonerCSIPMappingsSummaryDto(
+            offenderNo = it.offenderNo,
+            mappingsCount = it.count,
+            whenCreated = it.whenCreated,
+          )
+        },
+      pageRequest,
+      count.await(),
+    )
+  }
+
   suspend fun getMappings(offenderNo: String): AllPrisonerCSIPMappingsDto =
     csipMappingRepository.findAllByOffenderNoOrderByNomisCSIPIdAsc(offenderNo).map { it.toDto() }.let { AllPrisonerCSIPMappingsDto(it) }
 
