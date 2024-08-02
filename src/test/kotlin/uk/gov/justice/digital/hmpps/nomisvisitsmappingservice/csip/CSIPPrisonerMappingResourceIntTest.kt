@@ -4,7 +4,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
-import org.hamcrest.Matchers
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -479,18 +478,13 @@ class CSIPPrisonerMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
         .expectBody()
         .jsonPath("totalElements").isEqualTo(2)
-        .jsonPath("$.content..offenderNo").value(
-          Matchers.contains(
-            "A1111KT",
-            "A2222KT",
-          ),
-        )
-        .jsonPath("$.content..mappingsCount").value(
-          Matchers.contains(
-            4,
-            2,
-          ),
-        )
+        .jsonPath("$.content..offenderNo").value<List<String>> {
+          assertThat(it).contains("A1111KT", "A2222KT")
+        }
+        .jsonPath("$.content..mappingsCount").value<List<Int>> {
+          assertThat(it).contains(4, 2)
+        }
+
       webTestClient.get().uri("/mapping/csip/migration-id/2023-01-01T12:45:12/grouped-by-prisoner?size=1")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
         .exchange()
