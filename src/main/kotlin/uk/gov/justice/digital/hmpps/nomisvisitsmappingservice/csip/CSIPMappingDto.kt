@@ -9,9 +9,6 @@ import java.time.LocalDateTime
 @Schema(description = "CSIP mapping")
 data class CSIPMappingDto(
 
-  @Schema(description = "Prisoner number")
-  val offenderNo: String,
-
   @Schema(description = "NOMIS CSIP id", required = true)
   val nomisCSIPId: Long,
 

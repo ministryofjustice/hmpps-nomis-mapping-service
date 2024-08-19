@@ -23,7 +23,6 @@ class CSIPMappingRepositoryTest : TestBase() {
   fun saveCSIPMapping(): Unit = runBlocking {
     repository.save(
       CSIPMapping(
-        offenderNo = "54321",
         dpsCSIPId = "123",
         nomisCSIPId = 456,
         label = "TIMESTAMP",
@@ -35,7 +34,6 @@ class CSIPMappingRepositoryTest : TestBase() {
     with(persistedCSIPMappingByCSIPId) {
       assertThat(dpsCSIPId).isEqualTo("123")
       assertThat(nomisCSIPId).isEqualTo(456L)
-      assertThat(offenderNo).isEqualTo("54321")
       assertThat(label).isEqualTo("TIMESTAMP")
       assertThat(mappingType).isEqualTo(MIGRATED)
     }
@@ -44,7 +42,6 @@ class CSIPMappingRepositoryTest : TestBase() {
     with(persistedCSIPMappingByNomisId) {
       assertThat(dpsCSIPId).isEqualTo("123")
       assertThat(nomisCSIPId).isEqualTo(456L)
-      assertThat(offenderNo).isEqualTo("54321")
       assertThat(label).isEqualTo("TIMESTAMP")
       assertThat(mappingType).isEqualTo(MIGRATED)
     }

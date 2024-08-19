@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -15,7 +14,6 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundEx
 @Transactional(readOnly = true)
 class CSIPMappingService(
   private val csipMappingRepository: CSIPMappingRepository,
-  private val csipPrisonerMappingRepository: CSIPPrisonerMappingRepository,
 ) {
 
   @Transactional
@@ -36,64 +34,6 @@ class CSIPMappingService(
 
   @Transactional
   suspend fun deleteMappingByDPSId(dpsCSIPId: String) = csipMappingRepository.deleteById(dpsCSIPId)
-
-  @Transactional
-  suspend fun createMappings(offenderNo: String, prisonerMapping: PrisonerCSIPMappingsDto) {
-    // since we are replacing all csip remove old mappings so they can all be recreated
-    csipMappingRepository.deleteAllByOffenderNo(offenderNo)
-    csipMappingRepository.saveAll(
-      prisonerMapping.mappings.map {
-        CSIPMapping(
-          dpsCSIPId = it.dpsCSIPId,
-          nomisCSIPId = it.nomisCSIPId,
-          offenderNo = offenderNo,
-          label = prisonerMapping.label,
-          mappingType = prisonerMapping.mappingType,
-        )
-      },
-    ).collect()
-    csipPrisonerMappingRepository.save(
-      CSIPPrisonerMapping(
-        offenderNo = offenderNo,
-        count = prisonerMapping.mappings.size,
-        mappingType = prisonerMapping.mappingType,
-        label = prisonerMapping.label,
-      ),
-    )
-  }
-
-  suspend fun getByMigrationIdGroupedByPrisoner(pageRequest: Pageable, migrationId: String): Page<PrisonerCSIPMappingsSummaryDto> = coroutineScope {
-    val mappings = async {
-      csipPrisonerMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
-        label = migrationId,
-        mappingType = CSIPMappingType.MIGRATED,
-        pageRequest = pageRequest,
-      )
-    }
-
-    val count = async {
-      csipPrisonerMappingRepository.countAllByLabelAndMappingType(
-        migrationId = migrationId,
-        mappingType = CSIPMappingType.MIGRATED,
-      )
-    }
-
-    PageImpl(
-      mappings.await().toList()
-        .map {
-          PrisonerCSIPMappingsSummaryDto(
-            offenderNo = it.offenderNo,
-            mappingsCount = it.count,
-            whenCreated = it.whenCreated,
-          )
-        },
-      pageRequest,
-      count.await(),
-    )
-  }
-
-  suspend fun getMappings(offenderNo: String): AllPrisonerCSIPMappingsDto =
-    csipMappingRepository.findAllByOffenderNoOrderByNomisCSIPIdAsc(offenderNo).map { it.toDto() }.let { AllPrisonerCSIPMappingsDto(it) }
 
   @Transactional
   suspend fun deleteMappings(onlyMigrated: Boolean) =
@@ -132,7 +72,6 @@ class CSIPMappingService(
 fun CSIPMapping.toDto() = CSIPMappingDto(
   dpsCSIPId = dpsCSIPId,
   nomisCSIPId = nomisCSIPId,
-  offenderNo = offenderNo,
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,
@@ -141,7 +80,6 @@ fun CSIPMapping.toDto() = CSIPMappingDto(
 fun CSIPMappingDto.fromDto() = CSIPMapping(
   dpsCSIPId = dpsCSIPId,
   nomisCSIPId = nomisCSIPId,
-  offenderNo = offenderNo,
   label = label,
   mappingType = mappingType,
 )
