@@ -12,7 +12,4 @@ interface CSIPMappingRepository : CoroutineCrudRepository<CSIPMapping, String> {
   suspend fun countAllByLabelAndMappingType(label: String, mappingType: CSIPMappingType): Long
   suspend fun findAllByLabelAndMappingTypeOrderByLabelDesc(label: String, mappingType: CSIPMappingType, pageable: Pageable): Flow<CSIPMapping>
   suspend fun deleteByMappingTypeEquals(mappingType: CSIPMappingType): CSIPMapping?
-
-  suspend fun deleteAllByOffenderNo(offenderNo: String)
-  suspend fun findAllByOffenderNoOrderByNomisCSIPIdAsc(offenderNo: String): List<CSIPMapping>
 }

@@ -39,7 +39,6 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     label: String = "2022-01-01",
     mappingType: CSIPMappingType = NOMIS_CREATED,
   ): CSIPMappingDto = CSIPMappingDto(
-    offenderNo = "54321",
     nomisCSIPId = nomisCSIPId,
     dpsCSIPId = dpsCSIPId,
     label = label,
@@ -82,7 +81,6 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
           nomisCSIPId = 54321L,
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
-          offenderNo = "A1234KT",
         ),
       )
     }
@@ -133,7 +131,6 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
             CSIPMappingDto(
               nomisCSIPId = existingMapping.nomisCSIPId,
               dpsCSIPId = dpsCSIPId,
-              offenderNo = existingMapping.offenderNo,
             ),
           ),
         )
@@ -168,7 +165,6 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
             CSIPMappingDto(
               nomisCSIPId = nomisCSIPId,
               dpsCSIPId = existingMapping.dpsCSIPId,
-              offenderNo = existingMapping.offenderNo,
             ),
           ),
         )
@@ -204,8 +200,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
               "nomisCSIPId" : $nomisCSIPId,
               "dpsCSIPId"   : "$dpsCSIPId",
               "label"       : "2022-01-01",
-              "mappingType" : "DPS_CREATED",
-              "offenderNo"  : "A1234BC"
+              "mappingType" : "DPS_CREATED"
             }""",
           ),
         )
@@ -224,7 +219,6 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping1.dpsCSIPId).isEqualTo(dpsCSIPId)
       assertThat(mapping1.label).isEqualTo("2022-01-01")
       assertThat(mapping1.mappingType).isEqualTo(DPS_CREATED)
-      assertThat(mapping1.offenderNo).isEqualTo("A1234BC")
 
       val mapping2 = webTestClient.get().uri("/mapping/csip/dps-csip-id/$dpsCSIPId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
@@ -252,8 +246,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
               "nomisCSIPId" : $nomisCSIPId,
               "dpsCSIPId"   : "$dpsCSIPId",
               "label"       : "2022-01-01",
-              "mappingType" : "DPS_CREATED",
-              "offenderNo"  : "A1234BC"
+              "mappingType" : "DPS_CREATED"
            }""",
           ),
         )
@@ -270,8 +263,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
                 "nomisCSIPId" : $nomisCSIPId,
                 "dpsCSIPId"   : "$dpsCSIPId",
                 "label"       : "2022-01-01",
-                "mappingType" : "DPS_CREATED",
-                "offenderNo"  : "A1234BC"
+                "mappingType" : "DPS_CREATED"
               }""",
             ),
           )
@@ -287,7 +279,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Nested
-    inner class Validation() {
+    inner class Validation {
       @Test
       fun `will default to DPS_CREATED if missing mapping type`() {
         webTestClient.post().uri("/mapping/csip")
@@ -299,8 +291,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
               """{
                 "nomisCSIPId" : "55665",
                 "label"       : "2022-01-01",
-                "dpsCSIPId"   : "3ecd118c-41ba-42ea-b5c4-404b453ad123",
-                "offenderNo"  : "A1234BC"
+                "dpsCSIPId"   : "3ecd118c-41ba-42ea-b5c4-404b453ad123"
               }""",
             ),
           )
@@ -346,8 +337,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
                 """{
                 "dpsCSIPId" : "$DPS_CSIP_ID",
                 "label"       : "2022-01-01",
-                "mappingType" : "DPS_CREATED",
-                "offenderNo" : "A1234BC"
+                "mappingType" : "DPS_CREATED"
               }""",
               ),
             )
@@ -371,32 +361,6 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
                 """{
                 "nomisCSIPId" : $NOMIS_CSIP_ID,
                 "label"       : "2022-01-01",
-                "mappingType" : "DPS_CREATED",
-                "offenderNo" : "A1234BC"
-              }""",
-              ),
-            )
-            .exchange()
-            .expectStatus().isBadRequest
-            .expectBody(ErrorResponse::class.java)
-            .returnResult().responseBody?.userMessage,
-        )
-          .contains("Validation failure: JSON decoding error")
-          .contains("dpsCSIPId")
-      }
-
-      @Test
-      fun `returns 400 when offenderNo is missing`() {
-        assertThat(
-          webTestClient.post().uri("/mapping/csip")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(
-              BodyInserters.fromValue(
-                """{
-                "nomisCSIPId" : $NOMIS_CSIP_ID,
-                "dpsCSIPId"   : "$DPS_CSIP_ID",
-                "label"       : "2022-01-01",
                 "mappingType" : "DPS_CREATED"
               }""",
               ),
@@ -407,7 +371,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
             .returnResult().responseBody?.userMessage,
         )
           .contains("Validation failure: JSON decoding error")
-          .contains("offenderNo")
+          .contains("dpsCSIPId")
       }
     }
   }
@@ -499,8 +463,8 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
   @Nested
   inner class GetCSIPMapping {
 
-    val nomisCSIPId = 4422L
-    val dpsCSIPId = UUID.randomUUID().toString()
+    private val nomisCSIPId = 4422L
+    private val dpsCSIPId = UUID.randomUUID().toString()
 
     @AfterEach
     internal fun deleteData() = runBlocking {
@@ -591,7 +555,6 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         CSIPMapping(
           dpsCSIPId = UUID.randomUUID().toString(),
           nomisCSIPId = 22334L,
-          offenderNo = "A1234KT",
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -600,7 +563,6 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
     @AfterEach
     fun tearDown() = runTest {
-      // csipPrisonerRepository.deleteAll()
       repository.deleteAll()
     }
 

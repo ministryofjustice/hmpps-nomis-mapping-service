@@ -12,7 +12,6 @@ data class CSIPMapping(
   val dpsCSIPId: String,
 
   val nomisCSIPId: Long,
-  val offenderNo: String,
 
   /**
    * ISO timestamp of batch job if a migration
