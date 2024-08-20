@@ -125,6 +125,89 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("GET /mapping/court-sentencing/court-cases/nomis-court-case-id/{courtCaseId}")
+  inner class GetMappingByNomisId {
+    lateinit var courtCaseMapping: CourtCaseMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      courtCaseMapping = repository.save(
+        CourtCaseMapping(
+          dpsCourtCaseId = DPS_COURT_CASE_ID,
+          nomisCourtCaseId = NOMIS_COURT_CASE_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtCaseMappingType.MIGRATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-cases/nomis-court-case-id/${courtCaseMapping.nomisCourtCaseId}")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-cases/nomis-court-case-id/${courtCaseMapping.nomisCourtCaseId}")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-cases/nomis-court-case-id/${courtCaseMapping.nomisCourtCaseId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 404 when mapping does not exist`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-cases/nomis-court-case-id/879687")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNotFound
+          .expectBody()
+          .jsonPath("developerMessage").isEqualTo("Nomis Court case Id =879687")
+      }
+
+      @Test
+      fun `will return 200 when mapping does exist`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-cases/nomis-court-case-id/${courtCaseMapping.nomisCourtCaseId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisCourtCaseId").isEqualTo(courtCaseMapping.nomisCourtCaseId)
+          .jsonPath("dpsCourtCaseId").isEqualTo(courtCaseMapping.dpsCourtCaseId)
+          .jsonPath("mappingType").isEqualTo(courtCaseMapping.mappingType.name)
+          .jsonPath("label").isEqualTo(courtCaseMapping.label!!)
+          .jsonPath("whenCreated").value<String> {
+            assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+          }
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("POST /mapping/court-sentencing/court-cases")
   inner class CreateMapping {
     private lateinit var existingMapping: CourtCaseMapping
