@@ -52,11 +52,43 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
       ),
     ],
   )
-  suspend fun getMappingByNomisId(
+  suspend fun getMappingByDpsId(
     @Schema(description = "DPS court case id", example = "D123", required = true)
     @PathVariable
     courtCaseId: String,
   ): CourtCaseMappingDto = mappingService.getCourtCaseMappingByDpsId(
+    courtCaseId = courtCaseId,
+  )
+
+  @GetMapping("/court-cases/nomis-court-case-id/{courtCaseId}")
+  @Operation(
+    summary = "get court case mapping",
+    description = "Retrieves a mapping by NOMIS id. Requires role NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = CourtCaseMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getMappingByNomisId(
+    @Schema(description = "NOMIS court case id", example = "123", required = true)
+    @PathVariable
+    courtCaseId: Long,
+  ): CourtCaseMappingDto = mappingService.getCourtCaseMappingByNomisId(
     courtCaseId = courtCaseId,
   )
 
