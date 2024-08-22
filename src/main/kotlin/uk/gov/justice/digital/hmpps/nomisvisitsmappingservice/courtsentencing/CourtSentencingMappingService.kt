@@ -1,7 +1,13 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.courtsentencing
 
 import com.microsoft.applicationinsights.TelemetryClient
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
@@ -206,6 +212,29 @@ class CourtSentencingMappingService(
   @Transactional
   suspend fun deleteCourtChargeMappingByNomisId(courtChargeId: Long) =
     courtChargeMappingRepository.deleteByNomisCourtChargeId(courtChargeId)
+
+  suspend fun getCourtCaseMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<CourtCaseMappingDto> = coroutineScope {
+    val mappings = async {
+      courtCaseMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+        label = migrationId,
+        mappingType = CourtCaseMappingType.MIGRATED,
+        pageRequest = pageRequest,
+      )
+    }
+
+    val count = async {
+      courtCaseMappingRepository.countAllByLabelAndMappingType(
+        migrationId = migrationId,
+        mappingType = CourtCaseMappingType.MIGRATED,
+      )
+    }
+
+    PageImpl(
+      mappings.await().toList().map { it.toCourtCaseMappingDto() },
+      pageRequest,
+      count.await(),
+    )
+  }
 }
 
 fun CourtCaseMapping.toCourtCaseMappingDto(): CourtCaseMappingDto = CourtCaseMappingDto(
