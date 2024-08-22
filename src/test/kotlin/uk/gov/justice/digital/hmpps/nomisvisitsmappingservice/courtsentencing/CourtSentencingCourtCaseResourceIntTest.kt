@@ -1,8 +1,10 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.courtsentencing
 
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
+import org.hamcrest.Matchers
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -709,6 +711,121 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isNotFound
       }
+    }
+  }
+
+  @DisplayName("GET /mapping/court-sentencing/court-cases/migration-id/{migrationId}")
+  @Nested
+  inner class GetMappingByMigrationIdTest {
+
+    @AfterEach
+    internal fun deleteData() = runBlocking {
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get().uri("/mapping/court-sentencing/court-cases/migration-id/2022-01-01T00:00:00")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get().uri("/mapping/court-sentencing/court-cases/migration-id/2022-01-01T00:00:00")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get().uri("/mapping/court-sentencing/court-cases/migration-id/2022-01-01T00:00:00")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Test
+    fun `can retrieve all mappings by migration Id`() = runTest {
+      (1L..4L).forEach {
+        repository.save(
+          CourtCaseMapping(
+            dpsCourtCaseId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
+            nomisCourtCaseId = it,
+            label = "2023-01-01T12:45:12",
+            mappingType = CourtCaseMappingType.MIGRATED,
+          ),
+        )
+      }
+
+      repository.save(
+        CourtCaseMapping(
+          dpsCourtCaseId = "edcd118c-91ba-42ea-b5c4-404b453ad58b",
+          nomisCourtCaseId = 99,
+          label = "2022-01-01T12:43:12",
+          mappingType = CourtCaseMappingType.MIGRATED,
+        ),
+      )
+
+      webTestClient.get().uri("/mapping/court-sentencing/court-cases/migration-id/2023-01-01T12:45:12")
+        .headers(setAuthorisation(roles = listOf("NOMIS_COURT_SENTENCING")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(4)
+        .jsonPath("$.content..nomisCourtCaseId").value(
+          Matchers.contains(
+            1,
+            2,
+            3,
+            4,
+          ),
+        )
+        .jsonPath("$.content[0].whenCreated").isNotEmpty
+    }
+
+    @Test
+    fun `200 response even when no mappings are found`() {
+      webTestClient.get().uri("/mapping/court-sentencing/court-cases/migration-id/2044-01-01")
+        .headers(setAuthorisation(roles = listOf("NOMIS_COURT_SENTENCING")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(0)
+        .jsonPath("content").isEmpty
+    }
+
+    @Test
+    fun `can request a different page size`() = runTest {
+      (1L..6L).forEach {
+        repository.save(
+          CourtCaseMapping(
+            dpsCourtCaseId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
+            nomisCourtCaseId = it,
+            label = "2023-01-01T12:45:12",
+            mappingType = CourtCaseMappingType.MIGRATED,
+          ),
+        )
+      }
+      webTestClient.get().uri {
+        it.path("/mapping/court-sentencing/court-cases/migration-id/2023-01-01T12:45:12")
+          .queryParam("size", "2")
+          .queryParam("sort", "nomisCourtCaseId,asc")
+          .build()
+      }
+        .headers(setAuthorisation(roles = listOf("NOMIS_COURT_SENTENCING")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("totalElements").isEqualTo(6)
+        .jsonPath("numberOfElements").isEqualTo(2)
+        .jsonPath("number").isEqualTo(0)
+        .jsonPath("totalPages").isEqualTo(3)
+        .jsonPath("size").isEqualTo(2)
     }
   }
 }
