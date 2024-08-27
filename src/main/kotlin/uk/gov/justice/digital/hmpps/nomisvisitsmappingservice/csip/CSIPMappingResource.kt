@@ -140,7 +140,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
     csipId: String,
   ): CSIPMappingDto = mappingService.getMappingByDPSCSIPId(csipId)
 
-  @DeleteMapping("/dps-csip-id/{dpsCSIPId}")
+  @DeleteMapping("/dps-csip-id/{dpsCSIPId}/all")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a specific CSIP mapping by DPS CSIP id",
@@ -163,7 +163,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
     dpsCSIPId: String,
   ) = mappingService.deleteMappingByDPSId(dpsCSIPId)
 
-  @DeleteMapping()
+  @DeleteMapping("/all")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes CSIP mappings.",
