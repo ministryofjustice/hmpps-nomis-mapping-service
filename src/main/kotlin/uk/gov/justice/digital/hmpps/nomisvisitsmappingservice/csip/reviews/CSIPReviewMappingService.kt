@@ -4,11 +4,15 @@ import com.microsoft.applicationinsights.TelemetryClient
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
 @Service
 @Transactional(readOnly = true)
 class CSIPReviewMappingService(
+  private val csipMappingRepository: CSIPMappingRepository,
   private val csipReviewMappingRepository: CSIPReviewMappingRepository,
   private val telemetryClient: TelemetryClient,
 ) {
@@ -21,10 +25,19 @@ class CSIPReviewMappingService(
     with(createMappingRequest) {
       log.debug("creating csip review {}", createMappingRequest)
 
+      val csipReportMappingId = csipMappingRepository.save(
+        CSIPMapping(
+          dpsCSIPId = "123",
+          nomisCSIPId = 456,
+          label = label,
+          mappingType = CSIPMappingType.MIGRATED,
+        ),
+      ).dpsCSIPId
       csipReviewMappingRepository.save(
         CSIPReviewMapping(
           dpsCSIPReviewId = dpsCSIPReviewId,
           nomisCSIPReviewId = nomisCSIPReviewId,
+          dpsCSIPReportId = csipReportMappingId,
           label = label,
           mappingType = mappingType,
         ),
