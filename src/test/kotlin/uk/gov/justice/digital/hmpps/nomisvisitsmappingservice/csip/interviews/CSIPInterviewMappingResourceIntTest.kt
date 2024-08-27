@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
@@ -24,6 +27,9 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var repository: CSIPInterviewMappingRepository
+
+  @Autowired
+  private lateinit var csipReportRepository: CSIPMappingRepository
 
   @Nested
   @DisplayName("POST /mapping/csip/interviews")
@@ -38,10 +44,20 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setUp() = runTest {
+      csipReportRepository.save(
+        CSIPMapping(
+          dpsCSIPId = "987",
+          nomisCSIPId = 654,
+          label = "TIMESTAMP",
+          mappingType = CSIPMappingType.MIGRATED,
+        ),
+      )
+
       existingMapping = repository.save(
         CSIPInterviewMapping(
           dpsCSIPInterviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
           nomisCSIPInterviewId = 12345L,
+          dpsCSIPReportId = "987",
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -51,6 +67,7 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
     @AfterEach
     internal fun deleteData() = runBlocking {
       repository.deleteAll()
+      csipReportRepository.deleteAll()
     }
 
     @Nested
@@ -104,7 +121,7 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
           repository.findOneByNomisCSIPInterviewId(nomisCSIPInterviewId = mapping.nomisCSIPInterviewId)!!
 
         assertThat(createdMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
-        assertThat(createdMapping.dpsCSIPInterviewId).isEqualTo(mapping.dpsCSIPInterviewId)
+        assertThat(createdMapping.nomisCSIPInterviewId).isEqualTo(mapping.nomisCSIPInterviewId)
         assertThat(createdMapping.dpsCSIPInterviewId).isEqualTo(mapping.dpsCSIPInterviewId)
         assertThat(createdMapping.mappingType).isEqualTo(mapping.mappingType)
         assertThat(createdMapping.label).isEqualTo(mapping.label)
@@ -122,7 +139,8 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
               """
                 {
                   "nomisCSIPInterviewId": 54321,
-                  "dpsCSIPInterviewId": "018f95e-459d-4d0d-9ccd-1fddf4315b2a"
+                  "dpsCSIPInterviewId": "018f95e-459d-4d0d-9ccd-1fddf4315b2a",
+                  "dpsCSIPReportId": "987"
                 }
               """.trimIndent(),
             ),
@@ -298,13 +316,23 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("DELETE /mapping/csip/interviews/dps-csip-interview-id/{dpsCSIPInterviewId}")
   inner class DeleteMapping {
     lateinit var mapping: CSIPInterviewMapping
+    private lateinit var dpsCsipReportId: String
 
     @BeforeEach
     fun setUp() = runTest {
+      dpsCsipReportId = csipReportRepository.save(
+        CSIPMapping(
+          dpsCSIPId = "987",
+          nomisCSIPId = 654,
+          label = "TIMESTAMP",
+          mappingType = CSIPMappingType.MIGRATED,
+        ),
+      ).dpsCSIPId
       mapping = repository.save(
         CSIPInterviewMapping(
           dpsCSIPInterviewId = "edcd118c-41ba-42ea-b5c4-404b453ad5aa",
           nomisCSIPInterviewId = 8912L,
+          dpsCSIPReportId = dpsCsipReportId,
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -314,6 +342,7 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
     @AfterEach
     fun tearDown() = runTest {
       repository.deleteAll()
+      csipReportRepository.deleteAll()
     }
 
     @Nested
@@ -386,10 +415,19 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setUp() = runTest {
+      csipReportRepository.save(
+        CSIPMapping(
+          dpsCSIPId = "987",
+          nomisCSIPId = 654,
+          label = "TIMESTAMP",
+          mappingType = CSIPMappingType.MIGRATED,
+        ),
+      )
       mapping = repository.save(
         CSIPInterviewMapping(
           dpsCSIPInterviewId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisCSIPInterviewId = 2345L,
+          dpsCSIPReportId = "987",
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -399,6 +437,7 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
     @AfterEach
     fun tearDown() = runTest {
       repository.deleteAll()
+      csipReportRepository.deleteAll()
     }
 
     @Nested
@@ -467,10 +506,19 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setUp() = runTest {
+      csipReportRepository.save(
+        CSIPMapping(
+          dpsCSIPId = "765",
+          nomisCSIPId = 654,
+          label = "TIMESTAMP",
+          mappingType = CSIPMappingType.MIGRATED,
+        ),
+      )
       mapping = repository.save(
         CSIPInterviewMapping(
           dpsCSIPInterviewId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisCSIPInterviewId = 54321L,
+          dpsCSIPReportId = "765",
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -480,6 +528,7 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
     @AfterEach
     fun tearDown() = runTest {
       repository.deleteAll()
+      csipReportRepository.deleteAll()
     }
 
     @Nested

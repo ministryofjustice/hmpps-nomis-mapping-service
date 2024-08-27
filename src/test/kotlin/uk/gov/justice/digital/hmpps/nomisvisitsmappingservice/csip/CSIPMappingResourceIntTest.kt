@@ -12,12 +12,16 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingType.DPS_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingType.NOMIS_CREATED
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingType
@@ -38,6 +42,9 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var csipPlanRepository: CSIPPlanMappingRepository
+
+  @Autowired
+  private lateinit var csipInterviewRepository: CSIPInterviewMappingRepository
 
   private fun createCSIPMapping(
     nomisCSIPId: Long = NOMIS_CSIP_ID,
@@ -650,6 +657,8 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     lateinit var mapping: CSIPMapping
     private var dpsCsipPlanId = "0"
     private var dpsCsipPlanId2 = "0"
+    private var dpsCsipInterviewId = "0"
+    private var dpsCsipInterviewId2 = "0"
 
     @BeforeEach
     fun setUp() = runTest {
@@ -681,24 +690,38 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
           mappingType = CSIPPlanMappingType.DPS_CREATED,
         ),
       ).dpsCSIPPlanId
+
+      dpsCsipInterviewId = csipInterviewRepository.save(
+        CSIPInterviewMapping(
+          dpsCSIPInterviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+          nomisCSIPInterviewId = 12345L,
+          dpsCSIPReportId = "${mapping.dpsCSIPId}",
+          label = "2023-01-01T12:45:12",
+          mappingType = CSIPInterviewMappingType.MIGRATED,
+        ),
+      ).dpsCSIPInterviewId
+
+      dpsCsipInterviewId2 = csipInterviewRepository.save(
+        CSIPInterviewMapping(
+          dpsCSIPInterviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdaa",
+          nomisCSIPInterviewId = 12346L,
+          dpsCSIPReportId = "${mapping.dpsCSIPId}",
+          label = "2023-01-01T12:45:12",
+          mappingType = CSIPInterviewMappingType.DPS_CREATED,
+        ),
+      ).dpsCSIPInterviewId
     }
 
     @AfterEach
     fun tearDown() = runTest {
       repository.deleteAll()
       csipPlanRepository.deleteAll()
+      csipInterviewRepository.deleteAll()
     }
 
     @Test
     internal fun `delete removes child mappings`() = runTest {
-      webTestClient.get()
-        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
-        .exchange().expectStatus().isOk
-      webTestClient.get()
-        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId2")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
-        .exchange().expectStatus().isOk
+      checkChildStatusValues(HttpStatus.OK)
 
       // delete report mapping
       webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/all")
@@ -706,26 +729,12 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isNoContent
 
-      webTestClient.get()
-        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
-        .exchange().expectStatus().isNotFound
-      webTestClient.get()
-        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId2")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
-        .exchange().expectStatus().isNotFound
+      checkChildStatusValues(HttpStatus.NOT_FOUND)
     }
 
     @Test
     internal fun `delete only migrated removes all child mappings`() {
-      webTestClient.get()
-        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
-        .exchange().expectStatus().isOk
-      webTestClient.get()
-        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId2")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
-        .exchange().expectStatus().isOk
+      checkChildStatusValues(HttpStatus.OK)
 
       // delete only migrated mappings
       webTestClient.delete().uri("/mapping/csip/all?onlyMigrated")
@@ -733,26 +742,12 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isNoContent
 
-      webTestClient.get()
-        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
-        .exchange().expectStatus().isNotFound
-      webTestClient.get()
-        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId2")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
-        .exchange().expectStatus().isNotFound
+      checkChildStatusValues(HttpStatus.NOT_FOUND)
     }
 
     @Test
     internal fun `delete all mappings removes child mappings`() {
-      webTestClient.get()
-        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
-        .exchange().expectStatus().isOk
-      webTestClient.get()
-        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId2")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
-        .exchange().expectStatus().isOk
+      checkChildStatusValues(HttpStatus.OK)
 
       // delete all mappings
       webTestClient.delete().uri("/mapping/csip/all")
@@ -760,14 +755,26 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isNoContent
 
+      checkChildStatusValues(HttpStatus.NOT_FOUND)
+    }
+
+    private fun checkChildStatusValues(status: HttpStatus) {
       webTestClient.get()
         .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
-        .exchange().expectStatus().isNotFound
+        .exchange().expectStatus().isEqualTo(status.value())
       webTestClient.get()
         .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId2")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
-        .exchange().expectStatus().isNotFound
+        .exchange().expectStatus().isEqualTo(status.value())
+      webTestClient.get()
+        .uri("/mapping/csip/interviews/dps-csip-interview-id/$dpsCsipInterviewId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange().expectStatus().isEqualTo(status.value())
+      webTestClient.get()
+        .uri("/mapping/csip/interviews/dps-csip-interview-id/$dpsCsipInterviewId2")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange().expectStatus().isEqualTo(status.value())
     }
   }
 

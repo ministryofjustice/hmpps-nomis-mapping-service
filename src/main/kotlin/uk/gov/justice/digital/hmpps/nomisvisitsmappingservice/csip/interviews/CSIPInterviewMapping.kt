@@ -11,6 +11,8 @@ data class CSIPInterviewMapping(
   @Id
   val dpsCSIPInterviewId: String,
 
+  val dpsCSIPReportId: String,
+
   val nomisCSIPInterviewId: Long,
 
   /**
