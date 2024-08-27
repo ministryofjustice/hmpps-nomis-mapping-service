@@ -550,7 +550,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("DELETE /mapping/csip/dps-csip-id/{dpsCSIPId}")
+  @DisplayName("DELETE /mapping/csip/dps-csip-id/{dpsCSIPId}/all")
   @Nested
   inner class DeleteMapping {
     lateinit var mapping: CSIPMapping
@@ -576,14 +576,14 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     inner class Security {
       @Test
       fun `access forbidden when no authority`() {
-        webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}")
+        webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/all")
           .exchange()
           .expectStatus().isUnauthorized
       }
 
       @Test
       fun `access forbidden when no role`() {
-        webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}")
+        webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/all")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -591,7 +591,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
       @Test
       fun `access forbidden with wrong role`() {
-        webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}")
+        webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/all")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -612,7 +612,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
 
       // delete mapping
-      webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}")
+      webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/all")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
         .exchange()
         .expectStatus().isNoContent
@@ -632,19 +632,19 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     @Test
     internal fun `delete is idempotent`() {
       // delete mapping
-      webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}")
+      webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/all")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
         .exchange()
         .expectStatus().isNoContent
       // delete mapping second time still returns success
-      webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}")
+      webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/all")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
         .exchange()
         .expectStatus().isNoContent
     }
   }
 
-  @DisplayName("DELETE /mapping/csip/dps-csip-id/{dpsCSIPId} with children")
+  @DisplayName("DELETE /mapping/csip/dps-csip-id/{dpsCSIPId}/all with children set")
   @Nested
   inner class DeleteChildMappings {
     lateinit var mapping: CSIPMapping
@@ -701,7 +701,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .exchange().expectStatus().isOk
 
       // delete report mapping
-      webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}")
+      webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/all")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
         .exchange()
         .expectStatus().isNoContent
@@ -728,7 +728,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .exchange().expectStatus().isOk
 
       // delete only migrated mappings
-      webTestClient.delete().uri("/mapping/csip?onlyMigrated")
+      webTestClient.delete().uri("/mapping/csip/all?onlyMigrated")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
         .exchange()
         .expectStatus().isNoContent
@@ -755,7 +755,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .exchange().expectStatus().isOk
 
       // delete all mappings
-      webTestClient.delete().uri("/mapping/csip")
+      webTestClient.delete().uri("/mapping/csip/all")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
         .exchange()
         .expectStatus().isNoContent
@@ -771,20 +771,20 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("DELETE /mapping/csip")
+  @DisplayName("DELETE /mapping/csip/all")
   @Nested
   inner class DeleteAllMappings {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.delete().uri("/mapping/csip")
+      webTestClient.delete().uri("/mapping/csip/all")
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.delete().uri("/mapping/csip")
+      webTestClient.delete().uri("/mapping/csip/all")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -792,7 +792,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden with wrong role`() {
-      webTestClient.delete().uri("/mapping/csip")
+      webTestClient.delete().uri("/mapping/csip/all")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -813,7 +813,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isOk
 
-      webTestClient.delete().uri("/mapping/csip")
+      webTestClient.delete().uri("/mapping/csip/all")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
         .exchange()
         .expectStatus().isNoContent
@@ -854,7 +854,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isOk
 
-      webTestClient.delete().uri("/mapping/csip?onlyMigrated=true")
+      webTestClient.delete().uri("/mapping/csip/all?onlyMigrated=true")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
         .exchange()
         .expectStatus().isNoContent
