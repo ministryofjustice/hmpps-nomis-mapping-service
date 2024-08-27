@@ -11,6 +11,8 @@ data class CSIPPlanMapping(
   @Id
   val dpsCSIPPlanId: String,
 
+  val dpsCSIPReportId: String,
+
   val nomisCSIPPlanId: Long,
 
   /**

@@ -18,6 +18,9 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMa
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingType.DPS_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingType.NOMIS_CREATED
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
@@ -32,6 +35,9 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var repository: CSIPMappingRepository
+
+  @Autowired
+  private lateinit var csipPlanRepository: CSIPPlanMappingRepository
 
   private fun createCSIPMapping(
     nomisCSIPId: Long = NOMIS_CSIP_ID,
@@ -635,6 +641,133 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
         .exchange()
         .expectStatus().isNoContent
+    }
+  }
+
+  @DisplayName("DELETE /mapping/csip/dps-csip-id/{dpsCSIPId} with children")
+  @Nested
+  inner class DeleteChildMappings {
+    lateinit var mapping: CSIPMapping
+    private var dpsCsipPlanId = "0"
+    private var dpsCsipPlanId2 = "0"
+
+    @BeforeEach
+    fun setUp() = runTest {
+      mapping = repository.save(
+        CSIPMapping(
+          dpsCSIPId = UUID.randomUUID().toString(),
+          nomisCSIPId = 22334L,
+          label = "2023-01-01T12:45:12",
+          mappingType = MIGRATED,
+        ),
+      )
+
+      dpsCsipPlanId = csipPlanRepository.save(
+        CSIPPlanMapping(
+          dpsCSIPPlanId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+          nomisCSIPPlanId = 12345L,
+          dpsCSIPReportId = "${mapping.dpsCSIPId}",
+          label = "2023-01-01T12:45:12",
+          mappingType = CSIPPlanMappingType.MIGRATED,
+        ),
+      ).dpsCSIPPlanId
+
+      dpsCsipPlanId2 = csipPlanRepository.save(
+        CSIPPlanMapping(
+          dpsCSIPPlanId = "c5e56441-04c9-40e1-bd37-553ec1abcdaa",
+          nomisCSIPPlanId = 12346L,
+          dpsCSIPReportId = "${mapping.dpsCSIPId}",
+          label = "2023-01-01T12:45:12",
+          mappingType = CSIPPlanMappingType.DPS_CREATED,
+        ),
+      ).dpsCSIPPlanId
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      repository.deleteAll()
+      csipPlanRepository.deleteAll()
+    }
+
+    @Test
+    internal fun `delete removes child mappings`() = runTest {
+      webTestClient.get()
+        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange().expectStatus().isOk
+      webTestClient.get()
+        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId2")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange().expectStatus().isOk
+
+      // delete report mapping
+      webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      webTestClient.get()
+        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange().expectStatus().isNotFound
+      webTestClient.get()
+        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId2")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange().expectStatus().isNotFound
+    }
+
+    @Test
+    internal fun `delete only migrated removes all child mappings`() {
+      webTestClient.get()
+        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange().expectStatus().isOk
+      webTestClient.get()
+        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId2")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange().expectStatus().isOk
+
+      // delete only migrated mappings
+      webTestClient.delete().uri("/mapping/csip?onlyMigrated")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      webTestClient.get()
+        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange().expectStatus().isNotFound
+      webTestClient.get()
+        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId2")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange().expectStatus().isNotFound
+    }
+
+    @Test
+    internal fun `delete all mappings removes child mappings`() {
+      webTestClient.get()
+        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange().expectStatus().isOk
+      webTestClient.get()
+        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId2")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange().expectStatus().isOk
+
+      // delete all mappings
+      webTestClient.delete().uri("/mapping/csip")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      webTestClient.get()
+        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange().expectStatus().isNotFound
+      webTestClient.get()
+        .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId2")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange().expectStatus().isNotFound
     }
   }
 

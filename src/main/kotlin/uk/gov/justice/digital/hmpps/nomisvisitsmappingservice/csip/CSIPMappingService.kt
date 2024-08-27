@@ -8,12 +8,15 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
 @Service
 @Transactional(readOnly = true)
 class CSIPMappingService(
   private val csipMappingRepository: CSIPMappingRepository,
+  private val csipPlanMappingRepository: CSIPPlanMappingRepository,
 ) {
 
   @Transactional
@@ -33,13 +36,34 @@ class CSIPMappingService(
       ?: throw NotFoundException("No CSIP mapping found for dpsCSIPId=$dpsCSIPId")
 
   @Transactional
-  suspend fun deleteMappingByDPSId(dpsCSIPId: String) = csipMappingRepository.deleteById(dpsCSIPId)
+  suspend fun deleteMappingByDPSId(dpsCSIPId: String) {
+    deleteChildMappingsByDPSId(dpsCSIPId)
+    csipMappingRepository.deleteById(dpsCSIPId)
+  }
+
+  @Transactional
+  suspend fun deleteMigratedChildren() {
+    csipPlanMappingRepository.deleteByMappingTypeEquals(CSIPPlanMappingType.MIGRATED)
+  }
+
+  @Transactional
+  suspend fun deleteAllChildren() {
+    csipPlanMappingRepository.deleteAll()
+  }
+
+  @Transactional
+  suspend fun deleteChildMappingsByDPSId(dpsCSIPId: String) {
+    csipPlanMappingRepository.deleteByDpsCSIPReportId(dpsCSIPId)
+  }
 
   @Transactional
   suspend fun deleteMappings(onlyMigrated: Boolean) =
     onlyMigrated.takeIf { it }?.apply {
+      // The status of the child mapping will match the top level report status
+      deleteMigratedChildren()
       csipMappingRepository.deleteByMappingTypeEquals(CSIPMappingType.MIGRATED)
     } ?: run {
+      deleteAllChildren()
       csipMappingRepository.deleteAll()
     }
 
