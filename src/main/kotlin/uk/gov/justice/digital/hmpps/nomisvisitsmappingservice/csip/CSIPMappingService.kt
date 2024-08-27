@@ -8,6 +8,8 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
@@ -17,6 +19,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundEx
 class CSIPMappingService(
   private val csipMappingRepository: CSIPMappingRepository,
   private val csipPlanMappingRepository: CSIPPlanMappingRepository,
+  private val csipInterviewMappingRepository: CSIPInterviewMappingRepository,
 ) {
 
   @Transactional
@@ -44,16 +47,19 @@ class CSIPMappingService(
   @Transactional
   suspend fun deleteMigratedChildren() {
     csipPlanMappingRepository.deleteByMappingTypeEquals(CSIPPlanMappingType.MIGRATED)
+    csipInterviewMappingRepository.deleteByMappingTypeEquals(CSIPInterviewMappingType.MIGRATED)
   }
 
   @Transactional
   suspend fun deleteAllChildren() {
     csipPlanMappingRepository.deleteAll()
+    csipInterviewMappingRepository.deleteAll()
   }
 
   @Transactional
   suspend fun deleteChildMappingsByDPSId(dpsCSIPId: String) {
     csipPlanMappingRepository.deleteByDpsCSIPReportId(dpsCSIPId)
+    csipInterviewMappingRepository.deleteByDpsCSIPReportId(dpsCSIPId)
   }
 
   @Transactional

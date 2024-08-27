@@ -123,7 +123,7 @@ class CSIPPlanMappingResourceIntTest : IntegrationTestBase() {
 
         assertThat(createdMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         assertThat(createdMapping.dpsCSIPPlanId).isEqualTo(mapping.dpsCSIPPlanId)
-        assertThat(createdMapping.dpsCSIPPlanId).isEqualTo(mapping.dpsCSIPPlanId)
+        assertThat(createdMapping.nomisCSIPPlanId).isEqualTo(mapping.nomisCSIPPlanId)
         assertThat(createdMapping.mappingType).isEqualTo(mapping.mappingType)
         assertThat(createdMapping.label).isEqualTo(mapping.label)
       }
@@ -423,7 +423,7 @@ class CSIPPlanMappingResourceIntTest : IntegrationTestBase() {
           label = "TIMESTAMP",
           mappingType = CSIPMappingType.MIGRATED,
         ),
-      ).dpsCSIPId
+      )
       mapping = repository.save(
         CSIPPlanMapping(
           dpsCSIPPlanId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
