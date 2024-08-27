@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
@@ -25,10 +28,14 @@ class CSIPPlanMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var repository: CSIPPlanMappingRepository
 
+  @Autowired
+  private lateinit var csipReportRepository: CSIPMappingRepository
+
   @Nested
   @DisplayName("POST /mapping/csip/plans")
   inner class CreateMapping {
     private lateinit var existingMapping: CSIPPlanMapping
+
     private val mapping = CSIPPlanMappingDto(
       dpsCSIPPlanId = "a018f95e-459d-4d0d-9ccd-1fddf4315b2a",
       nomisCSIPPlanId = 54321L,
@@ -38,10 +45,20 @@ class CSIPPlanMappingResourceIntTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setUp() = runTest {
+      csipReportRepository.save(
+        CSIPMapping(
+          dpsCSIPId = "987",
+          nomisCSIPId = 654,
+          label = "TIMESTAMP",
+          mappingType = CSIPMappingType.MIGRATED,
+        ),
+      )
+
       existingMapping = repository.save(
         CSIPPlanMapping(
           dpsCSIPPlanId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
           nomisCSIPPlanId = 12345L,
+          dpsCSIPReportId = "987",
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -51,6 +68,7 @@ class CSIPPlanMappingResourceIntTest : IntegrationTestBase() {
     @AfterEach
     internal fun deleteData() = runBlocking {
       repository.deleteAll()
+      csipReportRepository.deleteAll()
     }
 
     @Nested
@@ -122,7 +140,8 @@ class CSIPPlanMappingResourceIntTest : IntegrationTestBase() {
               """
                 {
                   "nomisCSIPPlanId": 54321,
-                  "dpsCSIPPlanId": "018f95e-459d-4d0d-9ccd-1fddf4315b2a"
+                  "dpsCSIPPlanId": "018f95e-459d-4d0d-9ccd-1fddf4315b2a",
+                  "dpsCSIPReportId": "987"
                 }
               """.trimIndent(),
             ),
@@ -298,13 +317,23 @@ class CSIPPlanMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("DELETE /mapping/csip/plans/dps-csip-plan-id/{dpsCSIPPlanId}")
   inner class DeleteMapping {
     lateinit var mapping: CSIPPlanMapping
+    private lateinit var dpsCsipReportId: String
 
     @BeforeEach
     fun setUp() = runTest {
+      dpsCsipReportId = csipReportRepository.save(
+        CSIPMapping(
+          dpsCSIPId = "987",
+          nomisCSIPId = 654,
+          label = "TIMESTAMP",
+          mappingType = CSIPMappingType.MIGRATED,
+        ),
+      ).dpsCSIPId
       mapping = repository.save(
         CSIPPlanMapping(
           dpsCSIPPlanId = "edcd118c-41ba-42ea-b5c4-404b453ad5aa",
           nomisCSIPPlanId = 8912L,
+          dpsCSIPReportId = dpsCsipReportId,
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -314,6 +343,7 @@ class CSIPPlanMappingResourceIntTest : IntegrationTestBase() {
     @AfterEach
     fun tearDown() = runTest {
       repository.deleteAll()
+      csipReportRepository.deleteAll()
     }
 
     @Nested
@@ -386,10 +416,19 @@ class CSIPPlanMappingResourceIntTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setUp() = runTest {
+      csipReportRepository.save(
+        CSIPMapping(
+          dpsCSIPId = "987",
+          nomisCSIPId = 654,
+          label = "TIMESTAMP",
+          mappingType = CSIPMappingType.MIGRATED,
+        ),
+      ).dpsCSIPId
       mapping = repository.save(
         CSIPPlanMapping(
           dpsCSIPPlanId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisCSIPPlanId = 2345L,
+          dpsCSIPReportId = "987",
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -399,6 +438,7 @@ class CSIPPlanMappingResourceIntTest : IntegrationTestBase() {
     @AfterEach
     fun tearDown() = runTest {
       repository.deleteAll()
+      csipReportRepository.deleteAll()
     }
 
     @Nested
@@ -467,10 +507,19 @@ class CSIPPlanMappingResourceIntTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setUp() = runTest {
+      csipReportRepository.save(
+        CSIPMapping(
+          dpsCSIPId = "765",
+          nomisCSIPId = 654,
+          label = "TIMESTAMP",
+          mappingType = CSIPMappingType.MIGRATED,
+        ),
+      )
       mapping = repository.save(
         CSIPPlanMapping(
           dpsCSIPPlanId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisCSIPPlanId = 54321L,
+          dpsCSIPReportId = "765",
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -480,6 +529,7 @@ class CSIPPlanMappingResourceIntTest : IntegrationTestBase() {
     @AfterEach
     fun tearDown() = runTest {
       repository.deleteAll()
+      csipReportRepository.deleteAll()
     }
 
     @Nested
