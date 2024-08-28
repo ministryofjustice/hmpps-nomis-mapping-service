@@ -11,6 +11,8 @@ data class CSIPReviewMapping(
   @Id
   val dpsCSIPReviewId: String,
 
+  val dpsCSIPReportId: String,
+
   val nomisCSIPReviewId: Long,
 
   /**

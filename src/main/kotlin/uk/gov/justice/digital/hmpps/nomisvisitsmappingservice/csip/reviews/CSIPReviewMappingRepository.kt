@@ -11,5 +11,6 @@ interface CSIPReviewMappingRepository : CoroutineCrudRepository<CSIPReviewMappin
   suspend fun findFirstByMappingTypeOrderByWhenCreatedDesc(mappingType: CSIPReviewMappingType): CSIPReviewMapping?
   suspend fun countAllByLabelAndMappingType(label: String, mappingType: CSIPReviewMappingType): Long
   fun findAllByLabelAndMappingTypeOrderByLabelDesc(label: String, mappingType: CSIPReviewMappingType, pageable: Pageable): Flow<CSIPReviewMapping>
-  suspend fun deleteByMappingTypeEquals(mappingType: CSIPReviewMappingType): CSIPReviewMapping?
+  suspend fun deleteByMappingTypeEquals(mappingType: CSIPReviewMappingType)
+  suspend fun deleteByDpsCSIPReportId(dpsCSIPReportId: String)
 }

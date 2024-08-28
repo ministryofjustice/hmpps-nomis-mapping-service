@@ -25,6 +25,9 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CS
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingType
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
@@ -45,6 +48,9 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var csipInterviewRepository: CSIPInterviewMappingRepository
+
+  @Autowired
+  private lateinit var csipReviewRepository: CSIPReviewMappingRepository
 
   private fun createCSIPMapping(
     nomisCSIPId: Long = NOMIS_CSIP_ID,
@@ -659,6 +665,8 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     private var dpsCsipPlanId2 = "0"
     private var dpsCsipInterviewId = "0"
     private var dpsCsipInterviewId2 = "0"
+    private var dpsCsipReviewId = "0"
+    private var dpsCsipReviewId2 = "0"
 
     @BeforeEach
     fun setUp() = runTest {
@@ -710,6 +718,26 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
           mappingType = CSIPInterviewMappingType.DPS_CREATED,
         ),
       ).dpsCSIPInterviewId
+
+      dpsCsipReviewId = csipReviewRepository.save(
+        CSIPReviewMapping(
+          dpsCSIPReviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+          nomisCSIPReviewId = 12345L,
+          dpsCSIPReportId = "${mapping.dpsCSIPId}",
+          label = "2023-01-01T12:45:12",
+          mappingType = CSIPReviewMappingType.MIGRATED,
+        ),
+      ).dpsCSIPReviewId
+
+      dpsCsipReviewId2 = csipReviewRepository.save(
+        CSIPReviewMapping(
+          dpsCSIPReviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdaa",
+          nomisCSIPReviewId = 12346L,
+          dpsCSIPReportId = "${mapping.dpsCSIPId}",
+          label = "2023-01-01T12:45:12",
+          mappingType = CSIPReviewMappingType.DPS_CREATED,
+        ),
+      ).dpsCSIPReviewId
     }
 
     @AfterEach
@@ -773,6 +801,14 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .exchange().expectStatus().isEqualTo(status.value())
       webTestClient.get()
         .uri("/mapping/csip/interviews/dps-csip-interview-id/$dpsCsipInterviewId2")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange().expectStatus().isEqualTo(status.value())
+      webTestClient.get()
+        .uri("/mapping/csip/reviews/dps-csip-review-id/$dpsCsipReviewId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange().expectStatus().isEqualTo(status.value())
+      webTestClient.get()
+        .uri("/mapping/csip/reviews/dps-csip-review-id/$dpsCsipReviewId2")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
         .exchange().expectStatus().isEqualTo(status.value())
     }
@@ -1024,7 +1060,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
   @DisplayName("GET /mapping/csip/migrated/latest")
   @Nested
-  inner class GeMappingMigratedLatestTest {
+  inner class GetMappingMigratedLatestTest {
 
     @AfterEach
     internal fun deleteData() = runBlocking {

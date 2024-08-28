@@ -12,6 +12,8 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CS
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingType
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
 @Service
@@ -20,6 +22,7 @@ class CSIPMappingService(
   private val csipMappingRepository: CSIPMappingRepository,
   private val csipPlanMappingRepository: CSIPPlanMappingRepository,
   private val csipInterviewMappingRepository: CSIPInterviewMappingRepository,
+  private val csipReviewMappingRepository: CSIPReviewMappingRepository,
 ) {
 
   @Transactional
@@ -48,18 +51,21 @@ class CSIPMappingService(
   suspend fun deleteMigratedChildren() {
     csipPlanMappingRepository.deleteByMappingTypeEquals(CSIPPlanMappingType.MIGRATED)
     csipInterviewMappingRepository.deleteByMappingTypeEquals(CSIPInterviewMappingType.MIGRATED)
+    csipReviewMappingRepository.deleteByMappingTypeEquals(CSIPReviewMappingType.MIGRATED)
   }
 
   @Transactional
   suspend fun deleteAllChildren() {
     csipPlanMappingRepository.deleteAll()
     csipInterviewMappingRepository.deleteAll()
+    csipReviewMappingRepository.deleteAll()
   }
 
   @Transactional
   suspend fun deleteChildMappingsByDPSId(dpsCSIPId: String) {
     csipPlanMappingRepository.deleteByDpsCSIPReportId(dpsCSIPId)
     csipInterviewMappingRepository.deleteByDpsCSIPReportId(dpsCSIPId)
+    csipReviewMappingRepository.deleteByDpsCSIPReportId(dpsCSIPId)
   }
 
   @Transactional

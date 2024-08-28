@@ -317,23 +317,22 @@ class CSIPPlanMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("DELETE /mapping/csip/plans/dps-csip-plan-id/{dpsCSIPPlanId}")
   inner class DeleteMapping {
     lateinit var mapping: CSIPPlanMapping
-    private lateinit var dpsCsipReportId: String
 
     @BeforeEach
     fun setUp() = runTest {
-      dpsCsipReportId = csipReportRepository.save(
+      csipReportRepository.save(
         CSIPMapping(
           dpsCSIPId = "987",
           nomisCSIPId = 654,
           label = "TIMESTAMP",
           mappingType = CSIPMappingType.MIGRATED,
         ),
-      ).dpsCSIPId
+      )
       mapping = repository.save(
         CSIPPlanMapping(
           dpsCSIPPlanId = "edcd118c-41ba-42ea-b5c4-404b453ad5aa",
           nomisCSIPPlanId = 8912L,
-          dpsCSIPReportId = dpsCsipReportId,
+          dpsCSIPReportId = "987",
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
