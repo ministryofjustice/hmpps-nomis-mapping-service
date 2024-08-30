@@ -38,6 +38,7 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
     private val mapping = CSIPReviewMappingDto(
       dpsCSIPReviewId = "a018f95e-459d-4d0d-9ccd-1fddf4315b2a",
       nomisCSIPReviewId = 54321L,
+      dpsCSIPReportId = "987",
       label = "2023-01-01T12:45:12",
       mappingType = MIGRATED,
     )
@@ -177,6 +178,7 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
                 {
                   "nomisCSIPReviewId": 54321,
                   "dpsCSIPReviewId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
+                  "dpsCSIPReportId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
                   "mappingType": "INVALID_TYPE"
                 }
               """.trimIndent(),
@@ -197,8 +199,9 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "nomisCSIPReviewId": 54321
-                }
+                  "nomisCSIPReviewId": 54321,
+                   "dpsCSIPReportId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
+                 }
               """.trimIndent(),
             ),
           )
@@ -218,13 +221,17 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
               """
                 {
                   "dpsCSIPReviewId": "5f70a789-7f36-4bec-87dd-fde1a9a995d8"
-                }
+                  "dpsCSIPReportId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
+                 }
               """.trimIndent(),
             ),
           )
           .exchange()
           .expectStatus().isBadRequest
+      }
 
+      @Test
+      fun `returns 400 when DPS CSIP Report id is missing`() {
         webTestClient.post()
           .uri("/mapping/csip/reviews")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
@@ -234,6 +241,7 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
+                  "nomisCSIPReviewId": 54321,
                   "dpsCSIPReviewId": "5f70a789-7f36-4bec-87dd-fde1a9a995d8"
                 }
               """.trimIndent(),
@@ -255,6 +263,7 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
               CSIPReviewMappingDto(
                 nomisCSIPReviewId = existingMapping.nomisCSIPReviewId,
                 dpsCSIPReviewId = dpsCSIPReviewId,
+                dpsCSIPReportId = existingMapping.dpsCSIPReportId,
               ),
             ),
           )
@@ -288,6 +297,7 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
               CSIPReviewMappingDto(
                 nomisCSIPReviewId = 123123,
                 dpsCSIPReviewId = existingMapping.dpsCSIPReviewId,
+                dpsCSIPReportId = existingMapping.dpsCSIPReportId,
               ),
             ),
           )
@@ -580,6 +590,7 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
           .expectBody()
           .jsonPath("nomisCSIPReviewId").isEqualTo(mapping.nomisCSIPReviewId)
           .jsonPath("dpsCSIPReviewId").isEqualTo(mapping.dpsCSIPReviewId)
+          .jsonPath("dpsCSIPReportId").isEqualTo(mapping.dpsCSIPReportId)
           .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
           .jsonPath("label").isEqualTo(mapping.label!!)
           .jsonPath("whenCreated").value<String> {

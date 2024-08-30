@@ -16,6 +16,9 @@ data class CSIPInterviewMappingDto(
   @Schema(description = "DPS CSIP Interview id", required = true)
   val dpsCSIPInterviewId: String,
 
+  @Schema(description = "DPS CSIP Report id", required = true)
+  val dpsCSIPReportId: String,
+
   @Schema(description = "Label (a timestamp for migrated ids)")
   @field:Size(max = 20)
   val label: String? = null,
