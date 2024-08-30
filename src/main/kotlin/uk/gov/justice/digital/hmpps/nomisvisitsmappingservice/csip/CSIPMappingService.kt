@@ -8,6 +8,8 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingRepository
@@ -23,6 +25,7 @@ class CSIPMappingService(
   private val csipPlanMappingRepository: CSIPPlanMappingRepository,
   private val csipInterviewMappingRepository: CSIPInterviewMappingRepository,
   private val csipReviewMappingRepository: CSIPReviewMappingRepository,
+  private val csipAttendeeMappingRepository: CSIPAttendeeMappingRepository,
 ) {
 
   @Transactional
@@ -52,6 +55,7 @@ class CSIPMappingService(
     csipPlanMappingRepository.deleteByMappingTypeEquals(CSIPPlanMappingType.MIGRATED)
     csipInterviewMappingRepository.deleteByMappingTypeEquals(CSIPInterviewMappingType.MIGRATED)
     csipReviewMappingRepository.deleteByMappingTypeEquals(CSIPReviewMappingType.MIGRATED)
+    csipAttendeeMappingRepository.deleteByMappingTypeEquals(CSIPAttendeeMappingType.MIGRATED)
   }
 
   @Transactional
@@ -59,6 +63,7 @@ class CSIPMappingService(
     csipPlanMappingRepository.deleteAll()
     csipInterviewMappingRepository.deleteAll()
     csipReviewMappingRepository.deleteAll()
+    csipAttendeeMappingRepository.deleteAll()
   }
 
   @Transactional
@@ -66,6 +71,7 @@ class CSIPMappingService(
     csipPlanMappingRepository.deleteByDpsCSIPReportId(dpsCSIPId)
     csipInterviewMappingRepository.deleteByDpsCSIPReportId(dpsCSIPId)
     csipReviewMappingRepository.deleteByDpsCSIPReportId(dpsCSIPId)
+    csipAttendeeMappingRepository.deleteByDpsCSIPReportId(dpsCSIPId)
   }
 
   @Transactional

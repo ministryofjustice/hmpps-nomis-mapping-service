@@ -11,6 +11,8 @@ data class CSIPAttendeeMapping(
   @Id
   val dpsCSIPAttendeeId: String,
 
+  val dpsCSIPReportId: String,
+
   val nomisCSIPAttendeeId: Long,
 
   /**
