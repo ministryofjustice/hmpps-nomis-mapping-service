@@ -25,6 +25,7 @@ class CSIPAttendeeMappingService(
         CSIPAttendeeMapping(
           dpsCSIPAttendeeId = dpsCSIPAttendeeId,
           nomisCSIPAttendeeId = nomisCSIPAttendeeId,
+          dpsCSIPReportId = dpsCSIPReportId,
           label = label,
           mappingType = mappingType,
         ),
@@ -34,6 +35,7 @@ class CSIPAttendeeMappingService(
         mapOf(
           "dpsCSIPAttendeeId" to dpsCSIPAttendeeId,
           "nomisCSIPAttendeeId" to nomisCSIPAttendeeId.toString(),
+          "dpsCSIPReportId" to dpsCSIPReportId,
           "batchId" to label,
         ),
         null,
@@ -70,6 +72,7 @@ class CSIPAttendeeMappingService(
 fun CSIPAttendeeMapping.toCSIPAttendeeDto() = CSIPAttendeeMappingDto(
   nomisCSIPAttendeeId = nomisCSIPAttendeeId,
   dpsCSIPAttendeeId = dpsCSIPAttendeeId,
+  dpsCSIPReportId = dpsCSIPReportId,
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,
