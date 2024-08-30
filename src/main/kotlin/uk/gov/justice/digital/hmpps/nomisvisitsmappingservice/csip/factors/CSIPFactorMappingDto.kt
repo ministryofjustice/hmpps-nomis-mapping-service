@@ -16,6 +16,9 @@ data class CSIPFactorMappingDto(
   @Schema(description = "DPS CSIP Factor id", required = true)
   val dpsCSIPFactorId: String,
 
+  @Schema(description = "DPS CSIP Report id", required = true)
+  val dpsCSIPReportId: String,
+
   @Schema(description = "Label (a timestamp for migrated ids)")
   @field:Size(max = 20)
   val label: String? = null,

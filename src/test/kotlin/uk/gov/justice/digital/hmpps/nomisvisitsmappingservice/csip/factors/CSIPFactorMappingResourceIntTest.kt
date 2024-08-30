@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
@@ -25,6 +28,9 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var repository: CSIPFactorMappingRepository
 
+  @Autowired
+  private lateinit var csipReportRepository: CSIPMappingRepository
+
   @Nested
   @DisplayName("POST /mapping/csip/factors")
   inner class CreateMapping {
@@ -32,16 +38,27 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
     private val mapping = CSIPFactorMappingDto(
       dpsCSIPFactorId = "a018f95e-459d-4d0d-9ccd-1fddf4315b2a",
       nomisCSIPFactorId = 54321L,
+      dpsCSIPReportId = "987",
       label = "2023-01-01T12:45:12",
       mappingType = MIGRATED,
     )
 
     @BeforeEach
     fun setUp() = runTest {
+      csipReportRepository.save(
+        CSIPMapping(
+          dpsCSIPId = "987",
+          nomisCSIPId = 654,
+          label = "TIMESTAMP",
+          mappingType = CSIPMappingType.MIGRATED,
+        ),
+      )
+
       existingMapping = repository.save(
         CSIPFactorMapping(
           dpsCSIPFactorId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
           nomisCSIPFactorId = 12345L,
+          dpsCSIPReportId = "987",
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -51,6 +68,7 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
     @AfterEach
     internal fun deleteData() = runBlocking {
       repository.deleteAll()
+      csipReportRepository.deleteAll()
     }
 
     @Nested
@@ -122,7 +140,8 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
               """
                 {
                   "nomisCSIPFactorId": 54321,
-                  "dpsCSIPFactorId": "018f95e-459d-4d0d-9ccd-1fddf4315b2a"
+                  "dpsCSIPFactorId": "018f95e-459d-4d0d-9ccd-1fddf4315b2a",
+                  "dpsCSIPReportId": "987"
                 }
               """.trimIndent(),
             ),
@@ -159,6 +178,7 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
                 {
                   "nomisCSIPFactorId": 54321,
                   "dpsCSIPFactorId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
+                  "dpsCSIPReportId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
                   "mappingType": "INVALID_TYPE"
                 }
               """.trimIndent(),
@@ -179,7 +199,8 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "nomisCSIPFactorId": 54321
+                  "nomisCSIPFactorId": 54321,
+                  "dpsCSIPReportId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
                 }
               """.trimIndent(),
             ),
@@ -199,14 +220,18 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "dpsCSIPFactorId": "5f70a789-7f36-4bec-87dd-fde1a9a995d8"
+                  "dpsCSIPFactorId": "5f70a789-7f36-4bec-87dd-fde1a9a995d8",
+                  "dpsCSIPReportId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
                 }
               """.trimIndent(),
             ),
           )
           .exchange()
           .expectStatus().isBadRequest
+      }
 
+      @Test
+      fun `returns 400 when DPS CSIP Report id is missing`() {
         webTestClient.post()
           .uri("/mapping/csip/factors")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
@@ -216,6 +241,7 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
+                  "nomisCSIPFactorId": 54321,
                   "dpsCSIPFactorId": "5f70a789-7f36-4bec-87dd-fde1a9a995d8"
                 }
               """.trimIndent(),
@@ -237,6 +263,7 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
               CSIPFactorMappingDto(
                 nomisCSIPFactorId = existingMapping.nomisCSIPFactorId,
                 dpsCSIPFactorId = dpsCSIPFactorId,
+                dpsCSIPReportId = existingMapping.dpsCSIPReportId,
               ),
             ),
           )
@@ -270,6 +297,7 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
               CSIPFactorMappingDto(
                 nomisCSIPFactorId = 123123,
                 dpsCSIPFactorId = existingMapping.dpsCSIPFactorId,
+                dpsCSIPReportId = existingMapping.dpsCSIPReportId,
               ),
             ),
           )
@@ -301,10 +329,19 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setUp() = runTest {
+      csipReportRepository.save(
+        CSIPMapping(
+          dpsCSIPId = "987",
+          nomisCSIPId = 654,
+          label = "TIMESTAMP",
+          mappingType = CSIPMappingType.MIGRATED,
+        ),
+      )
       mapping = repository.save(
         CSIPFactorMapping(
           dpsCSIPFactorId = "edcd118c-41ba-42ea-b5c4-404b453ad5aa",
           nomisCSIPFactorId = 8912L,
+          dpsCSIPReportId = "987",
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -314,6 +351,7 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
     @AfterEach
     fun tearDown() = runTest {
       repository.deleteAll()
+      csipReportRepository.deleteAll()
     }
 
     @Nested
@@ -386,10 +424,19 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setUp() = runTest {
+      csipReportRepository.save(
+        CSIPMapping(
+          dpsCSIPId = "987",
+          nomisCSIPId = 654,
+          label = "TIMESTAMP",
+          mappingType = CSIPMappingType.MIGRATED,
+        ),
+      )
       mapping = repository.save(
         CSIPFactorMapping(
           dpsCSIPFactorId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisCSIPFactorId = 2345L,
+          dpsCSIPReportId = "987",
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -399,6 +446,7 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
     @AfterEach
     fun tearDown() = runTest {
       repository.deleteAll()
+      csipReportRepository.deleteAll()
     }
 
     @Nested
@@ -467,10 +515,19 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setUp() = runTest {
+      csipReportRepository.save(
+        CSIPMapping(
+          dpsCSIPId = "765",
+          nomisCSIPId = 654,
+          label = "TIMESTAMP",
+          mappingType = CSIPMappingType.MIGRATED,
+        ),
+      )
       mapping = repository.save(
         CSIPFactorMapping(
           dpsCSIPFactorId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisCSIPFactorId = 54321L,
+          dpsCSIPReportId = "765",
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -480,6 +537,7 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
     @AfterEach
     fun tearDown() = runTest {
       repository.deleteAll()
+      csipReportRepository.deleteAll()
     }
 
     @Nested
@@ -532,6 +590,7 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
           .expectBody()
           .jsonPath("nomisCSIPFactorId").isEqualTo(mapping.nomisCSIPFactorId)
           .jsonPath("dpsCSIPFactorId").isEqualTo(mapping.dpsCSIPFactorId)
+          .jsonPath("dpsCSIPReportId").isEqualTo(mapping.dpsCSIPReportId)
           .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
           .jsonPath("label").isEqualTo(mapping.label!!)
           .jsonPath("whenCreated").value<String> {

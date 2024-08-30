@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingType
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingRepository
@@ -26,6 +28,7 @@ class CSIPMappingService(
   private val csipInterviewMappingRepository: CSIPInterviewMappingRepository,
   private val csipReviewMappingRepository: CSIPReviewMappingRepository,
   private val csipAttendeeMappingRepository: CSIPAttendeeMappingRepository,
+  private val csipFactorMappingRepository: CSIPFactorMappingRepository,
 ) {
 
   @Transactional
@@ -56,6 +59,7 @@ class CSIPMappingService(
     csipInterviewMappingRepository.deleteByMappingTypeEquals(CSIPInterviewMappingType.MIGRATED)
     csipReviewMappingRepository.deleteByMappingTypeEquals(CSIPReviewMappingType.MIGRATED)
     csipAttendeeMappingRepository.deleteByMappingTypeEquals(CSIPAttendeeMappingType.MIGRATED)
+    csipFactorMappingRepository.deleteByMappingTypeEquals(CSIPFactorMappingType.MIGRATED)
   }
 
   @Transactional
@@ -64,6 +68,7 @@ class CSIPMappingService(
     csipInterviewMappingRepository.deleteAll()
     csipReviewMappingRepository.deleteAll()
     csipAttendeeMappingRepository.deleteAll()
+    csipFactorMappingRepository.deleteAll()
   }
 
   @Transactional
@@ -72,6 +77,7 @@ class CSIPMappingService(
     csipInterviewMappingRepository.deleteByDpsCSIPReportId(dpsCSIPId)
     csipReviewMappingRepository.deleteByDpsCSIPReportId(dpsCSIPId)
     csipAttendeeMappingRepository.deleteByDpsCSIPReportId(dpsCSIPId)
+    csipFactorMappingRepository.deleteByDpsCSIPReportId(dpsCSIPId)
   }
 
   @Transactional
