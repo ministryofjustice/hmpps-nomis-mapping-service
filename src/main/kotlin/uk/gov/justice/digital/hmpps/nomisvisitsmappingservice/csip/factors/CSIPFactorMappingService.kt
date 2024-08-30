@@ -25,6 +25,7 @@ class CSIPFactorMappingService(
         CSIPFactorMapping(
           dpsCSIPFactorId = dpsCSIPFactorId,
           nomisCSIPFactorId = nomisCSIPFactorId,
+          dpsCSIPReportId = dpsCSIPReportId,
           label = label,
           mappingType = mappingType,
         ),
@@ -34,6 +35,7 @@ class CSIPFactorMappingService(
         mapOf(
           "dpsCSIPFactorId" to dpsCSIPFactorId,
           "nomisCSIPFactorId" to nomisCSIPFactorId.toString(),
+          "dpsCSIPReportId" to dpsCSIPReportId,
           "batchId" to label,
         ),
         null,
@@ -70,6 +72,7 @@ class CSIPFactorMappingService(
 fun CSIPFactorMapping.toCSIPFactorDto() = CSIPFactorMappingDto(
   nomisCSIPFactorId = nomisCSIPFactorId,
   dpsCSIPFactorId = dpsCSIPFactorId,
+  dpsCSIPReportId = dpsCSIPReportId,
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,

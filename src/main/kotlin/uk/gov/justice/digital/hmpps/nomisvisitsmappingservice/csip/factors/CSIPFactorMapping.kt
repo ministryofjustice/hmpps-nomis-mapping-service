@@ -11,6 +11,8 @@ data class CSIPFactorMapping(
   @Id
   val dpsCSIPFactorId: String,
 
+  val dpsCSIPReportId: String,
+
   val nomisCSIPFactorId: Long,
 
   /**

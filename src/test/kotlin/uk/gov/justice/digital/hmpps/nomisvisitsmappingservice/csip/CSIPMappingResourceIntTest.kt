@@ -22,6 +22,9 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingTy
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingType
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingType
@@ -57,6 +60,9 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var csipAttendeeRepository: CSIPAttendeeMappingRepository
+
+  @Autowired
+  private lateinit var csipFactorRepository: CSIPFactorMappingRepository
 
   private fun createCSIPMapping(
     nomisCSIPId: Long = NOMIS_CSIP_ID,
@@ -675,6 +681,8 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     private var dpsCsipReviewId2 = "0"
     private var dpsCsipAttendeeId = "0"
     private var dpsCsipAttendeeId2 = "0"
+    private var dpsCsipFactorId = "0"
+    private var dpsCsipFactorId2 = "0"
 
     @BeforeEach
     fun setUp() = runTest {
@@ -691,7 +699,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         CSIPPlanMapping(
           dpsCSIPPlanId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
           nomisCSIPPlanId = 12345L,
-          dpsCSIPReportId = "${mapping.dpsCSIPId}",
+          dpsCSIPReportId = mapping.dpsCSIPId,
           label = "2023-01-01T12:45:12",
           mappingType = CSIPPlanMappingType.MIGRATED,
         ),
@@ -701,7 +709,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         CSIPPlanMapping(
           dpsCSIPPlanId = "c5e56441-04c9-40e1-bd37-553ec1abcdaa",
           nomisCSIPPlanId = 12346L,
-          dpsCSIPReportId = "${mapping.dpsCSIPId}",
+          dpsCSIPReportId = mapping.dpsCSIPId,
           label = "2023-01-01T12:45:12",
           mappingType = CSIPPlanMappingType.DPS_CREATED,
         ),
@@ -711,7 +719,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         CSIPInterviewMapping(
           dpsCSIPInterviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
           nomisCSIPInterviewId = 12345L,
-          dpsCSIPReportId = "${mapping.dpsCSIPId}",
+          dpsCSIPReportId = mapping.dpsCSIPId,
           label = "2023-01-01T12:45:12",
           mappingType = CSIPInterviewMappingType.MIGRATED,
         ),
@@ -721,7 +729,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         CSIPInterviewMapping(
           dpsCSIPInterviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdaa",
           nomisCSIPInterviewId = 12346L,
-          dpsCSIPReportId = "${mapping.dpsCSIPId}",
+          dpsCSIPReportId = mapping.dpsCSIPId,
           label = "2023-01-01T12:45:12",
           mappingType = CSIPInterviewMappingType.DPS_CREATED,
         ),
@@ -731,7 +739,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         CSIPReviewMapping(
           dpsCSIPReviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
           nomisCSIPReviewId = 12345L,
-          dpsCSIPReportId = "${mapping.dpsCSIPId}",
+          dpsCSIPReportId = mapping.dpsCSIPId,
           label = "2023-01-01T12:45:12",
           mappingType = CSIPReviewMappingType.MIGRATED,
         ),
@@ -741,7 +749,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         CSIPReviewMapping(
           dpsCSIPReviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdaa",
           nomisCSIPReviewId = 12346L,
-          dpsCSIPReportId = "${mapping.dpsCSIPId}",
+          dpsCSIPReportId = mapping.dpsCSIPId,
           label = "2023-01-01T12:45:12",
           mappingType = CSIPReviewMappingType.DPS_CREATED,
         ),
@@ -751,7 +759,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         CSIPAttendeeMapping(
           dpsCSIPAttendeeId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
           nomisCSIPAttendeeId = 12345L,
-          dpsCSIPReportId = "${mapping.dpsCSIPId}",
+          dpsCSIPReportId = mapping.dpsCSIPId,
           label = "2023-01-01T12:45:12",
           mappingType = CSIPAttendeeMappingType.MIGRATED,
         ),
@@ -761,11 +769,31 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         CSIPAttendeeMapping(
           dpsCSIPAttendeeId = "c5e56441-04c9-40e1-bd37-553ec1abcdaa",
           nomisCSIPAttendeeId = 12346L,
-          dpsCSIPReportId = "${mapping.dpsCSIPId}",
+          dpsCSIPReportId = mapping.dpsCSIPId,
           label = "2023-01-01T12:45:12",
           mappingType = CSIPAttendeeMappingType.DPS_CREATED,
         ),
       ).dpsCSIPAttendeeId
+
+      dpsCsipFactorId = csipFactorRepository.save(
+        CSIPFactorMapping(
+          dpsCSIPFactorId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+          nomisCSIPFactorId = 12345L,
+          dpsCSIPReportId = mapping.dpsCSIPId,
+          label = "2023-01-01T12:45:12",
+          mappingType = CSIPFactorMappingType.MIGRATED,
+        ),
+      ).dpsCSIPFactorId
+
+      dpsCsipFactorId2 = csipFactorRepository.save(
+        CSIPFactorMapping(
+          dpsCSIPFactorId = "c5e56441-04c9-40e1-bd37-553ec1abcdaa",
+          nomisCSIPFactorId = 12346L,
+          dpsCSIPReportId = mapping.dpsCSIPId,
+          label = "2023-01-01T12:45:12",
+          mappingType = CSIPFactorMappingType.DPS_CREATED,
+        ),
+      ).dpsCSIPFactorId
     }
 
     @AfterEach
@@ -843,6 +871,14 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .exchange().expectStatus().isEqualTo(status.value())
       webTestClient.get()
         .uri("/mapping/csip/attendees/dps-csip-attendee-id/$dpsCsipAttendeeId2")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange().expectStatus().isEqualTo(status.value())
+      webTestClient.get()
+        .uri("/mapping/csip/factors/dps-csip-factor-id/$dpsCsipFactorId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange().expectStatus().isEqualTo(status.value())
+      webTestClient.get()
+        .uri("/mapping/csip/factors/dps-csip-factor-id/$dpsCsipFactorId2")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
         .exchange().expectStatus().isEqualTo(status.value())
     }

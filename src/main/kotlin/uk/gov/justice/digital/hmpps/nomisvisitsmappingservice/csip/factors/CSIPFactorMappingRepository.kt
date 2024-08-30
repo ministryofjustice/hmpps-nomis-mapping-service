@@ -11,5 +11,6 @@ interface CSIPFactorMappingRepository : CoroutineCrudRepository<CSIPFactorMappin
   suspend fun findFirstByMappingTypeOrderByWhenCreatedDesc(mappingType: CSIPFactorMappingType): CSIPFactorMapping?
   suspend fun countAllByLabelAndMappingType(label: String, mappingType: CSIPFactorMappingType): Long
   fun findAllByLabelAndMappingTypeOrderByLabelDesc(label: String, mappingType: CSIPFactorMappingType, pageable: Pageable): Flow<CSIPFactorMapping>
-  suspend fun deleteByMappingTypeEquals(mappingType: CSIPFactorMappingType): CSIPFactorMapping?
+  suspend fun deleteByMappingTypeEquals(mappingType: CSIPFactorMappingType)
+  suspend fun deleteByDpsCSIPReportId(dpsCSIPReportId: String)
 }
