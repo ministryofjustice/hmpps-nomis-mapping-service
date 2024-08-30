@@ -4,9 +4,7 @@ import com.microsoft.applicationinsights.TelemetryClient
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingRepository
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
 @Service
@@ -24,19 +22,12 @@ class CSIPPlanMappingService(
   suspend fun createCSIPPlanMapping(createMappingRequest: CSIPPlanMappingDto) =
     with(createMappingRequest) {
       log.debug("creating csip plan {}", createMappingRequest)
-      val csipReportMappingId = csipMappingRepository.save(
-        CSIPMapping(
-          dpsCSIPId = "123",
-          nomisCSIPId = 456,
-          label = label,
-          mappingType = CSIPMappingType.MIGRATED,
-        ),
-      ).dpsCSIPId
+
       csipPlanMappingRepository.save(
         CSIPPlanMapping(
           dpsCSIPPlanId = dpsCSIPPlanId,
           nomisCSIPPlanId = nomisCSIPPlanId,
-          dpsCSIPReportId = csipReportMappingId,
+          dpsCSIPReportId = dpsCSIPReportId,
           label = label,
           mappingType = mappingType,
         ),
@@ -46,6 +37,7 @@ class CSIPPlanMappingService(
         mapOf(
           "dpsCSIPPlanId" to dpsCSIPPlanId,
           "nomisCSIPPlanId" to nomisCSIPPlanId.toString(),
+          "dpsCSIPReportId" to dpsCSIPReportId,
           "batchId" to label,
         ),
         null,
@@ -82,6 +74,7 @@ class CSIPPlanMappingService(
 fun CSIPPlanMapping.toCSIPPlanDto() = CSIPPlanMappingDto(
   nomisCSIPPlanId = nomisCSIPPlanId,
   dpsCSIPPlanId = dpsCSIPPlanId,
+  dpsCSIPReportId = dpsCSIPReportId,
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,

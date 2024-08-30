@@ -38,6 +38,7 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
     private val mapping = CSIPInterviewMappingDto(
       dpsCSIPInterviewId = "a018f95e-459d-4d0d-9ccd-1fddf4315b2a",
       nomisCSIPInterviewId = 54321L,
+      dpsCSIPReportId = "987",
       label = "2023-01-01T12:45:12",
       mappingType = MIGRATED,
     )
@@ -177,6 +178,7 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
                 {
                   "nomisCSIPInterviewId": 54321,
                   "dpsCSIPInterviewId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
+                  "dpsCSIPReportId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
                   "mappingType": "INVALID_TYPE"
                 }
               """.trimIndent(),
@@ -197,7 +199,8 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "nomisCSIPInterviewId": 54321
+                  "nomisCSIPInterviewId": 54321,
+                  "dpsCSIPReportId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
                 }
               """.trimIndent(),
             ),
@@ -217,14 +220,18 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "dpsCSIPInterviewId": "5f70a789-7f36-4bec-87dd-fde1a9a995d8"
+                  "dpsCSIPInterviewId": "5f70a789-7f36-4bec-87dd-fde1a9a995d8",
+                  "dpsCSIPReportId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
                 }
               """.trimIndent(),
             ),
           )
           .exchange()
           .expectStatus().isBadRequest
+      }
 
+      @Test
+      fun `returns 400 when DPS CSIP Report id is missing`() {
         webTestClient.post()
           .uri("/mapping/csip/interviews")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
@@ -234,6 +241,7 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
+                  "nomisCSIPInterviewId": 54321,
                   "dpsCSIPInterviewId": "5f70a789-7f36-4bec-87dd-fde1a9a995d8"
                 }
               """.trimIndent(),
@@ -255,6 +263,7 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
               CSIPInterviewMappingDto(
                 nomisCSIPInterviewId = existingMapping.nomisCSIPInterviewId,
                 dpsCSIPInterviewId = dpsCSIPInterviewId,
+                dpsCSIPReportId = existingMapping.dpsCSIPReportId,
               ),
             ),
           )
@@ -288,6 +297,7 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
               CSIPInterviewMappingDto(
                 nomisCSIPInterviewId = 123123,
                 dpsCSIPInterviewId = existingMapping.dpsCSIPInterviewId,
+                dpsCSIPReportId = existingMapping.dpsCSIPReportId,
               ),
             ),
           )
@@ -316,23 +326,22 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("DELETE /mapping/csip/interviews/dps-csip-interview-id/{dpsCSIPInterviewId}")
   inner class DeleteMapping {
     lateinit var mapping: CSIPInterviewMapping
-    private lateinit var dpsCsipReportId: String
 
     @BeforeEach
     fun setUp() = runTest {
-      dpsCsipReportId = csipReportRepository.save(
+      csipReportRepository.save(
         CSIPMapping(
           dpsCSIPId = "987",
           nomisCSIPId = 654,
           label = "TIMESTAMP",
           mappingType = CSIPMappingType.MIGRATED,
         ),
-      ).dpsCSIPId
+      )
       mapping = repository.save(
         CSIPInterviewMapping(
           dpsCSIPInterviewId = "edcd118c-41ba-42ea-b5c4-404b453ad5aa",
           nomisCSIPInterviewId = 8912L,
-          dpsCSIPReportId = dpsCsipReportId,
+          dpsCSIPReportId = "987",
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -581,6 +590,7 @@ class CSIPInterviewMappingResourceIntTest : IntegrationTestBase() {
           .expectBody()
           .jsonPath("nomisCSIPInterviewId").isEqualTo(mapping.nomisCSIPInterviewId)
           .jsonPath("dpsCSIPInterviewId").isEqualTo(mapping.dpsCSIPInterviewId)
+          .jsonPath("dpsCSIPReportId").isEqualTo(mapping.dpsCSIPReportId)
           .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
           .jsonPath("label").isEqualTo(mapping.label!!)
           .jsonPath("whenCreated").value<String> {
