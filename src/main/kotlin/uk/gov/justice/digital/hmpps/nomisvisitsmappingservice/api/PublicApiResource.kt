@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -20,9 +21,10 @@ class PublicApiResource(private val locationService: LocationMappingService) {
 
   @PreAuthorize("hasRole('ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R')")
   @GetMapping("/locations/nomis/{nomisLocationId}")
+  @Tag(name = "NOMIS to DPS Mapping lookup")
   @Operation(
     summary = "Retrieves the DPS location id from the NOMIS internal location id",
-    description = "Requires role NOMIS_DPS_MAPPING__LOCATIONS__R",
+    description = "Requires role <b>NOMIS_DPS_MAPPING__LOCATIONS__R</b>",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -49,7 +51,7 @@ class PublicApiResource(private val locationService: LocationMappingService) {
     ],
   )
   suspend fun getLocationMappingByNomisId(
-    @Schema(description = "Nomis location id", example = "12345678", required = true)
+    @Schema(description = "NOMIS internal location id", example = "2318905", required = true)
     @PathVariable
     nomisLocationId: Long,
   ): NomisDpsLocationMapping = locationService.getMappingByNomisId(nomisLocationId)
@@ -60,9 +62,9 @@ class PublicApiResource(private val locationService: LocationMappingService) {
 @Schema(description = "NOMIS DPS Location mapping")
 data class NomisDpsLocationMapping(
 
-  @Schema(description = "Location id in DPS", required = true)
+  @Schema(description = "Location id in DPS Locations Service", example = "f4499772-2e43-4951-861d-04ad86df43fc")
   val dpsLocationId: String,
 
-  @Schema(description = "Location id in Nomis", required = true)
+  @Schema(description = "Internal Location id in NOMIS", example = "2318905")
   val nomisLocationId: Long,
 )

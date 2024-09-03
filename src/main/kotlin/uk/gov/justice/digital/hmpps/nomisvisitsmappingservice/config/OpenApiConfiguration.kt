@@ -10,6 +10,7 @@ import io.swagger.v3.oas.models.media.StringSchema
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
 import io.swagger.v3.oas.models.servers.Server
+import io.swagger.v3.oas.models.tags.Tag
 import org.springdoc.core.customizers.OpenApiCustomizer
 import org.springframework.boot.info.BuildProperties
 import org.springframework.context.annotation.Bean
@@ -28,11 +29,26 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
         Server().url("https://nomis-sync-prisoner-mapping-dev.hmpps.service.justice.gov.uk").description("Development"),
         Server().url("http://localhost:8080").description("Local"),
       ),
+    ).tags(
+      listOf(
+        Tag().name("NOMIS to DPS Mapping lookup")
+          .description("APIs designed to be used by DPS services that need to map NOMIS ids stored in a DPS service to a sibling DPS domain service"),
+      ),
     )
     .info(
       Info().title("NOMIS Mapping Service")
         .version(version)
-        .description("Manages mapping information between DPS services and NOMIS")
+        .description(
+          // language=html
+          """
+          <div>
+          <h2>Manages mapping information between DPS services and NOMIS</h2>
+          <p>APIs tagged by <b>NOMIS to DPS Mapping lookup</b> are designed to be used by other DPS services that need to transition data held in that service that was originally sourced from NOMIS by now needs to sourced from other DPS services.</p>
+          <p>Each domain requires their own role to access these APIs for instance <b>NOMIS_DPS_MAPPING__LOCATIONS__R</b> for location mapping lookups</p>
+          <p>All other APIs should be considered private to the NOMIS Migration and Synchronisation suite of services.</p>
+          <div>
+          """.trimIndent(),
+        )
         .contact(Contact().name("HMPPS Digital Studio").email("feedback@digital.justice.gov.uk")),
     )
     .components(
