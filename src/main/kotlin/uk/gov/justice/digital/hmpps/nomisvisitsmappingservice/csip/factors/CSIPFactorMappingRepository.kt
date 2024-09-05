@@ -13,4 +13,5 @@ interface CSIPFactorMappingRepository : CoroutineCrudRepository<CSIPFactorMappin
   fun findAllByLabelAndMappingTypeOrderByLabelDesc(label: String, mappingType: CSIPFactorMappingType, pageable: Pageable): Flow<CSIPFactorMapping>
   suspend fun deleteByMappingTypeEquals(mappingType: CSIPFactorMappingType)
   suspend fun deleteByDpsCSIPReportId(dpsCSIPReportId: String)
+  suspend fun findAllByDpsCSIPReportId(dpsCSIPReportId: String): List<CSIPFactorMapping>
 }

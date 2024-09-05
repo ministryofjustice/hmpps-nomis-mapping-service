@@ -55,6 +55,10 @@ class CSIPReviewMappingService(
       ?.toCSIPReviewDto()
       ?: throw NotFoundException("No CSIP review mapping found for dpsCSIPReviewId=$dpsCSIPReviewId")
 
+  suspend fun getMappingByDpsCSIPReportId(dpsCSIPReportId: String): List<CSIPReviewMappingDto> =
+    csipReviewMappingRepository.findAllByDpsCSIPReportId(dpsCSIPReportId)
+      .map { it.toCSIPReviewDto() }
+
   @Transactional
   suspend fun deleteMappingByDpsId(dpsCSIPReviewId: String) =
     csipReviewMappingRepository.deleteById(dpsCSIPReviewId)
