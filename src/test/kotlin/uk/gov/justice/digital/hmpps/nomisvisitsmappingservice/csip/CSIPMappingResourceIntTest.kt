@@ -637,11 +637,11 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
       assertThat(mapping.nomisCSIPReportId).isEqualTo(nomisCSIPReportId)
       assertThat(mapping.dpsCSIPReportId).isEqualTo(dpsCSIPReportId)
-      assertThat(mapping.attendeeMappings).isEqualTo(emptyList<CSIPAttendeeMapping>())
-      assertThat(mapping.factorMappings).isEqualTo(emptyList<CSIPFactorMapping>())
-      assertThat(mapping.interviewMappings).isEqualTo(emptyList<CSIPInterviewMapping>())
-      assertThat(mapping.planMappings).isEqualTo(emptyList<CSIPPlanMapping>())
-      assertThat(mapping.reviewMappings).isEqualTo(emptyList<CSIPReviewMapping>())
+      assertThat(mapping.attendeeMappings).isEqualTo(emptyList<CSIPAttendeeMappingDto>())
+      assertThat(mapping.factorMappings).isEqualTo(emptyList<CSIPFactorMappingDto>())
+      assertThat(mapping.interviewMappings).isEqualTo(emptyList<CSIPInterviewMappingDto>())
+      assertThat(mapping.planMappings).isEqualTo(emptyList<CSIPPlanMappingDto>())
+      assertThat(mapping.reviewMappings).isEqualTo(emptyList<CSIPReviewMappingDto>())
     }
 
     @Test

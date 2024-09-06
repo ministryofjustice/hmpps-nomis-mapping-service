@@ -3,11 +3,11 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Size
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMapping
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMapping
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMapping
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMapping
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMappingDto
 import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -78,15 +78,20 @@ data class PrisonerCSIPMappingsSummaryDto(
 
 data class CSIPFullMappingDto(
 
-  @Schema(description = "NOMIS CSIP Reportid", required = true)
+  @Schema(description = "NOMIS CSIP Report Id")
   val nomisCSIPReportId: Long,
 
-  @Schema(description = "CSIP Report id from DPS csip service", required = true)
+  @Schema(description = "CSIP Report id from DPS CSIP service")
   val dpsCSIPReportId: String,
 
-  val attendeeMappings: List<CSIPAttendeeMapping>,
-  val factorMappings: List<CSIPFactorMapping>,
-  val interviewMappings: List<CSIPInterviewMapping>,
-  val planMappings: List<CSIPPlanMapping>,
-  val reviewMappings: List<CSIPReviewMapping>,
+  @Schema(description = "CSIP Attendee Mappings")
+  val attendeeMappings: List<CSIPAttendeeMappingDto>,
+  @Schema(description = "CSIP Factor Mappings")
+  val factorMappings: List<CSIPFactorMappingDto>,
+  @Schema(description = "CSIP Interview Mappings")
+  val interviewMappings: List<CSIPInterviewMappingDto>,
+  @Schema(description = "CSIP Plan Mappings")
+  val planMappings: List<CSIPPlanMappingDto>,
+  @Schema(description = "CSIP Review Mappings")
+  val reviewMappings: List<CSIPReviewMappingDto>,
 )
