@@ -42,7 +42,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = CSIPMappingDto::class),
+          schema = Schema(implementation = CSIPReportMappingDto::class),
         ),
       ],
     ),
@@ -67,7 +67,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
   )
   suspend fun createMapping(
     @RequestBody @Valid
-    createMappingRequest: CSIPMappingDto,
+    createMappingRequest: CSIPReportMappingDto,
   ) =
     try {
       mappingService.createCSIPMapping(createMappingRequest)
@@ -89,7 +89,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CSIPMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = CSIPReportMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -104,11 +104,41 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
       ),
     ],
   )
-  suspend fun getMappingNomisId(
+  suspend fun getMappingByNomisId(
     @Schema(description = "Nomis CSIP Id", required = true)
     @PathVariable
     nomisCSIPId: Long,
-  ): CSIPMappingDto = mappingService.getMappingByNomisCSIPId(nomisCSIPId)
+  ): CSIPReportMappingDto = mappingService.getMappingByNomisCSIPId(nomisCSIPId)
+
+  @GetMapping("/dps-csip-id/{csipId}/all")
+  @Operation(
+    summary = "Get full mapping",
+    description = "Retrieves a mapping by DPS CSIP Report Id and all associated child mappings. Requires role NOMIS_CSIP",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = CSIPFullMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "DPS CSIP Report id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getAllMappingsByDPSId(
+    @Schema(description = "DPS CSIP Report Id", example = "12345", required = true)
+    @PathVariable
+    csipId: String,
+  ): CSIPFullMappingDto = mappingService.getAllMappingsByDPSCSIPId(csipId)
 
   @GetMapping("/dps-csip-id/{csipId}")
   @Operation(
@@ -119,7 +149,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CSIPMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = CSIPReportMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -138,7 +168,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
     @Schema(description = "DPS CSIP Id", example = "12345", required = true)
     @PathVariable
     csipId: String,
-  ): CSIPMappingDto = mappingService.getMappingByDPSCSIPId(csipId)
+  ): CSIPReportMappingDto = mappingService.getMappingByDPSCSIPId(csipId)
 
   @DeleteMapping("/dps-csip-id/{dpsCSIPId}/all")
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -201,7 +231,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = CSIPMappingDto::class),
+            schema = Schema(implementation = CSIPReportMappingDto::class),
           ),
         ],
       ),
@@ -217,7 +247,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<CSIPMappingDto> = mappingService.getByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<CSIPReportMappingDto> = mappingService.getByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   @GetMapping("/migrated/latest")
   @Operation(
@@ -230,7 +260,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = CSIPMappingDto::class),
+            schema = Schema(implementation = CSIPReportMappingDto::class),
           ),
         ],
       ),
@@ -246,16 +276,16 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
       ),
     ],
   )
-  suspend fun getLatestMigratedCSIPMapping(): CSIPMappingDto =
+  suspend fun getLatestMigratedCSIPMapping(): CSIPReportMappingDto =
     mappingService.getMappingForLatestMigrated()
 
-  private suspend fun getExistingMappingSimilarTo(mapping: CSIPMappingDto) = runCatching {
+  private suspend fun getExistingMappingSimilarTo(mapping: CSIPReportMappingDto) = runCatching {
     mappingService.getMappingByNomisCSIPId(
-      nomisCSIPId = mapping.nomisCSIPId,
+      nomisCSIPReportId = mapping.nomisCSIPReportId,
     )
   }.getOrElse {
     mappingService.getMappingByDPSCSIPId(
-      dpsCSIPId = mapping.dpsCSIPId,
+      dpsCSIPReportId = mapping.dpsCSIPReportId,
     )
   }
 }
