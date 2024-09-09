@@ -92,6 +92,16 @@ class PrisonPersonResourceIntTest : IntegrationTestBase() {
         webTestClient.createMigrationMapping(request("A1234AA", PHYSICAL_ATTRIBUTES, listOf(1), "label"))
           .expectStatus().isEqualTo(409)
       }
+
+      // The migration is idempotent and sometimes we want to migrate the same entity multiple times
+      @Test
+      fun `should return OK if migration mapping already exists for different migration run`() = runTest {
+        webTestClient.createMigrationMapping(request("A1234AA", PHYSICAL_ATTRIBUTES, listOf(1), "first-migration"))
+          .expectStatus().isCreated
+
+        webTestClient.createMigrationMapping(request("A1234AA", PHYSICAL_ATTRIBUTES, listOf(1), "second-migration"))
+          .expectStatus().isCreated
+      }
     }
 
     private fun WebTestClient.createMigrationMapping(request: PrisonPersonMigrationMappingRequest) =
