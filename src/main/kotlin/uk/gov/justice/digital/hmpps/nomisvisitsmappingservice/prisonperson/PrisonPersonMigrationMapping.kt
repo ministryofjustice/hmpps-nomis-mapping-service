@@ -37,5 +37,5 @@ data class PrisonPersonMigrationMapping(
 
   override fun isNew(): Boolean = new
 
-  override fun getId(): String = nomisPrisonerNumber + migrationType
+  override fun getId(): String = nomisPrisonerNumber + migrationType + label
 }
