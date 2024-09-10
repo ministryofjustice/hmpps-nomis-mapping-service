@@ -429,81 +429,17 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("POST /mapping/csip/all")
   @Nested
   inner class CreateFullCSIPMapping {
+    private val dpsCSIPId = UUID.randomUUID().toString()
     private lateinit var mapping: CSIPMapping
-    private lateinit var attendeeMapping: CSIPAttendeeMapping
-    private lateinit var factorMapping: CSIPFactorMapping
-    private lateinit var interviewMapping: CSIPInterviewMapping
-    private lateinit var planMapping: CSIPPlanMapping
-    private lateinit var planMapping2: CSIPPlanMapping
-    private lateinit var reviewMapping: CSIPReviewMapping
 
     @BeforeEach
     fun setUp() = runTest {
       mapping = repository.save(
         CSIPMapping(
-          dpsCSIPId = UUID.randomUUID().toString(),
+          dpsCSIPId = dpsCSIPId,
           nomisCSIPId = 22334L,
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
-        ),
-      )
-
-      attendeeMapping = csipAttendeeRepository.save(
-        CSIPAttendeeMapping(
-          dpsCSIPAttendeeId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
-          nomisCSIPAttendeeId = 12345L,
-          dpsCSIPReportId = mapping.dpsCSIPId,
-          label = "2023-01-01T12:45:12",
-          mappingType = CSIPAttendeeMappingType.MIGRATED,
-        ),
-      )
-
-      factorMapping = csipFactorRepository.save(
-        CSIPFactorMapping(
-          dpsCSIPFactorId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
-          nomisCSIPFactorId = 12345L,
-          dpsCSIPReportId = mapping.dpsCSIPId,
-          label = "2023-01-01T12:45:12",
-          mappingType = CSIPFactorMappingType.MIGRATED,
-        ),
-      )
-      planMapping = csipPlanRepository.save(
-        CSIPPlanMapping(
-          dpsCSIPPlanId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
-          nomisCSIPPlanId = 12345L,
-          dpsCSIPReportId = mapping.dpsCSIPId,
-          label = "2023-01-01T12:45:12",
-          mappingType = CSIPPlanMappingType.MIGRATED,
-        ),
-      )
-
-      planMapping2 = csipPlanRepository.save(
-        CSIPPlanMapping(
-          dpsCSIPPlanId = "c5e56441-04c9-40e1-bd37-553ec1abcdaa",
-          nomisCSIPPlanId = 12346L,
-          dpsCSIPReportId = mapping.dpsCSIPId,
-          label = "2023-01-01T12:45:12",
-          mappingType = CSIPPlanMappingType.DPS_CREATED,
-        ),
-      )
-
-      interviewMapping = csipInterviewRepository.save(
-        CSIPInterviewMapping(
-          dpsCSIPInterviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
-          nomisCSIPInterviewId = 12345L,
-          dpsCSIPReportId = mapping.dpsCSIPId,
-          label = "2023-01-01T12:45:12",
-          mappingType = CSIPInterviewMappingType.MIGRATED,
-        ),
-      )
-
-      reviewMapping = csipReviewRepository.save(
-        CSIPReviewMapping(
-          dpsCSIPReviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
-          nomisCSIPReviewId = 12345L,
-          dpsCSIPReportId = mapping.dpsCSIPId,
-          label = "2023-01-01T12:45:12",
-          mappingType = CSIPReviewMappingType.MIGRATED,
         ),
       )
     }
@@ -630,9 +566,59 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `create mapping success`() {
+    fun `create mapping Happy Path`() {
       val nomisCSIPId = 67676L
       val dpsCSIPId = UUID.randomUUID().toString()
+
+      val attendeeMappingDto = CSIPAttendeeMappingDto(
+        dpsCSIPAttendeeId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisCSIPAttendeeId = 12345L,
+        dpsCSIPReportId = dpsCSIPId,
+        label = "2023-01-01T12:45:12",
+        mappingType = CSIPAttendeeMappingType.MIGRATED,
+      )
+
+      val factorMappingDto =
+        CSIPFactorMappingDto(
+          dpsCSIPFactorId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+          nomisCSIPFactorId = 12345L,
+          dpsCSIPReportId = dpsCSIPId,
+          label = "2023-01-01T12:45:12",
+          mappingType = CSIPFactorMappingType.MIGRATED,
+        )
+
+      val planMappingDto = CSIPPlanMappingDto(
+        dpsCSIPPlanId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisCSIPPlanId = 12345L,
+        dpsCSIPReportId = dpsCSIPId,
+        label = "2023-01-01T12:45:12",
+        mappingType = CSIPPlanMappingType.MIGRATED,
+      )
+
+      val planMappingDto2 = CSIPPlanMappingDto(
+        dpsCSIPPlanId = "c5e56441-04c9-40e1-bd37-553ec1abcdaa",
+        nomisCSIPPlanId = 12346L,
+        dpsCSIPReportId = dpsCSIPId,
+        label = "2023-01-01T12:45:12",
+        mappingType = CSIPPlanMappingType.DPS_CREATED,
+      )
+
+      val interviewMappingDto = CSIPInterviewMappingDto(
+        dpsCSIPInterviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisCSIPInterviewId = 12345L,
+        dpsCSIPReportId = dpsCSIPId,
+        label = "2023-01-01T12:45:12",
+        mappingType = CSIPInterviewMappingType.MIGRATED,
+      )
+
+      val reviewMappingDto = CSIPReviewMappingDto(
+        dpsCSIPReviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisCSIPReviewId = 12345L,
+        dpsCSIPReportId = dpsCSIPId,
+        label = "2023-01-01T12:45:12",
+        mappingType = CSIPReviewMappingType.MIGRATED,
+      )
+
       webTestClient.post().uri("/mapping/csip/all")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
         .contentType(MediaType.APPLICATION_JSON)
@@ -645,11 +631,11 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
                 label = "2022-01-01",
                 mappingType = DPS_CREATED,
               ),
-              attendeeMappings = listOf(),
-              factorMappings = listOf(),
-              interviewMappings = listOf(),
-              planMappings = listOf(),
-              reviewMappings = listOf(),
+              attendeeMappings = listOf(attendeeMappingDto),
+              factorMappings = listOf(factorMappingDto),
+              interviewMappings = listOf(interviewMappingDto),
+              planMappings = listOf(planMappingDto, planMappingDto2),
+              reviewMappings = listOf(reviewMappingDto),
             ),
           ),
         )
@@ -680,6 +666,21 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping2.dpsCSIPReportId).isEqualTo(dpsCSIPId)
       assertThat(mapping2.label).isEqualTo("2022-01-01")
       assertThat(mapping2.mappingType).isEqualTo(DPS_CREATED)
+
+      val mapping = webTestClient.get().uri("/mapping/csip/dps-csip-id/$dpsCSIPId/all")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody(CSIPFullMappingDto::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(mapping.reportMapping.nomisCSIPReportId).isEqualTo(nomisCSIPId)
+      assertThat(mapping.reportMapping.dpsCSIPReportId).isEqualTo(dpsCSIPId)
+      assertThat(mapping.attendeeMappings).size().isEqualTo(1)
+      assertThat(mapping.factorMappings).size().isEqualTo(1)
+      assertThat(mapping.interviewMappings).size().isEqualTo(1)
+      assertThat(mapping.planMappings).size().isEqualTo(2)
+      assertThat(mapping.reviewMappings).size().isEqualTo(1)
     }
 
     @Test
