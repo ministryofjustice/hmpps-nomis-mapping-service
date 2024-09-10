@@ -77,13 +77,8 @@ data class PrisonerCSIPMappingsSummaryDto(
 )
 
 data class CSIPFullMappingDto(
-
-  @Schema(description = "NOMIS CSIP Report Id")
-  val nomisCSIPReportId: Long,
-
-  @Schema(description = "CSIP Report id from DPS CSIP service")
-  val dpsCSIPReportId: String,
-
+  @Schema(description = "CSIP Report Mapping")
+  val reportMapping: CSIPReportMappingDto,
   @Schema(description = "CSIP Attendee Mappings")
   val attendeeMappings: List<CSIPAttendeeMappingDto>,
   @Schema(description = "CSIP Factor Mappings")

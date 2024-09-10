@@ -67,7 +67,7 @@ class CSIPReviewMappingResource(
     csipReviewMapping: CSIPReviewMappingDto,
   ) =
     try {
-      reviewMappingService.createCSIPReviewMapping(csipReviewMapping)
+      reviewMappingService.createMapping(csipReviewMapping)
     } catch (e: DuplicateKeyException) {
       throw DuplicateMappingException(
         messageIn = "CSIP Review mapping already exists, detected by $e",

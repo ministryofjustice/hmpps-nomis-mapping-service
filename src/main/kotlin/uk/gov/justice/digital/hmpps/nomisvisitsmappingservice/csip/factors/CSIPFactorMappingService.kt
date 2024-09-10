@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors
 
-import com.microsoft.applicationinsights.TelemetryClient
-import org.slf4j.LoggerFactory
+import kotlinx.coroutines.flow.collect
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
@@ -9,55 +8,34 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundEx
 @Service
 @Transactional(readOnly = true)
 class CSIPFactorMappingService(
-  private val csipFactorMappingRepository: CSIPFactorMappingRepository,
-  private val telemetryClient: TelemetryClient,
+  private val repository: CSIPFactorMappingRepository,
 ) {
-  private companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
+  @Transactional
+  suspend fun createMapping(mappingDto: CSIPFactorMappingDto): CSIPFactorMapping =
+    repository.save(mappingDto.fromDto())
 
   @Transactional
-  suspend fun createCSIPFactorMapping(createMappingRequest: CSIPFactorMappingDto) =
-    with(createMappingRequest) {
-      log.debug("creating csip factor {}", createMappingRequest)
+  suspend fun createMappings(mappingDtoList: List<CSIPFactorMappingDto>) {
+    repository.saveAll(mappingDtoList.map { it.fromDto() }).collect()
+  }
 
-      csipFactorMappingRepository.save(
-        CSIPFactorMapping(
-          dpsCSIPFactorId = dpsCSIPFactorId,
-          nomisCSIPFactorId = nomisCSIPFactorId,
-          dpsCSIPReportId = dpsCSIPReportId,
-          label = label,
-          mappingType = mappingType,
-        ),
-      )
-      telemetryClient.trackEvent(
-        "csip-factor-mapping-created",
-        mapOf(
-          "dpsCSIPFactorId" to dpsCSIPFactorId,
-          "nomisCSIPFactorId" to nomisCSIPFactorId.toString(),
-          "dpsCSIPReportId" to dpsCSIPReportId,
-          "batchId" to label,
-        ),
-        null,
-      )
-      log.debug("Mapping created with dpsCSIPFactorId = $dpsCSIPFactorId, nomisCSIPFactorId=$nomisCSIPFactorId")
-    }
+  suspend fun findAllByDpsCSIPReportId(dpsCSIPReportId: String) = repository.findAllByDpsCSIPReportId(dpsCSIPReportId).map { it.toDto() }
 
   suspend fun getMappingByNomisId(nomisCSIPFactorId: Long): CSIPFactorMappingDto =
-    csipFactorMappingRepository.findOneByNomisCSIPFactorId(
+    repository.findOneByNomisCSIPFactorId(
       nomisCSIPFactorId = nomisCSIPFactorId,
     )
-      ?.toCSIPFactorDto()
+      ?.toDto()
       ?: throw NotFoundException("No CSIP Factor mapping for  nomisCSIPFactorId=$nomisCSIPFactorId")
 
   suspend fun getMappingByDpsId(dpsCSIPFactorId: String): CSIPFactorMappingDto =
-    csipFactorMappingRepository.findById(dpsCSIPFactorId)
-      ?.toCSIPFactorDto()
+    repository.findById(dpsCSIPFactorId)
+      ?.toDto()
       ?: throw NotFoundException("No CSIP factor mapping found for dpsCSIPFactorId=$dpsCSIPFactorId")
 
   @Transactional
   suspend fun deleteMappingByDpsId(dpsCSIPFactorId: String) =
-    csipFactorMappingRepository.deleteById(dpsCSIPFactorId)
+    repository.deleteById(dpsCSIPFactorId)
 
   fun alreadyExistsMessage(
     duplicateMapping: CSIPFactorMappingDto,
@@ -69,7 +47,16 @@ class CSIPFactorMappingService(
     """.trimMargin()
 }
 
-fun CSIPFactorMapping.toCSIPFactorDto() = CSIPFactorMappingDto(
+fun CSIPFactorMapping.toDto() = CSIPFactorMappingDto(
+  nomisCSIPFactorId = nomisCSIPFactorId,
+  dpsCSIPFactorId = dpsCSIPFactorId,
+  dpsCSIPReportId = dpsCSIPReportId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+fun CSIPFactorMappingDto.fromDto() = CSIPFactorMapping(
   nomisCSIPFactorId = nomisCSIPFactorId,
   dpsCSIPFactorId = dpsCSIPFactorId,
   dpsCSIPReportId = dpsCSIPReportId,

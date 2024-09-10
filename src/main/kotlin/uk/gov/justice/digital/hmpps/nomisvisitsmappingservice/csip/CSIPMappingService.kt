@@ -9,20 +9,25 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingService
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingType
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.toCSIPAttendeeDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.toDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingService
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingType
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.toCSIPFactorDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.toDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingService
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingType
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.toCSIPInterviewDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.toDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingService
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingType
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.toCSIPPlanDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.toDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMappingService
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMappingType
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.toCSIPReviewDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.toDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
 @Service
@@ -34,11 +39,28 @@ class CSIPMappingService(
   private val csipPlanMappingRepository: CSIPPlanMappingRepository,
   private val csipInterviewMappingRepository: CSIPInterviewMappingRepository,
   private val csipReviewMappingRepository: CSIPReviewMappingRepository,
+  private val csipAttendeeMappingService: CSIPAttendeeMappingService,
+  private val csipFactorMappingService: CSIPFactorMappingService,
+  private val csipInterviewMappingService: CSIPInterviewMappingService,
+  private val csipPlanMappingService: CSIPPlanMappingService,
+  private val csipReviewMappingService: CSIPReviewMappingService,
 ) {
 
   @Transactional
   suspend fun createCSIPMapping(mapping: CSIPReportMappingDto) =
     csipMappingRepository.save(mapping.fromDto())
+
+  @Transactional
+  suspend fun createCSIPMappingWithChildren(fullMappingDto: CSIPFullMappingDto) {
+    with(fullMappingDto) {
+      csipMappingRepository.save(reportMapping.fromDto())
+      csipAttendeeMappingService.createMappings(attendeeMappings)
+      csipFactorMappingService.createMappings(factorMappings)
+      csipInterviewMappingService.createMappings(interviewMappings)
+      csipPlanMappingService.createMappings(planMappings)
+      csipReviewMappingService.createMappings(reviewMappings)
+    }
+  }
 
   suspend fun getMappingByNomisCSIPId(nomisCSIPReportId: Long): CSIPReportMappingDto =
     csipMappingRepository.findOneByNomisCSIPId(
@@ -56,13 +78,12 @@ class CSIPMappingService(
     csipMappingRepository.findById(dpsCSIPReportId)
       ?.let { csipReportMapping ->
         CSIPFullMappingDto(
-          nomisCSIPReportId = csipReportMapping.nomisCSIPId,
-          dpsCSIPReportId = csipReportMapping.dpsCSIPId,
-          attendeeMappings = csipAttendeeMappingRepository.findAllByDpsCSIPReportId(dpsCSIPReportId).map { it.toCSIPAttendeeDto() },
-          factorMappings = csipFactorMappingRepository.findAllByDpsCSIPReportId(dpsCSIPReportId).map { it.toCSIPFactorDto() },
-          interviewMappings = csipInterviewMappingRepository.findAllByDpsCSIPReportId(dpsCSIPReportId).map { it.toCSIPInterviewDto() },
-          planMappings = csipPlanMappingRepository.findAllByDpsCSIPReportId(dpsCSIPReportId).map { it.toCSIPPlanDto() },
-          reviewMappings = csipReviewMappingRepository.findAllByDpsCSIPReportId(dpsCSIPReportId).map { it.toCSIPReviewDto() },
+          reportMapping = csipReportMapping.toDto(),
+          attendeeMappings = csipAttendeeMappingService.findAllByDpsCSIPReportId(dpsCSIPReportId),
+          factorMappings = csipFactorMappingService.findAllByDpsCSIPReportId(dpsCSIPReportId),
+          interviewMappings = csipInterviewMappingService.findAllByDpsCSIPReportId(dpsCSIPReportId),
+          planMappings = csipPlanMappingService.findAllByDpsCSIPReportId(dpsCSIPReportId),
+          reviewMappings = csipReviewMappingService.findAllByDpsCSIPReportId(dpsCSIPReportId),
         )
       }
       ?: throw NotFoundException("No CSIP Report mapping found for dpsCSIPReportId=$dpsCSIPReportId")

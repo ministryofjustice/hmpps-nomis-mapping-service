@@ -1,65 +1,43 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans
 
-import com.microsoft.applicationinsights.TelemetryClient
-import org.slf4j.LoggerFactory
+import kotlinx.coroutines.flow.collect
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.toDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.fromDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
 @Service
 @Transactional(readOnly = true)
 class CSIPPlanMappingService(
-  private val csipMappingRepository: CSIPMappingRepository,
-  private val csipPlanMappingRepository: CSIPPlanMappingRepository,
-  private val telemetryClient: TelemetryClient,
+  private val repository: CSIPPlanMappingRepository,
 ) {
-  private companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
+  @Transactional
+  suspend fun createMapping(mappingDto: CSIPPlanMappingDto): CSIPPlanMapping =
+    repository.save(mappingDto.fromDto())
 
   @Transactional
-  suspend fun createCSIPPlanMapping(createMappingRequest: CSIPPlanMappingDto) =
-    with(createMappingRequest) {
-      log.debug("creating csip plan {}", createMappingRequest)
+  suspend fun createMappings(mappingDtoList: List<CSIPPlanMappingDto>) {
+    repository.saveAll(mappingDtoList.map { it.fromDto() }).collect()
+  }
 
-      csipPlanMappingRepository.save(
-        CSIPPlanMapping(
-          dpsCSIPPlanId = dpsCSIPPlanId,
-          nomisCSIPPlanId = nomisCSIPPlanId,
-          dpsCSIPReportId = dpsCSIPReportId,
-          label = label,
-          mappingType = mappingType,
-        ),
-      )
-      telemetryClient.trackEvent(
-        "csip-plan-mapping-created",
-        mapOf(
-          "dpsCSIPPlanId" to dpsCSIPPlanId,
-          "nomisCSIPPlanId" to nomisCSIPPlanId.toString(),
-          "dpsCSIPReportId" to dpsCSIPReportId,
-          "batchId" to label,
-        ),
-        null,
-      )
-      log.debug("Mapping created with dpsCSIPPlanId = $dpsCSIPPlanId, nomisCSIPPlanId=$nomisCSIPPlanId")
-    }
+  suspend fun findAllByDpsCSIPReportId(dpsCSIPReportId: String) = repository.findAllByDpsCSIPReportId(dpsCSIPReportId).map { it.toDto() }
 
   suspend fun getMappingByNomisId(nomisCSIPPlanId: Long): CSIPPlanMappingDto =
-    csipPlanMappingRepository.findOneByNomisCSIPPlanId(
+    repository.findOneByNomisCSIPPlanId(
       nomisCSIPPlanId = nomisCSIPPlanId,
     )
-      ?.toCSIPPlanDto()
+      ?.toDto()
       ?: throw NotFoundException("No CSIP Plan mapping for  nomisCSIPPlanId=$nomisCSIPPlanId")
 
   suspend fun getMappingByDpsId(dpsCSIPPlanId: String): CSIPPlanMappingDto =
-    csipPlanMappingRepository.findById(dpsCSIPPlanId)
-      ?.toCSIPPlanDto()
+    repository.findById(dpsCSIPPlanId)
+      ?.toDto()
       ?: throw NotFoundException("No CSIP plan mapping found for dpsCSIPPlanId=$dpsCSIPPlanId")
 
   @Transactional
   suspend fun deleteMappingByDpsId(dpsCSIPPlanId: String) =
-    csipPlanMappingRepository.deleteById(dpsCSIPPlanId)
+    repository.deleteById(dpsCSIPPlanId)
 
   fun alreadyExistsMessage(
     duplicateMapping: CSIPPlanMappingDto,
@@ -71,7 +49,16 @@ class CSIPPlanMappingService(
     """.trimMargin()
 }
 
-fun CSIPPlanMapping.toCSIPPlanDto() = CSIPPlanMappingDto(
+fun CSIPPlanMapping.toDto() = CSIPPlanMappingDto(
+  nomisCSIPPlanId = nomisCSIPPlanId,
+  dpsCSIPPlanId = dpsCSIPPlanId,
+  dpsCSIPReportId = dpsCSIPReportId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+fun CSIPPlanMappingDto.fromDto() = CSIPPlanMapping(
   nomisCSIPPlanId = nomisCSIPPlanId,
   dpsCSIPPlanId = dpsCSIPPlanId,
   dpsCSIPReportId = dpsCSIPReportId,

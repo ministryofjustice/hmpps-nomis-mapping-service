@@ -67,7 +67,7 @@ class CSIPFactorMappingResource(
     csipFactorMapping: CSIPFactorMappingDto,
   ) =
     try {
-      factorMappingService.createCSIPFactorMapping(csipFactorMapping)
+      factorMappingService.createMapping(csipFactorMapping)
     } catch (e: DuplicateKeyException) {
       throw DuplicateMappingException(
         messageIn = "CSIP Factor mapping already exists, detected by $e",

@@ -67,7 +67,7 @@ class CSIPInterviewMappingResource(
     csipInterviewMapping: CSIPInterviewMappingDto,
   ) =
     try {
-      interviewMappingService.createCSIPInterviewMapping(csipInterviewMapping)
+      interviewMappingService.createMapping(csipInterviewMapping)
     } catch (e: DuplicateKeyException) {
       throw DuplicateMappingException(
         messageIn = "CSIP Interview mapping already exists, detected by $e",
