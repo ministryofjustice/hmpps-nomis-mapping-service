@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees
 
-import com.microsoft.applicationinsights.TelemetryClient
-import org.slf4j.LoggerFactory
+import kotlinx.coroutines.flow.collect
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
@@ -9,55 +8,35 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundEx
 @Service
 @Transactional(readOnly = true)
 class CSIPAttendeeMappingService(
-  private val csipAttendeeMappingRepository: CSIPAttendeeMappingRepository,
-  private val telemetryClient: TelemetryClient,
+  private val repository: CSIPAttendeeMappingRepository,
 ) {
-  private companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
 
   @Transactional
-  suspend fun createCSIPAttendeeMapping(createMappingRequest: CSIPAttendeeMappingDto) =
-    with(createMappingRequest) {
-      log.debug("creating csip attendee {}", createMappingRequest)
+  suspend fun createMapping(mappingDto: CSIPAttendeeMappingDto): CSIPAttendeeMapping =
+    repository.save(mappingDto.fromDto())
 
-      csipAttendeeMappingRepository.save(
-        CSIPAttendeeMapping(
-          dpsCSIPAttendeeId = dpsCSIPAttendeeId,
-          nomisCSIPAttendeeId = nomisCSIPAttendeeId,
-          dpsCSIPReportId = dpsCSIPReportId,
-          label = label,
-          mappingType = mappingType,
-        ),
-      )
-      telemetryClient.trackEvent(
-        "csip-attendee-mapping-created",
-        mapOf(
-          "dpsCSIPAttendeeId" to dpsCSIPAttendeeId,
-          "nomisCSIPAttendeeId" to nomisCSIPAttendeeId.toString(),
-          "dpsCSIPReportId" to dpsCSIPReportId,
-          "batchId" to label,
-        ),
-        null,
-      )
-      log.debug("Mapping created with dpsCSIPAttendeeId = $dpsCSIPAttendeeId, nomisCSIPAttendeeId=$nomisCSIPAttendeeId")
-    }
+  @Transactional
+  suspend fun createMappings(mappingDtoList: List<CSIPAttendeeMappingDto>) {
+    repository.saveAll(mappingDtoList.map { it.fromDto() }).collect()
+  }
 
   suspend fun getMappingByNomisId(nomisCSIPAttendeeId: Long): CSIPAttendeeMappingDto =
-    csipAttendeeMappingRepository.findOneByNomisCSIPAttendeeId(
+    repository.findOneByNomisCSIPAttendeeId(
       nomisCSIPAttendeeId = nomisCSIPAttendeeId,
     )
-      ?.toCSIPAttendeeDto()
+      ?.toDto()
       ?: throw NotFoundException("No CSIP Attendee mapping for  nomisCSIPAttendeeId=$nomisCSIPAttendeeId")
 
+  suspend fun findAllByDpsCSIPReportId(dpsCSIPReportId: String) = repository.findAllByDpsCSIPReportId(dpsCSIPReportId).map { it.toDto() }
+
   suspend fun getMappingByDpsId(dpsCSIPAttendeeId: String): CSIPAttendeeMappingDto =
-    csipAttendeeMappingRepository.findById(dpsCSIPAttendeeId)
-      ?.toCSIPAttendeeDto()
+    repository.findById(dpsCSIPAttendeeId)
+      ?.toDto()
       ?: throw NotFoundException("No CSIP attendee mapping found for dpsCSIPAttendeeId=$dpsCSIPAttendeeId")
 
   @Transactional
   suspend fun deleteMappingByDpsId(dpsCSIPAttendeeId: String) =
-    csipAttendeeMappingRepository.deleteById(dpsCSIPAttendeeId)
+    repository.deleteById(dpsCSIPAttendeeId)
 
   fun alreadyExistsMessage(
     duplicateMapping: CSIPAttendeeMappingDto,
@@ -69,7 +48,16 @@ class CSIPAttendeeMappingService(
     """.trimMargin()
 }
 
-fun CSIPAttendeeMapping.toCSIPAttendeeDto() = CSIPAttendeeMappingDto(
+fun CSIPAttendeeMapping.toDto() = CSIPAttendeeMappingDto(
+  nomisCSIPAttendeeId = nomisCSIPAttendeeId,
+  dpsCSIPAttendeeId = dpsCSIPAttendeeId,
+  dpsCSIPReportId = dpsCSIPReportId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+fun CSIPAttendeeMappingDto.fromDto() = CSIPAttendeeMapping(
   nomisCSIPAttendeeId = nomisCSIPAttendeeId,
   dpsCSIPAttendeeId = dpsCSIPAttendeeId,
   dpsCSIPReportId = dpsCSIPReportId,

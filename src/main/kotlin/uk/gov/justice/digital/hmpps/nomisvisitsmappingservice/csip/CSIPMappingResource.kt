@@ -80,6 +80,54 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
       )
     }
 
+  @PostMapping("/all")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates a new CSIP Report mapping along with any associated children",
+    description = "Creates a mapping between a Nomis CSIP report id and DPS CSIP report id" +
+      " and all its children. Requires role NOMIS_CSIP",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = CSIPReportMappingDto::class),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping entry created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate csip has been rejected. If Error code = 409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createMappingWithChildren(
+    @RequestBody @Valid
+    createFullMappingRequest: CSIPFullMappingDto,
+  ) =
+    try {
+      mappingService.createCSIPMappingWithChildren(createFullMappingRequest)
+    } catch (e: DuplicateKeyException) {
+      throw DuplicateMappingException(
+        messageIn = "CSIP mapping already exists",
+        duplicate = createFullMappingRequest.reportMapping,
+        existing = getExistingMappingSimilarTo(createFullMappingRequest.reportMapping),
+        cause = e,
+      )
+    }
+
   @GetMapping("/nomis-csip-id/{nomisCSIPId}")
   @Operation(
     summary = "get mapping",

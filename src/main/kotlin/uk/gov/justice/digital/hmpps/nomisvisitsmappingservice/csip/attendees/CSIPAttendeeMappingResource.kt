@@ -67,7 +67,7 @@ class CSIPAttendeeMappingResource(
     csipAttendeeMapping: CSIPAttendeeMappingDto,
   ) =
     try {
-      attendeeMappingService.createCSIPAttendeeMapping(csipAttendeeMapping)
+      attendeeMappingService.createMapping(csipAttendeeMapping)
     } catch (e: DuplicateKeyException) {
       throw DuplicateMappingException(
         messageIn = "CSIP Attendee mapping already exists, detected by $e",

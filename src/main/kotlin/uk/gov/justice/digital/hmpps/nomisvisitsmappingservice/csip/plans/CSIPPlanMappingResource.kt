@@ -67,7 +67,7 @@ class CSIPPlanMappingResource(
     csipPlanMapping: CSIPPlanMappingDto,
   ) =
     try {
-      planMappingService.createCSIPPlanMapping(csipPlanMapping)
+      planMappingService.createMapping(csipPlanMapping)
     } catch (e: DuplicateKeyException) {
       throw DuplicateMappingException(
         messageIn = "CSIP Plan mapping already exists, detected by $e",
