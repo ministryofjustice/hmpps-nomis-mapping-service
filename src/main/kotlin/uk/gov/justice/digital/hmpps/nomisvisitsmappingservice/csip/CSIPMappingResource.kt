@@ -122,8 +122,8 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
     } catch (e: DuplicateKeyException) {
       throw DuplicateMappingException(
         messageIn = "CSIP mapping already exists",
-        duplicate = createFullMappingRequest.reportMapping,
-        existing = getExistingMappingSimilarTo(createFullMappingRequest.reportMapping),
+        duplicate = createFullMappingRequest,
+        existing = getExistingMappingSimilarTo(createFullMappingRequest),
         cause = e,
       )
     }
@@ -186,7 +186,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
     @Schema(description = "DPS CSIP Report Id", example = "12345", required = true)
     @PathVariable
     csipId: String,
-  ): CSIPFullMappingDto = mappingService.getAllMappingsByDPSCSIPId(csipId)
+  ): CSIPFullMappingDto = mappingService.getFulMappingByDPSCSIPId(csipId)
 
   @GetMapping("/dps-csip-id/{csipId}")
   @Operation(
@@ -221,12 +221,12 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
   @DeleteMapping("/dps-csip-id/{dpsCSIPId}/all")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
-    summary = "Deletes a specific CSIP mapping by DPS CSIP id",
-    description = "Deletes a mapping by DPS id. Requires role NOMIS_CSIP",
+    summary = "Deletes a specific CSIP report mapping by DPS CSIP id and its associated children",
+    description = "Deletes a mapping by DPS id and any children. Requires role NOMIS_CSIP",
     responses = [
       ApiResponse(
         responseCode = "204",
-        description = "CSIP mapping deleted",
+        description = "CSIP mappings deleted",
       ),
       ApiResponse(
         responseCode = "401",
@@ -279,7 +279,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = CSIPReportMappingDto::class),
+            schema = Schema(implementation = CSIPFullMappingDto::class),
           ),
         ],
       ),
@@ -295,7 +295,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<CSIPReportMappingDto> = mappingService.getByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<CSIPFullMappingDto> = mappingService.getByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   @GetMapping("/migrated/latest")
   @Operation(
@@ -308,7 +308,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = CSIPReportMappingDto::class),
+            schema = Schema(implementation = CSIPFullMappingDto::class),
           ),
         ],
       ),
@@ -324,7 +324,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
       ),
     ],
   )
-  suspend fun getLatestMigratedCSIPMapping(): CSIPReportMappingDto =
+  suspend fun getLatestMigratedCSIPMapping(): CSIPFullMappingDto =
     mappingService.getMappingForLatestMigrated()
 
   private suspend fun getExistingMappingSimilarTo(mapping: CSIPReportMappingDto) = runCatching {
@@ -333,6 +333,16 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
     )
   }.getOrElse {
     mappingService.getMappingByDPSCSIPId(
+      dpsCSIPReportId = mapping.dpsCSIPReportId,
+    )
+  }
+
+  private suspend fun getExistingMappingSimilarTo(mapping: CSIPFullMappingDto) = runCatching {
+    mappingService.getFulMappingNoChildrenByNomisCSIPId(
+      nomisCSIPReportId = mapping.nomisCSIPReportId,
+    )
+  }.getOrElse {
+    mappingService.getFulMappingNoChildrenByDPSCSIPId(
       dpsCSIPReportId = mapping.dpsCSIPReportId,
     )
   }

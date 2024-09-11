@@ -11,23 +11,18 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingService
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingType
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.toDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingService
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingType
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.toDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingService
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingType
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.toDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingService
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingType
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.toDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMappingService
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMappingType
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.toDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
 @Service
@@ -53,7 +48,7 @@ class CSIPMappingService(
   @Transactional
   suspend fun createCSIPMappingWithChildren(fullMappingDto: CSIPFullMappingDto) {
     with(fullMappingDto) {
-      csipMappingRepository.save(reportMapping.fromDto())
+      csipMappingRepository.save(fullMappingDto.fromFullDto())
       csipAttendeeMappingService.createMappings(attendeeMappings)
       csipFactorMappingService.createMappings(factorMappings)
       csipInterviewMappingService.createMappings(interviewMappings)
@@ -74,11 +69,15 @@ class CSIPMappingService(
       ?.toDto()
       ?: throw NotFoundException("No CSIP Report mapping found for dpsCSIPReportId=$dpsCSIPReportId")
 
-  suspend fun getAllMappingsByDPSCSIPId(dpsCSIPReportId: String): CSIPFullMappingDto =
+  suspend fun getFulMappingByDPSCSIPId(dpsCSIPReportId: String): CSIPFullMappingDto =
     csipMappingRepository.findById(dpsCSIPReportId)
       ?.let { csipReportMapping ->
         CSIPFullMappingDto(
-          reportMapping = csipReportMapping.toDto(),
+          dpsCSIPReportId = csipReportMapping.dpsCSIPId,
+          nomisCSIPReportId = csipReportMapping.nomisCSIPId,
+          label = csipReportMapping.label,
+          mappingType = csipReportMapping.mappingType,
+          whenCreated = csipReportMapping.whenCreated,
           attendeeMappings = csipAttendeeMappingService.findAllByDpsCSIPReportId(dpsCSIPReportId),
           factorMappings = csipFactorMappingService.findAllByDpsCSIPReportId(dpsCSIPReportId),
           interviewMappings = csipInterviewMappingService.findAllByDpsCSIPReportId(dpsCSIPReportId),
@@ -86,6 +85,16 @@ class CSIPMappingService(
           reviewMappings = csipReviewMappingService.findAllByDpsCSIPReportId(dpsCSIPReportId),
         )
       }
+      ?: throw NotFoundException("No CSIP Report mapping found for dpsCSIPReportId=$dpsCSIPReportId")
+
+  suspend fun getFulMappingNoChildrenByNomisCSIPId(nomisCSIPReportId: Long): CSIPFullMappingDto =
+    csipMappingRepository.findOneByNomisCSIPId(nomisCSIPId = nomisCSIPReportId)
+      ?.toFullDto()
+      ?: throw NotFoundException("No CSIP Report mapping found for nomisCSIPReportId=$nomisCSIPReportId")
+
+  suspend fun getFulMappingNoChildrenByDPSCSIPId(dpsCSIPReportId: String): CSIPFullMappingDto =
+    csipMappingRepository.findById(dpsCSIPReportId)
+      ?.toFullDto()
       ?: throw NotFoundException("No CSIP Report mapping found for dpsCSIPReportId=$dpsCSIPReportId")
 
   @Transactional
@@ -132,7 +141,7 @@ class CSIPMappingService(
       csipMappingRepository.deleteAll()
     }
 
-  suspend fun getByMigrationId(pageRequest: Pageable, migrationId: String): Page<CSIPReportMappingDto> =
+  suspend fun getByMigrationId(pageRequest: Pageable, migrationId: String): Page<CSIPFullMappingDto> =
     coroutineScope {
       val csipMapping = async {
         csipMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
@@ -147,17 +156,33 @@ class CSIPMappingService(
       }
 
       PageImpl(
-        csipMapping.await().toList().map { it.toDto() },
+        csipMapping.await().toList().map { it.toFullDto() },
         pageRequest,
         count.await(),
       )
     }
 
-  suspend fun getMappingForLatestMigrated(): CSIPReportMappingDto =
+  suspend fun getMappingForLatestMigrated(): CSIPFullMappingDto =
     csipMappingRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(CSIPMappingType.MIGRATED)
-      ?.toDto()
+      ?.toFullDto()
       ?: throw NotFoundException("No migrated mapping found")
 }
+
+fun CSIPMapping.toFullDto() =
+  CSIPFullMappingDto(
+    dpsCSIPReportId = dpsCSIPId,
+    nomisCSIPReportId = nomisCSIPId,
+    label = label,
+    mappingType = mappingType,
+    whenCreated = whenCreated,
+  )
+fun CSIPFullMappingDto.fromFullDto() =
+  CSIPMapping(
+    dpsCSIPId = dpsCSIPReportId,
+    nomisCSIPId = nomisCSIPReportId,
+    label = label,
+    mappingType = mappingType,
+  )
 
 fun CSIPMapping.toDto() = CSIPReportMappingDto(
   dpsCSIPReportId = dpsCSIPId,
