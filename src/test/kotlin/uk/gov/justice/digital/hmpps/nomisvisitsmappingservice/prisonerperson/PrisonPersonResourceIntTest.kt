@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.Priso
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.PrisonPersonMigrationMappingRequest
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.PrisonPersonMigrationType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.PrisonPersonMigrationType.PHYSICAL_ATTRIBUTES
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.PrisonPersonMigrationType.PROFILE_DETAILS_PHYSICAL_ATTRIBUTES
 import java.time.LocalDate
 
 class PrisonPersonResourceIntTest : IntegrationTestBase() {
@@ -70,12 +71,12 @@ class PrisonPersonResourceIntTest : IntegrationTestBase() {
     inner class HappyPath {
       @Test
       fun `should create migration mapping`() = runTest {
-        webTestClient.createMigrationMapping(request("A1234AA", PHYSICAL_ATTRIBUTES, listOf(1, 2, 3), "label"))
+        webTestClient.createMigrationMapping(request("A1234AA", PROFILE_DETAILS_PHYSICAL_ATTRIBUTES, listOf(1, 2, 3), "label"))
           .expectStatus().isCreated
 
-        val mapping = repository.findByNomisPrisonerNumberAndMigrationType("A1234AA", PHYSICAL_ATTRIBUTES)
+        val mapping = repository.findByNomisPrisonerNumberAndMigrationType("A1234AA", PROFILE_DETAILS_PHYSICAL_ATTRIBUTES)
         assertThat(mapping?.nomisPrisonerNumber).isEqualTo("A1234AA")
-        assertThat(mapping?.migrationType).isEqualTo(PHYSICAL_ATTRIBUTES)
+        assertThat(mapping?.migrationType).isEqualTo(PROFILE_DETAILS_PHYSICAL_ATTRIBUTES)
         assertThat(mapping?.dpsIds).isEqualTo("[1, 2, 3]")
         assertThat(mapping?.label).isEqualTo("label")
         assertThat(mapping?.whenCreated?.toLocalDate()).isEqualTo(LocalDate.now())
