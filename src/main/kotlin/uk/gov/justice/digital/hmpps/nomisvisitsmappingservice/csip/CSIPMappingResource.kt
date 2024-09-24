@@ -90,7 +90,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = CSIPReportMappingDto::class),
+          schema = Schema(implementation = CSIPFullMappingDto::class),
         ),
       ],
     ),
@@ -124,6 +124,55 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
         messageIn = "CSIP mapping already exists",
         duplicate = createFullMappingRequest,
         existing = getExistingMappingSimilarTo(createFullMappingRequest),
+        cause = e,
+      )
+    }
+
+  @PostMapping("/children/all")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Adds new child mappings to a CSIP Report",
+    description = "Adds child csip mappings. Requires role NOMIS_CSIP",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = CSIPFullMappingDto::class),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping entry/entries created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate csip child has been rejected. If Error code = 409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createChildMappings(
+    @RequestBody @Valid
+    createChildFullMappingRequest: CSIPFullMappingDto,
+  ) =
+    try {
+      // Sanity check parent exists before creating children
+      mappingService.getMappingByDPSCSIPId(createChildFullMappingRequest.dpsCSIPReportId)
+      mappingService.createChildMappings(createChildFullMappingRequest)
+    } catch (e: DuplicateKeyException) {
+      throw DuplicateMappingException(
+        messageIn = "CSIP child mapping already exists",
+        duplicate = createChildFullMappingRequest,
+        existing = getExistingMappingSimilarTo(createChildFullMappingRequest),
         cause = e,
       )
     }

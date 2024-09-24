@@ -46,10 +46,12 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
-private const val DPS_CSIP_ID = "edcd118c-41ba-42ea-b5c4-404b453ad58b"
-private const val NOMIS_CSIP_ID = 1234L
-
 class CSIPMappingResourceIntTest : IntegrationTestBase() {
+
+  companion object {
+    private const val DPS_CSIP_ID = "edcd118c-41ba-42ea-b5c4-404b453ad58b"
+    private const val NOMIS_CSIP_ID = 1234L
+  }
 
   @Autowired
   private lateinit var repository: CSIPMappingRepository
@@ -665,7 +667,6 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping.reviewMappings).size().isEqualTo(1)
     }
 
-    // TODO ADD TEST when fails mapping for child
     @Test
     fun `create mapping - if dps and nomis id already exist`() = runTest {
       val nomisCSIPId = 35353L
@@ -789,6 +790,30 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
             .exchange()
             .expectStatus().isCreated,
         )
+      }
+
+      @Test
+      fun `returns 400 when DPS CSIP Report Id is missing`() {
+        assertThat(
+          webTestClient.post().uri("/mapping/csip/all")
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+              BodyInserters.fromValue(
+                """{
+                  "label"             : "2022-01-01",
+                  "nomisCSIPReportId" : $NOMIS_CSIP_ID,
+                  "mappingType"       : "DPS_CREATED"
+                }""",
+              ),
+            )
+            .exchange()
+            .expectStatus().isBadRequest
+            .expectBody(ErrorResponse::class.java)
+            .returnResult().responseBody?.userMessage,
+        )
+          .contains("Validation failure: JSON decoding error")
+          .contains("dpsCSIPReportId")
       }
     }
   }
@@ -1254,6 +1279,417 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
         .exchange()
         .expectStatus().isNoContent
+    }
+  }
+
+  @DisplayName("POST /mapping/csip/children/all")
+  @Nested
+  inner class CreateFullChildCSIPMapping {
+    private val dpsCSIPId = UUID.randomUUID().toString()
+    private val nomisCSIPId = 22334L
+    private lateinit var mapping: CSIPMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      mapping = repository.save(
+        CSIPMapping(
+          dpsCSIPId = dpsCSIPId,
+          nomisCSIPId = nomisCSIPId,
+          label = "2023-01-01T12:45:12",
+          mappingType = MIGRATED,
+        ),
+      )
+      csipFactorRepository.save(
+        CSIPFactorMapping(
+          dpsCSIPFactorId = "c5e56441-04c9-40e1-bd37-553ec1abcaaa",
+          nomisCSIPFactorId = 11111L,
+          dpsCSIPReportId = dpsCSIPId,
+          label = "2023-01-01T12:45:12",
+          mappingType = CSIPFactorMappingType.MIGRATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    internal fun deleteData() = runBlocking {
+      csipAttendeeRepository.deleteAll()
+      csipFactorRepository.deleteAll()
+      csipInterviewRepository.deleteAll()
+      csipPlanRepository.deleteAll()
+      csipReviewRepository.deleteAll()
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access forbidden when no authority`() {
+        webTestClient.post().uri("/mapping/csip/children/all")
+          .body(BodyInserters.fromValue(createFullCSIPMapping()))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post().uri("/mapping/csip/children/all")
+          .headers(setAuthorisation(roles = listOf()))
+          .body(BodyInserters.fromValue(createFullCSIPMapping()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `create forbidden with wrong role`() {
+        webTestClient.post().uri("/mapping/csip/children/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .body(BodyInserters.fromValue(createFullCSIPMapping()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Test
+    fun `returns 409 if child csip factor already exists`() {
+      val duplicateResponse = webTestClient.post()
+        .uri("/mapping/csip/children/all")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            CSIPFullMappingDto(
+              nomisCSIPReportId = nomisCSIPId,
+              dpsCSIPReportId = dpsCSIPId,
+              factorMappings = listOf(
+                CSIPFactorMappingDto(
+                  dpsCSIPFactorId = "c5e56441-04c9-40e1-bd37-553ec1abcaaa",
+                  nomisCSIPFactorId = 11111L,
+                  dpsCSIPReportId = dpsCSIPId,
+                  label = "2023-01-01T12:45:12",
+                  mappingType = CSIPFactorMappingType.MIGRATED,
+                ),
+              ),
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isEqualTo(409)
+        .expectBody(
+          object :
+            ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
+        )
+        .returnResult().responseBody
+
+      with(duplicateResponse!!) {
+        // since this is an untyped map an int will be assumed for such small numbers
+        assertThat(this.moreInfo.existing)
+          .containsEntry("nomisCSIPReportId", mapping.nomisCSIPId.toInt())
+          .containsEntry("dpsCSIPReportId", mapping.dpsCSIPId)
+        assertThat(this.moreInfo.duplicate)
+          .containsEntry("nomisCSIPReportId", nomisCSIPId.toInt())
+          .containsEntry("dpsCSIPReportId", mapping.dpsCSIPId)
+      }
+    }
+
+    @Test
+    fun `returns 404 if csip report does not exist`() {
+      val missingDpsCSIPReportId = UUID.randomUUID().toString()
+      webTestClient.post().uri("/mapping/csip/children/all")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            CSIPFullMappingDto(
+              nomisCSIPReportId = nomisCSIPId,
+              dpsCSIPReportId = missingDpsCSIPReportId,
+              factorMappings = listOf(
+                CSIPFactorMappingDto(
+                  dpsCSIPFactorId = "c5e56441-04c9-40e1-bd37-553ec1abc111",
+                  nomisCSIPFactorId = 12233L,
+                  dpsCSIPReportId = missingDpsCSIPReportId,
+                  label = "2023-01-01T12:45:12",
+                  mappingType = CSIPFactorMappingType.MIGRATED,
+                ),
+              ),
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isEqualTo(404)
+    }
+
+    @Test
+    fun `returns exception if csip report does not exist on child`() {
+      val attendeeMappingDto = CSIPAttendeeMappingDto(
+        dpsCSIPAttendeeId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisCSIPAttendeeId = 3333L,
+        dpsCSIPReportId = dpsCSIPId,
+        label = "2023-01-01T12:45:12",
+        mappingType = CSIPAttendeeMappingType.MIGRATED,
+      )
+
+      val planMappingDto = CSIPPlanMappingDto(
+        dpsCSIPPlanId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisCSIPPlanId = 3333L,
+        dpsCSIPReportId = UUID.randomUUID().toString(),
+        label = "2023-01-01T12:45:12",
+        mappingType = CSIPPlanMappingType.MIGRATED,
+      )
+
+      webTestClient.post().uri("/mapping/csip/children/all")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            CSIPFullMappingDto(
+              nomisCSIPReportId = nomisCSIPId,
+              dpsCSIPReportId = dpsCSIPId,
+              label = "2022-01-01",
+              mappingType = DPS_CREATED,
+              attendeeMappings = listOf(attendeeMappingDto),
+              factorMappings = listOf(),
+              interviewMappings = listOf(),
+              planMappings = listOf(planMappingDto),
+              reviewMappings = listOf(),
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().is5xxServerError
+
+      // Ensure transaction rolled back
+      val mapping =
+        webTestClient.get().uri("/mapping/csip/dps-csip-id/$dpsCSIPId/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody(CSIPFullMappingDto::class.java)
+          .returnResult().responseBody!!
+
+      assertThat(mapping.nomisCSIPReportId).isEqualTo(nomisCSIPId)
+      assertThat(mapping.dpsCSIPReportId).isEqualTo(dpsCSIPId)
+      assertThat(mapping.attendeeMappings).isEmpty()
+      assertThat(mapping.planMappings).isEmpty()
+      // 1 factor mapping added setUp
+      assertThat(mapping.factorMappings).size().isEqualTo(1)
+    }
+
+    @Test
+    fun `update mapping Happy Path`() {
+      val attendeeMappingDto = CSIPAttendeeMappingDto(
+        dpsCSIPAttendeeId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisCSIPAttendeeId = 12345L,
+        dpsCSIPReportId = dpsCSIPId,
+        label = "2023-01-01T12:45:12",
+        mappingType = CSIPAttendeeMappingType.MIGRATED,
+      )
+
+      val factorMappingDto =
+        CSIPFactorMappingDto(
+          dpsCSIPFactorId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+          nomisCSIPFactorId = 12345L,
+          dpsCSIPReportId = dpsCSIPId,
+          label = "2023-01-01T12:45:12",
+          mappingType = CSIPFactorMappingType.MIGRATED,
+        )
+
+      val planMappingDto = CSIPPlanMappingDto(
+        dpsCSIPPlanId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisCSIPPlanId = 12345L,
+        dpsCSIPReportId = dpsCSIPId,
+        label = "2023-01-01T12:45:12",
+        mappingType = CSIPPlanMappingType.MIGRATED,
+      )
+
+      val planMappingDto2 = CSIPPlanMappingDto(
+        dpsCSIPPlanId = "c5e56441-04c9-40e1-bd37-553ec1abcdaa",
+        nomisCSIPPlanId = 12346L,
+        dpsCSIPReportId = dpsCSIPId,
+        label = "2023-01-01T12:45:12",
+        mappingType = CSIPPlanMappingType.DPS_CREATED,
+      )
+
+      val interviewMappingDto = CSIPInterviewMappingDto(
+        dpsCSIPInterviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisCSIPInterviewId = 12345L,
+        dpsCSIPReportId = dpsCSIPId,
+        label = "2023-01-01T12:45:12",
+        mappingType = CSIPInterviewMappingType.MIGRATED,
+      )
+
+      val reviewMappingDto = CSIPReviewMappingDto(
+        dpsCSIPReviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisCSIPReviewId = 12345L,
+        dpsCSIPReportId = dpsCSIPId,
+        label = "2023-01-01T12:45:12",
+        mappingType = CSIPReviewMappingType.MIGRATED,
+      )
+
+      webTestClient.post().uri("/mapping/csip/children/all")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            CSIPFullMappingDto(
+              nomisCSIPReportId = nomisCSIPId,
+              dpsCSIPReportId = dpsCSIPId,
+              label = "2022-01-01",
+              mappingType = DPS_CREATED,
+              attendeeMappings = listOf(attendeeMappingDto),
+              factorMappings = listOf(factorMappingDto),
+              interviewMappings = listOf(interviewMappingDto),
+              planMappings = listOf(planMappingDto, planMappingDto2),
+              reviewMappings = listOf(reviewMappingDto),
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      val mapping1 =
+        webTestClient.get().uri("/mapping/csip/nomis-csip-id/$nomisCSIPId")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody(CSIPReportMappingDto::class.java)
+          .returnResult().responseBody!!
+
+      assertThat(mapping1.nomisCSIPReportId).isEqualTo(nomisCSIPId)
+      assertThat(mapping1.dpsCSIPReportId).isEqualTo(dpsCSIPId)
+      assertThat(mapping1.label).isEqualTo("2023-01-01T12:45:12")
+      assertThat(mapping1.mappingType).isEqualTo(MIGRATED)
+
+      val mapping2 = webTestClient.get().uri("/mapping/csip/dps-csip-id/$dpsCSIPId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody(CSIPReportMappingDto::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(mapping2.nomisCSIPReportId).isEqualTo(nomisCSIPId)
+      assertThat(mapping2.dpsCSIPReportId).isEqualTo(dpsCSIPId)
+      assertThat(mapping2.label).isEqualTo("2023-01-01T12:45:12")
+      assertThat(mapping2.mappingType).isEqualTo(MIGRATED)
+
+      val mapping = webTestClient.get().uri("/mapping/csip/dps-csip-id/$dpsCSIPId/all")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody(CSIPFullMappingDto::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(mapping.nomisCSIPReportId).isEqualTo(nomisCSIPId)
+      assertThat(mapping.dpsCSIPReportId).isEqualTo(dpsCSIPId)
+      assertThat(mapping.attendeeMappings).size().isEqualTo(1)
+      assertThat(mapping.factorMappings).size().isEqualTo(2)
+      assertThat(mapping.interviewMappings).size().isEqualTo(1)
+      assertThat(mapping.planMappings).size().isEqualTo(2)
+      assertThat(mapping.reviewMappings).size().isEqualTo(1)
+    }
+
+    @Nested
+    inner class Validation {
+
+      @Test
+      fun `returns 400 if mapping type invalid`() {
+        assertThat(
+          webTestClient.post().uri("/mapping/csip/children/all")
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+              BodyInserters.fromValue(
+                //language=JSON
+                """{
+                  "nomisCSIPReportId" : $nomisCSIPId,
+                  "label"             : "2022-01-01",
+                  "dpsCSIPReportId"   : "$dpsCSIPId",
+                  "mappingType"       : "INVALID_MAPPING_TYPE"
+                }""",
+              ),
+            )
+            .exchange()
+            .expectStatus().isBadRequest
+            .expectBody(ErrorResponse::class.java)
+            .returnResult().responseBody?.userMessage,
+        ).contains("DPS_CREATED, MIGRATED, NOMIS_CREATED")
+      }
+
+      @Test
+      fun `returns 400 when Nomis CSIP Report Id is missing`() {
+        assertThat(
+          webTestClient.post().uri("/mapping/csip/children/all")
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+              BodyInserters.fromValue(
+                //language=JSON
+                """{
+                  "label"             : "2022-01-01",
+                  "dpsCSIPReportId"   : "$dpsCSIPId",
+                  "mappingType"       : "DPS_CREATED",
+                  "attendeeMappings"  : [],
+                  "factorMappings"    : [],
+                  "interviewMappings" : [],
+                  "planMappings"      : [],
+                  "reviewMappings"    : []
+                }""",
+              ),
+            )
+            .exchange()
+            .expectStatus().isBadRequest
+            .expectBody(ErrorResponse::class.java)
+            .returnResult().responseBody?.userMessage,
+        )
+          .contains("Validation failure: JSON decoding error")
+          .contains("nomisCSIPReportId")
+      }
+
+      @Test
+      fun `is success when child mapping lists are missing`() {
+        assertThat(
+          webTestClient.post().uri("/mapping/csip/children/all")
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+              BodyInserters.fromValue(
+                //language=JSON
+                """{
+                  "label"             : "2022-01-01",
+                  "nomisCSIPReportId" : $nomisCSIPId,
+                  "dpsCSIPReportId"   : "$dpsCSIPId",
+                  "mappingType"       : "DPS_CREATED"
+                }""",
+              ),
+            )
+            .exchange()
+            .expectStatus().isCreated,
+        )
+      }
+
+      @Test
+      fun `returns 400 when DPS CSIP Report Id is missing`() {
+        assertThat(
+          webTestClient.post().uri("/mapping/csip/children/all")
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+              BodyInserters.fromValue(
+                //language=JSON
+                """{
+                  "label"             : "2022-01-01",
+                  "nomisCSIPReportId" : $nomisCSIPId,
+                  "mappingType"       : "DPS_CREATED"
+                }""",
+              ),
+            )
+            .exchange()
+            .expectStatus().isBadRequest
+            .expectBody(ErrorResponse::class.java)
+            .returnResult().responseBody?.userMessage,
+        )
+          .contains("Validation failure: JSON decoding error")
+          .contains("dpsCSIPReportId")
+      }
     }
   }
 
