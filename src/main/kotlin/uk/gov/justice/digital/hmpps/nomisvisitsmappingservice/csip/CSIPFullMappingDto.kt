@@ -15,7 +15,7 @@ import java.time.LocalDateTime
 data class CSIPFullMappingDto(
   @Schema(description = "NOMIS CSIP Report id", required = true)
   val nomisCSIPReportId: Long,
-  @Schema(description = "CSIP Report id from DPS CSIP service", required = true)
+  @Schema(description = "DPS CSIP Report id from DPS CSIP service", required = true)
   val dpsCSIPReportId: String,
   @Schema(description = "Label (a timestamp for migrated ids)")
   @field:Size(max = 20)

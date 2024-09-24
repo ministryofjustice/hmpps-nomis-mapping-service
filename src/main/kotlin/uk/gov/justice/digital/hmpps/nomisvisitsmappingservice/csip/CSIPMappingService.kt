@@ -47,8 +47,13 @@ class CSIPMappingService(
 
   @Transactional
   suspend fun createCSIPMappingWithChildren(fullMappingDto: CSIPFullMappingDto) {
+    csipMappingRepository.save(fullMappingDto.fromFullDto())
+    createChildMappings(fullMappingDto)
+  }
+
+  @Transactional
+  suspend fun createChildMappings(fullMappingDto: CSIPFullMappingDto) {
     with(fullMappingDto) {
-      csipMappingRepository.save(fullMappingDto.fromFullDto())
       csipAttendeeMappingService.createMappings(attendeeMappings)
       csipFactorMappingService.createMappings(factorMappings)
       csipInterviewMappingService.createMappings(interviewMappings)
@@ -105,20 +110,20 @@ class CSIPMappingService(
 
   @Transactional
   suspend fun deleteMigratedChildren() {
-    csipPlanMappingRepository.deleteByMappingTypeEquals(CSIPPlanMappingType.MIGRATED)
-    csipInterviewMappingRepository.deleteByMappingTypeEquals(CSIPInterviewMappingType.MIGRATED)
-    csipReviewMappingRepository.deleteByMappingTypeEquals(CSIPReviewMappingType.MIGRATED)
     csipAttendeeMappingRepository.deleteByMappingTypeEquals(CSIPAttendeeMappingType.MIGRATED)
     csipFactorMappingRepository.deleteByMappingTypeEquals(CSIPFactorMappingType.MIGRATED)
+    csipInterviewMappingRepository.deleteByMappingTypeEquals(CSIPInterviewMappingType.MIGRATED)
+    csipPlanMappingRepository.deleteByMappingTypeEquals(CSIPPlanMappingType.MIGRATED)
+    csipReviewMappingRepository.deleteByMappingTypeEquals(CSIPReviewMappingType.MIGRATED)
   }
 
   @Transactional
   suspend fun deleteAllChildren() {
-    csipPlanMappingRepository.deleteAll()
-    csipInterviewMappingRepository.deleteAll()
-    csipReviewMappingRepository.deleteAll()
     csipAttendeeMappingRepository.deleteAll()
     csipFactorMappingRepository.deleteAll()
+    csipInterviewMappingRepository.deleteAll()
+    csipPlanMappingRepository.deleteAll()
+    csipReviewMappingRepository.deleteAll()
   }
 
   @Transactional
