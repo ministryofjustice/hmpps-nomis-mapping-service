@@ -87,6 +87,19 @@ class ContactPersonService(
       count.await(),
     )
   }
+
+  @Transactional
+  suspend fun deleteAllMappings() {
+    personContactRestrictionMappingRepository.deleteAll()
+    personContactMappingRepository.deleteAll()
+    personRestrictionMappingRepository.deleteAll()
+    personIdentifierMappingRepository.deleteAll()
+    personEmploymentMappingRepository.deleteAll()
+    personEmailMappingRepository.deleteAll()
+    personPhoneMappingRepository.deleteAll()
+    personAddressMappingRepository.deleteAll()
+    personMappingRepository.deleteAll()
+  }
 }
 
 private fun PersonMapping.toDto() = PersonMappingDto(
