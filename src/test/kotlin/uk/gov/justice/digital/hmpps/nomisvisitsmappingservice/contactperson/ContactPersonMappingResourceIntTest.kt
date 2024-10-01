@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.contactperson
 
+import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
@@ -726,6 +727,141 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
           .jsonPath("number").isEqualTo(0)
           .jsonPath("totalPages").isEqualTo(3)
           .jsonPath("size").isEqualTo(2)
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("DELETE /mapping/contact-person")
+  inner class DeleteAllMappings {
+    @BeforeEach
+    fun setUp() {
+      val mappings = ContactPersonMappingsDto(
+        personMapping = ContactPersonSimpleMappingIdDto(
+          dpsId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+          nomisId = 12345L,
+        ),
+        label = null,
+        mappingType = ContactPersonMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+        personContactMapping = listOf(
+          ContactPersonSimpleMappingIdDto(
+            dpsId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+            nomisId = 12345L,
+          ),
+        ),
+        personContactRestrictionMapping = listOf(
+          ContactPersonSimpleMappingIdDto(
+            dpsId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+            nomisId = 12345L,
+          ),
+        ),
+        personEmailMapping = listOf(
+          ContactPersonSimpleMappingIdDto(
+            dpsId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+            nomisId = 12345L,
+          ),
+        ),
+        personRestrictionMapping = listOf(
+          ContactPersonSimpleMappingIdDto(
+            dpsId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+            nomisId = 12345L,
+          ),
+        ),
+        personPhoneMapping = listOf(
+          ContactPersonSimpleMappingIdDto(
+            dpsId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+            nomisId = 12345L,
+          ),
+        ),
+        personAddressMapping = listOf(
+          ContactPersonSimpleMappingIdDto(
+            dpsId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+            nomisId = 12345L,
+          ),
+        ),
+        personEmploymentMapping = listOf(
+          ContactPersonSequenceMappingIdDto(
+            dpsId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+            nomisPersonId = 12345L,
+            nomisSequenceNumber = 1,
+          ),
+        ),
+        personIdentifierMapping = listOf(
+          ContactPersonSequenceMappingIdDto(
+            dpsId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+            nomisPersonId = 12345L,
+            nomisSequenceNumber = 1,
+          ),
+        ),
+      )
+      webTestClient.post()
+        .uri("/mapping/contact-person/migrate")
+        .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(mappings))
+        .exchange()
+        .expectStatus().isCreated
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/contact-person")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/contact-person")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/contact-person")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `returns 204 when all mappings are deleted`() = runTest {
+        assertThat(personContactRestrictionMappingRepository.findAll().count()).isEqualTo(1)
+        assertThat(personContactMappingRepository.findAll().count()).isEqualTo(1)
+        assertThat(personRestrictionMappingRepository.findAll().count()).isEqualTo(1)
+        assertThat(personIdentifierMappingRepository.findAll().count()).isEqualTo(1)
+        assertThat(personEmploymentMappingRepository.findAll().count()).isEqualTo(1)
+        assertThat(personEmailMappingRepository.findAll().count()).isEqualTo(1)
+        assertThat(personPhoneMappingRepository.findAll().count()).isEqualTo(1)
+        assertThat(personAddressMappingRepository.findAll().count()).isEqualTo(1)
+        assertThat(personMappingRepository.findAll().count()).isEqualTo(1)
+
+        webTestClient.delete()
+          .uri("/mapping/contact-person")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        assertThat(personContactRestrictionMappingRepository.findAll().count()).isEqualTo(0)
+        assertThat(personContactMappingRepository.findAll().count()).isEqualTo(0)
+        assertThat(personRestrictionMappingRepository.findAll().count()).isEqualTo(0)
+        assertThat(personIdentifierMappingRepository.findAll().count()).isEqualTo(0)
+        assertThat(personEmploymentMappingRepository.findAll().count()).isEqualTo(0)
+        assertThat(personEmailMappingRepository.findAll().count()).isEqualTo(0)
+        assertThat(personPhoneMappingRepository.findAll().count()).isEqualTo(0)
+        assertThat(personAddressMappingRepository.findAll().count()).isEqualTo(0)
+        assertThat(personMappingRepository.findAll().count()).isEqualTo(0)
       }
     }
   }
