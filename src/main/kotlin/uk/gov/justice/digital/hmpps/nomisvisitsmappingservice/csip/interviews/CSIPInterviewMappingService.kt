@@ -1,63 +1,43 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews
 
-import com.microsoft.applicationinsights.TelemetryClient
-import org.slf4j.LoggerFactory
+import kotlinx.coroutines.flow.collect
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.toDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
 @Service
 @Transactional(readOnly = true)
 class CSIPInterviewMappingService(
-  private val csipInterviewMappingRepository: CSIPInterviewMappingRepository,
-  private val telemetryClient: TelemetryClient,
+  private val repository: CSIPInterviewMappingRepository,
 ) {
-  private companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
 
   @Transactional
-  suspend fun createCSIPInterviewMapping(createMappingRequest: CSIPInterviewMappingDto) =
-    with(createMappingRequest) {
-      log.debug("creating csip interview {}", createMappingRequest)
+  suspend fun createMapping(mappingDto: CSIPInterviewMappingDto): CSIPInterviewMapping =
+    repository.save(mappingDto.fromDto())
 
-      csipInterviewMappingRepository.save(
-        CSIPInterviewMapping(
-          dpsCSIPInterviewId = dpsCSIPInterviewId,
-          nomisCSIPInterviewId = nomisCSIPInterviewId,
-          dpsCSIPReportId = dpsCSIPReportId,
-          label = label,
-          mappingType = mappingType,
-        ),
-      )
-      telemetryClient.trackEvent(
-        "csip-interview-mapping-created",
-        mapOf(
-          "dpsCSIPInterviewId" to dpsCSIPInterviewId,
-          "nomisCSIPInterviewId" to nomisCSIPInterviewId.toString(),
-          "dpsCSIPReportId" to dpsCSIPReportId,
-          "batchId" to label,
-        ),
-        null,
-      )
-      log.debug("Mapping created with dpsCSIPInterviewId = $dpsCSIPInterviewId, nomisCSIPInterviewId=$nomisCSIPInterviewId")
-    }
+  @Transactional
+  suspend fun createMappings(mappingDtoList: List<CSIPInterviewMappingDto>) {
+    repository.saveAll(mappingDtoList.map { it.fromDto() }).collect()
+  }
+
+  suspend fun findAllByDpsCSIPReportId(dpsCSIPReportId: String) = repository.findAllByDpsCSIPReportId(dpsCSIPReportId).map { it.toDto() }
 
   suspend fun getMappingByNomisId(nomisCSIPInterviewId: Long): CSIPInterviewMappingDto =
-    csipInterviewMappingRepository.findOneByNomisCSIPInterviewId(
+    repository.findOneByNomisCSIPInterviewId(
       nomisCSIPInterviewId = nomisCSIPInterviewId,
     )
-      ?.toCSIPInterviewDto()
+      ?.toDto()
       ?: throw NotFoundException("No CSIP Interview mapping for  nomisCSIPInterviewId=$nomisCSIPInterviewId")
 
   suspend fun getMappingByDpsId(dpsCSIPInterviewId: String): CSIPInterviewMappingDto =
-    csipInterviewMappingRepository.findById(dpsCSIPInterviewId)
-      ?.toCSIPInterviewDto()
+    repository.findById(dpsCSIPInterviewId)
+      ?.toDto()
       ?: throw NotFoundException("No CSIP interview mapping found for dpsCSIPInterviewId=$dpsCSIPInterviewId")
 
   @Transactional
   suspend fun deleteMappingByDpsId(dpsCSIPInterviewId: String) =
-    csipInterviewMappingRepository.deleteById(dpsCSIPInterviewId)
+    repository.deleteById(dpsCSIPInterviewId)
 
   fun alreadyExistsMessage(
     duplicateMapping: CSIPInterviewMappingDto,
@@ -69,7 +49,16 @@ class CSIPInterviewMappingService(
     """.trimMargin()
 }
 
-fun CSIPInterviewMapping.toCSIPInterviewDto() = CSIPInterviewMappingDto(
+fun CSIPInterviewMapping.toDto() = CSIPInterviewMappingDto(
+  nomisCSIPInterviewId = nomisCSIPInterviewId,
+  dpsCSIPInterviewId = dpsCSIPInterviewId,
+  dpsCSIPReportId = dpsCSIPReportId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+fun CSIPInterviewMappingDto.fromDto() = CSIPInterviewMapping(
   nomisCSIPInterviewId = nomisCSIPInterviewId,
   dpsCSIPInterviewId = dpsCSIPInterviewId,
   dpsCSIPReportId = dpsCSIPReportId,
