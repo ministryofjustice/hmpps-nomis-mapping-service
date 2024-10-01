@@ -1,5 +1,11 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.contactperson
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.toList
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
@@ -57,6 +63,29 @@ class ContactPersonService(
         personContactRestrictionMappingRepository.save(toMapping(it))
       }
     }
+  }
+
+  suspend fun getPersonMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<PersonMappingDto> = coroutineScope {
+    val mappings = async {
+      personMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+        label = migrationId,
+        mappingType = ContactPersonMappingType.MIGRATED,
+        pageRequest = pageRequest,
+      )
+    }
+
+    val count = async {
+      personMappingRepository.countAllByLabelAndMappingType(
+        migrationId = migrationId,
+        mappingType = ContactPersonMappingType.MIGRATED,
+      )
+    }
+
+    PageImpl(
+      mappings.await().toList().map { it.toDto() },
+      pageRequest,
+      count.await(),
+    )
   }
 }
 
