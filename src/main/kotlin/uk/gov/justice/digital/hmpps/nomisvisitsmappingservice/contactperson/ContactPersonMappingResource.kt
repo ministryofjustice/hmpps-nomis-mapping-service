@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -24,7 +26,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @Validated
 @PreAuthorize("hasRole('NOMIS_CONTACTPERSONS')")
 @RequestMapping("/mapping/contact-person", produces = [MediaType.APPLICATION_JSON_VALUE])
-class ContactPersonResource(private val service: ContactPersonService) {
+class ContactPersonMappingResource(private val service: ContactPersonService) {
   @PostMapping("/migrate")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -71,6 +73,41 @@ class ContactPersonResource(private val service: ContactPersonService) {
         cause = e,
       )
     }
+
+  @GetMapping("/person/nomis-person-id/{nomisPersonId}")
+  @Operation(
+    summary = "Get person mapping by nomis person Id",
+    description = "Retrieves the person a mapping by NOMIS Person Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = PersonMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPersonMappingByNomisId(
+    @Schema(description = "NOMIS person id", example = "12345", required = true)
+    @PathVariable
+    nomisPersonId: Long,
+  ): PersonMappingDto = service.getPersonMappingByNomisId(nomisId = nomisPersonId)
 
   private suspend fun getExistingPersonMappingSimilarTo(personMapping: ContactPersonSimpleMappingIdDto) = runCatching {
     service.getPersonMappingByNomisId(

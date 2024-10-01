@@ -47,22 +47,22 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var personContactRestrictionMappingRepository: PersonContactRestrictionMappingRepository
 
+  @AfterEach
+  fun tearDown() = runTest {
+    personContactRestrictionMappingRepository.deleteAll()
+    personContactMappingRepository.deleteAll()
+    personRestrictionMappingRepository.deleteAll()
+    personIdentifierMappingRepository.deleteAll()
+    personEmploymentMappingRepository.deleteAll()
+    personEmailMappingRepository.deleteAll()
+    personPhoneMappingRepository.deleteAll()
+    personAddressMappingRepository.deleteAll()
+    personMappingRepository.deleteAll()
+  }
+
   @Nested
   @DisplayName("POST mapping/contact-person/migrate")
   inner class CreateMappings {
-
-    @AfterEach
-    fun tearDown() = runTest {
-      personContactRestrictionMappingRepository.deleteAll()
-      personContactMappingRepository.deleteAll()
-      personRestrictionMappingRepository.deleteAll()
-      personIdentifierMappingRepository.deleteAll()
-      personEmploymentMappingRepository.deleteAll()
-      personEmailMappingRepository.deleteAll()
-      personPhoneMappingRepository.deleteAll()
-      personAddressMappingRepository.deleteAll()
-      personMappingRepository.deleteAll()
-    }
 
     @Nested
     inner class Security {
@@ -109,7 +109,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `access forbidden with wrong role`() {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -155,7 +155,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same person to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -166,7 +166,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -213,7 +213,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -224,7 +224,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings.copy(label = "2023-01-01T12:45:12")))
           .exchange()
@@ -244,7 +244,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person address mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -279,7 +279,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person phone mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -314,7 +314,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person email mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -349,7 +349,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person employment mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -391,7 +391,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person identifier mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -433,7 +433,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person restriction mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -468,7 +468,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person contact mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -503,7 +503,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person contact restriction mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -532,6 +532,85 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
           assertThat(mappingType).isEqualTo(mappings.mappingType)
           assertThat(whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         }
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/contact-person/person/nomis-person-id/{personId}")
+  inner class GetPersonByNomisId {
+    private val nomisPersonId = 12345L
+    private lateinit var personMapping: PersonMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      personMapping = personMappingRepository.save(
+        PersonMapping(
+          dpsId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          nomisId = nomisPersonId,
+          label = "2023-01-01T12:45:12",
+          mappingType = ContactPersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/person/nomis-person-id/{personId}", nomisPersonId)
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/person/nomis-person-id/{personId}", nomisPersonId)
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/person/nomis-person-id/{personId}", nomisPersonId)
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `404 when mapping not found`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/person/nomis-person-id/{personId}", 99999)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return the mapping data`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/person/nomis-person-id/{personId}", nomisPersonId)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("dpsId").isEqualTo("edcd118c-41ba-42ea-b5c4-404b453ad58b")
+          .jsonPath("nomisId").isEqualTo(nomisPersonId)
+          .jsonPath("label").isEqualTo("2023-01-01T12:45:12")
+          .jsonPath("mappingType").isEqualTo("MIGRATED")
+          .jsonPath("whenCreated").isEqualTo("2023-01-01T12:45:12")
       }
     }
   }
