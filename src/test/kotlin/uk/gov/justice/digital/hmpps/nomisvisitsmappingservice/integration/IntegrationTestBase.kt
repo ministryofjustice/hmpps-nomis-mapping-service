@@ -12,7 +12,6 @@ import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 abstract class IntegrationTestBase : TestBase() {
 
-  @Suppress("SpringJavaInjectionPointsAutowiringInspection")
   @Autowired
   lateinit var webTestClient: WebTestClient
 
@@ -26,7 +25,6 @@ abstract class IntegrationTestBase : TestBase() {
   ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisationHeader(username = user, roles = roles, scope = scopes)
 }
 
-val StatusAssertions.isDuplicateMapping: Unit
-  get() {
+val StatusAssertions.isDuplicateMapping: WebTestClient.ResponseSpec
+  get() =
     isEqualTo(409)
-  }
