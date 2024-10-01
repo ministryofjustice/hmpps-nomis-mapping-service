@@ -7,6 +7,9 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
 import org.springframework.dao.DuplicateKeyException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -108,6 +111,35 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     @PathVariable
     nomisPersonId: Long,
   ): PersonMappingDto = service.getPersonMappingByNomisId(nomisId = nomisPersonId)
+
+  @GetMapping("/person/migration-id/{migrationId}")
+  @Operation(
+    summary = "Get paged person mappings by migration id",
+    description = "Retrieve all person mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged.",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person mapping page returned",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPersonMappingsByMigrationId(
+    @PageableDefault pageRequest: Pageable,
+    @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
+    @PathVariable
+    migrationId: String,
+  ): Page<PersonMappingDto> =
+    service.getPersonMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   private suspend fun getExistingPersonMappingSimilarTo(personMapping: ContactPersonSimpleMappingIdDto) = runCatching {
     service.getPersonMappingByNomisId(
