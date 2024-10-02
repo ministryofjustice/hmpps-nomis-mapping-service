@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.contactperson
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -37,7 +36,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     summary = "Creates a tree of contact person mappings typically for a migration",
     description = "Creates a tree of contact person mappings typically for a migration between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", array = ArraySchema(schema = Schema(implementation = ContactPersonMappingsDto::class)))],
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = ContactPersonMappingsDto::class))],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Mappings created"),
