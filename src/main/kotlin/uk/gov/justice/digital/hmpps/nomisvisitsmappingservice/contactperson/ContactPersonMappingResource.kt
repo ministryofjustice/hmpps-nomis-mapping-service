@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -30,6 +32,10 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @PreAuthorize("hasRole('NOMIS_CONTACTPERSONS')")
 @RequestMapping("/mapping/contact-person", produces = [MediaType.APPLICATION_JSON_VALUE])
 class ContactPersonMappingResource(private val service: ContactPersonService) {
+  private companion object {
+    val log: Logger = LoggerFactory.getLogger(this::class.java)
+  }
+
   @PostMapping("/migrate")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -69,10 +75,14 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     try {
       service.createMappings(mappings)
     } catch (e: DuplicateKeyException) {
+      val existingMapping = getExistingPersonMappingSimilarTo(mappings.personMapping)
+      if (existingMapping == null) {
+        log.error("Child duplicate key found for person even though the person has never been migrated", e)
+      }
       throw DuplicateMappingException(
         messageIn = "Person mapping already exists",
         duplicate = mappings.personMapping,
-        existing = getExistingPersonMappingSimilarTo(mappings.personMapping),
+        existing = existingMapping ?: mappings.personMapping,
         cause = e,
       )
     }
@@ -167,7 +177,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
       nomisId = personMapping.nomisId,
     )
   }.getOrElse {
-    service.getPersonMappingByDpsId(
+    service.getPersonMappingByDpsIdOrNull(
       dpsId = personMapping.dpsId,
     )
   }

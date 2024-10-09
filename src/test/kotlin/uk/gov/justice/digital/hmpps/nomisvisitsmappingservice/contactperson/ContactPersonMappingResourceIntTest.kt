@@ -151,6 +151,15 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
             mappingType = ContactPersonMappingType.MIGRATED,
           ),
         )
+        personIdentifierMappingRepository.save(
+          PersonIdentifierMapping(
+            dpsId = "18e89dec-6ace-4706-9283-8e11e9ebe886",
+            nomisPersonId = 54321,
+            nomisSequenceNumber = 1,
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+          ),
+        )
       }
 
       @Test
@@ -160,6 +169,35 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
           .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+      }
+
+      @Test
+      fun `will not allow a child of a person to have duplicate mappings`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/migrate")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              mappings.copy(
+                // unique person who has never been migrated
+                personMapping = ContactPersonSimpleMappingIdDto(
+                  dpsId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+                  nomisId = 54321,
+                ),
+                // an identifier from a different person - this would be coding error - a can't happen
+                personIdentifierMapping = listOf(
+                  ContactPersonSequenceMappingIdDto(
+                    dpsId = "18e89dec-6ace-4706-9283-8e11e9ebe886",
+                    nomisPersonId = 54321,
+                    nomisSequenceNumber = 1,
+                  ),
+                ),
+              ),
+            ),
+          )
           .exchange()
           .expectStatus().isDuplicateMapping
       }
