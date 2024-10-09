@@ -27,12 +27,11 @@ class ContactPersonService(
   suspend fun getPersonMappingByNomisId(nomisId: Long) =
     personMappingRepository.findOneByNomisId(nomisId = nomisId)
       ?.toDto()
-      ?: throw NotFoundException("No alert mapping found for nomisId=$nomisId")
+      ?: throw NotFoundException("No person mapping found for nomisId=$nomisId")
 
-  suspend fun getPersonMappingByDpsId(dpsId: String) =
+  suspend fun getPersonMappingByDpsIdOrNull(dpsId: String) =
     personMappingRepository.findOneByDpsId(dpsId = dpsId)
       ?.toDto()
-      ?: throw NotFoundException("No alert mapping found for dpsId=$dpsId")
 
   @Transactional
   suspend fun createMappings(mappings: ContactPersonMappingsDto) {
