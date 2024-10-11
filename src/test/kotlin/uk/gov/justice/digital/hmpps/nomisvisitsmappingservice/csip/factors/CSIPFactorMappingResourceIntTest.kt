@@ -13,10 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPChildMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPChildMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingType
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import java.time.LocalDateTime
@@ -35,9 +36,9 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("POST /mapping/csip/factors")
   inner class CreateMapping {
     private lateinit var existingMapping: CSIPFactorMapping
-    private val mapping = CSIPFactorMappingDto(
-      dpsCSIPFactorId = "a018f95e-459d-4d0d-9ccd-1fddf4315b2a",
-      nomisCSIPFactorId = 54321L,
+    private val mapping = CSIPChildMappingDto(
+      dpsId = "a018f95e-459d-4d0d-9ccd-1fddf4315b2a",
+      nomisId = 54321L,
       dpsCSIPReportId = "987",
       label = "2023-01-01T12:45:12",
       mappingType = MIGRATED,
@@ -119,11 +120,11 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isCreated
 
         val createdMapping =
-          repository.findOneByNomisCSIPFactorId(nomisCSIPFactorId = mapping.nomisCSIPFactorId)!!
+          repository.findOneByNomisCSIPFactorId(nomisCSIPFactorId = mapping.nomisId)!!
 
         assertThat(createdMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
-        assertThat(createdMapping.dpsCSIPFactorId).isEqualTo(mapping.dpsCSIPFactorId)
-        assertThat(createdMapping.dpsCSIPFactorId).isEqualTo(mapping.dpsCSIPFactorId)
+        assertThat(createdMapping.dpsCSIPFactorId).isEqualTo(mapping.dpsId)
+        assertThat(createdMapping.dpsCSIPFactorId).isEqualTo(mapping.dpsId)
         assertThat(createdMapping.mappingType).isEqualTo(mapping.mappingType)
         assertThat(createdMapping.label).isEqualTo(mapping.label)
       }
@@ -139,8 +140,8 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
               // language=JSON
               """
                 {
-                  "nomisCSIPFactorId": 54321,
-                  "dpsCSIPFactorId": "018f95e-459d-4d0d-9ccd-1fddf4315b2a",
+                  "nomisId": 54321,
+                  "dpsId": "018f95e-459d-4d0d-9ccd-1fddf4315b2a",
                   "dpsCSIPReportId": "987"
                 }
               """.trimIndent(),
@@ -260,9 +261,9 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CSIPFactorMappingDto(
-                nomisCSIPFactorId = existingMapping.nomisCSIPFactorId,
-                dpsCSIPFactorId = dpsCSIPFactorId,
+              CSIPChildMappingDto(
+                nomisId = existingMapping.nomisCSIPFactorId,
+                dpsId = dpsCSIPFactorId,
                 dpsCSIPReportId = existingMapping.dpsCSIPReportId,
               ),
             ),
@@ -278,11 +279,11 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
         with(duplicateResponse!!) {
           // since this is an untyped map an int will be assumed for such small numbers
           assertThat(this.moreInfo.existing)
-            .containsEntry("nomisCSIPFactorId", existingMapping.nomisCSIPFactorId.toInt())
-            .containsEntry("dpsCSIPFactorId", existingMapping.dpsCSIPFactorId)
+            .containsEntry("nomisId", existingMapping.nomisCSIPFactorId.toInt())
+            .containsEntry("dpsId", existingMapping.dpsCSIPFactorId)
           assertThat(this.moreInfo.duplicate)
-            .containsEntry("nomisCSIPFactorId", existingMapping.nomisCSIPFactorId.toInt())
-            .containsEntry("dpsCSIPFactorId", dpsCSIPFactorId)
+            .containsEntry("nomisId", existingMapping.nomisCSIPFactorId.toInt())
+            .containsEntry("dpsId", dpsCSIPFactorId)
         }
       }
 
@@ -294,9 +295,9 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CSIPFactorMappingDto(
-                nomisCSIPFactorId = 123123,
-                dpsCSIPFactorId = existingMapping.dpsCSIPFactorId,
+              CSIPChildMappingDto(
+                nomisId = 123123,
+                dpsId = existingMapping.dpsCSIPFactorId,
                 dpsCSIPReportId = existingMapping.dpsCSIPReportId,
               ),
             ),
@@ -312,11 +313,11 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
         with(duplicateResponse!!) {
           // since this is an untyped map an int will be assumed for such small numbers
           assertThat(this.moreInfo.existing)
-            .containsEntry("nomisCSIPFactorId", existingMapping.nomisCSIPFactorId.toInt())
-            .containsEntry("dpsCSIPFactorId", existingMapping.dpsCSIPFactorId)
+            .containsEntry("nomisId", existingMapping.nomisCSIPFactorId.toInt())
+            .containsEntry("dpsId", existingMapping.dpsCSIPFactorId)
           assertThat(this.moreInfo.duplicate)
-            .containsEntry("nomisCSIPFactorId", 123123)
-            .containsEntry("dpsCSIPFactorId", existingMapping.dpsCSIPFactorId)
+            .containsEntry("nomisId", 123123)
+            .containsEntry("dpsId", existingMapping.dpsCSIPFactorId)
         }
       }
     }
@@ -497,8 +498,8 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCSIPFactorId").isEqualTo(mapping.nomisCSIPFactorId)
-          .jsonPath("dpsCSIPFactorId").isEqualTo(mapping.dpsCSIPFactorId)
+          .jsonPath("nomisId").isEqualTo(mapping.nomisCSIPFactorId)
+          .jsonPath("dpsId").isEqualTo(mapping.dpsCSIPFactorId)
           .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
           .jsonPath("label").isEqualTo(mapping.label!!)
           .jsonPath("whenCreated").value<String> {
@@ -588,8 +589,8 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCSIPFactorId").isEqualTo(mapping.nomisCSIPFactorId)
-          .jsonPath("dpsCSIPFactorId").isEqualTo(mapping.dpsCSIPFactorId)
+          .jsonPath("nomisId").isEqualTo(mapping.nomisCSIPFactorId)
+          .jsonPath("dpsId").isEqualTo(mapping.dpsCSIPFactorId)
           .jsonPath("dpsCSIPReportId").isEqualTo(mapping.dpsCSIPReportId)
           .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
           .jsonPath("label").isEqualTo(mapping.label!!)

@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPChildMappingDto
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
@@ -38,7 +39,7 @@ class CSIPAttendeeMappingResource(
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = CSIPAttendeeMappingDto::class),
+          schema = Schema(implementation = CSIPChildMappingDto::class),
         ),
       ],
     ),
@@ -64,7 +65,7 @@ class CSIPAttendeeMappingResource(
   suspend fun createAttendeeMapping(
     @RequestBody
     @Valid
-    csipAttendeeMapping: CSIPAttendeeMappingDto,
+    csipAttendeeMapping: CSIPChildMappingDto,
   ) =
     try {
       attendeeMappingService.createMapping(csipAttendeeMapping)
@@ -86,7 +87,7 @@ class CSIPAttendeeMappingResource(
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CSIPAttendeeMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = CSIPChildMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -105,7 +106,7 @@ class CSIPAttendeeMappingResource(
     @Schema(description = "NOMIS CSIP Attendee id", example = "12345", required = true)
     @PathVariable
     nomisCSIPAttendeeId: Long,
-  ): CSIPAttendeeMappingDto = attendeeMappingService.getMappingByNomisId(nomisCSIPAttendeeId = nomisCSIPAttendeeId)
+  ): CSIPChildMappingDto = attendeeMappingService.getMappingByNomisId(nomisCSIPAttendeeId = nomisCSIPAttendeeId)
 
   @GetMapping("/dps-csip-attendee-id/{dpsCSIPAttendeeId}")
   @Operation(
@@ -116,7 +117,7 @@ class CSIPAttendeeMappingResource(
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CSIPAttendeeMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = CSIPChildMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -135,7 +136,7 @@ class CSIPAttendeeMappingResource(
     @Schema(description = "DPS CSIP attendee id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
     dpsCSIPAttendeeId: String,
-  ): CSIPAttendeeMappingDto = attendeeMappingService.getMappingByDpsId(dpsCSIPAttendeeId = dpsCSIPAttendeeId)
+  ): CSIPChildMappingDto = attendeeMappingService.getMappingByDpsId(dpsCSIPAttendeeId = dpsCSIPAttendeeId)
 
   @DeleteMapping("/dps-csip-attendee-id/{dpsCSIPAttendeeId}")
   @Operation(
@@ -165,9 +166,9 @@ class CSIPAttendeeMappingResource(
     dpsCSIPAttendeeId: String,
   ) = attendeeMappingService.deleteMappingByDpsId(dpsCSIPAttendeeId = dpsCSIPAttendeeId)
 
-  private suspend fun getExistingMappingSimilarTo(mapping: CSIPAttendeeMappingDto) = runCatching {
-    attendeeMappingService.getMappingByNomisId(nomisCSIPAttendeeId = mapping.nomisCSIPAttendeeId)
+  private suspend fun getExistingMappingSimilarTo(mapping: CSIPChildMappingDto) = runCatching {
+    attendeeMappingService.getMappingByNomisId(nomisCSIPAttendeeId = mapping.nomisId)
   }.getOrElse {
-    attendeeMappingService.getMappingByDpsId(dpsCSIPAttendeeId = mapping.dpsCSIPAttendeeId)
+    attendeeMappingService.getMappingByDpsId(dpsCSIPAttendeeId = mapping.dpsId)
   }
 }

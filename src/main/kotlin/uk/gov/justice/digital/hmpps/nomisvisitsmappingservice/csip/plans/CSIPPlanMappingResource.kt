@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPChildMappingDto
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
@@ -38,7 +39,7 @@ class CSIPPlanMappingResource(
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = CSIPPlanMappingDto::class),
+          schema = Schema(implementation = CSIPChildMappingDto::class),
         ),
       ],
     ),
@@ -64,7 +65,7 @@ class CSIPPlanMappingResource(
   suspend fun createPlanMapping(
     @RequestBody
     @Valid
-    csipPlanMapping: CSIPPlanMappingDto,
+    csipPlanMapping: CSIPChildMappingDto,
   ) =
     try {
       planMappingService.createMapping(csipPlanMapping)
@@ -86,7 +87,7 @@ class CSIPPlanMappingResource(
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CSIPPlanMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = CSIPChildMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -105,7 +106,7 @@ class CSIPPlanMappingResource(
     @Schema(description = "NOMIS CSIP Plan id", example = "12345", required = true)
     @PathVariable
     nomisCSIPPlanId: Long,
-  ): CSIPPlanMappingDto = planMappingService.getMappingByNomisId(nomisCSIPPlanId = nomisCSIPPlanId)
+  ): CSIPChildMappingDto = planMappingService.getMappingByNomisId(nomisCSIPPlanId = nomisCSIPPlanId)
 
   @GetMapping("/dps-csip-plan-id/{dpsCSIPPlanId}")
   @Operation(
@@ -116,7 +117,7 @@ class CSIPPlanMappingResource(
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CSIPPlanMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = CSIPChildMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -135,7 +136,7 @@ class CSIPPlanMappingResource(
     @Schema(description = "DPS CSIP plan id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
     dpsCSIPPlanId: String,
-  ): CSIPPlanMappingDto = planMappingService.getMappingByDpsId(dpsCSIPPlanId = dpsCSIPPlanId)
+  ): CSIPChildMappingDto = planMappingService.getMappingByDpsId(dpsCSIPPlanId = dpsCSIPPlanId)
 
   @DeleteMapping("/dps-csip-plan-id/{dpsCSIPPlanId}")
   @Operation(
@@ -165,9 +166,9 @@ class CSIPPlanMappingResource(
     dpsCSIPPlanId: String,
   ) = planMappingService.deleteMappingByDpsId(dpsCSIPPlanId = dpsCSIPPlanId)
 
-  private suspend fun getExistingMappingSimilarTo(mapping: CSIPPlanMappingDto) = runCatching {
-    planMappingService.getMappingByNomisId(nomisCSIPPlanId = mapping.nomisCSIPPlanId)
+  private suspend fun getExistingMappingSimilarTo(mapping: CSIPChildMappingDto) = runCatching {
+    planMappingService.getMappingByNomisId(nomisCSIPPlanId = mapping.nomisId)
   }.getOrElse {
-    planMappingService.getMappingByDpsId(dpsCSIPPlanId = mapping.dpsCSIPPlanId)
+    planMappingService.getMappingByDpsId(dpsCSIPPlanId = mapping.dpsId)
   }
 }

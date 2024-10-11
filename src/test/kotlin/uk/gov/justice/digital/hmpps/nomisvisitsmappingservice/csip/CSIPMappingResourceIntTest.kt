@@ -20,25 +20,15 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingTy
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingType.NOMIS_CREATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMapping
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingRepository
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMapping
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingRepository
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMapping
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingRepository
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMapping
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingRepository
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMapping
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMappingRepository
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
@@ -556,53 +546,53 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       val nomisCSIPId = 67676L
       val dpsCSIPId = UUID.randomUUID().toString()
 
-      val attendeeMappingDto = CSIPAttendeeMappingDto(
-        dpsCSIPAttendeeId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
-        nomisCSIPAttendeeId = 12345L,
+      val attendeeMappingDto = CSIPChildMappingDto(
+        dpsId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisId = 12345L,
         dpsCSIPReportId = dpsCSIPId,
         label = "2023-01-01T12:45:12",
-        mappingType = CSIPAttendeeMappingType.MIGRATED,
+        mappingType = CSIPChildMappingType.MIGRATED,
       )
 
       val factorMappingDto =
-        CSIPFactorMappingDto(
-          dpsCSIPFactorId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
-          nomisCSIPFactorId = 12345L,
+        CSIPChildMappingDto(
+          dpsId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+          nomisId = 12345L,
           dpsCSIPReportId = dpsCSIPId,
           label = "2023-01-01T12:45:12",
-          mappingType = CSIPFactorMappingType.MIGRATED,
+          mappingType = CSIPChildMappingType.MIGRATED,
         )
 
-      val planMappingDto = CSIPPlanMappingDto(
-        dpsCSIPPlanId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
-        nomisCSIPPlanId = 12345L,
+      val planMappingDto = CSIPChildMappingDto(
+        dpsId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisId = 12345L,
         dpsCSIPReportId = dpsCSIPId,
         label = "2023-01-01T12:45:12",
-        mappingType = CSIPPlanMappingType.MIGRATED,
+        mappingType = CSIPChildMappingType.MIGRATED,
       )
 
-      val planMappingDto2 = CSIPPlanMappingDto(
-        dpsCSIPPlanId = "c5e56441-04c9-40e1-bd37-553ec1abcdaa",
-        nomisCSIPPlanId = 12346L,
+      val planMappingDto2 = CSIPChildMappingDto(
+        dpsId = "c5e56441-04c9-40e1-bd37-553ec1abcdaa",
+        nomisId = 12346L,
         dpsCSIPReportId = dpsCSIPId,
         label = "2023-01-01T12:45:12",
-        mappingType = CSIPPlanMappingType.DPS_CREATED,
+        mappingType = CSIPChildMappingType.DPS_CREATED,
       )
 
-      val interviewMappingDto = CSIPInterviewMappingDto(
-        dpsCSIPInterviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
-        nomisCSIPInterviewId = 12345L,
+      val interviewMappingDto = CSIPChildMappingDto(
+        dpsId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisId = 12345L,
         dpsCSIPReportId = dpsCSIPId,
         label = "2023-01-01T12:45:12",
-        mappingType = CSIPInterviewMappingType.MIGRATED,
+        mappingType = CSIPChildMappingType.MIGRATED,
       )
 
-      val reviewMappingDto = CSIPReviewMappingDto(
-        dpsCSIPReviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
-        nomisCSIPReviewId = 12345L,
+      val reviewMappingDto = CSIPChildMappingDto(
+        dpsId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisId = 12345L,
         dpsCSIPReportId = dpsCSIPId,
         label = "2023-01-01T12:45:12",
-        mappingType = CSIPReviewMappingType.MIGRATED,
+        mappingType = CSIPChildMappingType.MIGRATED,
       )
 
       webTestClient.post().uri("/mapping/csip/all")
@@ -1043,11 +1033,11 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
       assertThat(mapping.nomisCSIPReportId).isEqualTo(nomisCSIPReportId)
       assertThat(mapping.dpsCSIPReportId).isEqualTo(dpsCSIPReportId)
-      assertThat(mapping.attendeeMappings).isEqualTo(emptyList<CSIPAttendeeMappingDto>())
-      assertThat(mapping.factorMappings).isEqualTo(emptyList<CSIPFactorMappingDto>())
-      assertThat(mapping.interviewMappings).isEqualTo(emptyList<CSIPInterviewMappingDto>())
-      assertThat(mapping.planMappings).isEqualTo(emptyList<CSIPPlanMappingDto>())
-      assertThat(mapping.reviewMappings).isEqualTo(emptyList<CSIPReviewMappingDto>())
+      assertThat(mapping.attendeeMappings).isEqualTo(emptyList<CSIPChildMappingDto>())
+      assertThat(mapping.factorMappings).isEqualTo(emptyList<CSIPChildMappingDto>())
+      assertThat(mapping.interviewMappings).isEqualTo(emptyList<CSIPChildMappingDto>())
+      assertThat(mapping.planMappings).isEqualTo(emptyList<CSIPChildMappingDto>())
+      assertThat(mapping.reviewMappings).isEqualTo(emptyList<CSIPChildMappingDto>())
     }
 
     @Test
@@ -1064,12 +1054,12 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
-            CSIPAttendeeMappingDto(
-              nomisCSIPAttendeeId = 343,
-              dpsCSIPAttendeeId = UUID.randomUUID().toString(),
+            CSIPChildMappingDto(
+              nomisId = 343,
+              dpsId = UUID.randomUUID().toString(),
               dpsCSIPReportId = dpsCSIPReportId,
               label = "test",
-              mappingType = CSIPAttendeeMappingType.MIGRATED,
+              mappingType = CSIPChildMappingType.MIGRATED,
             ),
           ),
         )
@@ -1081,12 +1071,12 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
-            CSIPFactorMappingDto(
-              nomisCSIPFactorId = 454,
-              dpsCSIPFactorId = UUID.randomUUID().toString(),
+            CSIPChildMappingDto(
+              nomisId = 454,
+              dpsId = UUID.randomUUID().toString(),
               dpsCSIPReportId = dpsCSIPReportId,
               label = "test",
-              mappingType = CSIPFactorMappingType.MIGRATED,
+              mappingType = CSIPChildMappingType.MIGRATED,
             ),
           ),
         )
@@ -1098,12 +1088,12 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
-            CSIPInterviewMappingDto(
-              nomisCSIPInterviewId = 565,
-              dpsCSIPInterviewId = UUID.randomUUID().toString(),
+            CSIPChildMappingDto(
+              nomisId = 565,
+              dpsId = UUID.randomUUID().toString(),
               dpsCSIPReportId = dpsCSIPReportId,
               label = "test",
-              mappingType = CSIPInterviewMappingType.MIGRATED,
+              mappingType = CSIPChildMappingType.MIGRATED,
             ),
           ),
         )
@@ -1115,12 +1105,12 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
-            CSIPPlanMappingDto(
-              nomisCSIPPlanId = 676,
-              dpsCSIPPlanId = UUID.randomUUID().toString(),
+            CSIPChildMappingDto(
+              nomisId = 676,
+              dpsId = UUID.randomUUID().toString(),
               dpsCSIPReportId = dpsCSIPReportId,
               label = "test",
-              mappingType = CSIPPlanMappingType.MIGRATED,
+              mappingType = CSIPChildMappingType.MIGRATED,
             ),
           ),
         )
@@ -1132,12 +1122,12 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
-            CSIPReviewMappingDto(
-              nomisCSIPReviewId = 787,
-              dpsCSIPReviewId = UUID.randomUUID().toString(),
+            CSIPChildMappingDto(
+              nomisId = 787,
+              dpsId = UUID.randomUUID().toString(),
               dpsCSIPReportId = dpsCSIPReportId,
               label = "test",
-              mappingType = CSIPReviewMappingType.MIGRATED,
+              mappingType = CSIPChildMappingType.MIGRATED,
             ),
           ),
         )
@@ -1305,7 +1295,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
           nomisCSIPFactorId = 11111L,
           dpsCSIPReportId = dpsCSIPId,
           label = "2023-01-01T12:45:12",
-          mappingType = CSIPFactorMappingType.MIGRATED,
+          mappingType = CSIPChildMappingType.MIGRATED,
         ),
       )
     }
@@ -1361,12 +1351,12 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
               nomisCSIPReportId = nomisCSIPId,
               dpsCSIPReportId = dpsCSIPId,
               factorMappings = listOf(
-                CSIPFactorMappingDto(
-                  dpsCSIPFactorId = "c5e56441-04c9-40e1-bd37-553ec1abcaaa",
-                  nomisCSIPFactorId = 11111L,
+                CSIPChildMappingDto(
+                  dpsId = "c5e56441-04c9-40e1-bd37-553ec1abcaaa",
+                  nomisId = 11111L,
                   dpsCSIPReportId = dpsCSIPId,
                   label = "2023-01-01T12:45:12",
-                  mappingType = CSIPFactorMappingType.MIGRATED,
+                  mappingType = CSIPChildMappingType.MIGRATED,
                 ),
               ),
             ),
@@ -1403,12 +1393,12 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
               nomisCSIPReportId = nomisCSIPId,
               dpsCSIPReportId = missingDpsCSIPReportId,
               factorMappings = listOf(
-                CSIPFactorMappingDto(
-                  dpsCSIPFactorId = "c5e56441-04c9-40e1-bd37-553ec1abc111",
-                  nomisCSIPFactorId = 12233L,
+                CSIPChildMappingDto(
+                  dpsId = "c5e56441-04c9-40e1-bd37-553ec1abc111",
+                  nomisId = 12233L,
                   dpsCSIPReportId = missingDpsCSIPReportId,
                   label = "2023-01-01T12:45:12",
-                  mappingType = CSIPFactorMappingType.MIGRATED,
+                  mappingType = CSIPChildMappingType.MIGRATED,
                 ),
               ),
             ),
@@ -1420,20 +1410,20 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `returns exception if csip report does not exist on child`() {
-      val attendeeMappingDto = CSIPAttendeeMappingDto(
-        dpsCSIPAttendeeId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
-        nomisCSIPAttendeeId = 3333L,
+      val attendeeMappingDto = CSIPChildMappingDto(
+        dpsId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisId = 3333L,
         dpsCSIPReportId = dpsCSIPId,
         label = "2023-01-01T12:45:12",
-        mappingType = CSIPAttendeeMappingType.MIGRATED,
+        mappingType = CSIPChildMappingType.MIGRATED,
       )
 
-      val planMappingDto = CSIPPlanMappingDto(
-        dpsCSIPPlanId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
-        nomisCSIPPlanId = 3333L,
+      val planMappingDto = CSIPChildMappingDto(
+        dpsId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisId = 3333L,
         dpsCSIPReportId = UUID.randomUUID().toString(),
         label = "2023-01-01T12:45:12",
-        mappingType = CSIPPlanMappingType.MIGRATED,
+        mappingType = CSIPChildMappingType.MIGRATED,
       )
 
       webTestClient.post().uri("/mapping/csip/children/all")
@@ -1476,53 +1466,53 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `update mapping Happy Path`() {
-      val attendeeMappingDto = CSIPAttendeeMappingDto(
-        dpsCSIPAttendeeId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
-        nomisCSIPAttendeeId = 12345L,
+      val attendeeMappingDto = CSIPChildMappingDto(
+        dpsId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisId = 12345L,
         dpsCSIPReportId = dpsCSIPId,
         label = "2023-01-01T12:45:12",
-        mappingType = CSIPAttendeeMappingType.MIGRATED,
+        mappingType = CSIPChildMappingType.MIGRATED,
       )
 
       val factorMappingDto =
-        CSIPFactorMappingDto(
-          dpsCSIPFactorId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
-          nomisCSIPFactorId = 12345L,
+        CSIPChildMappingDto(
+          dpsId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+          nomisId = 12345L,
           dpsCSIPReportId = dpsCSIPId,
           label = "2023-01-01T12:45:12",
-          mappingType = CSIPFactorMappingType.MIGRATED,
+          mappingType = CSIPChildMappingType.MIGRATED,
         )
 
-      val planMappingDto = CSIPPlanMappingDto(
-        dpsCSIPPlanId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
-        nomisCSIPPlanId = 12345L,
+      val planMappingDto = CSIPChildMappingDto(
+        dpsId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisId = 12345L,
         dpsCSIPReportId = dpsCSIPId,
         label = "2023-01-01T12:45:12",
-        mappingType = CSIPPlanMappingType.MIGRATED,
+        mappingType = CSIPChildMappingType.MIGRATED,
       )
 
-      val planMappingDto2 = CSIPPlanMappingDto(
-        dpsCSIPPlanId = "c5e56441-04c9-40e1-bd37-553ec1abcdaa",
-        nomisCSIPPlanId = 12346L,
+      val planMappingDto2 = CSIPChildMappingDto(
+        dpsId = "c5e56441-04c9-40e1-bd37-553ec1abcdaa",
+        nomisId = 12346L,
         dpsCSIPReportId = dpsCSIPId,
         label = "2023-01-01T12:45:12",
-        mappingType = CSIPPlanMappingType.DPS_CREATED,
+        mappingType = CSIPChildMappingType.DPS_CREATED,
       )
 
-      val interviewMappingDto = CSIPInterviewMappingDto(
-        dpsCSIPInterviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
-        nomisCSIPInterviewId = 12345L,
+      val interviewMappingDto = CSIPChildMappingDto(
+        dpsId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisId = 12345L,
         dpsCSIPReportId = dpsCSIPId,
         label = "2023-01-01T12:45:12",
-        mappingType = CSIPInterviewMappingType.MIGRATED,
+        mappingType = CSIPChildMappingType.MIGRATED,
       )
 
-      val reviewMappingDto = CSIPReviewMappingDto(
-        dpsCSIPReviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
-        nomisCSIPReviewId = 12345L,
+      val reviewMappingDto = CSIPChildMappingDto(
+        dpsId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+        nomisId = 12345L,
         dpsCSIPReportId = dpsCSIPId,
         label = "2023-01-01T12:45:12",
-        mappingType = CSIPReviewMappingType.MIGRATED,
+        mappingType = CSIPChildMappingType.MIGRATED,
       )
 
       webTestClient.post().uri("/mapping/csip/children/all")
@@ -1725,7 +1715,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
           nomisCSIPPlanId = 12345L,
           dpsCSIPReportId = mapping.dpsCSIPId,
           label = "2023-01-01T12:45:12",
-          mappingType = CSIPPlanMappingType.MIGRATED,
+          mappingType = CSIPChildMappingType.MIGRATED,
         ),
       ).dpsCSIPPlanId
 
@@ -1735,7 +1725,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
           nomisCSIPPlanId = 12346L,
           dpsCSIPReportId = mapping.dpsCSIPId,
           label = "2023-01-01T12:45:12",
-          mappingType = CSIPPlanMappingType.DPS_CREATED,
+          mappingType = CSIPChildMappingType.DPS_CREATED,
         ),
       ).dpsCSIPPlanId
 
@@ -1745,7 +1735,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
           nomisCSIPInterviewId = 12345L,
           dpsCSIPReportId = mapping.dpsCSIPId,
           label = "2023-01-01T12:45:12",
-          mappingType = CSIPInterviewMappingType.MIGRATED,
+          mappingType = CSIPChildMappingType.MIGRATED,
         ),
       ).dpsCSIPInterviewId
 
@@ -1755,7 +1745,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
           nomisCSIPInterviewId = 12346L,
           dpsCSIPReportId = mapping.dpsCSIPId,
           label = "2023-01-01T12:45:12",
-          mappingType = CSIPInterviewMappingType.DPS_CREATED,
+          mappingType = CSIPChildMappingType.DPS_CREATED,
         ),
       ).dpsCSIPInterviewId
 
@@ -1765,7 +1755,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
           nomisCSIPReviewId = 12345L,
           dpsCSIPReportId = mapping.dpsCSIPId,
           label = "2023-01-01T12:45:12",
-          mappingType = CSIPReviewMappingType.MIGRATED,
+          mappingType = CSIPChildMappingType.MIGRATED,
         ),
       ).dpsCSIPReviewId
 
@@ -1775,7 +1765,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
           nomisCSIPReviewId = 12346L,
           dpsCSIPReportId = mapping.dpsCSIPId,
           label = "2023-01-01T12:45:12",
-          mappingType = CSIPReviewMappingType.DPS_CREATED,
+          mappingType = CSIPChildMappingType.DPS_CREATED,
         ),
       ).dpsCSIPReviewId
 
@@ -1785,7 +1775,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
           nomisCSIPAttendeeId = 12345L,
           dpsCSIPReportId = mapping.dpsCSIPId,
           label = "2023-01-01T12:45:12",
-          mappingType = CSIPAttendeeMappingType.MIGRATED,
+          mappingType = CSIPChildMappingType.MIGRATED,
         ),
       ).dpsCSIPAttendeeId
 
@@ -1795,7 +1785,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
           nomisCSIPAttendeeId = 12346L,
           dpsCSIPReportId = mapping.dpsCSIPId,
           label = "2023-01-01T12:45:12",
-          mappingType = CSIPAttendeeMappingType.DPS_CREATED,
+          mappingType = CSIPChildMappingType.DPS_CREATED,
         ),
       ).dpsCSIPAttendeeId
 
@@ -1805,7 +1795,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
           nomisCSIPFactorId = 12345L,
           dpsCSIPReportId = mapping.dpsCSIPId,
           label = "2023-01-01T12:45:12",
-          mappingType = CSIPFactorMappingType.MIGRATED,
+          mappingType = CSIPChildMappingType.MIGRATED,
         ),
       ).dpsCSIPFactorId
 
@@ -1815,7 +1805,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
           nomisCSIPFactorId = 12346L,
           dpsCSIPReportId = mapping.dpsCSIPId,
           label = "2023-01-01T12:45:12",
-          mappingType = CSIPFactorMappingType.DPS_CREATED,
+          mappingType = CSIPChildMappingType.DPS_CREATED,
         ),
       ).dpsCSIPFactorId
     }

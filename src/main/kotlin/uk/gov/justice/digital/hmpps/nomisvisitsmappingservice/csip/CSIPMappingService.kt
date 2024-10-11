@@ -10,19 +10,14 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingService
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingService
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingService
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingService
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMappingService
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMappingType
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
 @Service
@@ -110,11 +105,11 @@ class CSIPMappingService(
 
   @Transactional
   suspend fun deleteMigratedChildren() {
-    csipAttendeeMappingRepository.deleteByMappingTypeEquals(CSIPAttendeeMappingType.MIGRATED)
-    csipFactorMappingRepository.deleteByMappingTypeEquals(CSIPFactorMappingType.MIGRATED)
-    csipInterviewMappingRepository.deleteByMappingTypeEquals(CSIPInterviewMappingType.MIGRATED)
-    csipPlanMappingRepository.deleteByMappingTypeEquals(CSIPPlanMappingType.MIGRATED)
-    csipReviewMappingRepository.deleteByMappingTypeEquals(CSIPReviewMappingType.MIGRATED)
+    csipAttendeeMappingRepository.deleteByMappingTypeEquals(CSIPChildMappingType.MIGRATED)
+    csipFactorMappingRepository.deleteByMappingTypeEquals(CSIPChildMappingType.MIGRATED)
+    csipInterviewMappingRepository.deleteByMappingTypeEquals(CSIPChildMappingType.MIGRATED)
+    csipPlanMappingRepository.deleteByMappingTypeEquals(CSIPChildMappingType.MIGRATED)
+    csipReviewMappingRepository.deleteByMappingTypeEquals(CSIPChildMappingType.MIGRATED)
   }
 
   @Transactional

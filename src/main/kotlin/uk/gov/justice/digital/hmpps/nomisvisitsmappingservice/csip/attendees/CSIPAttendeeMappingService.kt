@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees
 import kotlinx.coroutines.flow.collect
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPChildMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
 @Service
@@ -12,15 +13,15 @@ class CSIPAttendeeMappingService(
 ) {
 
   @Transactional
-  suspend fun createMapping(mappingDto: CSIPAttendeeMappingDto): CSIPAttendeeMapping =
+  suspend fun createMapping(mappingDto: CSIPChildMappingDto): CSIPAttendeeMapping =
     repository.save(mappingDto.fromDto())
 
   @Transactional
-  suspend fun createMappings(mappingDtoList: List<CSIPAttendeeMappingDto>) {
+  suspend fun createMappings(mappingDtoList: List<CSIPChildMappingDto>) {
     repository.saveAll(mappingDtoList.map { it.fromDto() }).collect()
   }
 
-  suspend fun getMappingByNomisId(nomisCSIPAttendeeId: Long): CSIPAttendeeMappingDto =
+  suspend fun getMappingByNomisId(nomisCSIPAttendeeId: Long): CSIPChildMappingDto =
     repository.findOneByNomisCSIPAttendeeId(
       nomisCSIPAttendeeId = nomisCSIPAttendeeId,
     )
@@ -29,7 +30,7 @@ class CSIPAttendeeMappingService(
 
   suspend fun findAllByDpsCSIPReportId(dpsCSIPReportId: String) = repository.findAllByDpsCSIPReportId(dpsCSIPReportId).map { it.toDto() }
 
-  suspend fun getMappingByDpsId(dpsCSIPAttendeeId: String): CSIPAttendeeMappingDto =
+  suspend fun getMappingByDpsId(dpsCSIPAttendeeId: String): CSIPChildMappingDto =
     repository.findById(dpsCSIPAttendeeId)
       ?.toDto()
       ?: throw NotFoundException("No CSIP attendee mapping found for dpsCSIPAttendeeId=$dpsCSIPAttendeeId")
@@ -39,8 +40,8 @@ class CSIPAttendeeMappingService(
     repository.deleteById(dpsCSIPAttendeeId)
 
   fun alreadyExistsMessage(
-    duplicateMapping: CSIPAttendeeMappingDto,
-    existingMapping: CSIPAttendeeMappingDto,
+    duplicateMapping: CSIPChildMappingDto,
+    existingMapping: CSIPChildMappingDto,
   ) =
     """CSIPAttendee Attendee mapping already exists.
        |Existing mapping: $existingMapping
@@ -48,18 +49,18 @@ class CSIPAttendeeMappingService(
     """.trimMargin()
 }
 
-fun CSIPAttendeeMapping.toDto() = CSIPAttendeeMappingDto(
-  nomisCSIPAttendeeId = nomisCSIPAttendeeId,
-  dpsCSIPAttendeeId = dpsCSIPAttendeeId,
+fun CSIPAttendeeMapping.toDto() = CSIPChildMappingDto(
+  nomisId = nomisCSIPAttendeeId,
+  dpsId = dpsCSIPAttendeeId,
   dpsCSIPReportId = dpsCSIPReportId,
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,
 )
 
-fun CSIPAttendeeMappingDto.fromDto() = CSIPAttendeeMapping(
-  nomisCSIPAttendeeId = nomisCSIPAttendeeId,
-  dpsCSIPAttendeeId = dpsCSIPAttendeeId,
+fun CSIPChildMappingDto.fromDto() = CSIPAttendeeMapping(
+  nomisCSIPAttendeeId = nomisId,
+  dpsCSIPAttendeeId = dpsId,
   dpsCSIPReportId = dpsCSIPReportId,
   label = label,
   mappingType = mappingType,

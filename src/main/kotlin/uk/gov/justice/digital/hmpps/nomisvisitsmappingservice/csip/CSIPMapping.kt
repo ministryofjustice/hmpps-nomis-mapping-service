@@ -49,3 +49,9 @@ enum class CSIPMappingType {
   NOMIS_CREATED,
   DPS_CREATED,
 }
+
+enum class CSIPChildMappingType {
+  MIGRATED,
+  NOMIS_CREATED,
+  DPS_CREATED,
+}
