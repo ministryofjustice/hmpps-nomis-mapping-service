@@ -3,11 +3,6 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Size
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingDto
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.factors.CSIPFactorMappingDto
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.interviews.CSIPInterviewMappingDto
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.plans.CSIPPlanMappingDto
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMappingDto
 import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -26,14 +21,14 @@ data class CSIPFullMappingDto(
   val whenCreated: LocalDateTime? = null,
 
   @Schema(description = "CSIP Attendee Mappings")
-  val attendeeMappings: List<CSIPAttendeeMappingDto> = listOf(),
+  val attendeeMappings: List<CSIPChildMappingDto> = listOf(),
   @Schema(description = "CSIP Factor Mappings")
-  val factorMappings: List<CSIPFactorMappingDto> = listOf(),
+  val factorMappings: List<CSIPChildMappingDto> = listOf(),
   @Schema(description = "CSIP Interview Mappings")
-  val interviewMappings: List<CSIPInterviewMappingDto> = listOf(),
+  val interviewMappings: List<CSIPChildMappingDto> = listOf(),
   @Schema(description = "CSIP Plan Mappings")
-  val planMappings: List<CSIPPlanMappingDto> = listOf(),
+  val planMappings: List<CSIPChildMappingDto> = listOf(),
   @Schema(description = "CSIP Review Mappings")
-  val reviewMappings: List<CSIPReviewMappingDto> = listOf(),
+  val reviewMappings: List<CSIPChildMappingDto> = listOf(),
 
 )

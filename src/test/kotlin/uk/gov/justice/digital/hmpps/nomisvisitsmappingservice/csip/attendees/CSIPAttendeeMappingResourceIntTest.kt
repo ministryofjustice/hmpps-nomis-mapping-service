@@ -13,10 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPChildMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPChildMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingType
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.attendees.CSIPAttendeeMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import java.time.LocalDateTime
@@ -35,9 +36,9 @@ class CSIPAttendeeMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("POST /mapping/csip/attendees")
   inner class CreateMapping {
     private lateinit var existingMapping: CSIPAttendeeMapping
-    private val mapping = CSIPAttendeeMappingDto(
-      dpsCSIPAttendeeId = "a018f95e-459d-4d0d-9ccd-1fddf4315b2a",
-      nomisCSIPAttendeeId = 54321L,
+    private val mapping = CSIPChildMappingDto(
+      dpsId = "a018f95e-459d-4d0d-9ccd-1fddf4315b2a",
+      nomisId = 54321L,
       dpsCSIPReportId = "987",
       label = "2023-01-01T12:45:12",
       mappingType = MIGRATED,
@@ -119,11 +120,11 @@ class CSIPAttendeeMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isCreated
 
         val createdMapping =
-          repository.findOneByNomisCSIPAttendeeId(nomisCSIPAttendeeId = mapping.nomisCSIPAttendeeId)!!
+          repository.findOneByNomisCSIPAttendeeId(nomisCSIPAttendeeId = mapping.nomisId)!!
 
         assertThat(createdMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
-        assertThat(createdMapping.dpsCSIPAttendeeId).isEqualTo(mapping.dpsCSIPAttendeeId)
-        assertThat(createdMapping.dpsCSIPAttendeeId).isEqualTo(mapping.dpsCSIPAttendeeId)
+        assertThat(createdMapping.dpsCSIPAttendeeId).isEqualTo(mapping.dpsId)
+        assertThat(createdMapping.dpsCSIPAttendeeId).isEqualTo(mapping.dpsId)
         assertThat(createdMapping.mappingType).isEqualTo(mapping.mappingType)
         assertThat(createdMapping.label).isEqualTo(mapping.label)
       }
@@ -139,8 +140,8 @@ class CSIPAttendeeMappingResourceIntTest : IntegrationTestBase() {
               // language=JSON
               """
                 {
-                  "nomisCSIPAttendeeId": 54321,
-                  "dpsCSIPAttendeeId": "018f95e-459d-4d0d-9ccd-1fddf4315b2a",
+                  "nomisId": 54321,
+                  "dpsId": "018f95e-459d-4d0d-9ccd-1fddf4315b2a",
                   "dpsCSIPReportId": "987"
  }
               """.trimIndent(),
@@ -176,8 +177,8 @@ class CSIPAttendeeMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "nomisCSIPAttendeeId": 54321,
-                  "dpsCSIPAttendeeId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
+                  "nomisId": 54321,
+                  "dpsId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
                   "dpsCSIPReportId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
                   "mappingType": "INVALID_TYPE"
                 }
@@ -199,8 +200,8 @@ class CSIPAttendeeMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "nomisCSIPAttendeeId": 54321,
-                  "dpsCSIPReportId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
+                  "nomisId": 54321,
+                  "dpsId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
                 }
               """.trimIndent(),
             ),
@@ -220,7 +221,7 @@ class CSIPAttendeeMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "dpsCSIPAttendeeId": "5f70a789-7f36-4bec-87dd-fde1a9a995d8",
+                  "dpsId": "5f70a789-7f36-4bec-87dd-fde1a9a995d8",
                   "dpsCSIPReportId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
                 }
               """.trimIndent(),
@@ -241,8 +242,8 @@ class CSIPAttendeeMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "nomisCSIPAttendeeId": 54321,
-                  "dpsCSIPAttendeeId": "5f70a789-7f36-4bec-87dd-fde1a9a995d8"
+                  "nomisId": 54321,
+                  "dpsId": "5f70a789-7f36-4bec-87dd-fde1a9a995d8"
                 }
               """.trimIndent(),
             ),
@@ -260,9 +261,9 @@ class CSIPAttendeeMappingResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CSIPAttendeeMappingDto(
-                nomisCSIPAttendeeId = existingMapping.nomisCSIPAttendeeId,
-                dpsCSIPAttendeeId = dpsCSIPAttendeeId,
+              CSIPChildMappingDto(
+                nomisId = existingMapping.nomisCSIPAttendeeId,
+                dpsId = dpsCSIPAttendeeId,
                 dpsCSIPReportId = existingMapping.dpsCSIPReportId,
               ),
             ),
@@ -278,11 +279,11 @@ class CSIPAttendeeMappingResourceIntTest : IntegrationTestBase() {
         with(duplicateResponse!!) {
           // since this is an untyped map an int will be assumed for such small numbers
           assertThat(this.moreInfo.existing)
-            .containsEntry("nomisCSIPAttendeeId", existingMapping.nomisCSIPAttendeeId.toInt())
-            .containsEntry("dpsCSIPAttendeeId", existingMapping.dpsCSIPAttendeeId)
+            .containsEntry("nomisId", existingMapping.nomisCSIPAttendeeId.toInt())
+            .containsEntry("dpsId", existingMapping.dpsCSIPAttendeeId)
           assertThat(this.moreInfo.duplicate)
-            .containsEntry("nomisCSIPAttendeeId", existingMapping.nomisCSIPAttendeeId.toInt())
-            .containsEntry("dpsCSIPAttendeeId", dpsCSIPAttendeeId)
+            .containsEntry("nomisId", existingMapping.nomisCSIPAttendeeId.toInt())
+            .containsEntry("dpsId", dpsCSIPAttendeeId)
         }
       }
 
@@ -294,9 +295,9 @@ class CSIPAttendeeMappingResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CSIPAttendeeMappingDto(
-                nomisCSIPAttendeeId = 123123,
-                dpsCSIPAttendeeId = existingMapping.dpsCSIPAttendeeId,
+              CSIPChildMappingDto(
+                nomisId = 123123,
+                dpsId = existingMapping.dpsCSIPAttendeeId,
                 dpsCSIPReportId = existingMapping.dpsCSIPReportId,
               ),
             ),
@@ -312,11 +313,11 @@ class CSIPAttendeeMappingResourceIntTest : IntegrationTestBase() {
         with(duplicateResponse!!) {
           // since this is an untyped map an int will be assumed for such small numbers
           assertThat(this.moreInfo.existing)
-            .containsEntry("nomisCSIPAttendeeId", existingMapping.nomisCSIPAttendeeId.toInt())
-            .containsEntry("dpsCSIPAttendeeId", existingMapping.dpsCSIPAttendeeId)
+            .containsEntry("nomisId", existingMapping.nomisCSIPAttendeeId.toInt())
+            .containsEntry("dpsId", existingMapping.dpsCSIPAttendeeId)
           assertThat(this.moreInfo.duplicate)
-            .containsEntry("nomisCSIPAttendeeId", 123123)
-            .containsEntry("dpsCSIPAttendeeId", existingMapping.dpsCSIPAttendeeId)
+            .containsEntry("nomisId", 123123)
+            .containsEntry("dpsId", existingMapping.dpsCSIPAttendeeId)
         }
       }
     }
@@ -497,8 +498,8 @@ class CSIPAttendeeMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCSIPAttendeeId").isEqualTo(mapping.nomisCSIPAttendeeId)
-          .jsonPath("dpsCSIPAttendeeId").isEqualTo(mapping.dpsCSIPAttendeeId)
+          .jsonPath("nomisId").isEqualTo(mapping.nomisCSIPAttendeeId)
+          .jsonPath("dpsId").isEqualTo(mapping.dpsCSIPAttendeeId)
           .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
           .jsonPath("label").isEqualTo(mapping.label!!)
           .jsonPath("whenCreated").value<String> {
@@ -588,8 +589,8 @@ class CSIPAttendeeMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCSIPAttendeeId").isEqualTo(mapping.nomisCSIPAttendeeId)
-          .jsonPath("dpsCSIPAttendeeId").isEqualTo(mapping.dpsCSIPAttendeeId)
+          .jsonPath("nomisId").isEqualTo(mapping.nomisCSIPAttendeeId)
+          .jsonPath("dpsId").isEqualTo(mapping.dpsCSIPAttendeeId)
           .jsonPath("dpsCSIPReportId").isEqualTo(mapping.dpsCSIPReportId)
           .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
           .jsonPath("label").isEqualTo(mapping.label!!)

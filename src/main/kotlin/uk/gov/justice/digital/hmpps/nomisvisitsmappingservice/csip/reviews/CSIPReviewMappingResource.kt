@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPChildMappingDto
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
@@ -38,7 +39,7 @@ class CSIPReviewMappingResource(
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = CSIPReviewMappingDto::class),
+          schema = Schema(implementation = CSIPChildMappingDto::class),
         ),
       ],
     ),
@@ -64,7 +65,7 @@ class CSIPReviewMappingResource(
   suspend fun createReviewMapping(
     @RequestBody
     @Valid
-    csipReviewMapping: CSIPReviewMappingDto,
+    csipReviewMapping: CSIPChildMappingDto,
   ) =
     try {
       reviewMappingService.createMapping(csipReviewMapping)
@@ -86,7 +87,7 @@ class CSIPReviewMappingResource(
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CSIPReviewMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = CSIPChildMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -105,7 +106,7 @@ class CSIPReviewMappingResource(
     @Schema(description = "NOMIS CSIP Review id", example = "12345", required = true)
     @PathVariable
     nomisCSIPReviewId: Long,
-  ): CSIPReviewMappingDto = reviewMappingService.getMappingByNomisId(nomisCSIPReviewId = nomisCSIPReviewId)
+  ): CSIPChildMappingDto = reviewMappingService.getMappingByNomisId(nomisCSIPReviewId = nomisCSIPReviewId)
 
   @GetMapping("/dps-csip-review-id/{dpsCSIPReviewId}")
   @Operation(
@@ -116,7 +117,7 @@ class CSIPReviewMappingResource(
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CSIPReviewMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = CSIPChildMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -135,7 +136,7 @@ class CSIPReviewMappingResource(
     @Schema(description = "DPS CSIP review id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
     dpsCSIPReviewId: String,
-  ): CSIPReviewMappingDto = reviewMappingService.getMappingByDpsId(dpsCSIPReviewId = dpsCSIPReviewId)
+  ): CSIPChildMappingDto = reviewMappingService.getMappingByDpsId(dpsCSIPReviewId = dpsCSIPReviewId)
 
   @DeleteMapping("/dps-csip-review-id/{dpsCSIPReviewId}")
   @Operation(
@@ -165,9 +166,9 @@ class CSIPReviewMappingResource(
     dpsCSIPReviewId: String,
   ) = reviewMappingService.deleteMappingByDpsId(dpsCSIPReviewId = dpsCSIPReviewId)
 
-  private suspend fun getExistingMappingSimilarTo(mapping: CSIPReviewMappingDto) = runCatching {
-    reviewMappingService.getMappingByNomisId(nomisCSIPReviewId = mapping.nomisCSIPReviewId)
+  private suspend fun getExistingMappingSimilarTo(mapping: CSIPChildMappingDto) = runCatching {
+    reviewMappingService.getMappingByNomisId(nomisCSIPReviewId = mapping.nomisId)
   }.getOrElse {
-    reviewMappingService.getMappingByDpsId(dpsCSIPReviewId = mapping.dpsCSIPReviewId)
+    reviewMappingService.getMappingByDpsId(dpsCSIPReviewId = mapping.dpsId)
   }
 }

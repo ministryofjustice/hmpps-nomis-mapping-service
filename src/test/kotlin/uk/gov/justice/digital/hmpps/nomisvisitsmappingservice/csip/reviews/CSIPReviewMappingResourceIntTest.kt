@@ -13,10 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPChildMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPChildMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPMappingType
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.reviews.CSIPReviewMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import java.time.LocalDateTime
@@ -35,9 +36,9 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("POST /mapping/csip/reviews")
   inner class CreateMapping {
     private lateinit var existingMapping: CSIPReviewMapping
-    private val mapping = CSIPReviewMappingDto(
-      dpsCSIPReviewId = "a018f95e-459d-4d0d-9ccd-1fddf4315b2a",
-      nomisCSIPReviewId = 54321L,
+    private val mapping = CSIPChildMappingDto(
+      dpsId = "a018f95e-459d-4d0d-9ccd-1fddf4315b2a",
+      nomisId = 54321L,
       dpsCSIPReportId = "987",
       label = "2023-01-01T12:45:12",
       mappingType = MIGRATED,
@@ -119,11 +120,11 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isCreated
 
         val createdMapping =
-          repository.findOneByNomisCSIPReviewId(nomisCSIPReviewId = mapping.nomisCSIPReviewId)!!
+          repository.findOneByNomisCSIPReviewId(nomisCSIPReviewId = mapping.nomisId)!!
 
         assertThat(createdMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
-        assertThat(createdMapping.dpsCSIPReviewId).isEqualTo(mapping.dpsCSIPReviewId)
-        assertThat(createdMapping.nomisCSIPReviewId).isEqualTo(mapping.nomisCSIPReviewId)
+        assertThat(createdMapping.dpsCSIPReviewId).isEqualTo(mapping.dpsId)
+        assertThat(createdMapping.nomisCSIPReviewId).isEqualTo(mapping.nomisId)
         assertThat(createdMapping.mappingType).isEqualTo(mapping.mappingType)
         assertThat(createdMapping.label).isEqualTo(mapping.label)
       }
@@ -139,8 +140,8 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
               // language=JSON
               """
                 {
-                  "nomisCSIPReviewId": 54321,
-                  "dpsCSIPReviewId": "018f95e-459d-4d0d-9ccd-1fddf4315b2a",
+                  "nomisId": 54321,
+                  "dpsId": "018f95e-459d-4d0d-9ccd-1fddf4315b2a",
                   "dpsCSIPReportId": "987"
         }
               """.trimIndent(),
@@ -176,8 +177,8 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "nomisCSIPReviewId": 54321,
-                  "dpsCSIPReviewId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
+                  "nomisId": 54321,
+                  "dpsId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
                   "dpsCSIPReportId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
                   "mappingType": "INVALID_TYPE"
                 }
@@ -199,7 +200,7 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "nomisCSIPReviewId": 54321,
+                  "nomisId": 54321,
                    "dpsCSIPReportId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
                  }
               """.trimIndent(),
@@ -220,7 +221,7 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "dpsCSIPReviewId": "5f70a789-7f36-4bec-87dd-fde1a9a995d8"
+                  "dpsId": "5f70a789-7f36-4bec-87dd-fde1a9a995d8",
                   "dpsCSIPReportId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
                  }
               """.trimIndent(),
@@ -241,8 +242,8 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "nomisCSIPReviewId": 54321,
-                  "dpsCSIPReviewId": "5f70a789-7f36-4bec-87dd-fde1a9a995d8"
+                  "nomisId": 54321,
+                  "dpsId": "5f70a789-7f36-4bec-87dd-fde1a9a995d8"
                 }
               """.trimIndent(),
             ),
@@ -260,9 +261,9 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CSIPReviewMappingDto(
-                nomisCSIPReviewId = existingMapping.nomisCSIPReviewId,
-                dpsCSIPReviewId = dpsCSIPReviewId,
+              CSIPChildMappingDto(
+                nomisId = existingMapping.nomisCSIPReviewId,
+                dpsId = dpsCSIPReviewId,
                 dpsCSIPReportId = existingMapping.dpsCSIPReportId,
               ),
             ),
@@ -278,11 +279,11 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
         with(duplicateResponse!!) {
           // since this is an untyped map an int will be assumed for such small numbers
           assertThat(this.moreInfo.existing)
-            .containsEntry("nomisCSIPReviewId", existingMapping.nomisCSIPReviewId.toInt())
-            .containsEntry("dpsCSIPReviewId", existingMapping.dpsCSIPReviewId)
+            .containsEntry("nomisId", existingMapping.nomisCSIPReviewId.toInt())
+            .containsEntry("dpsId", existingMapping.dpsCSIPReviewId)
           assertThat(this.moreInfo.duplicate)
-            .containsEntry("nomisCSIPReviewId", existingMapping.nomisCSIPReviewId.toInt())
-            .containsEntry("dpsCSIPReviewId", dpsCSIPReviewId)
+            .containsEntry("nomisId", existingMapping.nomisCSIPReviewId.toInt())
+            .containsEntry("dpsId", dpsCSIPReviewId)
         }
       }
 
@@ -294,9 +295,9 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CSIPReviewMappingDto(
-                nomisCSIPReviewId = 123123,
-                dpsCSIPReviewId = existingMapping.dpsCSIPReviewId,
+              CSIPChildMappingDto(
+                nomisId = 123123,
+                dpsId = existingMapping.dpsCSIPReviewId,
                 dpsCSIPReportId = existingMapping.dpsCSIPReportId,
               ),
             ),
@@ -312,11 +313,11 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
         with(duplicateResponse!!) {
           // since this is an untyped map an int will be assumed for such small numbers
           assertThat(this.moreInfo.existing)
-            .containsEntry("nomisCSIPReviewId", existingMapping.nomisCSIPReviewId.toInt())
-            .containsEntry("dpsCSIPReviewId", existingMapping.dpsCSIPReviewId)
+            .containsEntry("nomisId", existingMapping.nomisCSIPReviewId.toInt())
+            .containsEntry("dpsId", existingMapping.dpsCSIPReviewId)
           assertThat(this.moreInfo.duplicate)
-            .containsEntry("nomisCSIPReviewId", 123123)
-            .containsEntry("dpsCSIPReviewId", existingMapping.dpsCSIPReviewId)
+            .containsEntry("nomisId", 123123)
+            .containsEntry("dpsId", existingMapping.dpsCSIPReviewId)
         }
       }
     }
@@ -497,8 +498,8 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCSIPReviewId").isEqualTo(mapping.nomisCSIPReviewId)
-          .jsonPath("dpsCSIPReviewId").isEqualTo(mapping.dpsCSIPReviewId)
+          .jsonPath("nomisId").isEqualTo(mapping.nomisCSIPReviewId)
+          .jsonPath("dpsId").isEqualTo(mapping.dpsCSIPReviewId)
           .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
           .jsonPath("label").isEqualTo(mapping.label!!)
           .jsonPath("whenCreated").value<String> {
@@ -588,8 +589,8 @@ class CSIPReviewMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCSIPReviewId").isEqualTo(mapping.nomisCSIPReviewId)
-          .jsonPath("dpsCSIPReviewId").isEqualTo(mapping.dpsCSIPReviewId)
+          .jsonPath("nomisId").isEqualTo(mapping.nomisCSIPReviewId)
+          .jsonPath("dpsId").isEqualTo(mapping.dpsCSIPReviewId)
           .jsonPath("dpsCSIPReportId").isEqualTo(mapping.dpsCSIPReportId)
           .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
           .jsonPath("label").isEqualTo(mapping.label!!)

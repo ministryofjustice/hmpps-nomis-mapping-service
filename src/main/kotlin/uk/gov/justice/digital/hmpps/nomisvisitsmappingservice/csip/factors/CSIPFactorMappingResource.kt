@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPChildMappingDto
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
@@ -38,7 +39,7 @@ class CSIPFactorMappingResource(
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = CSIPFactorMappingDto::class),
+          schema = Schema(implementation = CSIPChildMappingDto::class),
         ),
       ],
     ),
@@ -64,7 +65,7 @@ class CSIPFactorMappingResource(
   suspend fun createFactorMapping(
     @RequestBody
     @Valid
-    csipFactorMapping: CSIPFactorMappingDto,
+    csipFactorMapping: CSIPChildMappingDto,
   ) =
     try {
       factorMappingService.createMapping(csipFactorMapping)
@@ -86,7 +87,7 @@ class CSIPFactorMappingResource(
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CSIPFactorMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = CSIPChildMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -105,7 +106,7 @@ class CSIPFactorMappingResource(
     @Schema(description = "NOMIS CSIP Factor id", example = "12345", required = true)
     @PathVariable
     nomisCSIPFactorId: Long,
-  ): CSIPFactorMappingDto = factorMappingService.getMappingByNomisId(nomisCSIPFactorId = nomisCSIPFactorId)
+  ): CSIPChildMappingDto = factorMappingService.getMappingByNomisId(nomisCSIPFactorId = nomisCSIPFactorId)
 
   @GetMapping("/dps-csip-factor-id/{dpsCSIPFactorId}")
   @Operation(
@@ -116,7 +117,7 @@ class CSIPFactorMappingResource(
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CSIPFactorMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = CSIPChildMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -135,7 +136,7 @@ class CSIPFactorMappingResource(
     @Schema(description = "DPS CSIP factor id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
     dpsCSIPFactorId: String,
-  ): CSIPFactorMappingDto = factorMappingService.getMappingByDpsId(dpsCSIPFactorId = dpsCSIPFactorId)
+  ): CSIPChildMappingDto = factorMappingService.getMappingByDpsId(dpsCSIPFactorId = dpsCSIPFactorId)
 
   @DeleteMapping("/dps-csip-factor-id/{dpsCSIPFactorId}")
   @Operation(
@@ -165,9 +166,9 @@ class CSIPFactorMappingResource(
     dpsCSIPFactorId: String,
   ) = factorMappingService.deleteMappingByDpsId(dpsCSIPFactorId = dpsCSIPFactorId)
 
-  private suspend fun getExistingMappingSimilarTo(mapping: CSIPFactorMappingDto) = runCatching {
-    factorMappingService.getMappingByNomisId(nomisCSIPFactorId = mapping.nomisCSIPFactorId)
+  private suspend fun getExistingMappingSimilarTo(mapping: CSIPChildMappingDto) = runCatching {
+    factorMappingService.getMappingByNomisId(nomisCSIPFactorId = mapping.nomisId)
   }.getOrElse {
-    factorMappingService.getMappingByDpsId(dpsCSIPFactorId = mapping.dpsCSIPFactorId)
+    factorMappingService.getMappingByDpsId(dpsCSIPFactorId = mapping.dpsId)
   }
 }

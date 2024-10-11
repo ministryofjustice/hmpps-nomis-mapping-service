@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPChildMappingDto
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
@@ -38,7 +39,7 @@ class CSIPInterviewMappingResource(
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = CSIPInterviewMappingDto::class),
+          schema = Schema(implementation = CSIPChildMappingDto::class),
         ),
       ],
     ),
@@ -64,7 +65,7 @@ class CSIPInterviewMappingResource(
   suspend fun createInterviewMapping(
     @RequestBody
     @Valid
-    csipInterviewMapping: CSIPInterviewMappingDto,
+    csipInterviewMapping: CSIPChildMappingDto,
   ) =
     try {
       interviewMappingService.createMapping(csipInterviewMapping)
@@ -86,7 +87,7 @@ class CSIPInterviewMappingResource(
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CSIPInterviewMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = CSIPChildMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -105,7 +106,7 @@ class CSIPInterviewMappingResource(
     @Schema(description = "NOMIS CSIP Interview id", example = "12345", required = true)
     @PathVariable
     nomisCSIPInterviewId: Long,
-  ): CSIPInterviewMappingDto = interviewMappingService.getMappingByNomisId(nomisCSIPInterviewId = nomisCSIPInterviewId)
+  ): CSIPChildMappingDto = interviewMappingService.getMappingByNomisId(nomisCSIPInterviewId = nomisCSIPInterviewId)
 
   @GetMapping("/dps-csip-interview-id/{dpsCSIPInterviewId}")
   @Operation(
@@ -116,7 +117,7 @@ class CSIPInterviewMappingResource(
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CSIPInterviewMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = CSIPChildMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -135,7 +136,7 @@ class CSIPInterviewMappingResource(
     @Schema(description = "DPS CSIP interview id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
     dpsCSIPInterviewId: String,
-  ): CSIPInterviewMappingDto = interviewMappingService.getMappingByDpsId(dpsCSIPInterviewId = dpsCSIPInterviewId)
+  ): CSIPChildMappingDto = interviewMappingService.getMappingByDpsId(dpsCSIPInterviewId = dpsCSIPInterviewId)
 
   @DeleteMapping("/dps-csip-interview-id/{dpsCSIPInterviewId}")
   @Operation(
@@ -165,9 +166,9 @@ class CSIPInterviewMappingResource(
     dpsCSIPInterviewId: String,
   ) = interviewMappingService.deleteMappingByDpsId(dpsCSIPInterviewId = dpsCSIPInterviewId)
 
-  private suspend fun getExistingMappingSimilarTo(mapping: CSIPInterviewMappingDto) = runCatching {
-    interviewMappingService.getMappingByNomisId(nomisCSIPInterviewId = mapping.nomisCSIPInterviewId)
+  private suspend fun getExistingMappingSimilarTo(mapping: CSIPChildMappingDto) = runCatching {
+    interviewMappingService.getMappingByNomisId(nomisCSIPInterviewId = mapping.nomisId)
   }.getOrElse {
-    interviewMappingService.getMappingByDpsId(dpsCSIPInterviewId = mapping.dpsCSIPInterviewId)
+    interviewMappingService.getMappingByDpsId(dpsCSIPInterviewId = mapping.dpsId)
   }
 }

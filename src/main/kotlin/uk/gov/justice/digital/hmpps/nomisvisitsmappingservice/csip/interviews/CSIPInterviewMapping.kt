@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.csip.CSIPChildMappingType
 import java.time.LocalDateTime
 
 data class CSIPInterviewMapping(
@@ -20,7 +21,7 @@ data class CSIPInterviewMapping(
    */
   val label: String? = null,
 
-  val mappingType: CSIPInterviewMappingType,
+  val mappingType: CSIPChildMappingType,
 
   @Transient
   @Value("false")
@@ -44,10 +45,4 @@ data class CSIPInterviewMapping(
   override fun isNew(): Boolean = new
 
   override fun getId(): String = dpsCSIPInterviewId
-}
-
-enum class CSIPInterviewMappingType {
-  MIGRATED,
-  NOMIS_CREATED,
-  DPS_CREATED,
 }
