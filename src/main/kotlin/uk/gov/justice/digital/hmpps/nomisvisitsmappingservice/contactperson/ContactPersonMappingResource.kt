@@ -81,8 +81,8 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
       }
       throw DuplicateMappingException(
         messageIn = "Person mapping already exists",
-        duplicate = mappings.personMapping,
-        existing = existingMapping ?: mappings.personMapping,
+        duplicate = mappings.asPersonMappingDto(),
+        existing = existingMapping ?: mappings.asPersonMappingDto(),
         cause = e,
       )
     }
@@ -182,3 +182,11 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     )
   }
 }
+
+private fun ContactPersonMappingsDto.asPersonMappingDto() = PersonMappingDto(
+  dpsId = personMapping.dpsId,
+  nomisId = personMapping.nomisId,
+  mappingType = mappingType,
+  label = label,
+  whenCreated = whenCreated,
+)
