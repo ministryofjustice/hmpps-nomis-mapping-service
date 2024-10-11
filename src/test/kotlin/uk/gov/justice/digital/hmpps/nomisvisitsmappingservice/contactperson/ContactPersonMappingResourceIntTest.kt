@@ -222,9 +222,11 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
           assertThat(this.moreInfo.existing)
             .containsEntry("nomisId", existingPersonMapping.nomisId.toInt())
             .containsEntry("dpsId", existingPersonMapping.dpsId)
+            .containsEntry("mappingType", existingPersonMapping.mappingType.toString())
           assertThat(this.moreInfo.duplicate)
             .containsEntry("nomisId", mappings.personMapping.nomisId.toInt())
             .containsEntry("dpsId", mappings.personMapping.dpsId)
+            .containsEntry("mappingType", existingPersonMapping.mappingType.toString())
         }
       }
     }
