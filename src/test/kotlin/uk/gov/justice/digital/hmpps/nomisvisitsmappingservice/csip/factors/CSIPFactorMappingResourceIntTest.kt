@@ -140,8 +140,8 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
               // language=JSON
               """
                 {
-                  "nomisCSIPFactorId": 54321,
-                  "dpsCSIPFactorId": "018f95e-459d-4d0d-9ccd-1fddf4315b2a",
+                  "nomisId": 54321,
+                  "dpsId": "018f95e-459d-4d0d-9ccd-1fddf4315b2a",
                   "dpsCSIPReportId": "987"
                 }
               """.trimIndent(),
@@ -279,11 +279,11 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
         with(duplicateResponse!!) {
           // since this is an untyped map an int will be assumed for such small numbers
           assertThat(this.moreInfo.existing)
-            .containsEntry("nomisCSIPFactorId", existingMapping.nomisCSIPFactorId.toInt())
-            .containsEntry("dpsCSIPFactorId", existingMapping.dpsCSIPFactorId)
+            .containsEntry("nomisId", existingMapping.nomisCSIPFactorId.toInt())
+            .containsEntry("dpsId", existingMapping.dpsCSIPFactorId)
           assertThat(this.moreInfo.duplicate)
-            .containsEntry("nomisCSIPFactorId", existingMapping.nomisCSIPFactorId.toInt())
-            .containsEntry("dpsCSIPFactorId", dpsCSIPFactorId)
+            .containsEntry("nomisId", existingMapping.nomisCSIPFactorId.toInt())
+            .containsEntry("dpsId", dpsCSIPFactorId)
         }
       }
 
@@ -498,8 +498,8 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCSIPFactorId").isEqualTo(mapping.nomisCSIPFactorId)
-          .jsonPath("dpsCSIPFactorId").isEqualTo(mapping.dpsCSIPFactorId)
+          .jsonPath("nomisId").isEqualTo(mapping.nomisCSIPFactorId)
+          .jsonPath("dpsId").isEqualTo(mapping.dpsCSIPFactorId)
           .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
           .jsonPath("label").isEqualTo(mapping.label!!)
           .jsonPath("whenCreated").value<String> {
@@ -589,8 +589,8 @@ class CSIPFactorMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCSIPFactorId").isEqualTo(mapping.nomisCSIPFactorId)
-          .jsonPath("dpsCSIPFactorId").isEqualTo(mapping.dpsCSIPFactorId)
+          .jsonPath("nomisId").isEqualTo(mapping.nomisCSIPFactorId)
+          .jsonPath("dpsId").isEqualTo(mapping.dpsCSIPFactorId)
           .jsonPath("dpsCSIPReportId").isEqualTo(mapping.dpsCSIPReportId)
           .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
           .jsonPath("label").isEqualTo(mapping.label!!)
