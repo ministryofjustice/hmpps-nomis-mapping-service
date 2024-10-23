@@ -171,6 +171,20 @@ class CaseNoteMappingService(
       .map { it.toDto() }
       .let { AllPrisonerCaseNoteMappingsDto(it) }
 
+  @Transactional
+  suspend fun updateMappingsByNomisId(oldOffenderNo: String, newOffenderNo: String) {
+    val count = repository.updateOffenderNo(oldOffenderNo, newOffenderNo)
+    telemetryClient.trackEvent(
+      "nonAssociation-mapping-merged",
+      mapOf(
+        "count" to count.toString(),
+        "oldOffenderNo" to oldOffenderNo,
+        "newOffenderNo" to newOffenderNo,
+      ),
+      null,
+    )
+  }
+
   fun CaseNoteMapping.toDto() = CaseNoteMappingDto(
     dpsCaseNoteId = dpsCaseNoteId.toString(),
     nomisCaseNoteId = nomisCaseNoteId,

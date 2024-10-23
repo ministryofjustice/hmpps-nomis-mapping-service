@@ -1462,4 +1462,179 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
       }
     }
   }
+
+  @Nested
+  @DisplayName("PUT /merge/from/{oldOffenderNo}/to/{newOffenderNo}")
+  inner class PrisonerMergeMappings {
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.put()
+          .uri("/mapping/casenotes/merge/from/A1234AA/to/A1234BB")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.put()
+          .uri("/mapping/casenotes/merge/from/A1234AA/to/A1234BB")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.put()
+          .uri("/mapping/casenotes/merge/from/A1234AA/to/A1234BB")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      private val dps1 = "00000000-1111-2222-3333-000088880001"
+      private val dps2 = "00000000-1111-2222-3333-000088880002"
+      private val dps3 = "00000000-1111-2222-3333-000088880003"
+
+      @BeforeEach
+      fun setUp() {
+        runTest {
+          repository.save(
+            CaseNoteMapping(
+              dpsCaseNoteId = UUID.fromString(dps1),
+              nomisCaseNoteId = 54321L,
+              offenderNo = "A1234AA",
+              nomisBookingId = 1,
+              mappingType = CaseNoteMappingType.MIGRATED,
+            ),
+          )
+          repository.save(
+            CaseNoteMapping(
+              dpsCaseNoteId = UUID.fromString(dps2),
+              nomisCaseNoteId = 54322L,
+              offenderNo = "A1234BB",
+              nomisBookingId = 2,
+              mappingType = CaseNoteMappingType.NOMIS_CREATED,
+            ),
+          )
+          repository.save(
+            CaseNoteMapping(
+              dpsCaseNoteId = UUID.fromString(dps3),
+              nomisCaseNoteId = 54323L,
+              offenderNo = "A1234BB",
+              nomisBookingId = 2,
+              mappingType = CaseNoteMappingType.NOMIS_CREATED,
+            ),
+          )
+        }
+      }
+
+      @Test
+      fun `Merge success`() = runTest {
+        webTestClient.put().uri("/mapping/casenotes/merge/from/A1234AA/to/B5678BB")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+          .exchange()
+          .expectStatus().isOk
+
+        // first record has changed
+        webTestClient.get()
+          .uri("/mapping/casenotes/dps-casenote-id/$dps1")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("offenderNo").isEqualTo("B5678BB")
+
+        // second has not
+        webTestClient.get()
+          .uri("/mapping/casenotes/dps-casenote-id/$dps2")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("offenderNo").isEqualTo("A1234BB")
+      }
+
+      @Test
+      fun `Nothing happens if not found`() = runTest {
+        webTestClient.put().uri("/mapping/casenotes/merge/from/A9999AA/to/B5678BB")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+          .exchange()
+          .expectStatus().isOk
+
+        webTestClient.get()
+          .uri("/mapping/casenotes/dps-casenote-id/$dps1")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisCaseNoteId").isEqualTo(54321)
+          .jsonPath("offenderNo").isEqualTo("A1234AA")
+          .jsonPath("nomisBookingId").isEqualTo(1)
+
+        webTestClient.get()
+          .uri("/mapping/casenotes/dps-casenote-id/$dps2")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisCaseNoteId").isEqualTo(54322)
+          .jsonPath("offenderNo").isEqualTo("A1234BB")
+          .jsonPath("nomisBookingId").isEqualTo(2)
+
+        webTestClient.get()
+          .uri("/mapping/casenotes/dps-casenote-id/$dps3")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisCaseNoteId").isEqualTo(54323)
+          .jsonPath("offenderNo").isEqualTo("A1234BB")
+          .jsonPath("nomisBookingId").isEqualTo(2)
+      }
+
+      @Test
+      fun `Merge success - multiple candidates`() = runTest {
+        webTestClient.put().uri("/mapping/casenotes/merge/from/A1234BB/to/B5678BB")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+          .exchange()
+          .expectStatus().isOk
+
+        webTestClient.get()
+          .uri("/mapping/casenotes/dps-casenote-id/$dps1")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisCaseNoteId").isEqualTo(54321)
+          .jsonPath("offenderNo").isEqualTo("A1234AA")
+          .jsonPath("nomisBookingId").isEqualTo(1)
+
+        webTestClient.get()
+          .uri("/mapping/casenotes/dps-casenote-id/$dps2")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisCaseNoteId").isEqualTo(54322)
+          .jsonPath("offenderNo").isEqualTo("B5678BB")
+          .jsonPath("nomisBookingId").isEqualTo(2)
+
+        webTestClient.get()
+          .uri("/mapping/casenotes/dps-casenote-id/$dps3")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisCaseNoteId").isEqualTo(54323)
+          .jsonPath("offenderNo").isEqualTo("B5678BB")
+          .jsonPath("nomisBookingId").isEqualTo(2)
+      }
+    }
+  }
 }
