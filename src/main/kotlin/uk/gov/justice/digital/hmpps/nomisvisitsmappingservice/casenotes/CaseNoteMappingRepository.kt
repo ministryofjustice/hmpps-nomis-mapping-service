@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.casenotes
 
+import org.springframework.data.r2dbc.repository.Modifying
 import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.stereotype.Repository
@@ -20,8 +21,17 @@ interface CaseNoteMappingRepository : CoroutineCrudRepository<CaseNoteMapping, S
 
   // plain count(*) 108976723 takes 38s
 
+  @Modifying
   suspend fun deleteByMappingTypeEquals(mappingType: CaseNoteMappingType): CaseNoteMapping?
+
+  @Modifying
   suspend fun deleteByNomisCaseNoteId(nomisCaseNoteId: Long)
+
+  @Modifying
   suspend fun deleteAllByOffenderNo(offenderNo: String)
   suspend fun findAllByOffenderNoOrderByNomisBookingIdAscNomisCaseNoteIdAsc(offenderNo: String): List<CaseNoteMapping>
+
+  @Modifying
+  @Query("UPDATE CASE_NOTE_MAPPING SET offender_no = :toOffenderNo WHERE offender_no = :fromOffenderNo")
+  suspend fun updateOffenderNo(fromOffenderNo: String, toOffenderNo: String): Int
 }

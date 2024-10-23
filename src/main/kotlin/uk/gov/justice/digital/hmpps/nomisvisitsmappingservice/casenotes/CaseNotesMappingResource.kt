@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -476,6 +477,28 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     @Schema(description = "Only delete migrated mappings", example = "true", required = false)
     @RequestParam(name = "onlyMigrated", required = false, defaultValue = "false") onlyMigrated: Boolean,
   ) = mappingService.deleteMappings(onlyMigrated)
+
+  @PutMapping("/merge/from/{oldOffenderNo}/to/{newOffenderNo}")
+  @Operation(
+    summary = "Replaces all occurrences of the 'from' id with the 'to' id in the mapping table",
+    description = "Used for update after a prisoner number merge. Requires role ROLE_NOMIS_CASENOTES",
+    responses = [
+      ApiResponse(responseCode = "200", description = "Replacement made, or not present in table"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun updateMappingsByNomisId(
+    @Schema(description = "Old prisoner number to replace", example = "A3456KM", required = true)
+    @PathVariable
+    oldOffenderNo: String,
+    @Schema(description = "New prisoner number to use", example = "A3457LZ", required = true)
+    @PathVariable
+    newOffenderNo: String,
+  ) = mappingService.updateMappingsByNomisId(oldOffenderNo, newOffenderNo)
 
   private suspend fun getExistingMappingSimilarTo(mapping: CaseNoteMappingIdDto) = runCatching {
     mappingService.getMappingByNomisId(mapping.nomisCaseNoteId)
