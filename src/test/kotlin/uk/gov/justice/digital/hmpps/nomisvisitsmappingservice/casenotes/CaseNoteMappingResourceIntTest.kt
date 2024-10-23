@@ -226,7 +226,6 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              //language=JSON
               """
                 {
                   "nomisCaseNoteId": 54321,
@@ -269,7 +268,6 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              //language=JSON
               """
                 {
                   "dpsCaseNoteId": "$DPS_CASENOTE_ID",
