@@ -175,7 +175,7 @@ class CaseNoteMappingService(
   suspend fun updateMappingsByNomisId(oldOffenderNo: String, newOffenderNo: String) {
     val count = repository.updateOffenderNo(oldOffenderNo, newOffenderNo)
     telemetryClient.trackEvent(
-      "nonAssociation-mapping-merged",
+      "casenotes-mapping-prisoner-merged",
       mapOf(
         "count" to count.toString(),
         "oldOffenderNo" to oldOffenderNo,
@@ -183,6 +183,21 @@ class CaseNoteMappingService(
       ),
       null,
     )
+  }
+
+  @Transactional
+  suspend fun updateMappingsByBookingId(bookingId: Long, newOffenderNo: String): List<CaseNoteMappingDto> {
+    val rows = repository.updateOffenderNoByBooking(bookingId, newOffenderNo)
+    telemetryClient.trackEvent(
+      "casenotes-mapping-booking-merged",
+      mapOf(
+        "count" to rows.size.toString(),
+        "bookingId" to bookingId.toString(),
+        "newOffenderNo" to newOffenderNo,
+      ),
+      null,
+    )
+    return rows.map { it.toDto() }
   }
 
   fun CaseNoteMapping.toDto() = CaseNoteMappingDto(

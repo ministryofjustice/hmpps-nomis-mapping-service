@@ -498,7 +498,31 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     @Schema(description = "New prisoner number to use", example = "A3457LZ", required = true)
     @PathVariable
     newOffenderNo: String,
-  ) = mappingService.updateMappingsByNomisId(oldOffenderNo, newOffenderNo)
+  ) {
+    mappingService.updateMappingsByNomisId(oldOffenderNo, newOffenderNo)
+  }
+
+  @PutMapping("/merge/booking-id/{bookingId}/to/{newOffenderNo}")
+  @Operation(
+    summary = "For all case notes with the given booking id in the mapping table, sets the offender no to the given 'to' id",
+    description = "Used for update after a booking has been moved from one offender to another. Returns the affected case notes. Requires role ROLE_NOMIS_CASENOTES",
+    responses = [
+      ApiResponse(responseCode = "200", description = "Replacement made, or not present in table"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun updateMappingsByBookingId(
+    @Schema(description = "The booking id", example = "1234567", required = true)
+    @PathVariable
+    bookingId: Long,
+    @Schema(description = "New prisoner number to use", example = "A3457LZ", required = true)
+    @PathVariable
+    newOffenderNo: String,
+  ): List<CaseNoteMappingDto> = mappingService.updateMappingsByBookingId(bookingId, newOffenderNo)
 
   private suspend fun getExistingMappingSimilarTo(mapping: CaseNoteMappingIdDto) = runCatching {
     mappingService.getMappingByNomisId(mapping.nomisCaseNoteId)

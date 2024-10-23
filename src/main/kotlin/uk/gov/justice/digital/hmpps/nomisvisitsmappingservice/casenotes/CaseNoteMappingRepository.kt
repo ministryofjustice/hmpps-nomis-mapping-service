@@ -34,4 +34,7 @@ interface CaseNoteMappingRepository : CoroutineCrudRepository<CaseNoteMapping, S
   @Modifying
   @Query("UPDATE CASE_NOTE_MAPPING SET offender_no = :toOffenderNo WHERE offender_no = :fromOffenderNo")
   suspend fun updateOffenderNo(fromOffenderNo: String, toOffenderNo: String): Int
+
+  @Query("UPDATE CASE_NOTE_MAPPING SET offender_no = :toOffenderNo WHERE nomis_booking_id = :bookingId returning *")
+  suspend fun updateOffenderNoByBooking(bookingId: Long, toOffenderNo: String): List<CaseNoteMapping>
 }
