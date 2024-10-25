@@ -50,5 +50,12 @@
         "percentage": 10
       }
     ]
+  },
+  "preview": {
+    "instrumentation": {
+      "r2dbc": {
+        "enabled": true
+      }
+    }
   }
 }
