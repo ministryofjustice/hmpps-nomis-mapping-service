@@ -12,7 +12,7 @@ data class PrisonPersonMigrationMapping(
 
   val migrationType: PrisonPersonMigrationType,
 
-  val dpsIds: String,
+  var dpsIds: String,
 
   val label: String,
 

@@ -28,7 +28,7 @@ class PrisonPersonResourceIntTest : IntegrationTestBase() {
   @Nested
   inner class CreateMigrationMapping {
     @AfterEach
-    fun teatDown() = runTest {
+    fun tearDown() = runTest {
       repository.deleteAll()
     }
 
@@ -71,42 +71,35 @@ class PrisonPersonResourceIntTest : IntegrationTestBase() {
     inner class HappyPath {
       @Test
       fun `should create migration mapping`() = runTest {
-        webTestClient.createMigrationMapping(request("A1234AA", PROFILE_DETAILS_PHYSICAL_ATTRIBUTES, listOf(1, 2, 3), "label"))
-          .expectStatus().isCreated
+        webTestClient.upsertMigrationMapping(request("A1234AA", PROFILE_DETAILS_PHYSICAL_ATTRIBUTES, listOf(1, 2, 3), "label"))
+          .expectStatus().isOk
 
-        val mapping = repository.findByNomisPrisonerNumberAndMigrationType("A1234AA", PROFILE_DETAILS_PHYSICAL_ATTRIBUTES)
-        assertThat(mapping?.nomisPrisonerNumber).isEqualTo("A1234AA")
-        assertThat(mapping?.migrationType).isEqualTo(PROFILE_DETAILS_PHYSICAL_ATTRIBUTES)
-        assertThat(mapping?.dpsIds).isEqualTo("[1, 2, 3]")
-        assertThat(mapping?.label).isEqualTo("label")
-        assertThat(mapping?.whenCreated?.toLocalDate()).isEqualTo(LocalDate.now())
+        val mapping = repository.findByNomisPrisonerNumberAndMigrationType("A1234AA", PROFILE_DETAILS_PHYSICAL_ATTRIBUTES)!!
+        assertThat(mapping.nomisPrisonerNumber).isEqualTo("A1234AA")
+        assertThat(mapping.migrationType).isEqualTo(PROFILE_DETAILS_PHYSICAL_ATTRIBUTES)
+        assertThat(mapping.dpsIds).isEqualTo("[1, 2, 3]")
+        assertThat(mapping.label).isEqualTo("label")
+        assertThat(mapping.whenCreated?.toLocalDate()).isEqualTo(LocalDate.now())
+      }
+
+      @Test
+      fun `should update migration mapping`() = runTest {
+        webTestClient.upsertMigrationMapping(request("A1234AA", PROFILE_DETAILS_PHYSICAL_ATTRIBUTES, listOf(1, 2, 3), "label"))
+          .expectStatus().isOk
+        webTestClient.upsertMigrationMapping(request("A1234AA", PROFILE_DETAILS_PHYSICAL_ATTRIBUTES, listOf(4, 5, 6), "label"))
+          .expectStatus().isOk
+
+        val mapping = repository.findByNomisPrisonerNumberAndMigrationType("A1234AA", PROFILE_DETAILS_PHYSICAL_ATTRIBUTES)!!
+        assertThat(mapping.nomisPrisonerNumber).isEqualTo("A1234AA")
+        assertThat(mapping.migrationType).isEqualTo(PROFILE_DETAILS_PHYSICAL_ATTRIBUTES)
+        assertThat(mapping.dpsIds).isEqualTo("[4, 5, 6]")
+        assertThat(mapping.label).isEqualTo("label")
+        assertThat(mapping.whenCreated?.toLocalDate()).isEqualTo(LocalDate.now())
       }
     }
 
-    @Nested
-    inner class Validation {
-      @Test
-      fun `should return 409 if migration mapping already exists`() = runTest {
-        webTestClient.createMigrationMapping(request("A1234AA", PHYSICAL_ATTRIBUTES, listOf(1), "label"))
-          .expectStatus().isCreated
-
-        webTestClient.createMigrationMapping(request("A1234AA", PHYSICAL_ATTRIBUTES, listOf(1), "label"))
-          .expectStatus().isEqualTo(409)
-      }
-
-      // The migration is idempotent and sometimes we want to migrate the same entity multiple times
-      @Test
-      fun `should return OK if migration mapping already exists for different migration run`() = runTest {
-        webTestClient.createMigrationMapping(request("A1234AA", PHYSICAL_ATTRIBUTES, listOf(1), "first-migration"))
-          .expectStatus().isCreated
-
-        webTestClient.createMigrationMapping(request("A1234AA", PHYSICAL_ATTRIBUTES, listOf(1), "second-migration"))
-          .expectStatus().isCreated
-      }
-    }
-
-    private fun WebTestClient.createMigrationMapping(request: PrisonPersonMigrationMappingRequest) =
-      post()
+    private fun WebTestClient.upsertMigrationMapping(request: PrisonPersonMigrationMappingRequest) =
+      put()
         .uri("/mapping/prisonperson/migration")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_PRISONPERSON")))
         .contentType(MediaType.APPLICATION_JSON)
