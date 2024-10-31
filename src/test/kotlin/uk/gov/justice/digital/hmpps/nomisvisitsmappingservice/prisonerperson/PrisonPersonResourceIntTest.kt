@@ -36,7 +36,7 @@ class PrisonPersonResourceIntTest : IntegrationTestBase() {
     inner class Security {
       @Test
       fun `access not authorised when no authority`() {
-        webTestClient.post()
+        webTestClient.put()
           .uri("/mapping/prisonperson/migration")
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(request()))
@@ -46,7 +46,7 @@ class PrisonPersonResourceIntTest : IntegrationTestBase() {
 
       @Test
       fun `access forbidden when no role`() {
-        webTestClient.post()
+        webTestClient.put()
           .uri("/mapping/prisonperson/migration")
           .headers(setAuthorisation(roles = listOf()))
           .contentType(MediaType.APPLICATION_JSON)
@@ -57,7 +57,7 @@ class PrisonPersonResourceIntTest : IntegrationTestBase() {
 
       @Test
       fun `access forbidden with wrong role`() {
-        webTestClient.post()
+        webTestClient.put()
           .uri("/mapping/prisonperson/migration")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .contentType(MediaType.APPLICATION_JSON)
