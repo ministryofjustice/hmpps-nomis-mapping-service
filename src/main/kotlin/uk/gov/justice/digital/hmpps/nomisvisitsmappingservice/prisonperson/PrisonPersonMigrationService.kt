@@ -22,18 +22,6 @@ class PrisonPersonMigrationService(
   private val prisonPersonMigrationMappingRepository: PrisonPersonMigrationMappingRepository,
   private val template: R2dbcEntityTemplate,
 ) {
-
-  suspend fun create(mappingRequest: PrisonPersonMigrationMappingRequest) {
-    repository.save(
-      PrisonPersonMigrationMapping(
-        nomisPrisonerNumber = mappingRequest.nomisPrisonerNumber,
-        migrationType = mappingRequest.migrationType,
-        dpsIds = mappingRequest.dpsIds.toString(),
-        label = mappingRequest.label,
-      ),
-    )
-  }
-
   @Transactional
   suspend fun upsert(mappingRequest: PrisonPersonMigrationMappingRequest): PrisonPersonMigrationMapping =
     mappingRequest.find()
@@ -68,8 +56,6 @@ class PrisonPersonMigrationService(
         ),
       )
       .awaitSingle()
-
-  suspend fun find(nomisPrisonerNumber: String, migrationType: PrisonPersonMigrationType) = repository.findByNomisPrisonerNumberAndMigrationType(nomisPrisonerNumber, migrationType)
 
   suspend fun getMappings(
     pageRequest: Pageable,
