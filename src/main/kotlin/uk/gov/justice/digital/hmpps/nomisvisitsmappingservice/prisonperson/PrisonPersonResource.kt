@@ -16,6 +16,7 @@ import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -32,6 +33,7 @@ class PrisonPersonResource(private val service: PrisonPersonMigrationService) {
 
   @PostMapping("/migration")
   @ResponseStatus(HttpStatus.CREATED)
+  @Deprecated("Use the PUT endpoint which is idempotent")
   @Operation(
     summary = "Creates a new prison person migration mapping",
     description = "Creates a mapping between nomis alert ids and dps alert id. Requires ROLE_NOMIS_PRISONPERSON",
@@ -75,6 +77,31 @@ class PrisonPersonResource(private val service: PrisonPersonMigrationService) {
         cause = e,
       )
     }
+
+  @PutMapping("/migration")
+  @Operation(
+    summary = "Creates or updates a prison person migration mapping",
+    description = "Creates or updates a mapping between nomis prisoner numbers and prison person history ids. Requires ROLE_NOMIS_PRISONPERSON",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = PrisonPersonMigrationMappingRequest::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "200", description = "Mapping created or updated"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun upsertMapping(
+    @RequestBody @Valid mappingRequest: PrisonPersonMigrationMappingRequest,
+  ) = service.upsert(mappingRequest)
 
   @GetMapping("/migration/migration-id/{migrationId}")
   @Operation(
