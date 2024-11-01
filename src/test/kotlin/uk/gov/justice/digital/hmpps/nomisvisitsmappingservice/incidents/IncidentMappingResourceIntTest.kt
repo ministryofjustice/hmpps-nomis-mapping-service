@@ -549,11 +549,10 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("POST /mapping/nomis-incident-id")
+  @DisplayName("GET /mapping/nomis-incident-id")
   inner class GetMappingsByNomisIds {
     lateinit var mapping1: IncidentMapping
     lateinit var mapping2: IncidentMapping
-    val nomisIncidentIds = listOf(54321, 54322)
 
     @BeforeEach
     fun setUp() = runTest {
@@ -584,20 +583,16 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
     inner class Security {
       @Test
       fun `access not authorised when no authority`() {
-        webTestClient.post()
-          .uri("/mapping/incidents/nomis-incident-id")
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(nomisIncidentIds))
+        webTestClient.get()
+          .uri("/mapping/incidents/nomis-incident-id?nomisIncidentId=54321")
           .exchange()
           .expectStatus().isUnauthorized
       }
 
       @Test
       fun `access forbidden when no role`() {
-        webTestClient.post()
-          .uri("/mapping/incidents/nomis-incident-id")
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(nomisIncidentIds))
+        webTestClient.get()
+          .uri("/mapping/incidents/nomis-incident-id?nomisIncidentId=54321")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -605,10 +600,8 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
 
       @Test
       fun `access forbidden with wrong role`() {
-        webTestClient.post()
-          .uri("/mapping/incidents/nomis-incident-id")
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(nomisIncidentIds))
+        webTestClient.get()
+          .uri("/mapping/incidents/nomis-incident-id?nomisIncidentId=54321")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -619,33 +612,36 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
     inner class HappyPath {
       @Test
       fun `will return Not Found when no mappings exist`() {
-        webTestClient.post()
-          .uri("/mapping/incidents/nomis-incident-id")
+        webTestClient.get()
+          .uri("/mapping/incidents/nomis-incident-id?nomisIncidentId=999999")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(listOf(99999)))
           .exchange()
           .expectStatus().isNotFound
       }
 
       @Test
-      fun `will return Not Found if any of the mappings don't exist`() {
-        webTestClient.post()
+      fun `will ensure at least one incident Id is passed in`() {
+        webTestClient.get()
           .uri("/mapping/incidents/nomis-incident-id")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(listOf(54321, 54322, 99999)))
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+
+      @Test
+      fun `will return Not Found if any of the mappings don't exist`() {
+        webTestClient.get()
+          .uri("/mapping/incidents/nomis-incident-id?nomisIncidentId=54321&nomisIncidentId=54322&nomisIncidentId=99999")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
           .exchange()
           .expectStatus().isNotFound
       }
 
       @Test
       fun `will return 200 when mapping does exist`() {
-        webTestClient.post()
-          .uri("/mapping/incidents/nomis-incident-id")
+        webTestClient.get()
+          .uri("/mapping/incidents/nomis-incident-id?nomisIncidentId=54321&nomisIncidentId=54322")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(nomisIncidentIds))
           .exchange()
           .expectStatus().isOk
           .expectBody()
