@@ -97,6 +97,11 @@ class CSIPMappingService(
       ?.toFullDto()
       ?: throw NotFoundException("No CSIP Report mapping found for dpsCSIPReportId=$dpsCSIPReportId")
 
+  suspend fun getMappingsByNomisCSIPId(nomisCSIPReportIds: List<Long>): List<CSIPReportMappingDto> =
+    csipMappingRepository.findByNomisCSIPIdIn(nomisCSIPIds = nomisCSIPReportIds).takeIf { nomisCSIPReportIds.size == it.size }
+      ?.map { it.toDto() }
+      ?: throw NotFoundException("Could not find all csip report mappings for $nomisCSIPReportIds")
+
   @Transactional
   suspend fun deleteMappingByDPSId(dpsCSIPId: String) {
     deleteChildMappingsByDPSId(dpsCSIPId)

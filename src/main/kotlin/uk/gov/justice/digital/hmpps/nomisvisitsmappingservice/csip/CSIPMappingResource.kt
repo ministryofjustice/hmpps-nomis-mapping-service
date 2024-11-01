@@ -267,6 +267,31 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
     csipId: String,
   ): CSIPReportMappingDto = mappingService.getMappingByDPSCSIPId(csipId)
 
+  @PostMapping("/nomis-csip-id")
+  @Operation(
+    summary = "get a list of mappings for Nomis CSIP Report ids",
+    description = "Retrieves matching mappings for a list of NOMIS CSIP report ids. Requires role NOMIS_CSIP",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = CSIPReportMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getMappingsByNomisId(
+    @Schema(description = "NOMIS CSIP id list", example = "[123, 345]", required = true)
+    @RequestBody
+    nomisCSIPReportIds: List<Long>,
+  ): List<CSIPReportMappingDto> = mappingService.getMappingsByNomisCSIPId(nomisCSIPReportIds)
+
   @DeleteMapping("/dps-csip-id/{dpsCSIPId}/all")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
