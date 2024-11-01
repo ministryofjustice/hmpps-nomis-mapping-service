@@ -39,11 +39,6 @@ import java.util.UUID
 
 class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
-  companion object {
-    private const val DPS_CSIP_ID = "edcd118c-41ba-42ea-b5c4-404b453ad58b"
-    private const val NOMIS_CSIP_ID = 1234L
-  }
-
   @Autowired
   private lateinit var repository: CSIPMappingRepository
 
@@ -63,8 +58,8 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
   private lateinit var csipFactorRepository: CSIPFactorMappingRepository
 
   private fun createCSIPMapping(
-    nomisCSIPId: Long = NOMIS_CSIP_ID,
-    dpsCSIPId: String = DPS_CSIP_ID,
+    nomisCSIPId: Long = 1234,
+    dpsCSIPId: String = "dcd118c-41ba-42ea-b5c4-404b453ad58b",
     label: String = "2022-01-01",
     mappingType: CSIPMappingType = NOMIS_CREATED,
   ): CSIPReportMappingDto = CSIPReportMappingDto(
@@ -75,8 +70,8 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
   )
 
   private fun createFullCSIPMapping(
-    nomisCSIPId: Long = NOMIS_CSIP_ID,
-    dpsCSIPId: String = DPS_CSIP_ID,
+    nomisCSIPId: Long = 1234,
+    dpsCSIPId: String = "dcd118c-41ba-42ea-b5c4-404b453ad58b",
     label: String = "2022-01-01",
     mappingType: CSIPMappingType = NOMIS_CREATED,
   ): CSIPFullMappingDto = CSIPFullMappingDto(
@@ -87,7 +82,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
   )
 
   private fun postCreateCSIPMappingRequest(
-    nomisCSIPId: Long = NOMIS_CSIP_ID,
+    nomisCSIPId: Long = 1234,
     dpsCSIPId: String = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
     label: String = "2022-01-01",
     mappingType: CSIPMappingType = NOMIS_CREATED,
@@ -352,9 +347,9 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
               BodyInserters.fromValue(
                 //language=JSON
                 """{
-                "nomisCSIPReportId" : $NOMIS_CSIP_ID,
+                "nomisCSIPReportId" : 1234,
                 "label"             : "2022-01-01",
-                "dpsCSIPReportId"   : "$DPS_CSIP_ID",
+                "dpsCSIPReportId"   : "dcd118c-41ba-42ea-b5c4-404b453ad58b",
                 "mappingType"       : "INVALID_MAPPING_TYPE"
               }""",
               ),
@@ -376,7 +371,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
               BodyInserters.fromValue(
                 //language=JSON
                 """{
-                "dpsCSIPReportId" : "$DPS_CSIP_ID",
+                "dpsCSIPReportId" : "dcd118c-41ba-42ea-b5c4-404b453ad58b",
                 "label"           : "2022-01-01",
                 "mappingType"     : "DPS_CREATED"
               }""",
@@ -400,7 +395,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
             .body(
               BodyInserters.fromValue(
                 """{
-                "nomisCSIPReportId" : $NOMIS_CSIP_ID,
+                "nomisCSIPReportId" : 1234,
                 "label"             : "2022-01-01",
                 "mappingType"       : "DPS_CREATED"
               }""",
@@ -716,9 +711,9 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
               BodyInserters.fromValue(
                 //language=JSON
                 """{
-                  "nomisCSIPReportId" : $NOMIS_CSIP_ID,
+                  "nomisCSIPReportId" : 1234,
                   "label"             : "2022-01-01",
-                  "dpsCSIPReportId"   : "$DPS_CSIP_ID",
+                  "dpsCSIPReportId"   : "dcd118c-41ba-42ea-b5c4-404b453ad58b",
                   "mappingType"       : "INVALID_MAPPING_TYPE"
                 }""",
               ),
@@ -741,7 +736,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
                 //language=JSON
                 """{
                   "label"             : "2022-01-01",
-                  "dpsCSIPReportId"   : "$DPS_CSIP_ID",
+                  "dpsCSIPReportId"   : "dcd118c-41ba-42ea-b5c4-404b453ad58b",
                   "mappingType"       : "DPS_CREATED",
                   "attendeeMappings"  : [],
                   "factorMappings"    : [],
@@ -771,8 +766,8 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
                 //language=JSON
                 """{
                   "label"             : "2022-01-01",
-                  "nomisCSIPReportId" : $NOMIS_CSIP_ID,
-                  "dpsCSIPReportId"   : "$DPS_CSIP_ID",
+                  "nomisCSIPReportId" : 1234,
+                  "dpsCSIPReportId"   : "dcd118c-41ba-42ea-b5c4-404b453ad58b",
                   "mappingType"       : "DPS_CREATED"
                 }
               }""",
@@ -793,7 +788,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
               BodyInserters.fromValue(
                 """{
                   "label"             : "2022-01-01",
-                  "nomisCSIPReportId" : $NOMIS_CSIP_ID,
+                  "nomisCSIPReportId" : 1234,
                   "mappingType"       : "DPS_CREATED"
                 }""",
               ),
@@ -820,14 +815,14 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.get().uri("/mapping/csip/nomis-csip-id/$NOMIS_CSIP_ID")
+      webTestClient.get().uri("/mapping/csip/nomis-csip-id/1234")
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.get().uri("/mapping/csip/nomis-csip-id/$NOMIS_CSIP_ID")
+      webTestClient.get().uri("/mapping/csip/nomis-csip-id/1234")
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -835,7 +830,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden with wrong role`() {
-      webTestClient.get().uri("/mapping/csip/nomis-csip-id/$NOMIS_CSIP_ID")
+      webTestClient.get().uri("/mapping/csip/nomis-csip-id/1234")
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
@@ -851,15 +846,15 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       val mapping =
-        webTestClient.get().uri("/mapping/csip/nomis-csip-id/$NOMIS_CSIP_ID")
+        webTestClient.get().uri("/mapping/csip/nomis-csip-id/1234")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
           .exchange()
           .expectStatus().isOk
           .expectBody(CSIPReportMappingDto::class.java)
           .returnResult().responseBody!!
 
-      assertThat(mapping.nomisCSIPReportId).isEqualTo(NOMIS_CSIP_ID)
-      assertThat(mapping.dpsCSIPReportId).isEqualTo(DPS_CSIP_ID)
+      assertThat(mapping.nomisCSIPReportId).isEqualTo(1234)
+      assertThat(mapping.dpsCSIPReportId).isEqualTo("dcd118c-41ba-42ea-b5c4-404b453ad58b")
       assertThat(mapping.label).isEqualTo("2022-01-01")
       assertThat(mapping.mappingType).isEqualTo(NOMIS_CREATED)
     }
@@ -885,7 +880,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isCreated
 
-      webTestClient.get().uri("/mapping/csip/nomis-csip-id/$NOMIS_CSIP_ID")
+      webTestClient.get().uri("/mapping/csip/nomis-csip-id/1234")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
         .exchange()
         .expectStatus().isOk
@@ -1900,11 +1895,10 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("POST /mapping/nomis-csip-id")
+  @DisplayName("GET /mapping/nomis-csip-id")
   inner class GetMappingsByNomisIds {
     lateinit var mapping1: CSIPMapping
     lateinit var mapping2: CSIPMapping
-    val nomicCSIPIds = listOf(54321, 54322)
 
     @BeforeEach
     fun setUp() = runTest {
@@ -1935,20 +1929,16 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     inner class Security {
       @Test
       fun `access not authorised when no authority`() {
-        webTestClient.post()
-          .uri("/mapping/csip/nomis-csip-id")
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(nomicCSIPIds))
+        webTestClient.get()
+          .uri("/mapping/csip/nomis-csip-id?nomisCSIPId=54321")
           .exchange()
           .expectStatus().isUnauthorized
       }
 
       @Test
       fun `access forbidden when no role`() {
-        webTestClient.post()
-          .uri("/mapping/csip/nomis-csip-id")
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(nomicCSIPIds))
+        webTestClient.get()
+          .uri("/mapping/csip/nomis-csip-id?nomisCSIPId=54321")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -1956,10 +1946,8 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
       @Test
       fun `access forbidden with wrong role`() {
-        webTestClient.post()
-          .uri("/mapping/csip/nomis-csip-id")
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(nomicCSIPIds))
+        webTestClient.get()
+          .uri("/mapping/csip/nomis-csip-id?nomisCSIPId=54321")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -1970,33 +1958,36 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     inner class HappyPath {
       @Test
       fun `will return Not Found when no mappings exist`() {
-        webTestClient.post()
-          .uri("/mapping/csip/nomis-csip-id")
+        webTestClient.get()
+          .uri("/mapping/csip/nomis-csip-id?nomisCSIPId=99999")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(listOf(99999)))
           .exchange()
           .expectStatus().isNotFound
       }
 
       @Test
-      fun `will return Not Found if any of the mappings don't exist`() {
-        webTestClient.post()
+      fun `will ensure at least one csip Id is passed in`() {
+        webTestClient.get()
           .uri("/mapping/csip/nomis-csip-id")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(listOf(54321, 54322, 99999)))
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+
+      @Test
+      fun `will return Not Found if any of the mappings don't exist`() {
+        webTestClient.get()
+          .uri("/mapping/csip/nomis-csip-id?nomisCSIPId=54321&nomisCSIPId=54322&nomisCSIPId=99999")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
           .exchange()
           .expectStatus().isNotFound
       }
 
       @Test
       fun `will return 200 when mapping does exist`() {
-        webTestClient.post()
-          .uri("/mapping/csip/nomis-csip-id")
+        webTestClient.get()
+          .uri("/mapping/csip/nomis-csip-id?nomisCSIPId=54321&nomisCSIPId=54322")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(nomicCSIPIds))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -2107,7 +2098,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isNoContent
 
       webTestClient.get()
-        .uri("/mapping/csip/nomis-csip-id/$NOMIS_CSIP_ID")
+        .uri("/mapping/csip/nomis-csip-id/1234")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
         .exchange()
         .expectStatus().isOk
