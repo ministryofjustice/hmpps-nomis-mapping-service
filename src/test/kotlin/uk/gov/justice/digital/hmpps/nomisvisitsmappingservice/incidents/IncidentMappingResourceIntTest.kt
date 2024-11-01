@@ -642,7 +642,7 @@ class IncidentMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 200 when mapping does exist`() {
         webTestClient.post()
-          .uri("/mapping/incidents/nomis-incidents-id")
+          .uri("/mapping/incidents/nomis-incident-id")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCIDENTS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(nomisIncidentIds))
