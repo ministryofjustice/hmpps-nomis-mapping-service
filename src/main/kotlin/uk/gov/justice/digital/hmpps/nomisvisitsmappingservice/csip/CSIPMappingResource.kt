@@ -267,7 +267,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
     csipId: String,
   ): CSIPReportMappingDto = mappingService.getMappingByDPSCSIPId(csipId)
 
-  @PostMapping("/nomis-csip-id")
+  @GetMapping("/nomis-csip-id")
   @Operation(
     summary = "get a list of mappings for Nomis CSIP Report ids",
     description = "Retrieves matching mappings for a list of NOMIS CSIP report ids. Requires role NOMIS_CSIP",
@@ -287,8 +287,8 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
     ],
   )
   suspend fun getMappingsByNomisId(
-    @Schema(description = "NOMIS CSIP id list", example = "[123, 345]", required = true)
-    @RequestBody
+    @RequestParam(name = "nomisCSIPId", required = true)
+    @Parameter(required = true, description = "Nomis CSIP Id", example = "345")
     nomisCSIPReportIds: List<Long>,
   ): List<CSIPReportMappingDto> = mappingService.getMappingsByNomisCSIPId(nomisCSIPReportIds)
 
