@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository
 interface IncidentMappingRepository : CoroutineCrudRepository<IncidentMapping, String> {
   suspend fun findOneByNomisIncidentId(nomisIncidentId: Long): IncidentMapping?
   suspend fun findFirstByMappingTypeOrderByWhenCreatedDesc(mappingType: IncidentMappingType): IncidentMapping?
+  suspend fun findByNomisIncidentIdIn(nomisIncidentIds: List<Long>): List<IncidentMapping>
   suspend fun countAllByLabelAndMappingType(label: String, mappingType: IncidentMappingType): Long
   fun findAllByLabelAndMappingTypeOrderByLabelDesc(label: String, mappingType: IncidentMappingType, pageable: Pageable): Flow<IncidentMapping>
   suspend fun deleteByMappingTypeEquals(mappingType: IncidentMappingType): IncidentMapping?

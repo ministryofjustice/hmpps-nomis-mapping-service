@@ -139,6 +139,31 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
     dpsIncidentId: String,
   ): IncidentMappingDto = mappingService.getMappingByDPSId(dpsIncidentId)
 
+  @PostMapping("/nomis-incident-id")
+  @Operation(
+    summary = "get a list of mappings for Nomis Incident id",
+    description = "Retrieves matching mappings for a list of NOMIS Incident ids. Requires role NOMIS_INCIDENTS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = IncidentMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getMappingsByNomisId(
+    @Schema(description = "NOMIS Incident id list", example = "[123, 345]", required = true)
+    @RequestBody
+    nomisIncidentIds: List<Long>,
+  ): List<IncidentMappingDto> = mappingService.getMappingsByNomisId(nomisIncidentIds)
+
   @DeleteMapping("/dps-incident-id/{dpsIncidentId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(

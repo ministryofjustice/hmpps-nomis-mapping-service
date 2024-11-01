@@ -102,6 +102,11 @@ class IncidentMappingService(
       ?.let { IncidentMappingDto(it) }
       ?: throw NotFoundException("dpsIncidentId=$dpsIncidentId")
 
+  suspend fun getMappingsByNomisId(nomisIncidentIds: List<Long>): List<IncidentMappingDto> =
+    incidentMappingRepository.findByNomisIncidentIdIn(nomisIncidentIds = nomisIncidentIds).takeIf { nomisIncidentIds.size == it.size }
+      ?.map { IncidentMappingDto(it) }
+      ?: throw NotFoundException("Could not find all incident mappings for $nomisIncidentIds")
+
   @Transactional
   suspend fun deleteMappingByDPSId(dpsIncidentId: String) = incidentMappingRepository.deleteById(dpsIncidentId)
 
