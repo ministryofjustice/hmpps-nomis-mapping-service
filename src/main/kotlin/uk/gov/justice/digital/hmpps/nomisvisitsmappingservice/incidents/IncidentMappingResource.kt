@@ -139,7 +139,7 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
     dpsIncidentId: String,
   ): IncidentMappingDto = mappingService.getMappingByDPSId(dpsIncidentId)
 
-  @PostMapping("/nomis-incident-id")
+  @GetMapping("/nomis-incident-id")
   @Operation(
     summary = "get a list of mappings for Nomis Incident id",
     description = "Retrieves matching mappings for a list of NOMIS Incident ids. Requires role NOMIS_INCIDENTS",
@@ -159,8 +159,8 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
     ],
   )
   suspend fun getMappingsByNomisId(
-    @Schema(description = "NOMIS Incident id list", example = "[123, 345]", required = true)
-    @RequestBody
+    @RequestParam(name = "nomisIncidentId")
+    @Parameter(required = true, description = "Nomis Incident Id", example = "345")
     nomisIncidentIds: List<Long>,
   ): List<IncidentMappingDto> = mappingService.getMappingsByNomisId(nomisIncidentIds)
 
