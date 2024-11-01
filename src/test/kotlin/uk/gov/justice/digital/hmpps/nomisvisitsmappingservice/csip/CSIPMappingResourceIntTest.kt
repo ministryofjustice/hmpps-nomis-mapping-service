@@ -4,6 +4,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.within
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -1895,6 +1896,125 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .uri("/mapping/csip/factors/dps-csip-factor-id/$dpsCsipFactorId2")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
         .exchange().expectStatus().isEqualTo(status.value())
+    }
+  }
+
+  @Nested
+  @DisplayName("POST /mapping/nomis-csip-id")
+  inner class GetMappingsByNomisIds {
+    lateinit var mapping1: CSIPMapping
+    lateinit var mapping2: CSIPMapping
+    val nomicCSIPIds = listOf(54321, 54322)
+
+    @BeforeEach
+    fun setUp() = runTest {
+      mapping1 = repository.save(
+        CSIPMapping(
+          dpsCSIPId = UUID.randomUUID().toString(),
+          nomisCSIPId = 54321,
+          label = "2023-01-01T12:45:12",
+          mappingType = MIGRATED,
+        ),
+      )
+      mapping2 = repository.save(
+        CSIPMapping(
+          dpsCSIPId = UUID.randomUUID().toString(),
+          nomisCSIPId = 54322,
+          label = "2023-06-01T12:45:12",
+          mappingType = DPS_CREATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    internal fun deleteData() = runBlocking {
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/csip/nomis-csip-id")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(nomicCSIPIds))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/csip/nomis-csip-id")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(nomicCSIPIds))
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/csip/nomis-csip-id")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(nomicCSIPIds))
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return Not Found when no mappings exist`() {
+        webTestClient.post()
+          .uri("/mapping/csip/nomis-csip-id")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(listOf(99999)))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+
+      @Test
+      fun `will return Not Found if any of the mappings don't exist`() {
+        webTestClient.post()
+          .uri("/mapping/csip/nomis-csip-id")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(listOf(54321, 54322, 99999)))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+
+      @Test
+      fun `will return 200 when mapping does exist`() {
+        webTestClient.post()
+          .uri("/mapping/csip/nomis-csip-id")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(nomicCSIPIds))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("[0].nomisCSIPReportId").isEqualTo(mapping1.nomisCSIPId)
+          .jsonPath("[0].dpsCSIPReportId").isEqualTo(mapping1.dpsCSIPId)
+          .jsonPath("[0].mappingType").isEqualTo(mapping1.mappingType.name)
+          .jsonPath("[0].label").isEqualTo(mapping1.label!!)
+          .jsonPath("[0].whenCreated").value<String> {
+            assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+          }
+          .jsonPath("[1].nomisCSIPReportId").isEqualTo(mapping2.nomisCSIPId)
+          .jsonPath("[1].dpsCSIPReportId").isEqualTo(mapping2.dpsCSIPId)
+          .jsonPath("[1].mappingType").isEqualTo(mapping2.mappingType.name)
+          .jsonPath("[1].label").isEqualTo(mapping2.label!!)
+          .jsonPath("[1].whenCreated").value<String> {
+            assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+          }
+      }
     }
   }
 
