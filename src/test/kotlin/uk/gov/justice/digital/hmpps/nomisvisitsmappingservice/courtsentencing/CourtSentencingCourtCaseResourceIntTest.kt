@@ -20,7 +20,6 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 private const val NOMIS_COURT_APPEARANCE_1_ID = 54321L
-private const val NOMIS_NEXT_COURT_APPEARANCE_1_ID = 76543L
 private const val NOMIS_COURT_APPEARANCE_2_ID = 65432L
 private const val NOMIS_COURT_CHARGE_1_ID = 32121L
 private const val NOMIS_COURT_CHARGE_2_ID = 87676L
@@ -230,7 +229,6 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
           nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_2_ID,
           label = "2023-01-01T12:45:12",
           mappingType = CourtAppearanceMappingType.DPS_CREATED,
-          nomisNextCourtAppearanceId = NOMIS_NEXT_COURT_APPEARANCE_1_ID,
         ),
       ),
       courtCharges = listOf(
@@ -353,7 +351,6 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
         assertThat(createdCourtAppearance1Mapping.dpsCourtAppearanceId).isEqualTo(DPS_COURT_APPEARANCE_1_ID)
         assertThat(createdCourtAppearance1Mapping.mappingType).isEqualTo(CourtAppearanceMappingType.DPS_CREATED)
         assertThat(createdCourtAppearance1Mapping.label).isEqualTo(mapping.courtAppearances[0].label)
-        assertThat(createdCourtAppearance1Mapping.nomisNextCourtAppearanceId).isNull()
         assertThat(createdCourtAppearance2Mapping.whenCreated).isCloseTo(
           LocalDateTime.now(),
           within(10, ChronoUnit.SECONDS),
@@ -362,7 +359,6 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
         assertThat(createdCourtAppearance2Mapping.dpsCourtAppearanceId).isEqualTo(DPS_COURT_APPEARANCE_2_ID)
         assertThat(createdCourtAppearance2Mapping.mappingType).isEqualTo(CourtAppearanceMappingType.DPS_CREATED)
         assertThat(createdCourtAppearance2Mapping.label).isEqualTo(mapping.courtAppearances[1].label)
-        assertThat(createdCourtAppearance2Mapping.nomisNextCourtAppearanceId).isEqualTo(NOMIS_NEXT_COURT_APPEARANCE_1_ID)
         assertThat(createdCourtCharge1Mapping.nomisCourtChargeId).isEqualTo(NOMIS_COURT_CHARGE_1_ID)
         assertThat(createdCourtCharge1Mapping.dpsCourtChargeId).isEqualTo(DPS_COURT_CHARGE_1_ID)
         assertThat(createdCourtCharge1Mapping.mappingType).isEqualTo(CourtChargeMappingType.DPS_CREATED)

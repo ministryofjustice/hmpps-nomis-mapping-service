@@ -15,9 +15,6 @@ data class CourtAppearanceMappingDto(
   @Schema(description = "DPS court appearance id", example = "123456")
   val dpsCourtAppearanceId: String,
 
-  @Schema(description = "optional NOMIS next court appearance id", example = "123456")
-  val nomisNextCourtAppearanceId: Long? = null,
-
   @Schema(description = "Label (a timestamp for migrated ids)")
   @field:Size(max = 20)
   val label: String? = null,

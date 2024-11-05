@@ -15,9 +15,6 @@ data class CourtAppearanceAllMappingDto(
   @Schema(description = "DPS court appearance id", example = "123456")
   val dpsCourtAppearanceId: String,
 
-  @Schema(description = "optional NOMIS next court appearance id", example = "123456")
-  val nomisNextCourtAppearanceId: Long? = null,
-
   @Schema(description = "Court Charge mappings")
   val courtCharges: List<CourtChargeMappingDto> = emptyList(),
 
