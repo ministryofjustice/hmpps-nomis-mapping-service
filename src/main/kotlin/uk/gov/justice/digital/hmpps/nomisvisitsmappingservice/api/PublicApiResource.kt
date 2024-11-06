@@ -56,6 +56,44 @@ class PublicApiResource(private val locationService: LocationMappingService) {
     nomisLocationId: Long,
   ): NomisDpsLocationMapping = locationService.getMappingByNomisId(nomisLocationId)
     .let { NomisDpsLocationMapping(dpsLocationId = it.dpsLocationId, nomisLocationId = it.nomisLocationId) }
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R')")
+  @GetMapping("/locations/dps/{dpsLocationId}")
+  @Tag(name = "DPS to NOMIS Mapping lookup")
+  @Operation(
+    summary = "Retrieves the NOMIS location id from the DPS location id",
+    description = "Requires role <b>NOMIS_DPS_MAPPING__LOCATIONS__R</b>",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "DPS to NOMIS Mapping Information Returned",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = NomisDpsLocationMapping::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden to this endpoint. Requires role NOMIS_DPS_MAPPING__LOCATIONS__R",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Location id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getLocationMappingByDpsId(
+    @Schema(description = "DPS location UUID", example = "12345678-1234-5678-abcd-1234567890ab", required = true)
+    @PathVariable
+    dpsLocationId: String,
+  ): NomisDpsLocationMapping = locationService.getMappingByDpsId(dpsLocationId)
+    .let { NomisDpsLocationMapping(dpsLocationId = it.dpsLocationId, nomisLocationId = it.nomisLocationId) }
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
