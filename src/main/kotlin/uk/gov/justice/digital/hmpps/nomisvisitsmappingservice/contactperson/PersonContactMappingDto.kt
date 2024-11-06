@@ -49,7 +49,7 @@ data class ContactPersonPhoneMappingIdDto(
   val nomisId: Long,
   @Schema(description = "DPS id")
   val dpsId: String,
-  @Schema(description = "DPS phone type", allowableValues = ["ADDRESS", "PERSON"])
+  @Schema(description = "DPS phone type")
   val dpsPhoneType: DpsPersonPhoneType,
 )
 
