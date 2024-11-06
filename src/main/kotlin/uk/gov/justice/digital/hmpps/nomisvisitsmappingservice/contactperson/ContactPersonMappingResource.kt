@@ -151,6 +151,32 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   ): Page<PersonMappingDto> =
     service.getPersonMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
+  @GetMapping("/person")
+  @Operation(
+    summary = "Get paged person mappings by migration id",
+    description = "Retrieve all person mappings. Results are paged. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person mapping page returned",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getAllPersonMappings(
+    @PageableDefault pageRequest: Pageable,
+  ): Page<PersonMappingDto> =
+    service.getAllPersonMappings(pageRequest = pageRequest)
+
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
