@@ -4,7 +4,7 @@ import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface PersonPhoneMappingRepository : CoroutineCrudRepository<PersonPhoneMapping, String> {
+interface PersonPhoneMappingRepository : CoroutineCrudRepository<PersonPhoneMapping, Long> {
   suspend fun findOneByNomisId(nomisId: Long): PersonPhoneMapping?
-  suspend fun findOneByDpsId(dpsId: String): PersonPhoneMapping?
+  suspend fun findOneByDpsIdAndDpsPhoneType(dpsId: String, dpsPhoneType: DpsPersonPhoneType): PersonPhoneMapping?
 }

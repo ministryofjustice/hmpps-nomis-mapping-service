@@ -327,8 +327,9 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
             BodyInserters.fromValue(
               mappings.copy(
                 personPhoneMapping = listOf(
-                  ContactPersonSimpleMappingIdDto(dpsId = "0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6", nomisId = 1),
-                  ContactPersonSimpleMappingIdDto(dpsId = "e96babce-4a24-49d7-8447-b45f8768f6c1", nomisId = 2),
+                  ContactPersonPhoneMappingIdDto(dpsId = "0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6", dpsPhoneType = DpsPersonPhoneType.PERSON, nomisId = 1),
+                  ContactPersonPhoneMappingIdDto(dpsId = "e96babce-4a24-49d7-8447-b45f8768f6c1", dpsPhoneType = DpsPersonPhoneType.PERSON, nomisId = 2),
+                  ContactPersonPhoneMappingIdDto(dpsId = "e96babce-4a24-49d7-8447-b45f8768f6c1", dpsPhoneType = DpsPersonPhoneType.ADDRESS, nomisId = 3),
                 ),
               ),
             ),
@@ -338,14 +339,24 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
 
         with(personPhoneMappingRepository.findOneByNomisId(1)!!) {
           assertThat(dpsId).isEqualTo("0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6")
+          assertThat(dpsPhoneType).isEqualTo(DpsPersonPhoneType.PERSON)
           assertThat(nomisId).isEqualTo(1L)
           assertThat(label).isEqualTo(mappings.label)
           assertThat(mappingType).isEqualTo(mappings.mappingType)
           assertThat(whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         }
-        with(personPhoneMappingRepository.findOneByDpsId("e96babce-4a24-49d7-8447-b45f8768f6c1")!!) {
+        with(personPhoneMappingRepository.findOneByDpsIdAndDpsPhoneType("e96babce-4a24-49d7-8447-b45f8768f6c1", DpsPersonPhoneType.PERSON)!!) {
           assertThat(dpsId).isEqualTo("e96babce-4a24-49d7-8447-b45f8768f6c1")
+          assertThat(dpsPhoneType).isEqualTo(DpsPersonPhoneType.PERSON)
           assertThat(nomisId).isEqualTo(2L)
+          assertThat(label).isEqualTo(mappings.label)
+          assertThat(mappingType).isEqualTo(mappings.mappingType)
+          assertThat(whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        }
+        with(personPhoneMappingRepository.findOneByDpsIdAndDpsPhoneType("e96babce-4a24-49d7-8447-b45f8768f6c1", DpsPersonPhoneType.ADDRESS)!!) {
+          assertThat(dpsId).isEqualTo("e96babce-4a24-49d7-8447-b45f8768f6c1")
+          assertThat(dpsPhoneType).isEqualTo(DpsPersonPhoneType.ADDRESS)
+          assertThat(nomisId).isEqualTo(3L)
           assertThat(label).isEqualTo(mappings.label)
           assertThat(mappingType).isEqualTo(mappings.mappingType)
           assertThat(whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
@@ -913,8 +924,9 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
           ),
         ),
         personPhoneMapping = listOf(
-          ContactPersonSimpleMappingIdDto(
+          ContactPersonPhoneMappingIdDto(
             dpsId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+            dpsPhoneType = DpsPersonPhoneType.PERSON,
             nomisId = 12345L,
           ),
         ),

@@ -5,20 +5,26 @@ import java.time.LocalDateTime
 
 class PersonPhoneMapping(
   @Id
-  val dpsId: String,
   val nomisId: Long,
+  val dpsId: String,
+  val dpsPhoneType: DpsPersonPhoneType,
   label: String? = null,
   mappingType: ContactPersonMappingType,
   whenCreated: LocalDateTime? = null,
-) : AbstractContactPersonMapping(label = label, mappingType = mappingType, whenCreated = whenCreated) {
+) : AbstractContactPersonMappingTyped<Long>(label = label, mappingType = mappingType, whenCreated = whenCreated) {
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other !is PersonPhoneMapping) return false
-    if (dpsId != other.dpsId) return false
+    if (nomisId != other.nomisId) return false
     return true
   }
 
-  override fun hashCode(): Int = dpsId.hashCode()
-  override fun getId(): String = dpsId
+  override fun hashCode(): Int = nomisId.hashCode()
+  override fun getId(): Long = nomisId
+}
+
+enum class DpsPersonPhoneType {
+  ADDRESS,
+  PERSON,
 }

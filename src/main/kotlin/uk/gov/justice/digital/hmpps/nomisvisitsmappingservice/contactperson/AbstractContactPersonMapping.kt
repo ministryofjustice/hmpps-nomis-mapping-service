@@ -5,7 +5,7 @@ import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 
-abstract class AbstractContactPersonMapping(
+abstract class AbstractContactPersonMappingTyped<T>(
   val label: String? = null,
   val mappingType: ContactPersonMappingType,
 
@@ -15,7 +15,9 @@ abstract class AbstractContactPersonMapping(
 
   val whenCreated: LocalDateTime? = null,
 
-) : Persistable<String> {
+) : Persistable<T> {
 
   override fun isNew(): Boolean = new
 }
+
+typealias AbstractContactPersonMapping = AbstractContactPersonMappingTyped<String>
