@@ -13,8 +13,8 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.LocationMappin
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.LocationMappingType
 import java.time.LocalDateTime
 
-private const val dpsLocationId = "f4499772-2e43-4951-861d-04ad86df43fc"
-private const val nomisLocationId = 2318905L
+private const val DPS_LOCATION_ID = "f4499772-2e43-4951-861d-04ad86df43fc"
+private const val NOMIS_LOCATION_ID = 2318905L
 
 class PublicApiResourceIntTest : IntegrationTestBase() {
 
@@ -25,8 +25,8 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
   fun setUp(): Unit = runBlocking {
     locationRepository.save(
       LocationMapping(
-        dpsLocationId = dpsLocationId,
-        nomisLocationId = nomisLocationId,
+        dpsLocationId = DPS_LOCATION_ID,
+        nomisLocationId = NOMIS_LOCATION_ID,
         label = "2024-05-10T09:28:29",
         mappingType = LocationMappingType.NOMIS_CREATED,
         whenCreated = LocalDateTime.now(),
@@ -47,7 +47,7 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access unauthorised when no authority`() {
         webTestClient.get()
-          .uri("/api/locations/nomis/$nomisLocationId")
+          .uri("/api/locations/nomis/$NOMIS_LOCATION_ID")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -55,7 +55,7 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with no roles`() {
         webTestClient.get()
-          .uri("/api/locations/nomis/$nomisLocationId")
+          .uri("/api/locations/nomis/$NOMIS_LOCATION_ID")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -64,7 +64,7 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/api/locations/nomis/$nomisLocationId")
+          .uri("/api/locations/nomis/$NOMIS_LOCATION_ID")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -76,13 +76,13 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns DPS and NOMIS ids`() {
         webTestClient.get()
-          .uri("/api/locations/nomis/$nomisLocationId")
+          .uri("/api/locations/nomis/$NOMIS_LOCATION_ID")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("dpsLocationId").isEqualTo(dpsLocationId)
-          .jsonPath("nomisLocationId").isEqualTo(nomisLocationId)
+          .jsonPath("dpsLocationId").isEqualTo(DPS_LOCATION_ID)
+          .jsonPath("nomisLocationId").isEqualTo(NOMIS_LOCATION_ID)
       }
     }
 
@@ -107,7 +107,7 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access unauthorised when no authority`() {
         webTestClient.get()
-          .uri("/api/locations/dps/$dpsLocationId")
+          .uri("/api/locations/dps/$DPS_LOCATION_ID")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -115,7 +115,7 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with no roles`() {
         webTestClient.get()
-          .uri("/api/locations/dps/$dpsLocationId")
+          .uri("/api/locations/dps/$DPS_LOCATION_ID")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -124,7 +124,7 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/api/locations/dps/$dpsLocationId")
+          .uri("/api/locations/dps/$DPS_LOCATION_ID")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -136,13 +136,13 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns DPS and NOMIS ids`() {
         webTestClient.get()
-          .uri("/api/locations/dps/$dpsLocationId")
+          .uri("/api/locations/dps/$DPS_LOCATION_ID")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("dpsLocationId").isEqualTo(dpsLocationId)
-          .jsonPath("nomisLocationId").isEqualTo(nomisLocationId)
+          .jsonPath("dpsLocationId").isEqualTo(DPS_LOCATION_ID)
+          .jsonPath("nomisLocationId").isEqualTo(NOMIS_LOCATION_ID)
       }
     }
 
