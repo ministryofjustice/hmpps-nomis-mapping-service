@@ -86,6 +86,23 @@ class ContactPersonService(
       count.await(),
     )
   }
+  suspend fun getAllPersonMappings(pageRequest: Pageable): Page<PersonMappingDto> = coroutineScope {
+    val mappings = async {
+      personMappingRepository.findAllBy(
+        pageRequest = pageRequest,
+      )
+    }
+
+    val count = async {
+      personMappingRepository.count()
+    }
+
+    PageImpl(
+      mappings.await().toList().map { it.toDto() },
+      pageRequest,
+      count.await(),
+    )
+  }
 
   @Transactional
   suspend fun deleteAllMappings() {
