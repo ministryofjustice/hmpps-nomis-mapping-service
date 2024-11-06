@@ -165,3 +165,12 @@ private inline fun <reified T : AbstractContactPersonMapping> ContactPersonMappi
     this.mappingType,
     this.whenCreated,
   )
+
+private fun ContactPersonMappingsDto.toMapping(mapping: ContactPersonPhoneMappingIdDto) = PersonPhoneMapping(
+  nomisId = mapping.nomisId,
+  dpsId = mapping.dpsId,
+  dpsPhoneType = mapping.dpsPhoneType,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)

@@ -18,7 +18,7 @@ data class ContactPersonMappingsDto(
   @Schema(description = "Person address mapping")
   val personAddressMapping: List<ContactPersonSimpleMappingIdDto>,
   @Schema(description = "Person phone mapping")
-  val personPhoneMapping: List<ContactPersonSimpleMappingIdDto>,
+  val personPhoneMapping: List<ContactPersonPhoneMappingIdDto>,
   @Schema(description = "Person email mapping")
   val personEmailMapping: List<ContactPersonSimpleMappingIdDto>,
   @Schema(description = "Person employment mapping")
@@ -40,6 +40,17 @@ data class ContactPersonSimpleMappingIdDto(
   val dpsId: String,
   @Schema(description = "NOMIS id")
   val nomisId: Long,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "NOMIS to DPS simple mapping IDs")
+data class ContactPersonPhoneMappingIdDto(
+  @Schema(description = "NOMIS id")
+  val nomisId: Long,
+  @Schema(description = "DPS id")
+  val dpsId: String,
+  @Schema(description = "DPS phone type", allowableValues = ["ADDRESS", "PERSON"])
+  val dpsPhoneType: DpsPersonPhoneType,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
