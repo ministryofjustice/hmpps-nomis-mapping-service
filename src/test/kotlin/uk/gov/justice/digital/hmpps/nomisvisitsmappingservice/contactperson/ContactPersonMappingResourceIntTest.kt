@@ -805,7 +805,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
     inner class HappyPath {
 
       @Test
-      fun `can retrieve all mappings by migration Id`() = runTest {
+      fun `can retrieve all mappings`() = runTest {
         (1L..4L).forEach {
           personMappingRepository.save(
             PersonMapping(
