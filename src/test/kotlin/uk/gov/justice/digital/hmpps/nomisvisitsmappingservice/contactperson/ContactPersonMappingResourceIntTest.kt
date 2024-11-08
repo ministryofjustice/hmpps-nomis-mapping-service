@@ -1021,4 +1021,167 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       }
     }
   }
+
+  @Nested
+  @DisplayName("POST mapping/contact-person/person")
+  inner class CreatePersonMapping {
+
+    @Nested
+    inner class Security {
+      val mapping = PersonMappingDto(
+        dpsId = UUID.randomUUID().toString(),
+        nomisId = 12345L,
+        label = null,
+        mappingType = ContactPersonMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/person")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/person")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/person")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      private lateinit var existingPersonMapping: PersonMapping
+
+      val mapping = PersonMappingDto(
+        dpsId = UUID.randomUUID().toString(),
+        nomisId = 12345L,
+        label = null,
+        mappingType = ContactPersonMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+      )
+
+      @BeforeEach
+      fun setUp() = runTest {
+        existingPersonMapping = personMappingRepository.save(
+          PersonMapping(
+            dpsId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+            nomisId = 12345L,
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+          ),
+        )
+        personIdentifierMappingRepository.save(
+          PersonIdentifierMapping(
+            dpsId = "18e89dec-6ace-4706-9283-8e11e9ebe886",
+            nomisPersonId = 54321,
+            nomisSequenceNumber = 1,
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+          ),
+        )
+      }
+
+      @Test
+      fun `will not allow the same person to have duplicate mappings`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/person")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+      }
+
+      @Test
+      fun `will return details of the existing and duplicate mappings`() {
+        val duplicateResponse = webTestClient.post()
+          .uri("/mapping/contact-person/person")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+          .expectBody(
+            object :
+              ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
+          )
+          .returnResult().responseBody
+
+        with(duplicateResponse!!) {
+          // since this is an untyped map an int will be assumed for such small numbers
+          assertThat(this.moreInfo.existing)
+            .containsEntry("nomisId", existingPersonMapping.nomisId.toInt())
+            .containsEntry("dpsId", existingPersonMapping.dpsId)
+            .containsEntry("mappingType", existingPersonMapping.mappingType.toString())
+          assertThat(this.moreInfo.duplicate)
+            .containsEntry("nomisId", mapping.nomisId.toInt())
+            .containsEntry("dpsId", mapping.dpsId)
+            .containsEntry("mappingType", mapping.mappingType.toString())
+        }
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = PersonMappingDto(
+        dpsId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+        nomisId = 12345L,
+        label = null,
+        mappingType = ContactPersonMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+      )
+
+      @Test
+      fun `returns 201 when mappings created`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/contact-person/person")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+      }
+
+      @Test
+      fun `will persist the person mapping`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/contact-person/person")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+
+        val personMapping =
+          personMappingRepository.findOneByNomisId(mapping.nomisId)!!
+
+        assertThat(personMapping.dpsId).isEqualTo(mapping.dpsId)
+        assertThat(personMapping.nomisId).isEqualTo(mapping.nomisId)
+        assertThat(personMapping.label).isNull()
+        assertThat(personMapping.mappingType).isEqualTo(mapping.mappingType)
+        assertThat(personMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+      }
+    }
+  }
 }
