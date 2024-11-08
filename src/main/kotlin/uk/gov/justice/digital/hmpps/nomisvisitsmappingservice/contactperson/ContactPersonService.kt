@@ -64,6 +64,11 @@ class ContactPersonService(
     }
   }
 
+  @Transactional
+  suspend fun createMapping(mapping: PersonMappingDto) {
+    personMappingRepository.save(mapping.toPersonMapping())
+  }
+
   suspend fun getPersonMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<PersonMappingDto> = coroutineScope {
     val mappings = async {
       personMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
@@ -130,6 +135,13 @@ private fun ContactPersonMappingsDto.toPersonMapping() = PersonMapping(
   dpsId = personMapping.dpsId,
   nomisId = personMapping.nomisId,
   label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private fun PersonMappingDto.toPersonMapping() = PersonMapping(
+  dpsId = dpsId,
+  nomisId = nomisId,
   mappingType = mappingType,
   whenCreated = whenCreated,
 )
