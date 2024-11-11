@@ -29,6 +29,11 @@ class ContactPersonService(
       ?.toDto()
       ?: throw NotFoundException("No person mapping found for nomisId=$nomisId")
 
+  suspend fun getPersonMappingByDpsId(dpsId: String) =
+    personMappingRepository.findOneByDpsId(dpsId = dpsId)
+      ?.toDto()
+      ?: throw NotFoundException("No person mapping found for dpsId=$dpsId")
+
   suspend fun getPersonMappingByDpsIdOrNull(dpsId: String) =
     personMappingRepository.findOneByDpsId(dpsId = dpsId)
       ?.toDto()
