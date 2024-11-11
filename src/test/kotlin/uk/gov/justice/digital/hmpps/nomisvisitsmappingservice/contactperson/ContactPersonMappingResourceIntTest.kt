@@ -668,6 +668,85 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
+  @Nested
+  @DisplayName("GET /mapping/contact-person/person/dps-contact-id/{contactId}")
+  inner class GetPersonByDpsId {
+    private val dpsContactId = "12345"
+    private lateinit var personMapping: PersonMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      personMapping = personMappingRepository.save(
+        PersonMapping(
+          dpsId = dpsContactId,
+          nomisId = 123456,
+          label = "2023-01-01T12:45:12",
+          mappingType = ContactPersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/person/dps-contact-id/{contactId}", dpsContactId)
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/person/dps-contact-id/{contactId}", dpsContactId)
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/person/dps-contact-id/{contactId}", dpsContactId)
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `404 when mapping not found`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/person/dps-contact-id/{contactId}", "99999")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return the mapping data`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/person/dps-contact-id/{contactId}", dpsContactId)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("dpsId").isEqualTo(dpsContactId)
+          .jsonPath("nomisId").isEqualTo(123456)
+          .jsonPath("label").isEqualTo("2023-01-01T12:45:12")
+          .jsonPath("mappingType").isEqualTo("MIGRATED")
+          .jsonPath("whenCreated").isEqualTo("2023-01-01T12:45:12")
+      }
+    }
+  }
+
   @DisplayName("GET /mapping/contact-person/person/migration-id/{migrationId}")
   @Nested
   inner class GetPersonMappingsByMigrationId {

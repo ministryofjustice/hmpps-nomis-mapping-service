@@ -122,6 +122,41 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     nomisPersonId: Long,
   ): PersonMappingDto = service.getPersonMappingByNomisId(nomisId = nomisPersonId)
 
+  @GetMapping("/person/dps-contact-id/{dpsContactId}")
+  @Operation(
+    summary = "Get person mapping by dps contact Id",
+    description = "Retrieves the person mapping by DPS Contact Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = PersonMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPersonMappingByDpsId(
+    @Schema(description = "DPS contact id", example = "12345", required = true)
+    @PathVariable
+    dpsContactId: String,
+  ): PersonMappingDto = service.getPersonMappingByDpsId(dpsId = dpsContactId)
+
   @GetMapping("/person/migration-id/{migrationId}")
   @Operation(
     summary = "Get paged person mappings by migration id",
