@@ -55,6 +55,14 @@ class CourtSentencingMappingService(
     courtCaseMappingRepository.findByNomisCourtCaseId(courtCaseId)?.toCourtCaseMappingDto()
       ?: throw NotFoundException("Nomis Court case Id =$courtCaseId")
 
+  suspend fun getCourtCaseAllMappingByDpsId(courtCaseId: String): CourtCaseAllMappingDto =
+    courtCaseMappingRepository.findById(courtCaseId)?.toCourtCaseAllMappingDto()
+      ?: throw NotFoundException("DPS Court case Id =$courtCaseId")
+
+  suspend fun getCourtCaseAllMappingByNomisId(courtCaseId: Long): CourtCaseAllMappingDto =
+    courtCaseMappingRepository.findByNomisCourtCaseId(courtCaseId)?.toCourtCaseAllMappingDto()
+      ?: throw NotFoundException("Nomis Court case Id =$courtCaseId")
+
   @Transactional
   suspend fun deleteCourtCaseMappingByDpsId(courtCaseId: String) =
     courtCaseMappingRepository.deleteById(courtCaseId)
@@ -189,8 +197,16 @@ class CourtSentencingMappingService(
     courtAppearanceMappingRepository.findById(courtAppearanceId)?.toCourtAppearanceMappingDto()
       ?: throw NotFoundException("DPS Court appearance Id =$courtAppearanceId")
 
+  suspend fun getCourtAppearanceAllMappingByDpsId(courtAppearanceId: String): CourtAppearanceAllMappingDto =
+    courtAppearanceMappingRepository.findById(courtAppearanceId)?.toCourtAppearanceAllMappingDto()
+      ?: throw NotFoundException("DPS Court appearance Id =$courtAppearanceId")
+
   suspend fun getCourtAppearanceMappingByNomisId(courtAppearanceId: Long): CourtAppearanceMappingDto =
     courtAppearanceMappingRepository.findByNomisCourtAppearanceId(courtAppearanceId)?.toCourtAppearanceMappingDto()
+      ?: throw NotFoundException("Nomis Court appearance Id =$courtAppearanceId")
+
+  suspend fun getCourtAppearanceAllMappingByNomisId(courtAppearanceId: Long): CourtAppearanceAllMappingDto =
+    courtAppearanceMappingRepository.findByNomisCourtAppearanceId(courtAppearanceId)?.toCourtAppearanceAllMappingDto()
       ?: throw NotFoundException("Nomis Court appearance Id =$courtAppearanceId")
 
   suspend fun getCourtChargeMappingByDpsId(courtChargeId: String): CourtChargeMappingDto =
@@ -252,7 +268,25 @@ fun CourtCaseAllMappingDto.toCourtCaseMapping(): CourtCaseMapping = CourtCaseMap
   mappingType = mappingType ?: CourtCaseMappingType.DPS_CREATED,
 )
 
+// on duplicate the calling service are expecting CourtCaseAllMappingDto to be returned, child entities are NOT populated
+fun CourtCaseMapping.toCourtCaseAllMappingDto(): CourtCaseAllMappingDto = CourtCaseAllMappingDto(
+  dpsCourtCaseId = this.dpsCourtCaseId,
+  nomisCourtCaseId = this.nomisCourtCaseId,
+  label = this.label,
+  mappingType = this.mappingType,
+  whenCreated = this.whenCreated,
+)
+
 fun CourtAppearanceMapping.toCourtAppearanceMappingDto(): CourtAppearanceMappingDto = CourtAppearanceMappingDto(
+  dpsCourtAppearanceId = this.dpsCourtAppearanceId,
+  nomisCourtAppearanceId = this.nomisCourtAppearanceId,
+  label = this.label,
+  mappingType = this.mappingType,
+  whenCreated = this.whenCreated,
+)
+
+// on duplicate the calling service are expecting CourtAppearanceAllMappingDto to be returned, child entities are NOT populated
+fun CourtAppearanceMapping.toCourtAppearanceAllMappingDto(): CourtAppearanceAllMappingDto = CourtAppearanceAllMappingDto(
   dpsCourtAppearanceId = this.dpsCourtAppearanceId,
   nomisCourtAppearanceId = this.nomisCourtAppearanceId,
   label = this.label,
