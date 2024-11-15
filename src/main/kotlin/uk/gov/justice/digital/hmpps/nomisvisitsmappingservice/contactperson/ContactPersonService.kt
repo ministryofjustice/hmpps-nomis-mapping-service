@@ -74,6 +74,25 @@ class ContactPersonService(
     personMappingRepository.save(mapping.toPersonMapping())
   }
 
+  suspend fun getPersonContactMappingByNomisId(nomisId: Long) =
+    personContactMappingRepository.findOneByNomisId(nomisId = nomisId)
+      ?.toDto()
+      ?: throw NotFoundException("No person contact mapping found for nomisId=$nomisId")
+
+  suspend fun getPersonContactMappingByDpsId(dpsId: String) =
+    personContactMappingRepository.findOneByDpsId(dpsId = dpsId)
+      ?.toDto()
+      ?: throw NotFoundException("No person contact mapping found for dpsId=$dpsId")
+
+  suspend fun getPersonContactMappingByDpsIdOrNull(dpsId: String) =
+    personContactMappingRepository.findOneByDpsId(dpsId = dpsId)
+      ?.toDto()
+
+  @Transactional
+  suspend fun createMapping(mapping: PersonContactMappingDto) {
+    personContactMappingRepository.save(mapping.toPersonContactMapping())
+  }
+
   suspend fun getPersonMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<PersonMappingDto> = coroutineScope {
     val mappings = async {
       personMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
@@ -147,6 +166,21 @@ private fun ContactPersonMappingsDto.toPersonMapping() = PersonMapping(
 private fun PersonMappingDto.toPersonMapping() = PersonMapping(
   dpsId = dpsId,
   nomisId = nomisId,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private fun PersonContactMappingDto.toPersonContactMapping() = PersonContactMapping(
+  dpsId = dpsId,
+  nomisId = nomisId,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private fun PersonContactMapping.toDto() = PersonContactMappingDto(
+  nomisId = nomisId,
+  dpsId = dpsId,
+  label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,
 )
