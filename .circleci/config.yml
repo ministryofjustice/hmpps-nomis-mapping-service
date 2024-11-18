@@ -53,6 +53,7 @@ workflows:
           jira_update: true
           pipeline_id: <<pipeline.id>>
           pipeline_number: <<pipeline.number>>
+          helm_timeout: 20m
           context: hmpps-common-vars
           filters:
             branches:
@@ -73,6 +74,7 @@ workflows:
           jira_env_type: staging
           pipeline_id: <<pipeline.id>>
           pipeline_number: <<pipeline.number>>
+          helm_timeout: 20m
           context:
             - hmpps-common-vars
             - hmpps-nomis-mapping-service-preprod
@@ -89,6 +91,7 @@ workflows:
           jira_env_type: production
           pipeline_id: <<pipeline.id>>
           pipeline_number: <<pipeline.number>>
+          helm_timeout: 20m
           slack_notification: true
           context:
             - hmpps-common-vars
