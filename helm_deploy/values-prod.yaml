@@ -10,6 +10,7 @@ generic-service:
 
   postgresDatabaseRestore:
     enabled: true
+    timeout: 7200
     namespace_secrets:
       dps-rds-instance-output:
         DB_NAME: "database_name"
@@ -22,7 +23,7 @@ generic-service:
         DB_PASS_PREPROD: "database_password"
         DB_HOST_PREPROD: "rds_instance_address"
 
-# CloudPlatform AlertManager receiver to route promethues alerts to slack
+# CloudPlatform AlertManager receiver to route prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
 generic-prometheus-alerts:
   rdsAlertsDatabases:
