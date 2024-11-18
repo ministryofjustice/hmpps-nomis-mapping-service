@@ -140,8 +140,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isCreated
 
-        val createdMapping =
-          repository.findOneByNomisCaseNoteId(mapping.nomisCaseNoteId)!!
+        val createdMapping = repository.findById(mapping.nomisCaseNoteId)!!
 
         assertThat(createdMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         assertThat(createdMapping.nomisCaseNoteId).isEqualTo(mapping.nomisCaseNoteId)
@@ -171,8 +170,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isCreated
 
-        val createdMapping =
-          repository.findOneByNomisCaseNoteId(nomisCaseNoteId = 54321)!!
+        val createdMapping = repository.findById(54321)!!
 
         assertThat(createdMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         assertThat(createdMapping.nomisCaseNoteId).isEqualTo(54321L)
@@ -315,42 +313,6 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
             .containsEntry("dpsCaseNoteId", dpsCaseNoteId)
         }
       }
-
-      @Test
-      fun `returns 409 if dps id already exist`() {
-        val nomisCaseNoteId = 987654L
-        val duplicateResponse = webTestClient.post()
-          .uri("/mapping/casenotes")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(
-            BodyInserters.fromValue(
-              CaseNoteMappingDto(
-                nomisCaseNoteId = nomisCaseNoteId,
-                dpsCaseNoteId = existingMapping.dpsCaseNoteId.toString(),
-                offenderNo = OFFENDER_NO,
-                nomisBookingId = 1,
-              ),
-            ),
-          )
-          .exchange()
-          .expectStatus().isEqualTo(409)
-          .expectBody(
-            object :
-              ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
-          )
-          .returnResult().responseBody
-
-        with(duplicateResponse!!) {
-          // since this is an untyped map an int will be assumed for such small numbers
-          assertThat(this.moreInfo.existing)
-            .containsEntry("nomisCaseNoteId", existingMapping.nomisCaseNoteId.toInt())
-            .containsEntry("dpsCaseNoteId", existingMapping.dpsCaseNoteId.toString())
-          assertThat(this.moreInfo.duplicate)
-            .containsEntry("nomisCaseNoteId", nomisCaseNoteId.toInt())
-            .containsEntry("dpsCaseNoteId", existingMapping.dpsCaseNoteId.toString())
-        }
-      }
     }
   }
 
@@ -435,9 +397,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isCreated
 
         val createdMapping1 =
-          repository.findOneByNomisCaseNoteId(
-            nomisCaseNoteId = mappings[0].nomisCaseNoteId,
-          )!!
+          repository.findById(mappings[0].nomisCaseNoteId)!!
 
         assertThat(createdMapping1.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         assertThat(createdMapping1.nomisCaseNoteId).isEqualTo(mappings[0].nomisCaseNoteId)
@@ -447,10 +407,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
         assertThat(createdMapping1.mappingType).isEqualTo(mappings[0].mappingType)
         assertThat(createdMapping1.label).isEqualTo(mappings[0].label)
 
-        val createdMapping2 =
-          repository.findOneByNomisCaseNoteId(
-            nomisCaseNoteId = mappings[1].nomisCaseNoteId,
-          )!!
+        val createdMapping2 = repository.findById(mappings[1].nomisCaseNoteId)!!
 
         assertThat(createdMapping2.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         assertThat(createdMapping2.nomisCaseNoteId).isEqualTo(mappings[1].nomisCaseNoteId)
@@ -515,36 +472,6 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           assertThat(this.moreInfo.duplicate)
             .containsEntry("nomisCaseNoteId", existingMapping.nomisCaseNoteId.toInt())
             .containsEntry("dpsCaseNoteId", dpsCaseNoteId)
-        }
-      }
-
-      @Test
-      fun `will return 409 if dps ids already exist`() {
-        val duplicateResponse = webTestClient.post()
-          .uri("/mapping/casenotes/batch")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(
-            BodyInserters.fromValue(
-              mappings + existingMapping.copy(nomisCaseNoteId = 99),
-            ),
-          )
-          .exchange()
-          .expectStatus().isEqualTo(409)
-          .expectBody(
-            object :
-              ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
-          )
-          .returnResult().responseBody
-
-        with(duplicateResponse!!) {
-          // since this is an untyped map an int will be assumed for such small numbers
-          assertThat(this.moreInfo.existing)
-            .containsEntry("nomisCaseNoteId", existingMapping.nomisCaseNoteId.toInt())
-            .containsEntry("dpsCaseNoteId", existingMapping.dpsCaseNoteId.toString())
-          assertThat(this.moreInfo.duplicate)
-            .containsEntry("nomisCaseNoteId", 99)
-            .containsEntry("dpsCaseNoteId", existingMapping.dpsCaseNoteId.toString())
         }
       }
     }
@@ -1360,99 +1287,6 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isNotFound
-      }
-    }
-  }
-
-  @Nested
-  @DisplayName("DELETE /mapping/casenotes")
-  inner class DeleteAllMappings {
-    private lateinit var existingMapping1: CaseNoteMapping
-    private lateinit var existingMapping2: CaseNoteMapping
-
-    @BeforeEach
-    fun setUp() = runTest {
-      existingMapping1 = repository.save(
-        CaseNoteMapping(
-          dpsCaseNoteId = UUID.fromString(DPS_CASENOTE_ID2),
-          nomisCaseNoteId = 54321L,
-          offenderNo = OFFENDER_NO,
-          nomisBookingId = 1,
-          label = "2023-01-01T12:45:12",
-          mappingType = CaseNoteMappingType.MIGRATED,
-        ),
-      )
-      existingMapping2 = repository.save(
-        CaseNoteMapping(
-          dpsCaseNoteId = UUID.fromString("4433eb7d-2fa0-4055-99d9-633fefa53288"),
-          nomisCaseNoteId = 54322L,
-          offenderNo = OFFENDER_NO,
-          nomisBookingId = 1,
-          mappingType = CaseNoteMappingType.NOMIS_CREATED,
-        ),
-      )
-    }
-
-    @Nested
-    inner class Security {
-      @Test
-      fun `access not authorised when no authority`() {
-        webTestClient.delete()
-          .uri("/mapping/casenotes")
-          .exchange()
-          .expectStatus().isUnauthorized
-      }
-
-      @Test
-      fun `access forbidden when no role`() {
-        webTestClient.delete()
-          .uri("/mapping/casenotes")
-          .headers(setAuthorisation(roles = listOf()))
-          .exchange()
-          .expectStatus().isForbidden
-      }
-
-      @Test
-      fun `access forbidden with wrong role`() {
-        webTestClient.delete()
-          .uri("/mapping/casenotes")
-          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
-          .exchange()
-          .expectStatus().isForbidden
-      }
-    }
-
-    @Nested
-    inner class HappyPath {
-      @Test
-      fun `returns 204 when all mappings are deleted`() = runTest {
-        assertThat(
-          repository.findOneByNomisCaseNoteId(
-            nomisCaseNoteId = existingMapping1.nomisCaseNoteId,
-          ),
-        ).isNotNull
-        assertThat(
-          repository.findOneByNomisCaseNoteId(
-            nomisCaseNoteId = existingMapping2.nomisCaseNoteId,
-          ),
-        ).isNotNull
-
-        webTestClient.delete()
-          .uri("/mapping/casenotes")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
-          .exchange()
-          .expectStatus().isNoContent
-
-        assertThat(
-          repository.findOneByNomisCaseNoteId(
-            nomisCaseNoteId = existingMapping1.nomisCaseNoteId,
-          ),
-        ).isNull()
-        assertThat(
-          repository.findOneByNomisCaseNoteId(
-            nomisCaseNoteId = existingMapping2.nomisCaseNoteId,
-          ),
-        ).isNull()
       }
     }
   }

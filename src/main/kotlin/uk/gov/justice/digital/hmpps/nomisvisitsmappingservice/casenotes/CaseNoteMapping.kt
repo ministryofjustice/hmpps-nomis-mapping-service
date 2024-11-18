@@ -10,9 +10,9 @@ import java.util.UUID
 data class CaseNoteMapping(
 
   @Id
-  val dpsCaseNoteId: UUID,
-
   val nomisCaseNoteId: Long,
+
+  val dpsCaseNoteId: UUID,
 
   val offenderNo: String,
 
@@ -30,22 +30,22 @@ data class CaseNoteMapping(
   val new: Boolean = true,
 
   val whenCreated: LocalDateTime? = null,
-) : Persistable<UUID> {
+) : Persistable<Long> {
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other !is CaseNoteMapping) return false
 
-    return dpsCaseNoteId != other.dpsCaseNoteId
+    return nomisCaseNoteId != other.nomisCaseNoteId
   }
 
   override fun hashCode(): Int {
-    return dpsCaseNoteId.hashCode()
+    return nomisCaseNoteId.hashCode()
   }
 
   override fun isNew(): Boolean = new
 
-  override fun getId(): UUID = dpsCaseNoteId
+  override fun getId(): Long = nomisCaseNoteId
 }
 
 enum class CaseNoteMappingType {

@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.alerts.AllPrisonerAlertMappingsDto
@@ -289,10 +288,11 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     caseNoteIds: List<Long>,
   ): List<CaseNoteMappingDto> = mappingService.getMappingsByNomisId(caseNoteIds)
 
+  @Deprecated("Use getMappingByDpsId instead")
   @GetMapping("/dps-casenote-id/{dpsCaseNoteId}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by DPS id. Requires role NOMIS_CASENOTES",
+    description = "Retrieves a mapping by DPS id (just the first if > 1). Requires role NOMIS_CASENOTES",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -318,6 +318,36 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     @PathVariable
     dpsCaseNoteId: String,
   ): CaseNoteMappingDto = mappingService.getMappingByDpsId(dpsCaseNoteId)
+
+  @GetMapping("/dps-casenote-id/{dpsCaseNoteId}/all")
+  @Operation(
+    summary = "get multiple mappings",
+    description = "Retrieves mappings by DPS id. In case of past merges, there could be > 1 nomis id per dps id. Requires role NOMIS_CASENOTES",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = CaseNoteMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getMappingsByDpsId(
+    @Schema(description = "DPS casenote id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
+    @PathVariable
+    dpsCaseNoteId: String,
+  ): List<CaseNoteMappingDto> = mappingService.getMappingsByDpsId(dpsCaseNoteId)
 
 //  @PreAuthorize("hasRole('ROLE_NOMIS_CASENOTES')")
 //  @GetMapping("/migration-id/{migrationId}")
@@ -432,7 +462,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
   @DeleteMapping("/dps-casenote-id/{dpsCaseNoteId}")
   @Operation(
     summary = "Deletes mapping",
-    description = "Deletes a mapping by DPS id. Requires role NOMIS_CASENOTES",
+    description = "Deletes mapping by DPS id (there could be more than one nomis id if a merge has taken place). Requires role NOMIS_CASENOTES",
     responses = [
       ApiResponse(responseCode = "204", description = "Mapping Deleted"),
       ApiResponse(
@@ -448,35 +478,11 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     ],
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  suspend fun deleteMappingByDpsId(
+  suspend fun deleteMappingsByDpsId(
     @Schema(description = "DPS casenote id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
     dpsCaseNoteId: String,
-  ) = mappingService.deleteMapping(dpsCaseNoteId)
-
-  @DeleteMapping
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(
-    summary = "Deletes all casenote mappings",
-    description = "Deletes all casenote mappings regardless of source. This is expected to only ever been used in a non-production environment. Requires ROLE_NOMIS_CASENOTES",
-    responses = [
-      ApiResponse(responseCode = "204", description = "Mappings deleted"),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Access forbidden for this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun deleteAllMappings(
-    @Schema(description = "Only delete migrated mappings", example = "true", required = false)
-    @RequestParam(name = "onlyMigrated", required = false, defaultValue = "false") onlyMigrated: Boolean,
-  ) = mappingService.deleteMappings(onlyMigrated)
+  ) = mappingService.deleteMappings(dpsCaseNoteId)
 
   @PutMapping("/merge/from/{oldOffenderNo}/to/{newOffenderNo}")
   @Operation(

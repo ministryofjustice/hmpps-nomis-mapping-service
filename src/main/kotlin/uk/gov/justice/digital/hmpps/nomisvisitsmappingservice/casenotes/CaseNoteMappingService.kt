@@ -32,52 +32,40 @@ class CaseNoteMappingService(
     """.trimMargin()
 
   @Transactional
-  suspend fun createMapping(createMappingRequest: CaseNoteMappingDto) =
-    with(createMappingRequest) {
-      repository.findById(dpsCaseNoteId)?.run {
-        if (this@run.nomisCaseNoteId == this@with.nomisCaseNoteId) {
-          log.debug(
-            "Not creating. All OK: {}",
-            alreadyExistsMessage(
-              duplicateMapping = createMappingRequest,
-              existingMapping = CaseNoteMappingDto(this@run),
-            ),
-          )
-          return
-        }
-        throw DuplicateMappingException(
-          messageIn = alreadyExistsMessage(
+  suspend fun createMapping(createMappingRequest: CaseNoteMappingDto) {
+    repository.findById(createMappingRequest.nomisCaseNoteId)?.let { mapping ->
+      if (mapping.dpsCaseNoteId.toString() == createMappingRequest.dpsCaseNoteId) {
+        log.debug(
+          "Not creating. All OK: {}",
+          alreadyExistsMessage(
             duplicateMapping = createMappingRequest,
-            existingMapping = CaseNoteMappingDto(this@run),
+            existingMapping = CaseNoteMappingDto(mapping),
           ),
-          duplicate = createMappingRequest,
-          existing = CaseNoteMappingDto(this@run),
         )
+        return
       }
-
-      repository.findOneByNomisCaseNoteId(nomisCaseNoteId)?.run {
-        throw DuplicateMappingException(
-          messageIn = alreadyExistsMessage(
-            duplicateMapping = createMappingRequest,
-            existingMapping = CaseNoteMappingDto(this@run),
-          ),
-          duplicate = createMappingRequest,
-          existing = CaseNoteMappingDto(this),
-        )
-      }
-
-      repository.save(this.fromDto())
-      telemetryClient.trackEvent(
-        "casenotes-mapping-created",
-        mapOf(
-          "id" to dpsCaseNoteId,
-          "nomisCaseNoteId" to nomisCaseNoteId.toString(),
-          "batchId" to label,
+      throw DuplicateMappingException(
+        messageIn = alreadyExistsMessage(
+          duplicateMapping = createMappingRequest,
+          existingMapping = CaseNoteMappingDto(mapping),
         ),
-        null,
+        duplicate = createMappingRequest,
+        existing = CaseNoteMappingDto(mapping),
       )
-      log.debug("Mapping created with dpsCaseNoteId = $dpsCaseNoteId, nomisCaseNoteId = $nomisCaseNoteId")
     }
+
+    repository.save(createMappingRequest.fromDto())
+    telemetryClient.trackEvent(
+      "casenotes-mapping-created",
+      mapOf(
+        "dpsCaseNoteId" to createMappingRequest.dpsCaseNoteId,
+        "nomisCaseNoteId" to createMappingRequest.nomisCaseNoteId.toString(),
+        "batchId" to createMappingRequest.label,
+      ),
+      null,
+    )
+    log.debug("Mapping created with dpsCaseNoteId = ${createMappingRequest.dpsCaseNoteId}, nomisCaseNoteId = ${createMappingRequest.nomisCaseNoteId}")
+  }
 
   @Transactional
   suspend fun createMappings(mappings: List<CaseNoteMappingDto>) {
@@ -102,7 +90,7 @@ class CaseNoteMappingService(
   }
 
   suspend fun getMappingByNomisId(nomisCaseNoteId: Long): CaseNoteMappingDto =
-    repository.findOneByNomisCaseNoteId(nomisCaseNoteId)
+    repository.findById(nomisCaseNoteId)
       ?.let { CaseNoteMappingDto(it) }
       ?: throw NotFoundException("CaseNote with nomisCaseNoteId=$nomisCaseNoteId not found")
 
@@ -111,10 +99,20 @@ class CaseNoteMappingService(
       CaseNoteMappingDto(it)
     }
 
+  // compatibility for old endpoint
   suspend fun getMappingByDpsId(dpsCaseNoteId: String): CaseNoteMappingDto =
-    repository.findById(dpsCaseNoteId)
+    repository.findByDpsCaseNoteId(UUID.fromString(dpsCaseNoteId)).firstOrNull()
       ?.let { CaseNoteMappingDto(it) }
       ?: throw NotFoundException("CaseNote with dpsCaseNoteId=$dpsCaseNoteId not found")
+
+  suspend fun getMappingsByDpsId(dpsCaseNoteId: String): List<CaseNoteMappingDto> =
+    repository.findByDpsCaseNoteId(UUID.fromString(dpsCaseNoteId))
+      .also {
+        if (it.isEmpty()) {
+          throw NotFoundException("CaseNote with dpsCaseNoteId=$dpsCaseNoteId not found")
+        }
+      }
+      .map { CaseNoteMappingDto(it) }
 
 //  suspend fun getMappingsByMigrationId(
 //    pageRequest: Pageable,
@@ -151,20 +149,10 @@ class CaseNoteMappingService(
   ): Long = repository.count() / averageCaseNotesPerPrisoner // Approx estimate
 
   @Transactional
-  suspend fun deleteMapping(dpsCaseNoteId: String) = repository.deleteById(dpsCaseNoteId)
+  suspend fun deleteMappings(dpsCaseNoteId: String) = repository.deleteByDpsCaseNoteId(UUID.fromString(dpsCaseNoteId))
 
   @Transactional
-  suspend fun deleteMapping(nomisCaseNoteId: Long) = repository.deleteByNomisCaseNoteId(nomisCaseNoteId)
-
-  @Transactional
-  suspend fun deleteMappings(onlyMigrated: Boolean) {
-    if (onlyMigrated) {
-      repository.deleteByMappingTypeEquals(CaseNoteMappingType.MIGRATED)
-    } else {
-      repository.deleteAll()
-    }
-    // TODO: this will timeout!
-  }
+  suspend fun deleteMapping(nomisCaseNoteId: Long) = repository.deleteById(nomisCaseNoteId)
 
   suspend fun getMappings(offenderNo: String): AllPrisonerCaseNoteMappingsDto =
     repository.findAllByOffenderNoOrderByNomisBookingIdAscNomisCaseNoteIdAsc(offenderNo)

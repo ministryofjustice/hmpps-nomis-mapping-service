@@ -4,10 +4,11 @@ import org.springframework.data.r2dbc.repository.Modifying
 import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.stereotype.Repository
+import java.util.UUID
 
 @Repository
-interface CaseNoteMappingRepository : CoroutineCrudRepository<CaseNoteMapping, String> {
-  suspend fun findOneByNomisCaseNoteId(nomisCaseNoteId: Long): CaseNoteMapping?
+interface CaseNoteMappingRepository : CoroutineCrudRepository<CaseNoteMapping, Long> {
+  suspend fun findByDpsCaseNoteId(dpsCaseNoteId: UUID): List<CaseNoteMapping>
   suspend fun findByNomisCaseNoteIdIn(nomisCaseNoteIds: List<Long>): List<CaseNoteMapping>
   suspend fun findFirstByMappingTypeOrderByWhenCreatedDesc(mappingType: CaseNoteMappingType): CaseNoteMapping?
 
@@ -25,7 +26,7 @@ interface CaseNoteMappingRepository : CoroutineCrudRepository<CaseNoteMapping, S
   suspend fun deleteByMappingTypeEquals(mappingType: CaseNoteMappingType): CaseNoteMapping?
 
   @Modifying
-  suspend fun deleteByNomisCaseNoteId(nomisCaseNoteId: Long)
+  suspend fun deleteByDpsCaseNoteId(dpsCaseNoteId: UUID)
 
   @Modifying
   suspend fun deleteAllByOffenderNo(offenderNo: String)
