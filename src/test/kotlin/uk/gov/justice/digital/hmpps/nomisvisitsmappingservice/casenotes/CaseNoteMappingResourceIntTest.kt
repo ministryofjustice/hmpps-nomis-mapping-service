@@ -876,6 +876,109 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
+  @Nested
+  @DisplayName("GET /mapping/casenotes/dps-casenote-id/{dpsCaseNoteId}/all")
+  inner class GetMappingsByDpsId {
+    lateinit var mapping1: CaseNoteMapping
+    lateinit var mapping2: CaseNoteMapping
+    val commonDpsCaseNoteId = generateUUID(1)
+
+    @BeforeEach
+    fun setUp() {
+      runTest {
+        mapping1 = repository.save(
+          CaseNoteMapping(
+            dpsCaseNoteId = commonDpsCaseNoteId,
+            nomisCaseNoteId = 54321L,
+            offenderNo = OFFENDER_NO,
+            nomisBookingId = 1,
+            label = "2023-01-01T12:45:12",
+            mappingType = CaseNoteMappingType.MIGRATED,
+          ),
+        )
+        mapping2 = repository.save(
+          CaseNoteMapping(
+            dpsCaseNoteId = commonDpsCaseNoteId,
+            nomisCaseNoteId = 54322L,
+            offenderNo = OFFENDER_NO,
+            nomisBookingId = 1,
+            label = "2023-06-01T12:45:12",
+            mappingType = CaseNoteMappingType.DPS_CREATED,
+          ),
+        )
+      }
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/casenotes/dps-casenote-id/${mapping1.dpsCaseNoteId}/all")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/casenotes/dps-casenote-id/${mapping1.dpsCaseNoteId}/all")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/casenotes/dps-casenote-id/${mapping1.dpsCaseNoteId}/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 404 when mapping does not exist`() {
+        webTestClient.get()
+          .uri("/mapping/casenotes/dps-casenote-id/00001111-0000-0000-0000-000011112222/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+
+      @Test
+      fun `will return 200 when mapping does exist`() {
+        webTestClient.get()
+          .uri("/mapping/casenotes/dps-casenote-id/${mapping1.dpsCaseNoteId}/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("$[0].dpsCaseNoteId").isEqualTo(commonDpsCaseNoteId.toString())
+          .jsonPath("$[0].nomisCaseNoteId").isEqualTo(mapping1.nomisCaseNoteId)
+          .jsonPath("$[0].offenderNo").isEqualTo(OFFENDER_NO)
+          .jsonPath("$[0].nomisBookingId").isEqualTo(mapping1.nomisBookingId)
+          .jsonPath("$[0].mappingType").isEqualTo(mapping1.mappingType.name)
+          .jsonPath("$[0].label").isEqualTo(mapping1.label!!)
+          .jsonPath("$[0].whenCreated").value<String> {
+            assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+          }
+          .jsonPath("$[1].dpsCaseNoteId").isEqualTo(commonDpsCaseNoteId.toString())
+          .jsonPath("$[1].nomisCaseNoteId").isEqualTo(mapping2.nomisCaseNoteId)
+          .jsonPath("$[1].offenderNo").isEqualTo(OFFENDER_NO)
+          .jsonPath("$[1].nomisBookingId").isEqualTo(mapping2.nomisBookingId)
+          .jsonPath("$[1].mappingType").isEqualTo(mapping2.mappingType.name)
+          .jsonPath("$[1].label").isEqualTo(mapping2.label!!)
+          .jsonPath("$[1].whenCreated").value<String> {
+            assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+          }
+      }
+    }
+  }
+
   @DisplayName("GET /mapping/casenotes/migration-id/{migrationId}/count-by-prisoner")
   @Nested
   inner class GetMappingCountByMigrationIdTest {
