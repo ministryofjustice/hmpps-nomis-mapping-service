@@ -906,7 +906,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
             mappingType = CaseNoteMappingType.DPS_CREATED,
           ),
         )
-        }
+      }
     }
 
     @Nested
