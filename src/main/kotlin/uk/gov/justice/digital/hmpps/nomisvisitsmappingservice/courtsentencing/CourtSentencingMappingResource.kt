@@ -467,15 +467,15 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   )
   suspend fun createCourtAppearanceMapping(
     @RequestBody @Valid
-    mapping: CourtAppearanceAllMappingDto,
+    mapping: CourtAppearanceMappingDto,
   ) =
     try {
-      mappingService.createCourtAppearanceAllMapping(mapping)
+      mappingService.createCourtAppearanceMapping(mapping)
     } catch (e: DuplicateKeyException) {
       throw DuplicateMappingException(
         messageIn = "Court Appearance mapping already exists",
         duplicate = mapping,
-        existing = getExistingCourtAppearanceAllMappingSimilarTo(mapping),
+        existing = getExistingCourtAppearanceMappingSimilarTo(mapping),
         cause = e,
       )
     }
@@ -788,12 +788,12 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     )
   }
 
-  private suspend fun getExistingCourtAppearanceAllMappingSimilarTo(mapping: CourtAppearanceAllMappingDto) = runCatching {
-    mappingService.getCourtAppearanceAllMappingByNomisId(
+  private suspend fun getExistingCourtAppearanceMappingSimilarTo(mapping: CourtAppearanceMappingDto) = runCatching {
+    mappingService.getCourtAppearanceMappingByNomisId(
       courtAppearanceId = mapping.nomisCourtAppearanceId,
     )
   }.getOrElse {
-    mappingService.getCourtAppearanceAllMappingByDpsId(
+    mappingService.getCourtAppearanceMappingByDpsId(
       courtAppearanceId = mapping.dpsCourtAppearanceId,
     )
   }
