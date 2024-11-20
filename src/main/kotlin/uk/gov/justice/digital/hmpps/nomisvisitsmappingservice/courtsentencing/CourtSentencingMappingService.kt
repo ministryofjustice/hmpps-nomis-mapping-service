@@ -87,24 +87,6 @@ class CourtSentencingMappingService(
     }
 
   @Transactional
-  suspend fun createCourtAppearanceAllMapping(createMappingRequest: CourtAppearanceAllMappingDto) =
-    with(createMappingRequest) {
-      courtAppearanceMappingRepository.save(createMappingRequest.toCourtAppearanceMapping()).also {
-        createMappingRequest.courtCharges.forEach {
-          createCourtChargeMapping(it)
-        }
-        telemetryClient.trackEvent(
-          "court-appearance-mapping-created",
-          mapOf(
-            "dpsCourtAppearanceId" to dpsCourtAppearanceId,
-            "nomisCourtAppearanceId" to nomisCourtAppearanceId.toString(),
-          ),
-          null,
-        )
-      }
-    }
-
-  @Transactional
   suspend fun deleteCourtAppearanceMappingByDpsId(courtAppearanceId: String) =
     courtAppearanceMappingRepository.deleteById(courtAppearanceId)
 

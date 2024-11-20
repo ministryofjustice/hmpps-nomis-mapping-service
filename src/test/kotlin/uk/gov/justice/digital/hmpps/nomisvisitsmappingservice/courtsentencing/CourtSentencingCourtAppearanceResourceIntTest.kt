@@ -202,25 +202,11 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
   @DisplayName("POST /mapping/court-sentencing/court-appearances")
   inner class CreateCourtAppearanceMapping {
     private lateinit var existingMapping: CourtAppearanceMapping
-    private val mapping = CourtAppearanceAllMappingDto(
+    private val mapping = CourtAppearanceMappingDto(
       dpsCourtAppearanceId = DPS_COURT_APPEARANCE_2_ID,
       nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_2_ID,
       label = "2023-01-01T12:45:12",
       mappingType = CourtAppearanceMappingType.DPS_CREATED,
-      courtCharges = listOf(
-        CourtChargeMappingDto(
-          dpsCourtChargeId = DPS_COURT_CHARGE_1_ID,
-          nomisCourtChargeId = NOMIS_COURT_CHARGE_1_ID,
-          label = "2023-01-01T12:45:12",
-          mappingType = CourtChargeMappingType.DPS_CREATED,
-        ),
-        CourtChargeMappingDto(
-          dpsCourtChargeId = DPS_COURT_CHARGE_2_ID,
-          nomisCourtChargeId = NOMIS_COURT_CHARGE_2_ID,
-          label = "2023-01-01T12:45:12",
-          mappingType = CourtChargeMappingType.DPS_CREATED,
-        ),
-      ),
     )
 
     @BeforeEach
@@ -293,33 +279,11 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
             id = mapping.dpsCourtAppearanceId,
           )!!
 
-        val createdCourtCharge1Mapping =
-          courtChargeRepository.findById(
-            id = DPS_COURT_CHARGE_1_ID,
-          )!!
-
-        val createdCourtCharge2Mapping =
-          courtChargeRepository.findById(
-            id = DPS_COURT_CHARGE_2_ID,
-          )!!
-
         assertThat(createdMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         assertThat(createdMapping.nomisCourtAppearanceId).isEqualTo(mapping.nomisCourtAppearanceId)
         assertThat(createdMapping.dpsCourtAppearanceId).isEqualTo(mapping.dpsCourtAppearanceId)
         assertThat(createdMapping.mappingType).isEqualTo(mapping.mappingType)
         assertThat(createdMapping.label).isEqualTo(mapping.label)
-
-        assertThat(createdCourtCharge1Mapping.dpsCourtChargeId).isEqualTo(DPS_COURT_CHARGE_1_ID)
-        assertThat(createdCourtCharge1Mapping.mappingType).isEqualTo(CourtChargeMappingType.DPS_CREATED)
-        assertThat(createdCourtCharge1Mapping.label).isEqualTo(mapping.courtCharges[0].label)
-        assertThat(createdCourtCharge2Mapping.whenCreated).isCloseTo(
-          LocalDateTime.now(),
-          within(10, ChronoUnit.SECONDS),
-        )
-        assertThat(createdCourtCharge2Mapping.nomisCourtChargeId).isEqualTo(NOMIS_COURT_CHARGE_2_ID)
-        assertThat(createdCourtCharge2Mapping.dpsCourtChargeId).isEqualTo(DPS_COURT_CHARGE_2_ID)
-        assertThat(createdCourtCharge2Mapping.mappingType).isEqualTo(CourtChargeMappingType.DPS_CREATED)
-        assertThat(createdCourtCharge2Mapping.label).isEqualTo(mapping.courtCharges[1].label)
       }
 
       @Test
