@@ -29,12 +29,11 @@ generic-service:
     JAVA_OPTS: "-Xmx1024m"
     SERVER_PORT: "8080"
     SPRING_PROFILES_ACTIVE: "logstash"
-    APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY);IngestionEndpoint=https://northeurope-0.in.applicationinsights.azure.com/;LiveEndpoint=https://northeurope.livediagnostics.monitor.azure.com/"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
 
   namespace_secrets:
-    hmpps-nomis-mapping-service:
-      APPINSIGHTS_INSTRUMENTATIONKEY: "APPINSIGHTS_INSTRUMENTATIONKEY"
+    application-insights:
+      APPLICATIONINSIGHTS_CONNECTION_STRING: "APPLICATIONINSIGHTS_CONNECTION_STRING"
     dps-rds-instance-output:
       SPRING_FLYWAY_USER: "database_username"
       SPRING_FLYWAY_PASSWORD: "database_password"
