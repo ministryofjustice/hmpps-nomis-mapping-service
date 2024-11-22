@@ -84,6 +84,16 @@ class PersonContactMappingDto(
   whenCreated: LocalDateTime?,
 ) : AbstractContactPersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
 
+class PersonAddressMappingDto(
+  @Schema(description = "DPS id")
+  val dpsId: String,
+  @Schema(description = "NOMIS id")
+  val nomisId: Long,
+  label: String?,
+  mappingType: ContactPersonMappingType,
+  whenCreated: LocalDateTime?,
+) : AbstractContactPersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
+
 abstract class AbstractContactPersonMappingDto(
   @Schema(description = "Label (a timestamp for migrated ids)")
   val label: String? = null,

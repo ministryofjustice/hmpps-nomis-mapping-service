@@ -399,6 +399,124 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
       )
     }
 
+  @GetMapping("/address/nomis-address-id/{nomisAddressId}")
+  @Operation(
+    summary = "Get person address mapping by nomis contact Id",
+    description = "Retrieves the person address mapping by NOMIS Address Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person address mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = PersonAddressMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPersonAddressMappingByNomisId(
+    @Schema(description = "NOMIS address id", example = "12345", required = true)
+    @PathVariable
+    nomisAddressId: Long,
+  ): PersonAddressMappingDto = service.getPersonAddressMappingByNomisId(nomisId = nomisAddressId)
+
+  @GetMapping("/address/dps-contact-address-id/{dpsContactAddressId}")
+  @Operation(
+    summary = "Get person contact mapping by dps contact address Id",
+    description = "Retrieves the person address mapping by DPS Contact Address Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person Address mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = PersonAddressMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPersonAddressMappingByDpsId(
+    @Schema(description = "DPS contact address id", example = "12345", required = true)
+    @PathVariable
+    dpsContactAddressId: String,
+  ): PersonAddressMappingDto = service.getPersonAddressMappingByDpsId(dpsId = dpsContactAddressId)
+
+  @PostMapping("/address")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates person address mappings for synchronisation",
+    description = "Creates person address mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = PersonAddressMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createPersonAddressMapping(
+    @RequestBody @Valid
+    mapping: PersonAddressMappingDto,
+  ) =
+    try {
+      service.createMapping(mapping)
+    } catch (e: DuplicateKeyException) {
+      val existingMapping = getExistingPersonAddressMappingSimilarTo(mapping)
+      throw DuplicateMappingException(
+        messageIn = "Person address mapping already exists",
+        duplicate = mapping,
+        existing = existingMapping ?: mapping,
+        cause = e,
+      )
+    }
+
   private suspend fun getExistingPersonMappingSimilarTo(personMapping: ContactPersonSimpleMappingIdDto) = runCatching {
     service.getPersonMappingByNomisId(
       nomisId = personMapping.nomisId,
@@ -424,6 +542,16 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   }.getOrElse {
     service.getPersonContactMappingByDpsIdOrNull(
       dpsId = personMapping.dpsId,
+    )
+  }
+
+  private suspend fun getExistingPersonAddressMappingSimilarTo(mapping: PersonAddressMappingDto) = runCatching {
+    service.getPersonAddressMappingByNomisId(
+      nomisId = mapping.nomisId,
+    )
+  }.getOrElse {
+    service.getPersonAddressMappingByDpsIdOrNull(
+      dpsId = mapping.dpsId,
     )
   }
 }
