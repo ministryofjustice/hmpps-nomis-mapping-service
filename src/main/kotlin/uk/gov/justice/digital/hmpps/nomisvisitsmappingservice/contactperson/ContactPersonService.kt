@@ -164,6 +164,23 @@ class ContactPersonService(
   suspend fun createMapping(mapping: PersonAddressMappingDto) {
     personAddressMappingRepository.save(mapping.toPersonAddressMapping())
   }
+
+  suspend fun getPersonEmailMappingByNomisId(nomisId: Long) =
+    personEmailMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
+      ?: throw NotFoundException("No person email mapping found for nomisId=$nomisId")
+
+  suspend fun getPersonEmailMappingByDpsId(dpsId: String) =
+    personEmailMappingRepository.findOneByDpsId(dpsId = dpsId)
+      ?.toDto()
+      ?: throw NotFoundException("No person email mapping found for dpsId=$dpsId")
+
+  suspend fun getPersonEmailMappingByDpsIdOrNull(dpsId: String) =
+    personEmailMappingRepository.findOneByDpsId(dpsId = dpsId)?.toDto()
+
+  @Transactional
+  suspend fun createMapping(mapping: PersonEmailMappingDto) {
+    personEmailMappingRepository.save(mapping.toPersonEmailMapping())
+  }
 }
 
 private fun PersonMapping.toDto() = PersonMappingDto(
@@ -212,6 +229,21 @@ private fun PersonAddressMappingDto.toPersonAddressMapping() = PersonAddressMapp
 )
 
 private fun PersonAddressMapping.toDto() = PersonAddressMappingDto(
+  nomisId = nomisId,
+  dpsId = dpsId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private fun PersonEmailMappingDto.toPersonEmailMapping() = PersonEmailMapping(
+  dpsId = dpsId,
+  nomisId = nomisId,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private fun PersonEmailMapping.toDto() = PersonEmailMappingDto(
   nomisId = nomisId,
   dpsId = dpsId,
   label = label,
