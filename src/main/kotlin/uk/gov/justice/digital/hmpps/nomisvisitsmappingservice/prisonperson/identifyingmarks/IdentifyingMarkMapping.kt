@@ -1,23 +1,28 @@
-package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson
+package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
+import java.util.UUID
 
-data class PrisonPersonMigrationMapping(
+data class IdentifyingMarkMapping(
 
-  val nomisPrisonerNumber: String,
+  // Composite keys cannot be used for an @Id so we have none
+  val nomisBookingId: Long,
+  val nomisMarksSequence: Long,
 
-  val migrationType: PrisonPersonMigrationType,
+  val dpsId: UUID,
 
-  var dpsIds: String,
+  val offenderNo: String,
 
   val label: String,
 
   @CreatedDate
   val whenCreated: LocalDateTime? = null,
+
+  val mappingType: String,
 
   @Transient
   @Value("false")
@@ -26,7 +31,7 @@ data class PrisonPersonMigrationMapping(
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is PrisonPersonMigrationMapping) return false
+    if (other !is IdentifyingMarkMapping) return false
 
     if (id != other.id) return false
 
@@ -37,5 +42,5 @@ data class PrisonPersonMigrationMapping(
 
   override fun isNew(): Boolean = new
 
-  override fun getId(): String = nomisPrisonerNumber + migrationType + label
+  override fun getId(): String = nomisBookingId.toString() + nomisMarksSequence.toString()
 }

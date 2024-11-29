@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.migration.PrisonPersonMigrationMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.migration.PrisonPersonMigrationMappingRequest
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.migration.PrisonPersonMigrationService
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
