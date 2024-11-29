@@ -2,50 +2,48 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonerperson.id
 
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.tuple
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.IdentifyingMarkMapping
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.IdentifyingMarkMappingRepository
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.api.IdentifyingMarkMappingResponse
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.IdentifyingMarkImageMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.IdentifyingMarkImageMappingRepository
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-class IdentifyingMarkResourceIntTest : IntegrationTestBase() {
+class IdentifyingMarkImageResourceIntTest : IntegrationTestBase() {
 
   @Autowired
-  private lateinit var identifyingMarkMappingRepository: IdentifyingMarkMappingRepository
+  private lateinit var identifyingMarkImageMappingRepository: IdentifyingMarkImageMappingRepository
 
   @Nested
-  @DisplayName("GET /mapping/prisonperson/nomis-booking-id/{bookingId}/identifying-mark-sequence/{sequence}")
-  inner class GetIdentifyingMarkMappingsByNomisId {
-    lateinit var mapping: IdentifyingMarkMapping
+  @DisplayName("GET /mapping/prisonperson/nomis-offender-image-id/{nomisId}")
+  inner class GetIdentifyingMarkImageMappingsByNomisId {
+    lateinit var mapping: IdentifyingMarkImageMapping
 
     @BeforeEach
     fun setUp() = runTest {
-      IdentifyingMarkMapping(
+      IdentifyingMarkImageMapping(
+        nomisOffenderImageId = 1,
+        dpsId = UUID.randomUUID(),
         nomisBookingId = 1,
         nomisMarksSequence = 1,
-        dpsId = UUID.randomUUID(),
         offenderNo = "A1234AA",
         label = "some_label",
         whenCreated = LocalDateTime.now(),
         mappingType = "some_mapping_type",
       ).also {
-        mapping = identifyingMarkMappingRepository.save(it)
+        mapping = identifyingMarkImageMappingRepository.save(it)
       }
     }
 
     @AfterEach
     fun tearDown() = runTest {
-      identifyingMarkMappingRepository.deleteAll()
+      identifyingMarkImageMappingRepository.deleteAll()
     }
 
     @Nested
@@ -53,7 +51,7 @@ class IdentifyingMarkResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.get()
-          .uri("/mapping/prisonperson/nomis-booking-id/${mapping.nomisBookingId}/identifying-mark-sequence/${mapping.nomisMarksSequence}")
+          .uri("/mapping/prisonperson/nomis-offender-image-id/${mapping.nomisOffenderImageId}")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -61,7 +59,7 @@ class IdentifyingMarkResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.get()
-          .uri("/mapping/prisonperson/nomis-booking-id/${mapping.nomisBookingId}/identifying-mark-sequence/${mapping.nomisMarksSequence}")
+          .uri("/mapping/prisonperson/nomis-offender-image-id/${mapping.nomisOffenderImageId}")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -70,7 +68,7 @@ class IdentifyingMarkResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/mapping/prisonperson/nomis-booking-id/${mapping.nomisBookingId}/identifying-mark-sequence/${mapping.nomisMarksSequence}")
+          .uri("/mapping/prisonperson/nomis-offender-image-id/${mapping.nomisOffenderImageId}")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -80,13 +78,14 @@ class IdentifyingMarkResourceIntTest : IntegrationTestBase() {
     @Nested
     inner class HappyPath {
       @Test
-      fun `should return identifying mark mapping by NOMIS id`() {
+      fun `should return identifying mark image mapping by NOMIS id`() {
         webTestClient.get()
-          .uri("/mapping/prisonperson/nomis-booking-id/${mapping.nomisBookingId}/identifying-mark-sequence/${mapping.nomisMarksSequence}")
+          .uri("/mapping/prisonperson/nomis-offender-image-id/${mapping.nomisOffenderImageId}")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_PRISONPERSON")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
+          .jsonPath("nomisOffenderImageId").isEqualTo(mapping.nomisOffenderImageId)
           .jsonPath("nomisBookingId").isEqualTo(mapping.nomisBookingId)
           .jsonPath("nomisMarksSequence").isEqualTo(mapping.nomisMarksSequence)
           .jsonPath("dpsId").isEqualTo(mapping.dpsId.toString())
@@ -99,7 +98,7 @@ class IdentifyingMarkResourceIntTest : IntegrationTestBase() {
       @Test
       fun `should return not found if no mapping`() {
         webTestClient.get()
-          .uri("/mapping/prisonperson/nomis-booking-id/999/identifying-mark-sequence/999")
+          .uri("/mapping/prisonperson/nomis-offender-image-id/9999")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_PRISONPERSON")))
           .exchange()
           .expectStatus().isNotFound
@@ -108,14 +107,14 @@ class IdentifyingMarkResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("GET /mapping/prisonperson/dps-identifying-mark-id/{dpsId}")
+  @DisplayName("GET /mapping/prisonperson/dps-image-id/{dpsId}")
   inner class GetIdentifyingMarkMappingsByDpsId {
-    private lateinit var mapping1: IdentifyingMarkMapping
-    private lateinit var mapping2: IdentifyingMarkMapping
+    private lateinit var mapping: IdentifyingMarkImageMapping
 
     @BeforeEach
     fun setUp() = runTest {
-      IdentifyingMarkMapping(
+      IdentifyingMarkImageMapping(
+        nomisOffenderImageId = 1,
         nomisBookingId = 1,
         nomisMarksSequence = 1,
         dpsId = UUID.randomUUID(),
@@ -124,25 +123,13 @@ class IdentifyingMarkResourceIntTest : IntegrationTestBase() {
         whenCreated = LocalDateTime.now(),
         mappingType = "some_mapping_type",
       ).also {
-        mapping1 = identifyingMarkMappingRepository.save(it)
-      }
-
-      IdentifyingMarkMapping(
-        nomisBookingId = 2,
-        nomisMarksSequence = 1,
-        dpsId = mapping1.dpsId,
-        offenderNo = "A1234AA",
-        label = "some_label",
-        whenCreated = LocalDateTime.now(),
-        mappingType = "some_mapping_type",
-      ).also {
-        mapping2 = identifyingMarkMappingRepository.save(it)
+        mapping = identifyingMarkImageMappingRepository.save(it)
       }
     }
 
     @AfterEach
     fun tearDown() = runTest {
-      identifyingMarkMappingRepository.deleteAll()
+      identifyingMarkImageMappingRepository.deleteAll()
     }
 
     @Nested
@@ -150,7 +137,7 @@ class IdentifyingMarkResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.get()
-          .uri("/mapping/prisonperson/dps-identifying-mark-id/${mapping1.dpsId}")
+          .uri("/mapping/prisonperson/dps-image-id/${mapping.dpsId}")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -158,7 +145,7 @@ class IdentifyingMarkResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.get()
-          .uri("/mapping/prisonperson/dps-identifying-mark-id/${mapping1.dpsId}")
+          .uri("/mapping/prisonperson/dps-image-id/${mapping.dpsId}")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -167,7 +154,7 @@ class IdentifyingMarkResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/mapping/prisonperson/dps-identifying-mark-id/${mapping1.dpsId}")
+          .uri("/mapping/prisonperson/dps-image-id/${mapping.dpsId}")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -179,52 +166,28 @@ class IdentifyingMarkResourceIntTest : IntegrationTestBase() {
       @Test
       fun `should return identifying mark mappings by NOMIS id`() {
         webTestClient.get()
-          .uri("/mapping/prisonperson/dps-identifying-mark-id/${mapping1.dpsId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_PRISONPERSON")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody<List<IdentifyingMarkMappingResponse>>()
-          .consumeWith {
-            with(it.responseBody!!) {
-              assertThat(this).extracting(
-                "nomisBookingId",
-                "nomisMarksSequence",
-                "dpsId",
-                "offenderNo",
-                "label",
-                "mappingType",
-              )
-                .containsExactlyInAnyOrder(
-                  tuple(
-                    mapping1.nomisBookingId,
-                    mapping1.nomisMarksSequence,
-                    mapping1.dpsId,
-                    mapping1.offenderNo,
-                    mapping1.label,
-                    mapping1.mappingType,
-                  ),
-                  tuple(
-                    mapping2.nomisBookingId,
-                    mapping2.nomisMarksSequence,
-                    mapping2.dpsId,
-                    mapping2.offenderNo,
-                    mapping2.label,
-                    mapping2.mappingType,
-                  ),
-                )
-            }
-          }
-      }
-
-      @Test
-      fun `should return empty list if no mappings`() {
-        webTestClient.get()
-          .uri("/mapping/prisonperson/dps-identifying-mark-id/${UUID.randomUUID()}")
+          .uri("/mapping/prisonperson/dps-image-id/${mapping.dpsId}")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_PRISONPERSON")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("$").isEmpty
+          .jsonPath("nomisOffenderImageId").isEqualTo(mapping.nomisOffenderImageId)
+          .jsonPath("nomisBookingId").isEqualTo(mapping.nomisBookingId)
+          .jsonPath("nomisMarksSequence").isEqualTo(mapping.nomisMarksSequence)
+          .jsonPath("dpsId").isEqualTo(mapping.dpsId.toString())
+          .jsonPath("offenderNo").isEqualTo(mapping.offenderNo)
+          .jsonPath("label").isEqualTo(mapping.label)
+          .jsonPath("mappingType").isEqualTo(mapping.mappingType)
+          .jsonPath("whenCreated").value<String> { assertThat(it).startsWith("${LocalDate.now()}") }
+      }
+
+      @Test
+      fun `should return not found if no mappings`() {
+        webTestClient.get()
+          .uri("/mapping/prisonperson/dps-image-id/${UUID.randomUUID()}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_PRISONPERSON")))
+          .exchange()
+          .expectStatus().isNotFound
       }
     }
   }
