@@ -181,6 +181,22 @@ class ContactPersonService(
   suspend fun createMapping(mapping: PersonEmailMappingDto) {
     personEmailMappingRepository.save(mapping.toPersonEmailMapping())
   }
+  suspend fun getPersonPhoneMappingByNomisId(nomisId: Long) =
+    personPhoneMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
+      ?: throw NotFoundException("No person phone mapping found for nomisId=$nomisId")
+
+  suspend fun getPersonPhoneMappingByDpsId(dpsId: String, dpsPhoneType: DpsPersonPhoneType) =
+    personPhoneMappingRepository.findOneByDpsIdAndDpsPhoneType(dpsId = dpsId, dpsPhoneType = dpsPhoneType)
+      ?.toDto()
+      ?: throw NotFoundException("No person phone mapping found for dpsId=$dpsId")
+
+  suspend fun getPersonPhoneMappingByDpsIdOrNull(dpsId: String, dpsPhoneType: DpsPersonPhoneType) =
+    personPhoneMappingRepository.findOneByDpsIdAndDpsPhoneType(dpsId = dpsId, dpsPhoneType = dpsPhoneType)?.toDto()
+
+  @Transactional
+  suspend fun createMapping(mapping: PersonPhoneMappingDto) {
+    personPhoneMappingRepository.save(mapping.toPersonPhoneMapping())
+  }
 }
 
 private fun PersonMapping.toDto() = PersonMappingDto(
@@ -246,6 +262,23 @@ private fun PersonEmailMappingDto.toPersonEmailMapping() = PersonEmailMapping(
 private fun PersonEmailMapping.toDto() = PersonEmailMappingDto(
   nomisId = nomisId,
   dpsId = dpsId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private fun PersonPhoneMappingDto.toPersonPhoneMapping() = PersonPhoneMapping(
+  dpsId = dpsId,
+  nomisId = nomisId,
+  dpsPhoneType = dpsPhoneType,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private fun PersonPhoneMapping.toDto() = PersonPhoneMappingDto(
+  nomisId = nomisId,
+  dpsId = dpsId,
+  dpsPhoneType = dpsPhoneType,
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,

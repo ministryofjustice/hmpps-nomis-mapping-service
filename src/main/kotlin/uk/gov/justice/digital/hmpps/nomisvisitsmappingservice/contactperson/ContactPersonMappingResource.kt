@@ -436,7 +436,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
 
   @GetMapping("/address/dps-contact-address-id/{dpsContactAddressId}")
   @Operation(
-    summary = "Get person contact mapping by dps contact address Id",
+    summary = "Get person address mapping by dps contact address Id",
     description = "Retrieves the person address mapping by DPS Contact Address Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
     responses = [
       ApiResponse(
@@ -511,6 +511,159 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
       val existingMapping = getExistingPersonAddressMappingSimilarTo(mapping)
       throw DuplicateMappingException(
         messageIn = "Person address mapping already exists",
+        duplicate = mapping,
+        existing = existingMapping ?: mapping,
+        cause = e,
+      )
+    }
+
+  @GetMapping("/phone/nomis-phone-id/{nomisPhoneId}")
+  @Operation(
+    summary = "Get person phone mapping by nomis phone Id",
+    description = "Retrieves the person phone mapping by NOMIS Phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person phone mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = PersonPhoneMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPersonPhoneMappingByNomisId(
+    @Schema(description = "NOMIS phone id", example = "12345", required = true)
+    @PathVariable
+    nomisPhoneId: Long,
+  ): PersonPhoneMappingDto = service.getPersonPhoneMappingByNomisId(nomisId = nomisPhoneId)
+
+  @GetMapping("/phone/dps-contact-phone-id/{dpsContactPhoneId}")
+  @Operation(
+    summary = "Get person phone mapping by dps contact phone Id",
+    description = "Retrieves the person phone mapping by DPS Contact Phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person Phone mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = PersonPhoneMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPersonPhoneMappingByDpsId(
+    @Schema(description = "DPS contact phone id", example = "12345", required = true)
+    @PathVariable
+    dpsContactPhoneId: String,
+  ): PersonPhoneMappingDto = service.getPersonPhoneMappingByDpsId(dpsId = dpsContactPhoneId, dpsPhoneType = DpsPersonPhoneType.PERSON)
+
+  @GetMapping("/phone/dps-contact-address-phone-id/{dpsContactAddressPhoneId}")
+  @Operation(
+    summary = "Get person mapping by dps contact address phone Id",
+    description = "Retrieves the person phone mapping by DPS Contact Address Phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person Phone mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = PersonPhoneMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPersonAddressPhoneMappingByDpsId(
+    @Schema(description = "DPS contact phone id", example = "12345", required = true)
+    @PathVariable
+    dpsContactAddressPhoneId: String,
+  ): PersonPhoneMappingDto = service.getPersonPhoneMappingByDpsId(dpsId = dpsContactAddressPhoneId, dpsPhoneType = DpsPersonPhoneType.ADDRESS)
+
+  @PostMapping("/phone")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates person phone mappings for synchronisation",
+    description = "Creates person phone mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = PersonPhoneMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createPersonPhoneMapping(
+    @RequestBody @Valid
+    mapping: PersonPhoneMappingDto,
+  ) =
+    try {
+      service.createMapping(mapping)
+    } catch (e: DuplicateKeyException) {
+      val existingMapping = getExistingPersonPhoneMappingSimilarTo(mapping)
+      throw DuplicateMappingException(
+        messageIn = "Person phone mapping already exists",
         duplicate = mapping,
         existing = existingMapping ?: mapping,
         cause = e,
@@ -680,6 +833,17 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   }.getOrElse {
     service.getPersonEmailMappingByDpsIdOrNull(
       dpsId = mapping.dpsId,
+    )
+  }
+
+  private suspend fun getExistingPersonPhoneMappingSimilarTo(mapping: PersonPhoneMappingDto): PersonPhoneMappingDto? = runCatching {
+    service.getPersonPhoneMappingByNomisId(
+      nomisId = mapping.nomisId,
+    )
+  }.getOrElse {
+    service.getPersonPhoneMappingByDpsIdOrNull(
+      dpsId = mapping.dpsId,
+      dpsPhoneType = mapping.dpsPhoneType,
     )
   }
 }
