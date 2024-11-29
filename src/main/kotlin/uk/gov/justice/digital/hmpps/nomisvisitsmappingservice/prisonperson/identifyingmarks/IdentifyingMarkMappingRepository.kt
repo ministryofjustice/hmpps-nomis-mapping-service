@@ -7,5 +7,5 @@ import java.util.UUID
 @Repository
 interface IdentifyingMarkMappingRepository : CoroutineCrudRepository<IdentifyingMarkMapping, String> {
   suspend fun findByNomisBookingIdAndNomisMarksSequence(nomisBookingId: Long, nomisMarksSequence: Long): IdentifyingMarkMapping?
-  suspend fun findByDpsId(dpsId: UUID): IdentifyingMarkMapping?
+  suspend fun findByDpsId(dpsId: UUID): List<IdentifyingMarkMapping>
 }

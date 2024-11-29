@@ -17,10 +17,10 @@ data class IdentifyingMarkMapping(
 
   val offenderNo: String,
 
-  val label: String,
+  val label: String? = null,
 
   @CreatedDate
-  val whenCreated: LocalDateTime? = null,
+  val whenCreated: LocalDateTime,
 
   val mappingType: String,
 
