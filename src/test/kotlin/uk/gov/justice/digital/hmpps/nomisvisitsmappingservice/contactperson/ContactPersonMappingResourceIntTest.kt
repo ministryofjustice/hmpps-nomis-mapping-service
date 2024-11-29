@@ -1849,7 +1849,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
 
     @Nested
     inner class HappyPath {
-      val mapping = PersonContactMappingDto(
+      val mapping = PersonAddressMappingDto(
         dpsId = "54321",
         nomisId = 12345L,
         label = null,
@@ -2163,7 +2163,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
 
     @Nested
     inner class HappyPath {
-      val mapping = PersonContactMappingDto(
+      val mapping = PersonEmailMappingDto(
         dpsId = "54321",
         nomisId = 12345L,
         label = null,
@@ -2200,6 +2200,444 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
         assertThat(personEmailMapping.label).isNull()
         assertThat(personEmailMapping.mappingType).isEqualTo(mapping.mappingType)
         assertThat(personEmailMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/contact-person/phone/nomis-phone-id/{nomisPhoneId}")
+  inner class GetPersonPhoneByNomisId {
+    private val nomisPhoneId = 12345L
+    private val dpsContactPhoneId = "54321"
+    private lateinit var personPhoneMapping: PersonPhoneMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      personPhoneMapping = personPhoneMappingRepository.save(
+        PersonPhoneMapping(
+          dpsId = dpsContactPhoneId,
+          nomisId = nomisPhoneId,
+          label = "2023-01-01T12:45:12",
+          dpsPhoneType = DpsPersonPhoneType.PERSON,
+          mappingType = ContactPersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/phone/nomis-phone-id/{nomisPhoneId}", nomisPhoneId)
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/phone/nomis-phone-id/{nomisPhoneId}", nomisPhoneId)
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/phone/nomis-phone-id/{nomisPhoneId}", nomisPhoneId)
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `404 when mapping not found`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/phone/nomis-phone-id/{nomisPhoneId}", 99999)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return the mapping data`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/phone/nomis-phone-id/{nomisPhoneId}", nomisPhoneId)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("dpsId").isEqualTo(dpsContactPhoneId)
+          .jsonPath("nomisId").isEqualTo(nomisPhoneId)
+          .jsonPath("dpsPhoneType").isEqualTo("PERSON")
+          .jsonPath("label").isEqualTo("2023-01-01T12:45:12")
+          .jsonPath("mappingType").isEqualTo("MIGRATED")
+          .jsonPath("whenCreated").isEqualTo("2023-01-01T12:45:12")
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/contact-person/phone/dps-contact-phone-id/{dpsContactPhoneId}")
+  inner class GetPersonPhoneByDpsId {
+    private val nomisInternetAddressId = 7654321L
+    private val dpsContactPhoneId = "1234567"
+    private lateinit var personPhoneMapping: PersonPhoneMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      personPhoneMapping = personPhoneMappingRepository.save(
+        PersonPhoneMapping(
+          dpsId = dpsContactPhoneId,
+          nomisId = nomisInternetAddressId,
+          dpsPhoneType = DpsPersonPhoneType.PERSON,
+          label = "2023-01-01T12:45:12",
+          mappingType = ContactPersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/phone/dps-contact-phone-id/{dpsContactPhoneId}", dpsContactPhoneId)
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/phone/dps-contact-phone-id/{dpsContactPhoneId}", dpsContactPhoneId)
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/phone/dps-contact-phone-id/{dpsContactPhoneId}", dpsContactPhoneId)
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `404 when mapping not found`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/phone/dps-contact-phone-id/{dpsContactPhoneId}", "99999")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+
+      @Test
+      fun `404 when mapping not found even when address phone with same ID exists`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/phone/dps-contact-address-phone-id/{dpsContactAddressPhoneId}", dpsContactPhoneId)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return the mapping data`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/phone/dps-contact-phone-id/{dpsContactPhoneId}", dpsContactPhoneId)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("dpsId").isEqualTo(dpsContactPhoneId)
+          .jsonPath("nomisId").isEqualTo(nomisInternetAddressId)
+          .jsonPath("dpsPhoneType").isEqualTo("PERSON")
+          .jsonPath("label").isEqualTo("2023-01-01T12:45:12")
+          .jsonPath("mappingType").isEqualTo("MIGRATED")
+          .jsonPath("whenCreated").isEqualTo("2023-01-01T12:45:12")
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/contact-person/phone/dps-contact-address-phone-id/{dpsContactAddressPhoneId}")
+  inner class GetPersonAddressPhoneByDpsId {
+    private val nomisInternetAddressId = 7654321L
+    private val dpsContactPhoneId = "1234567"
+    private lateinit var personPhoneMapping: PersonPhoneMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      personPhoneMapping = personPhoneMappingRepository.save(
+        PersonPhoneMapping(
+          dpsId = dpsContactPhoneId,
+          nomisId = nomisInternetAddressId,
+          dpsPhoneType = DpsPersonPhoneType.ADDRESS,
+          label = "2023-01-01T12:45:12",
+          mappingType = ContactPersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/phone/dps-contact-address-phone-id/{dpsContactAddressPhoneId}", dpsContactPhoneId)
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/phone/dps-contact-address-phone-id/{dpsContactAddressPhoneId}", dpsContactPhoneId)
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/phone/dps-contact-address-phone-id/{dpsContactAddressPhoneId}", dpsContactPhoneId)
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `404 when mapping not found`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/phone/dps-contact-address-phone-id/{dpsContactAddressPhoneId}", "99999")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+
+      @Test
+      fun `404 when mapping not found even though global phone has same id`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/phone/dps-contact-phone-id/{dpsContactPhoneId}", dpsContactPhoneId)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return the mapping data`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/phone/dps-contact-address-phone-id/{dpsContactAddressPhoneId}", dpsContactPhoneId)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("dpsId").isEqualTo(dpsContactPhoneId)
+          .jsonPath("nomisId").isEqualTo(nomisInternetAddressId)
+          .jsonPath("dpsPhoneType").isEqualTo("ADDRESS")
+          .jsonPath("label").isEqualTo("2023-01-01T12:45:12")
+          .jsonPath("mappingType").isEqualTo("MIGRATED")
+          .jsonPath("whenCreated").isEqualTo("2023-01-01T12:45:12")
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("POST mapping/contact-person/phone")
+  inner class CreatePersonPhoneMapping {
+
+    @Nested
+    inner class Security {
+      val mapping = PersonPhoneMappingDto(
+        dpsId = "54321",
+        nomisId = 12345L,
+        dpsPhoneType = DpsPersonPhoneType.PERSON,
+        label = null,
+        mappingType = ContactPersonMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/phone")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/phone")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/phone")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      private lateinit var existingPersonPhoneMapping: PersonPhoneMapping
+
+      val mapping = PersonPhoneMappingDto(
+        dpsId = "54321",
+        nomisId = 12345L,
+        dpsPhoneType = DpsPersonPhoneType.PERSON,
+        label = null,
+        mappingType = ContactPersonMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+      )
+
+      @BeforeEach
+      fun setUp() = runTest {
+        existingPersonPhoneMapping = personPhoneMappingRepository.save(
+          PersonPhoneMapping(
+            dpsId = "765432",
+            nomisId = 12345L,
+            dpsPhoneType = DpsPersonPhoneType.PERSON,
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+          ),
+        )
+      }
+
+      @Test
+      fun `will not allow the same person phone to have duplicate mappings`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/phone")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+      }
+
+      @Test
+      fun `will return details of the existing and duplicate mappings`() {
+        val duplicateResponse = webTestClient.post()
+          .uri("/mapping/contact-person/phone")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+          .expectBody(
+            object :
+              ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
+          )
+          .returnResult().responseBody
+
+        with(duplicateResponse!!) {
+          // since this is an untyped map an int will be assumed for such small numbers
+          assertThat(this.moreInfo.existing)
+            .containsEntry("nomisId", existingPersonPhoneMapping.nomisId.toInt())
+            .containsEntry("dpsId", existingPersonPhoneMapping.dpsId)
+            .containsEntry("mappingType", existingPersonPhoneMapping.mappingType.toString())
+          assertThat(this.moreInfo.duplicate)
+            .containsEntry("nomisId", mapping.nomisId.toInt())
+            .containsEntry("dpsId", mapping.dpsId)
+            .containsEntry("mappingType", mapping.mappingType.toString())
+        }
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = PersonPhoneMappingDto(
+        dpsId = "54321",
+        nomisId = 12345L,
+        dpsPhoneType = DpsPersonPhoneType.PERSON,
+        label = null,
+        mappingType = ContactPersonMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+      )
+
+      @BeforeEach
+      fun setUp() = runTest {
+        // also save an address phone mapping that coincidentally has the same dpsId
+        // and show this is not considered a duplicate
+        personPhoneMappingRepository.save(
+          PersonPhoneMapping(
+            dpsId = mapping.dpsId,
+            nomisId = 654345,
+            dpsPhoneType = DpsPersonPhoneType.ADDRESS,
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+          ),
+        )
+      }
+
+      @Test
+      fun `returns 201 when mappings created`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/contact-person/phone")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+      }
+
+      @Test
+      fun `will persist the person phone mapping`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/contact-person/phone")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+
+        val personPhoneMapping =
+          personPhoneMappingRepository.findOneByNomisId(mapping.nomisId)!!
+
+        assertThat(personPhoneMapping.dpsId).isEqualTo(mapping.dpsId)
+        assertThat(personPhoneMapping.nomisId).isEqualTo(mapping.nomisId)
+        assertThat(personPhoneMapping.dpsPhoneType).isEqualTo(mapping.dpsPhoneType)
+        assertThat(personPhoneMapping.label).isNull()
+        assertThat(personPhoneMapping.mappingType).isEqualTo(mapping.mappingType)
+        assertThat(personPhoneMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
       }
     }
   }
