@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson
+package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.migration
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope

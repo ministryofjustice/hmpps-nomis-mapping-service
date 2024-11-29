@@ -12,12 +12,12 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.PrisonPersonMigrationMapping
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.PrisonPersonMigrationMappingRepository
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.PrisonPersonMigrationMappingRequest
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.PrisonPersonMigrationType
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.PrisonPersonMigrationType.PHYSICAL_ATTRIBUTES
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.PrisonPersonMigrationType.PROFILE_DETAILS_PHYSICAL_ATTRIBUTES
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.migration.PrisonPersonMigrationMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.migration.PrisonPersonMigrationMappingRepository
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.migration.PrisonPersonMigrationMappingRequest
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.migration.PrisonPersonMigrationType
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.migration.PrisonPersonMigrationType.PHYSICAL_ATTRIBUTES
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.migration.PrisonPersonMigrationType.PROFILE_DETAILS_PHYSICAL_ATTRIBUTES
 import java.time.LocalDate
 
 class PrisonPersonResourceIntTest : IntegrationTestBase() {
