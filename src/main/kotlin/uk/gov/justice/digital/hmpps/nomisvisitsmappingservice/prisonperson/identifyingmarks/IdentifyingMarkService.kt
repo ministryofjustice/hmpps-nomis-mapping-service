@@ -5,11 +5,11 @@ import java.util.UUID
 
 @Service
 class IdentifyingMarkService(
-  private val identifyingMarkMappingRepository: IdentifyingMarkMappingRepository,
+  private val repository: IdentifyingMarkMappingRepository,
 ) {
   suspend fun getIdentifyingMarkMapping(bookingId: Long, markSequence: Long): IdentifyingMarkMapping? =
-    identifyingMarkMappingRepository.findByNomisBookingIdAndNomisMarksSequence(bookingId, markSequence)
+    repository.findByNomisBookingIdAndNomisMarksSequence(bookingId, markSequence)
 
   suspend fun getIdentifyingMarkMappings(dpsId: UUID): List<IdentifyingMarkMapping> =
-    identifyingMarkMappingRepository.findByDpsId(dpsId)
+    repository.findByDpsId(dpsId)
 }
