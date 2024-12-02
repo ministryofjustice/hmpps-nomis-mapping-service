@@ -20,9 +20,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.alerts.AlertMappin
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.api.IdentifyingMarkImageMappingDto
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.api.toDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.api.toEntity
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.util.UUID
 
@@ -62,8 +60,6 @@ class IdentifyingMarkImageResource(private val service: IdentifyingMarkImageServ
   suspend fun getIdentifyingMarkImageMapping(
     @PathVariable nomisImageId: Long,
   ) = service.getIdentifyingMarkImageMapping(nomisImageId)
-    ?.toDto()
-    ?: throw NotFoundException("Identifying mark image mapping not found for NOMIS offender image id $nomisImageId")
 
   @GetMapping("/dps-image-id/{dpsImageId}")
   @Operation(
@@ -95,8 +91,6 @@ class IdentifyingMarkImageResource(private val service: IdentifyingMarkImageServ
   suspend fun getIdentifyingMarkImageMappings(
     @PathVariable dpsImageId: UUID,
   ) = service.getIdentifyingMarkImageMapping(dpsImageId)
-    ?.toDto()
-    ?: throw NotFoundException("Identifying mark image mapping not found for DPS image id $dpsImageId")
 
   @PostMapping("/identifying-mark-image")
   @ResponseStatus(HttpStatus.CREATED)
@@ -146,6 +140,7 @@ class IdentifyingMarkImageResource(private val service: IdentifyingMarkImageServ
   private suspend fun getExistingMappingSimilarTo(mapping: IdentifyingMarkImageMappingDto) =
     runCatching {
       service.getIdentifyingMarkImageMapping(mapping.nomisOffenderImageId)
-        ?: let { service.getIdentifyingMarkImageMapping(mapping.dpsId) }
+    }.getOrElse {
+      service.getIdentifyingMarkImageMapping(mapping.dpsId)
     }
 }
