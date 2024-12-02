@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import org.springframework.dao.DuplicateKeyException
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -18,11 +17,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.alerts.AlertMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.api.IdentifyingMarkImageMappingDto
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.api.toDto
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.api.toEntity
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.util.UUID
 
@@ -62,8 +57,6 @@ class IdentifyingMarkImageResource(private val service: IdentifyingMarkImageServ
   suspend fun getIdentifyingMarkImageMapping(
     @PathVariable nomisImageId: Long,
   ) = service.getIdentifyingMarkImageMapping(nomisImageId)
-    ?.toDto()
-    ?: throw NotFoundException("Identifying mark image mapping not found for NOMIS offender image id $nomisImageId")
 
   @GetMapping("/dps-image-id/{dpsImageId}")
   @Operation(
@@ -95,8 +88,6 @@ class IdentifyingMarkImageResource(private val service: IdentifyingMarkImageServ
   suspend fun getIdentifyingMarkImageMappings(
     @PathVariable dpsImageId: UUID,
   ) = service.getIdentifyingMarkImageMapping(dpsImageId)
-    ?.toDto()
-    ?: throw NotFoundException("Identifying mark image mapping not found for DPS image id $dpsImageId")
 
   @PostMapping("/identifying-mark-image")
   @ResponseStatus(HttpStatus.CREATED)
@@ -132,20 +123,5 @@ class IdentifyingMarkImageResource(private val service: IdentifyingMarkImageServ
   )
   suspend fun createIdentifyingMarkImageMapping(
     @RequestBody mapping: IdentifyingMarkImageMappingDto,
-  ) = try {
-    service.createIdentifyingMarkImageMapping(mapping.toEntity())
-  } catch (e: DuplicateKeyException) {
-    throw DuplicateMappingException(
-      messageIn = "Identifying mark image mapping already exists",
-      duplicate = mapping,
-      existing = getExistingMappingSimilarTo(mapping),
-      cause = e,
-    )
-  }
-
-  private suspend fun getExistingMappingSimilarTo(mapping: IdentifyingMarkImageMappingDto) =
-    runCatching {
-      service.getIdentifyingMarkImageMapping(mapping.nomisOffenderImageId)
-        ?: let { service.getIdentifyingMarkImageMapping(mapping.dpsId) }
-    }
+  ) = service.createIdentifyingMarkImageMapping(mapping)
 }

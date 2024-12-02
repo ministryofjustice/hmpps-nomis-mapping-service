@@ -22,7 +22,7 @@ data class IdentifyingMarkMapping(
   @CreatedDate
   val whenCreated: LocalDateTime,
 
-  val mappingType: String,
+  val mappingType: IdentifyingMarkMappingType,
 
   @Transient
   @Value("false")
@@ -43,4 +43,10 @@ data class IdentifyingMarkMapping(
   override fun isNew(): Boolean = new
 
   override fun getId(): String = nomisBookingId.toString() + nomisMarksSequence.toString()
+}
+
+enum class IdentifyingMarkMappingType {
+  MIGRATED,
+  DPS_CREATED,
+  NOMIS_CREATED,
 }
