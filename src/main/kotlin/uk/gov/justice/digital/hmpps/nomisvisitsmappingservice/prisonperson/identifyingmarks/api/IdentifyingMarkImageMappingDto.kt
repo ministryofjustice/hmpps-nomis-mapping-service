@@ -3,12 +3,13 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.iden
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.IdentifyingMarkImageMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.IdentifyingMarkImageMappingType
 import java.time.LocalDateTime
 import java.util.UUID
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "NOMIS to DPS Identifying Mark Image Mapping")
-class IdentifyingMarkImageMappingResponse(
+class IdentifyingMarkImageMappingDto(
   @Schema(description = "NOMIS OFFENDER_IMAGE_ID")
   val nomisOffenderImageId: Long,
   @Schema(description = "NOMIS OFFENDER_BOOK_ID")
@@ -22,13 +23,25 @@ class IdentifyingMarkImageMappingResponse(
   @Schema(description = "Migration ID")
   val label: String?,
   @Schema(description = "The source of the mapping")
-  val mappingType: String,
+  val mappingType: IdentifyingMarkImageMappingType,
   @Schema(description = "Created timestamp")
   val whenCreated: LocalDateTime,
 )
 
-fun IdentifyingMarkImageMapping.toResponse(): IdentifyingMarkImageMappingResponse =
-  IdentifyingMarkImageMappingResponse(
+fun IdentifyingMarkImageMapping.toDto(): IdentifyingMarkImageMappingDto =
+  IdentifyingMarkImageMappingDto(
+    nomisOffenderImageId = this.nomisOffenderImageId,
+    nomisBookingId = this.nomisBookingId,
+    nomisMarksSequence = this.nomisMarksSequence,
+    dpsId = this.dpsId,
+    offenderNo = this.offenderNo,
+    label = this.label,
+    mappingType = this.mappingType,
+    whenCreated = this.whenCreated,
+  )
+
+fun IdentifyingMarkImageMappingDto.toEntity(): IdentifyingMarkImageMapping =
+  IdentifyingMarkImageMapping(
     nomisOffenderImageId = this.nomisOffenderImageId,
     nomisBookingId = this.nomisBookingId,
     nomisMarksSequence = this.nomisMarksSequence,

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.api.IdentifyingMarkMappingResponse
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.api.toResponse
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.api.toDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.util.UUID
@@ -55,7 +55,7 @@ class IdentifyingMarkResource(private val service: IdentifyingMarkService) {
     @PathVariable bookingId: Long,
     @PathVariable sequence: Long,
   ) = service.getIdentifyingMarkMapping(bookingId, sequence)
-    ?.toResponse()
+    ?.toDto()
     ?: throw NotFoundException("Identifying mark mapping not found for booking id $bookingId and sequence $sequence")
 
   @GetMapping("/dps-identifying-mark-id/{dpsId}")
@@ -87,5 +87,5 @@ class IdentifyingMarkResource(private val service: IdentifyingMarkService) {
   )
   suspend fun getIdentifyingMarkMappings(
     @PathVariable dpsId: UUID,
-  ) = service.getIdentifyingMarkMappings(dpsId).map { it.toResponse() }
+  ) = service.getIdentifyingMarkMappings(dpsId).map { it.toDto() }
 }
