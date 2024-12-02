@@ -1,8 +1,7 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks
 
-import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.api.IdentifyingMarkMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.api.toDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.api.toEntity
@@ -10,6 +9,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundEx
 import java.util.UUID
 
 @Service
+@Transactional(readOnly = true)
 class IdentifyingMarkService(
   private val repository: IdentifyingMarkMappingRepository,
 ) {
@@ -22,19 +22,8 @@ class IdentifyingMarkService(
     repository.findByDpsId(dpsId)
       .map { it.toDto() }
 
+  @Transactional
   suspend fun createIdentifyingMarkMapping(mapping: IdentifyingMarkMappingDto) {
-    try {
-      repository.save(mapping.toEntity())
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Identifying mark mapping already exists",
-        duplicate = mapping,
-        existing = getExistingMappingSimilarTo(mapping),
-        cause = e,
-      )
-    }
+    repository.save(mapping.toEntity())
   }
-
-  private suspend fun getExistingMappingSimilarTo(mapping: IdentifyingMarkMappingDto) =
-    getIdentifyingMarkMapping(mapping.nomisBookingId, mapping.nomisMarksSequence)
 }

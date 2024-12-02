@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.alerts.AlertMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.api.IdentifyingMarkMappingDto
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.util.UUID
@@ -125,5 +127,18 @@ class IdentifyingMarkResource(private val service: IdentifyingMarkService) {
   )
   suspend fun createIdentifyingMarkMapping(
     @RequestBody mapping: IdentifyingMarkMappingDto,
-  ) = service.createIdentifyingMarkMapping(mapping)
+  ) =
+    try {
+      service.createIdentifyingMarkMapping(mapping)
+    } catch (e: DuplicateKeyException) {
+      throw DuplicateMappingException(
+        messageIn = "Identifying mark mapping already exists",
+        duplicate = mapping,
+        existing = getExistingMappingSimilarTo(mapping),
+        cause = e,
+      )
+    }
+
+  private suspend fun getExistingMappingSimilarTo(mapping: IdentifyingMarkMappingDto) =
+    service.getIdentifyingMarkMapping(mapping.nomisBookingId, mapping.nomisMarksSequence)
 }
