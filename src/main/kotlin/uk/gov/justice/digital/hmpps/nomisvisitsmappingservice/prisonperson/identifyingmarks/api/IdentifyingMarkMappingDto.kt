@@ -25,7 +25,7 @@ class IdentifyingMarkMappingResponse(
   val whenCreated: LocalDateTime,
 )
 
-fun IdentifyingMarkMapping.toResponse(): IdentifyingMarkMappingResponse =
+fun IdentifyingMarkMapping.toDto(): IdentifyingMarkMappingResponse =
   IdentifyingMarkMappingResponse(
     nomisBookingId = this.nomisBookingId,
     nomisMarksSequence = this.nomisMarksSequence,

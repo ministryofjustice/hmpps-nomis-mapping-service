@@ -26,7 +26,7 @@ data class IdentifyingMarkImageMapping(
   @CreatedDate
   val whenCreated: LocalDateTime,
 
-  val mappingType: String,
+  val mappingType: IdentifyingMarkImageMappingType,
 
   @Transient
   @Value("false")
@@ -47,4 +47,10 @@ data class IdentifyingMarkImageMapping(
   override fun isNew(): Boolean = new
 
   override fun getId(): Long = nomisOffenderImageId
+}
+
+enum class IdentifyingMarkImageMappingType {
+  MIGRATED,
+  DPS_CREATED,
+  NOMIS_CREATED,
 }

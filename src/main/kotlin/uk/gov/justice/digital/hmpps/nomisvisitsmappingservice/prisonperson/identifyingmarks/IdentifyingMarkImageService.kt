@@ -12,4 +12,8 @@ class IdentifyingMarkImageService(
 
   suspend fun getIdentifyingMarkImageMapping(dpsImageId: UUID): IdentifyingMarkImageMapping? =
     repository.findByDpsId(dpsImageId)
+
+  suspend fun createIdentifyingMarkImageMapping(mapping: IdentifyingMarkImageMapping) {
+    repository.save(mapping)
+  }
 }
