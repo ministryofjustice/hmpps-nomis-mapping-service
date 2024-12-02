@@ -3,12 +3,13 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.iden
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.IdentifyingMarkMapping
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.prisonperson.identifyingmarks.IdentifyingMarkMappingType
 import java.time.LocalDateTime
 import java.util.UUID
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "NOMIS to DPS Identifying Mark Mapping")
-class IdentifyingMarkMappingResponse(
+class IdentifyingMarkMappingDto(
   @Schema(description = "NOMIS OFFENDER_BOOK_ID")
   val nomisBookingId: Long,
   @Schema(description = "NOMIS ID_MARKS_SEQ")
@@ -20,13 +21,24 @@ class IdentifyingMarkMappingResponse(
   @Schema(description = "Migration ID")
   val label: String?,
   @Schema(description = "The source of the mapping")
-  val mappingType: String,
+  val mappingType: IdentifyingMarkMappingType,
   @Schema(description = "Created timestamp")
   val whenCreated: LocalDateTime,
 )
 
-fun IdentifyingMarkMapping.toDto(): IdentifyingMarkMappingResponse =
-  IdentifyingMarkMappingResponse(
+fun IdentifyingMarkMapping.toDto(): IdentifyingMarkMappingDto =
+  IdentifyingMarkMappingDto(
+    nomisBookingId = this.nomisBookingId,
+    nomisMarksSequence = this.nomisMarksSequence,
+    dpsId = this.dpsId,
+    offenderNo = this.offenderNo,
+    label = this.label,
+    mappingType = this.mappingType,
+    whenCreated = this.whenCreated,
+  )
+
+fun IdentifyingMarkMappingDto.toEntity(): IdentifyingMarkMapping =
+  IdentifyingMarkMapping(
     nomisBookingId = this.nomisBookingId,
     nomisMarksSequence = this.nomisMarksSequence,
     dpsId = this.dpsId,
