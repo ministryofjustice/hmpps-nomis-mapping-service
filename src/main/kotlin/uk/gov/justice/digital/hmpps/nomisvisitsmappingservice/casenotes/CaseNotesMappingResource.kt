@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.alerts.AllPrisonerAlertMappingsDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
@@ -208,7 +207,6 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
       ApiResponse(
         responseCode = "200",
         description = "Mappings for prisoner",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = AllPrisonerAlertMappingsDto::class))],
       ),
       ApiResponse(
         responseCode = "401",
@@ -226,7 +224,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     @Schema(description = "NOMIS offender no", example = "A1234KT", required = true)
     @PathVariable
     offenderNo: String,
-  ) = mappingService.getMappings(offenderNo)
+  ): AllPrisonerCaseNoteMappingsDto = mappingService.getMappings(offenderNo)
 
   @GetMapping("/nomis-casenote-id/{caseNoteId}")
   @Operation(
@@ -266,9 +264,6 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
       ApiResponse(
         responseCode = "200",
         description = "Mapping Information Returned",
-        content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CaseNoteMappingDto::class)),
-        ],
       ),
       ApiResponse(
         responseCode = "401",
@@ -283,7 +278,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     ],
   )
   suspend fun getMappingsByNomisId(
-    @Schema(description = "NOMIS booking id", example = "2", required = true)
+    @Schema(description = "NOMIS case note ids", required = true)
     @RequestBody
     caseNoteIds: List<Long>,
   ): List<CaseNoteMappingDto> = mappingService.getMappingsByNomisId(caseNoteIds)
@@ -327,9 +322,6 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
       ApiResponse(
         responseCode = "200",
         description = "Mapping Information Returned",
-        content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CaseNoteMappingDto::class)),
-        ],
       ),
       ApiResponse(
         responseCode = "401",
