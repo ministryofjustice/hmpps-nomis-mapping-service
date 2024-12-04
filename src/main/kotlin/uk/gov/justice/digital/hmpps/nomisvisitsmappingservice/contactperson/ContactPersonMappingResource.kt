@@ -788,6 +788,127 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
       )
     }
 
+  @GetMapping("/identifier/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}")
+  @Operation(
+    summary = "Get person identifier mapping by nomis person id and sequence",
+    description = "Retrieves the person identifier mapping by NOMIS person id and NOMIS sequence number. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person identifier mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = PersonIdentifierMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPersonIdentifierMappingByNomisIds(
+    @Schema(description = "NOMIS person id", example = "12345", required = true)
+    @PathVariable
+    nomisPersonId: Long,
+    @Schema(description = "NOMIS identifier sequence", example = "4", required = true)
+    @PathVariable
+    nomisSequenceNumber: Long,
+  ): PersonIdentifierMappingDto = service.getPersonIdentifierMappingByNomisIds(nomisPersonId = nomisPersonId, nomisSequenceNumber = nomisSequenceNumber)
+
+  @GetMapping("/identifier/dps-contact-identifier-id/{dpsContactIdentifierId}")
+  @Operation(
+    summary = "Get contact identifier mapping by dps contact identifier Id",
+    description = "Retrieves the person identifier mapping by DPS Contact Identifier Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person Identifier mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = PersonIdentifierMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPersonIdentifierMappingByDpsId(
+    @Schema(description = "DPS contact identifier id", example = "12345", required = true)
+    @PathVariable
+    dpsContactIdentifierId: String,
+  ): PersonIdentifierMappingDto = service.getPersonIdentifierMappingByDpsId(dpsId = dpsContactIdentifierId)
+
+  @PostMapping("/identifier")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates person identifier mappings for synchronisation",
+    description = "Creates person identifier mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = PersonIdentifierMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createPersonIdentifierMapping(
+    @RequestBody @Valid
+    mapping: PersonIdentifierMappingDto,
+  ) =
+    try {
+      service.createMapping(mapping)
+    } catch (e: DuplicateKeyException) {
+      val existingMapping = getExistingPersonIdentifierMappingSimilarTo(mapping)
+      throw DuplicateMappingException(
+        messageIn = "Person identifier mapping already exists",
+        duplicate = mapping,
+        existing = existingMapping ?: mapping,
+        cause = e,
+      )
+    }
+
   private suspend fun getExistingPersonMappingSimilarTo(personMapping: ContactPersonSimpleMappingIdDto) = runCatching {
     service.getPersonMappingByNomisId(
       nomisId = personMapping.nomisId,
@@ -844,6 +965,17 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     service.getPersonPhoneMappingByDpsIdOrNull(
       dpsId = mapping.dpsId,
       dpsPhoneType = mapping.dpsPhoneType,
+    )
+  }
+
+  private suspend fun getExistingPersonIdentifierMappingSimilarTo(mapping: PersonIdentifierMappingDto): PersonIdentifierMappingDto? = runCatching {
+    service.getPersonIdentifierMappingByNomisIds(
+      nomisPersonId = mapping.nomisPersonId,
+      nomisSequenceNumber = mapping.nomisSequenceNumber,
+    )
+  }.getOrElse {
+    service.getPersonIdentifierMappingByDpsIdOrNull(
+      dpsId = mapping.dpsId,
     )
   }
 }

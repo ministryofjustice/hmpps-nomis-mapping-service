@@ -197,6 +197,23 @@ class ContactPersonService(
   suspend fun createMapping(mapping: PersonPhoneMappingDto) {
     personPhoneMappingRepository.save(mapping.toPersonPhoneMapping())
   }
+
+  suspend fun getPersonIdentifierMappingByNomisIds(nomisPersonId: Long, nomisSequenceNumber: Long) =
+    personIdentifierMappingRepository.findOneByNomisPersonIdAndNomisSequenceNumber(nomisPersonId = nomisPersonId, nomisSequenceNumber = nomisSequenceNumber) ?.toDto()
+      ?: throw NotFoundException("No person identifier mapping found for nomisPersonId=$nomisPersonId and nomisSequenceNumber=$nomisSequenceNumber")
+
+  suspend fun getPersonIdentifierMappingByDpsId(dpsId: String) =
+    personIdentifierMappingRepository.findOneByDpsId(dpsId = dpsId)
+      ?.toDto()
+      ?: throw NotFoundException("No person identifier mapping found for dpsId=$dpsId")
+
+  suspend fun getPersonIdentifierMappingByDpsIdOrNull(dpsId: String) =
+    personIdentifierMappingRepository.findOneByDpsId(dpsId = dpsId)?.toDto()
+
+  @Transactional
+  suspend fun createMapping(mapping: PersonIdentifierMappingDto) {
+    personIdentifierMappingRepository.save(mapping.toPersonIdentifierMapping())
+  }
 }
 
 private fun PersonMapping.toDto() = PersonMappingDto(
@@ -279,6 +296,23 @@ private fun PersonPhoneMapping.toDto() = PersonPhoneMappingDto(
   nomisId = nomisId,
   dpsId = dpsId,
   dpsPhoneType = dpsPhoneType,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private fun PersonIdentifierMappingDto.toPersonIdentifierMapping() = PersonIdentifierMapping(
+  dpsId = dpsId,
+  nomisPersonId = nomisPersonId,
+  nomisSequenceNumber = nomisSequenceNumber,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private fun PersonIdentifierMapping.toDto() = PersonIdentifierMappingDto(
+  nomisPersonId = nomisPersonId,
+  nomisSequenceNumber = nomisSequenceNumber,
+  dpsId = dpsId,
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,
