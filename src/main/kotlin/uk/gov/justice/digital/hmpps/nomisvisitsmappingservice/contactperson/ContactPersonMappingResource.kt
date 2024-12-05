@@ -909,6 +909,124 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
       )
     }
 
+  @GetMapping("/contact-restriction/nomis-contact-restriction-id/{nomisContactRestrictionId}")
+  @Operation(
+    summary = "Get person contact restriction mapping by nomis contact Id",
+    description = "Retrieves the person contact restriction mapping by NOMIS ContactRestriction Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person contactRestriction mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = PersonContactRestrictionMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPersonContactRestrictionMappingByNomisId(
+    @Schema(description = "NOMIS contact restriction id", example = "12345", required = true)
+    @PathVariable
+    nomisContactRestrictionId: Long,
+  ): PersonContactRestrictionMappingDto = service.getPersonContactRestrictionMappingByNomisId(nomisId = nomisContactRestrictionId)
+
+  @GetMapping("/contact-restriction/dps-prisoner-contact-restriction-id/{dpsPrisonerContactRestrictionId}")
+  @Operation(
+    summary = "Get person contact restriction mapping by dps prisoner contact restriction Id",
+    description = "Retrieves the person contact restriction mapping by DPS prisoner contact restriction Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person Contact Restriction mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = PersonContactRestrictionMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPersonContactRestrictionMappingByDpsId(
+    @Schema(description = "DPS prisoner contact restriction id", example = "12345", required = true)
+    @PathVariable
+    dpsPrisonerContactRestrictionId: String,
+  ): PersonContactRestrictionMappingDto = service.getPersonContactRestrictionMappingByDpsId(dpsId = dpsPrisonerContactRestrictionId)
+
+  @PostMapping("/contact-restriction")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates person contact restriction mappings for synchronisation",
+    description = "Creates person contact restriction mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = PersonContactRestrictionMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createPersonContactRestrictionMapping(
+    @RequestBody @Valid
+    mapping: PersonContactRestrictionMappingDto,
+  ) =
+    try {
+      service.createMapping(mapping)
+    } catch (e: DuplicateKeyException) {
+      val existingMapping = getExistingPersonContactRestrictionMappingSimilarTo(mapping)
+      throw DuplicateMappingException(
+        messageIn = "Person contactRestriction mapping already exists",
+        duplicate = mapping,
+        existing = existingMapping ?: mapping,
+        cause = e,
+      )
+    }
+
   private suspend fun getExistingPersonMappingSimilarTo(personMapping: ContactPersonSimpleMappingIdDto) = runCatching {
     service.getPersonMappingByNomisId(
       nomisId = personMapping.nomisId,
@@ -975,6 +1093,16 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     )
   }.getOrElse {
     service.getPersonIdentifierMappingByDpsIdOrNull(
+      dpsId = mapping.dpsId,
+    )
+  }
+
+  private suspend fun getExistingPersonContactRestrictionMappingSimilarTo(mapping: PersonContactRestrictionMappingDto) = runCatching {
+    service.getPersonContactRestrictionMappingByNomisId(
+      nomisId = mapping.nomisId,
+    )
+  }.getOrElse {
+    service.getPersonContactRestrictionMappingByDpsIdOrNull(
       dpsId = mapping.dpsId,
     )
   }
