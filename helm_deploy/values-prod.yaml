@@ -10,7 +10,8 @@ generic-service:
 
   postgresDatabaseRestore:
     enabled: true
-    timeout: 7200
+    timeout: 3590
+    schedule: "5 0-5,20-23 * * 0-5"
     namespace_secrets:
       dps-rds-instance-output:
         DB_NAME: "database_name"
