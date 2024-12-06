@@ -231,6 +231,22 @@ class ContactPersonService(
   suspend fun createMapping(mapping: PersonContactRestrictionMappingDto) {
     personContactRestrictionMappingRepository.save(mapping.toPersonContactRestrictionMapping())
   }
+  suspend fun getPersonRestrictionMappingByNomisId(nomisId: Long) =
+    personRestrictionMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
+      ?: throw NotFoundException("No person  restriction mapping found for nomisId=$nomisId")
+
+  suspend fun getPersonRestrictionMappingByDpsId(dpsId: String) =
+    personRestrictionMappingRepository.findOneByDpsId(dpsId = dpsId)
+      ?.toDto()
+      ?: throw NotFoundException("No person restriction mapping found for dpsId=$dpsId")
+
+  suspend fun getPersonRestrictionMappingByDpsIdOrNull(dpsId: String) =
+    personRestrictionMappingRepository.findOneByDpsId(dpsId = dpsId)?.toDto()
+
+  @Transactional
+  suspend fun createMapping(mapping: PersonRestrictionMappingDto) {
+    personRestrictionMappingRepository.save(mapping.toPersonRestrictionMapping())
+  }
 }
 
 private fun PersonMapping.toDto() = PersonMappingDto(
@@ -343,6 +359,21 @@ private fun PersonContactRestrictionMappingDto.toPersonContactRestrictionMapping
 )
 
 private fun PersonContactRestrictionMapping.toDto() = PersonContactRestrictionMappingDto(
+  nomisId = nomisId,
+  dpsId = dpsId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private fun PersonRestrictionMappingDto.toPersonRestrictionMapping() = PersonRestrictionMapping(
+  dpsId = dpsId,
+  nomisId = nomisId,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private fun PersonRestrictionMapping.toDto() = PersonRestrictionMappingDto(
   nomisId = nomisId,
   dpsId = dpsId,
   label = label,
