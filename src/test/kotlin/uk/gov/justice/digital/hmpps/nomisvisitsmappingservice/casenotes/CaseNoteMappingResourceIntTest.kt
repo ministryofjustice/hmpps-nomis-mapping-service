@@ -1653,7 +1653,6 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
   { 
     "nomisCaseNoteId": 54321,
     "dpsCaseNoteId": "$dps1",
-    "offenderNo": "B5678BB",
     "nomisBookingId": 1
   }
 ]""",
@@ -1731,13 +1730,11 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
   { 
     "nomisCaseNoteId": 54322,
     "dpsCaseNoteId": "$dps2",
-    "offenderNo": "B5678BB",
     "nomisBookingId": 2
   },
   { 
     "nomisCaseNoteId": 54323,
     "dpsCaseNoteId": "$dps3",
-    "offenderNo": "B5678BB",
     "nomisBookingId": 2
   }
 ]""",
@@ -1845,13 +1842,11 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
   { 
     "nomisCaseNoteId": 54321,
     "dpsCaseNoteId": "$dps1",
-    "offenderNo": "B5678BB",
     "nomisBookingId": 1
   },
   { 
     "nomisCaseNoteId": 54391,
     "dpsCaseNoteId": "$dps1",
-    "offenderNo": "B5678BB",
     "nomisBookingId": 9
   }
 ]""",
@@ -1938,19 +1933,16 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
   { 
     "nomisCaseNoteId": 54322,
     "dpsCaseNoteId": "$dps2",
-    "offenderNo": "B5678BB",
     "nomisBookingId": 2
   },
   { 
     "nomisCaseNoteId": 54392,
     "dpsCaseNoteId": "$dps2",
-    "offenderNo": "B5678BB",
     "nomisBookingId": 8
   },
   { 
     "nomisCaseNoteId": 54323,
     "dpsCaseNoteId": "$dps3",
-    "offenderNo": "B5678BB",
     "nomisBookingId": 2
   }
 ]""",

@@ -185,8 +185,6 @@ class CaseNoteMappingService(
         }
         .onEach { relatedNoteMapping ->
           repository.updateOffenderNoById(newOffenderNo, relatedNoteMapping.nomisCaseNoteId)
-          // No JPA but set this for function return value:
-          relatedNoteMapping.offenderNo = newOffenderNo
         }
     }
 
