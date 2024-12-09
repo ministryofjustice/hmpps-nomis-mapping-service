@@ -14,7 +14,7 @@ data class CaseNoteMapping(
 
   val dpsCaseNoteId: UUID,
 
-  val offenderNo: String,
+  var offenderNo: String,
 
   val nomisBookingId: Long,
 
