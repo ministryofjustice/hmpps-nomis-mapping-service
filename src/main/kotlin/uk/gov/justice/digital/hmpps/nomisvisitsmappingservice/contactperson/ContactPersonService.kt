@@ -88,6 +88,10 @@ class ContactPersonService(
       ?.toDto()
       ?: throw NotFoundException("No person contact mapping found for dpsId=$dpsId")
 
+  @Transactional
+  suspend fun deletePersonMappingByDpsId(dpsId: String) =
+    personMappingRepository.deleteById(dpsId)
+
   suspend fun getPersonContactMappingByDpsIdOrNull(dpsId: String) =
     personContactMappingRepository.findOneByDpsId(dpsId = dpsId)
       ?.toDto()

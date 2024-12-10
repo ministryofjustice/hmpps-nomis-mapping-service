@@ -746,6 +746,83 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("DELETE /mapping/contact-person/person/dps-contact-id/{contactId}")
+  inner class DeletePersonByDpsId {
+    private val dpsContactId = "12345"
+    private lateinit var personMapping: PersonMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      personMapping = personMappingRepository.save(
+        PersonMapping(
+          dpsId = dpsContactId,
+          nomisId = 8348383,
+          label = "2023-01-01T12:45:12",
+          mappingType = ContactPersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/contact-person/person/dps-contact-id/{contactId}", dpsContactId)
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/contact-person/person/dps-contact-id/{contactId}", dpsContactId)
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/contact-person/person/dps-contact-id/{contactId}", dpsContactId)
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `204 when mapping does not exist`() {
+        webTestClient.delete()
+          .uri("/mapping/contact-person/person/dps-contact-id/{contactId}", "99999")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isNoContent
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will delete the mapping data`() = runTest {
+        assertThat(personMappingRepository.findOneByDpsId(dpsContactId)).isNotNull()
+
+        webTestClient.delete()
+          .uri("/mapping/contact-person/person/dps-contact-id/{contactId}", dpsContactId)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        assertThat(personMappingRepository.findOneByDpsId(dpsContactId)).isNull()
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("GET /mapping/contact-person/person/dps-contact-id/{contactId}")
   inner class GetPersonByDpsId {
     private val dpsContactId = "12345"

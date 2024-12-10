@@ -185,6 +185,34 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     dpsContactId: String,
   ): PersonMappingDto = service.getPersonMappingByDpsId(dpsId = dpsContactId)
 
+  @DeleteMapping("/person/dps-contact-id/{dpsContactId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete person mapping by dps contact Id",
+    description = "Delete the person mapping by DPS Contact Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Person mapping data",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deletePersonMappingByDpsId(
+    @Schema(description = "DPS contact id", example = "12345", required = true)
+    @PathVariable
+    dpsContactId: String,
+  ) = service.deletePersonMappingByDpsId(dpsId = dpsContactId)
+
   @GetMapping("/person/migration-id/{migrationId}")
   @Operation(
     summary = "Get paged person mappings by migration id",
