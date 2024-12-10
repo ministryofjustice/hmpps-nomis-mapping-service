@@ -74,6 +74,10 @@ class ContactPersonService(
     personMappingRepository.save(mapping.toPersonMapping())
   }
 
+  @Transactional
+  suspend fun deletePersonMappingByNomisId(nomisId: Long) =
+    personMappingRepository.deleteByNomisId(nomisId = nomisId)
+
   suspend fun getPersonContactMappingByNomisId(nomisId: Long) =
     personContactMappingRepository.findOneByNomisId(nomisId = nomisId)
       ?.toDto()
@@ -84,9 +88,17 @@ class ContactPersonService(
       ?.toDto()
       ?: throw NotFoundException("No person contact mapping found for dpsId=$dpsId")
 
+  @Transactional
+  suspend fun deletePersonMappingByDpsId(dpsId: String) =
+    personMappingRepository.deleteById(dpsId)
+
   suspend fun getPersonContactMappingByDpsIdOrNull(dpsId: String) =
     personContactMappingRepository.findOneByDpsId(dpsId = dpsId)
       ?.toDto()
+
+  @Transactional
+  suspend fun deletePersonContactMappingByNomisId(nomisId: Long) =
+    personContactMappingRepository.deleteByNomisId(nomisId)
 
   @Transactional
   suspend fun createMapping(mapping: PersonContactMappingDto) {
@@ -151,6 +163,10 @@ class ContactPersonService(
       ?.toDto()
       ?: throw NotFoundException("No person address mapping found for nomisId=$nomisId")
 
+  @Transactional
+  suspend fun deletePersonAddressMappingByNomisId(nomisId: Long) =
+    personAddressMappingRepository.deleteByNomisId(nomisId = nomisId)
+
   suspend fun getPersonAddressMappingByDpsId(dpsId: String) =
     personAddressMappingRepository.findOneByDpsId(dpsId = dpsId)
       ?.toDto()
@@ -169,6 +185,10 @@ class ContactPersonService(
     personEmailMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
       ?: throw NotFoundException("No person email mapping found for nomisId=$nomisId")
 
+  @Transactional
+  suspend fun deletePersonEmailMappingByNomisId(nomisId: Long) =
+    personEmailMappingRepository.deleteByNomisId(nomisId = nomisId)
+
   suspend fun getPersonEmailMappingByDpsId(dpsId: String) =
     personEmailMappingRepository.findOneByDpsId(dpsId = dpsId)
       ?.toDto()
@@ -184,6 +204,10 @@ class ContactPersonService(
   suspend fun getPersonPhoneMappingByNomisId(nomisId: Long) =
     personPhoneMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
       ?: throw NotFoundException("No person phone mapping found for nomisId=$nomisId")
+
+  @Transactional
+  suspend fun deletePersonPhoneMappingByNomisId(nomisId: Long) =
+    personPhoneMappingRepository.deleteByNomisId(nomisId = nomisId)
 
   suspend fun getPersonPhoneMappingByDpsId(dpsId: String, dpsPhoneType: DpsPersonPhoneType) =
     personPhoneMappingRepository.findOneByDpsIdAndDpsPhoneType(dpsId = dpsId, dpsPhoneType = dpsPhoneType)
@@ -202,6 +226,10 @@ class ContactPersonService(
     personIdentifierMappingRepository.findOneByNomisPersonIdAndNomisSequenceNumber(nomisPersonId = nomisPersonId, nomisSequenceNumber = nomisSequenceNumber) ?.toDto()
       ?: throw NotFoundException("No person identifier mapping found for nomisPersonId=$nomisPersonId and nomisSequenceNumber=$nomisSequenceNumber")
 
+  @Transactional
+  suspend fun deletePersonIdentifierMappingByNomisIds(nomisPersonId: Long, nomisSequenceNumber: Long) =
+    personIdentifierMappingRepository.deleteByNomisPersonIdAndNomisSequenceNumber(nomisPersonId = nomisPersonId, nomisSequenceNumber = nomisSequenceNumber)
+
   suspend fun getPersonIdentifierMappingByDpsId(dpsId: String) =
     personIdentifierMappingRepository.findOneByDpsId(dpsId = dpsId)
       ?.toDto()
@@ -215,9 +243,17 @@ class ContactPersonService(
     personIdentifierMappingRepository.save(mapping.toPersonIdentifierMapping())
   }
 
+  @Transactional
+  suspend fun deletePersonEmploymentMappingByNomisIds(nomisPersonId: Long, nomisSequenceNumber: Long) =
+    personEmploymentMappingRepository.deleteByNomisPersonIdAndNomisSequenceNumber(nomisPersonId = nomisPersonId, nomisSequenceNumber = nomisSequenceNumber)
+
   suspend fun getPersonContactRestrictionMappingByNomisId(nomisId: Long) =
     personContactRestrictionMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
       ?: throw NotFoundException("No person contact restriction mapping found for nomisId=$nomisId")
+
+  @Transactional
+  suspend fun deletePersonContactRestrictionMappingByNomisId(nomisId: Long) =
+    personContactRestrictionMappingRepository.deleteByNomisId(nomisId = nomisId)
 
   suspend fun getPersonContactRestrictionMappingByDpsId(dpsId: String) =
     personContactRestrictionMappingRepository.findOneByDpsId(dpsId = dpsId)
@@ -234,6 +270,10 @@ class ContactPersonService(
   suspend fun getPersonRestrictionMappingByNomisId(nomisId: Long) =
     personRestrictionMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
       ?: throw NotFoundException("No person  restriction mapping found for nomisId=$nomisId")
+
+  @Transactional
+  suspend fun deletePersonRestrictionMappingByNomisId(nomisId: Long) =
+    personRestrictionMappingRepository.deleteByNomisId(nomisId = nomisId)
 
   suspend fun getPersonRestrictionMappingByDpsId(dpsId: String) =
     personRestrictionMappingRepository.findOneByDpsId(dpsId = dpsId)
