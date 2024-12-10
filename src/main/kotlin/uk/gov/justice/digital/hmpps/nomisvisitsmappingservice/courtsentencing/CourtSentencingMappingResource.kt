@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -31,6 +33,10 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @PreAuthorize("hasRole('NOMIS_COURT_SENTENCING')")
 @RequestMapping("/mapping/court-sentencing", produces = [MediaType.APPLICATION_JSON_VALUE])
 class CourtSentencingMappingResource(private val mappingService: CourtSentencingMappingService) {
+  private companion object {
+    val log: Logger = LoggerFactory.getLogger(this::class.java)
+  }
+
   @GetMapping("/court-cases/dps-court-case-id/{courtCaseId}")
   @Operation(
     summary = "get court case mapping",
@@ -139,10 +145,15 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     try {
       mappingService.createMapping(mapping)
     } catch (e: DuplicateKeyException) {
+      log.error("Duplicate court sentencing mapping detected for mapping: $mapping ", e)
+      val existingMapping = getExistingMappingSimilarTo(mapping)
+      if (existingMapping == null) {
+        log.error("Child duplicate key found for court case even though the court case has never been migrated", e)
+      }
       throw DuplicateMappingException(
-        messageIn = "Court Case mapping already exists",
+        messageIn = "Court Case mapping or child mapping already exists",
         duplicate = mapping,
-        existing = getExistingMappingSimilarTo(mapping),
+        existing = existingMapping,
         cause = e,
       )
     }
@@ -437,7 +448,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = CourtAppearanceAllMappingDto::class),
+          schema = Schema(implementation = CourtAppearanceMappingDto::class),
         ),
       ],
     ),
@@ -783,7 +794,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
       courtCaseId = mapping.nomisCourtCaseId,
     )
   }.getOrElse {
-    mappingService.getCourtCaseAllMappingByDpsId(
+    mappingService.getCourtCaseAllMappingByDpsIdOrNull(
       courtCaseId = mapping.dpsCourtCaseId,
     )
   }

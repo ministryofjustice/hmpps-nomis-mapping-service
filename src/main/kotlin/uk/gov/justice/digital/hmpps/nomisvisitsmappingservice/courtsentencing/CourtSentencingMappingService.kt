@@ -59,6 +59,9 @@ class CourtSentencingMappingService(
     courtCaseMappingRepository.findById(courtCaseId)?.toCourtCaseAllMappingDto()
       ?: throw NotFoundException("DPS Court case Id =$courtCaseId")
 
+  suspend fun getCourtCaseAllMappingByDpsIdOrNull(courtCaseId: String): CourtCaseAllMappingDto? =
+    courtCaseMappingRepository.findByDpsCourtCaseId(courtCaseId)?.toCourtCaseAllMappingDto()
+
   suspend fun getCourtCaseAllMappingByNomisId(courtCaseId: Long): CourtCaseAllMappingDto =
     courtCaseMappingRepository.findByNomisCourtCaseId(courtCaseId)?.toCourtCaseAllMappingDto()
       ?: throw NotFoundException("Nomis Court case Id =$courtCaseId")
