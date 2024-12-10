@@ -122,6 +122,34 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     nomisPersonId: Long,
   ): PersonMappingDto = service.getPersonMappingByNomisId(nomisId = nomisPersonId)
 
+  @DeleteMapping("/person/nomis-person-id/{nomisPersonId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes person mapping by nomis person Id",
+    description = "Deletes the person a mapping by NOMIS Person Id, NB any child mappings e.g. peron address mappings remain untouched and should be removed separately. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Person mapping data deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deletePersonMappingByNomisId(
+    @Schema(description = "NOMIS person id", example = "12345", required = true)
+    @PathVariable
+    nomisPersonId: Long,
+  ) = service.deletePersonMappingByNomisId(nomisId = nomisPersonId)
+
   @GetMapping("/person/dps-contact-id/{dpsContactId}")
   @Operation(
     summary = "Get person mapping by dps contact Id",
@@ -316,6 +344,34 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     nomisContactId: Long,
   ): PersonContactMappingDto = service.getPersonContactMappingByNomisId(nomisId = nomisContactId)
 
+  @DeleteMapping("/contact/nomis-contact-id/{nomisContactId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete person contact mapping by nomis contact Id",
+    description = "Deletes the person contact mapping by NOMIS Contact Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Person Contact mapping deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deletePersonContactMappingByNomisId(
+    @Schema(description = "NOMIS contact id", example = "12345", required = true)
+    @PathVariable
+    nomisContactId: Long,
+  ) = service.deletePersonContactMappingByNomisId(nomisId = nomisContactId)
+
   @GetMapping("/contact/dps-prisoner-contact-id/{dpsPrisonerContactId}")
   @Operation(
     summary = "Get person contact mapping by dps prisoner contact Id",
@@ -434,6 +490,34 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     nomisAddressId: Long,
   ): PersonAddressMappingDto = service.getPersonAddressMappingByNomisId(nomisId = nomisAddressId)
 
+  @DeleteMapping("/address/nomis-address-id/{nomisAddressId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete person address mapping by nomis contact Id",
+    description = "Delete the person address mapping by NOMIS Address Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Person address mapping deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deletePersonAddressMappingByNomisId(
+    @Schema(description = "NOMIS address id", example = "12345", required = true)
+    @PathVariable
+    nomisAddressId: Long,
+  ) = service.deletePersonAddressMappingByNomisId(nomisId = nomisAddressId)
+
   @GetMapping("/address/dps-contact-address-id/{dpsContactAddressId}")
   @Operation(
     summary = "Get person address mapping by dps contact address Id",
@@ -551,6 +635,39 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     @PathVariable
     nomisPhoneId: Long,
   ): PersonPhoneMappingDto = service.getPersonPhoneMappingByNomisId(nomisId = nomisPhoneId)
+
+  @DeleteMapping("/phone/nomis-phone-id/{nomisPhoneId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete person phone mapping by nomis phone Id",
+    description = "Delete the person phone mapping by NOMIS Phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Person phone mapping deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deletePersonPhoneMappingByNomisId(
+    @Schema(description = "NOMIS phone id", example = "12345", required = true)
+    @PathVariable
+    nomisPhoneId: Long,
+  ) = service.deletePersonPhoneMappingByNomisId(nomisId = nomisPhoneId)
 
   @GetMapping("/phone/dps-contact-phone-id/{dpsContactPhoneId}")
   @Operation(
@@ -705,6 +822,34 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     nomisInternetAddressId: Long,
   ): PersonEmailMappingDto = service.getPersonEmailMappingByNomisId(nomisId = nomisInternetAddressId)
 
+  @DeleteMapping("/email/nomis-internet-address-id/{nomisInternetAddressId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete person email mapping by nomis internet address Id",
+    description = "Delete the person email mapping by NOMIS Email/Internet Address Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Person email mapping deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deletePersonEmailMappingByNomisId(
+    @Schema(description = "NOMIS email id", example = "12345", required = true)
+    @PathVariable
+    nomisInternetAddressId: Long,
+  ) = service.deletePersonEmailMappingByNomisId(nomisId = nomisInternetAddressId)
+
   @GetMapping("/email/dps-contact-email-id/{dpsContactEmailId}")
   @Operation(
     summary = "Get contact email mapping by dps contact email Id",
@@ -826,6 +971,37 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     nomisSequenceNumber: Long,
   ): PersonIdentifierMappingDto = service.getPersonIdentifierMappingByNomisIds(nomisPersonId = nomisPersonId, nomisSequenceNumber = nomisSequenceNumber)
 
+  @DeleteMapping("/identifier/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete person identifier mapping by nomis person id and sequence",
+    description = "Delete the person identifier mapping by NOMIS person id and NOMIS sequence number. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Person identifier mapping deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deletePersonIdentifierMappingByNomisIds(
+    @Schema(description = "NOMIS person id", example = "12345", required = true)
+    @PathVariable
+    nomisPersonId: Long,
+    @Schema(description = "NOMIS identifier sequence", example = "4", required = true)
+    @PathVariable
+    nomisSequenceNumber: Long,
+  ) = service.deletePersonIdentifierMappingByNomisIds(nomisPersonId = nomisPersonId, nomisSequenceNumber = nomisSequenceNumber)
+
   @GetMapping("/identifier/dps-contact-identifier-id/{dpsContactIdentifierId}")
   @Operation(
     summary = "Get contact identifier mapping by dps contact identifier Id",
@@ -909,6 +1085,37 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
       )
     }
 
+  @DeleteMapping("/employment/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete person employment mapping by nomis person id and sequence",
+    description = "Delete the person employment mapping by NOMIS person id and NOMIS sequence number. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Person employment mapping deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deletePersonEmploymentMappingByNomisIds(
+    @Schema(description = "NOMIS person id", example = "12345", required = true)
+    @PathVariable
+    nomisPersonId: Long,
+    @Schema(description = "NOMIS employment sequence", example = "4", required = true)
+    @PathVariable
+    nomisSequenceNumber: Long,
+  ) = service.deletePersonEmploymentMappingByNomisIds(nomisPersonId = nomisPersonId, nomisSequenceNumber = nomisSequenceNumber)
+
   @GetMapping("/contact-restriction/nomis-contact-restriction-id/{nomisContactRestrictionId}")
   @Operation(
     summary = "Get person contact restriction mapping by nomis contact Id",
@@ -943,6 +1150,34 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     @PathVariable
     nomisContactRestrictionId: Long,
   ): PersonContactRestrictionMappingDto = service.getPersonContactRestrictionMappingByNomisId(nomisId = nomisContactRestrictionId)
+
+  @DeleteMapping("/contact-restriction/nomis-contact-restriction-id/{nomisContactRestrictionId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete person contact restriction mapping by nomis contact Id",
+    description = "Delete the person contact restriction mapping by NOMIS ContactRestriction Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Person contact restriction mapping deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deletePersonContactRestrictionMappingByNomisId(
+    @Schema(description = "NOMIS contact restriction id", example = "12345", required = true)
+    @PathVariable
+    nomisContactRestrictionId: Long,
+  ) = service.deletePersonContactRestrictionMappingByNomisId(nomisId = nomisContactRestrictionId)
 
   @GetMapping("/contact-restriction/dps-prisoner-contact-restriction-id/{dpsPrisonerContactRestrictionId}")
   @Operation(
@@ -1109,6 +1344,34 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     @PathVariable
     nomisPersonRestrictionId: Long,
   ): PersonRestrictionMappingDto = service.getPersonRestrictionMappingByNomisId(nomisId = nomisPersonRestrictionId)
+
+  @DeleteMapping("/person-restriction/nomis-person-restriction-id/{nomisPersonRestrictionId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete person restriction mapping by nomis person restriction Id",
+    description = "Delete the person restriction mapping by NOMIS Person Restriction Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Person Restriction mapping deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deletePersonRestrictionMappingByNomisId(
+    @Schema(description = "NOMIS contact restriction id", example = "12345", required = true)
+    @PathVariable
+    nomisPersonRestrictionId: Long,
+  ) = service.deletePersonRestrictionMappingByNomisId(nomisId = nomisPersonRestrictionId)
 
   @GetMapping("/person-restriction/dps-contact-restriction-id/{dpsContactRestrictionId}")
   @Operation(

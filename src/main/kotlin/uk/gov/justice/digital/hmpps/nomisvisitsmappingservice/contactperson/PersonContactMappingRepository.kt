@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository
 interface PersonContactMappingRepository : CoroutineCrudRepository<PersonContactMapping, String> {
   suspend fun findOneByNomisId(nomisId: Long): PersonContactMapping?
   suspend fun findOneByDpsId(dpsId: String): PersonContactMapping?
+  suspend fun deleteByNomisId(nomisId: Long)
 }

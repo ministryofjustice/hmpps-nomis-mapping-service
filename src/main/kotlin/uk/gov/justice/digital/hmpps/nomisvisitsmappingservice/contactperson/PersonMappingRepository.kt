@@ -12,4 +12,5 @@ interface PersonMappingRepository : CoroutineCrudRepository<PersonMapping, Strin
   suspend fun findAllByLabelAndMappingTypeOrderByLabelDesc(label: String, mappingType: ContactPersonMappingType, pageRequest: Pageable): Flow<PersonMapping>
   suspend fun countAllByLabelAndMappingType(migrationId: String, mappingType: ContactPersonMappingType): Long
   suspend fun findAllBy(pageRequest: Pageable): Flow<PersonMapping>
+  suspend fun deleteByNomisId(nomisId: Long)
 }
