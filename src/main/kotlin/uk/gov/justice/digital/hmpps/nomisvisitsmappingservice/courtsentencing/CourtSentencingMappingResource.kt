@@ -289,7 +289,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = CourtAppearanceAllMappingDto::class),
+            schema = Schema(implementation = CourtAppearanceMappingDto::class),
           ),
         ],
       ),
@@ -380,7 +380,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = CourtAppearanceAllMappingDto::class),
+            schema = Schema(implementation = CourtChargeMappingDto::class),
           ),
         ],
       ),
@@ -415,7 +415,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = CourtAppearanceAllMappingDto::class),
+            schema = Schema(implementation = CourtChargeMappingDto::class),
           ),
         ],
       ),
