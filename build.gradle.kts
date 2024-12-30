@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.1.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.1.2"
   kotlin("plugin.spring") version "2.0.21"
   kotlin("plugin.jpa") version "2.0.21"
   idea
@@ -12,12 +12,12 @@ configurations {
 }
 
 dependencies {
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.1.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.1.1")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
 
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.9.0")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.10.1")
 
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
   runtimeOnly("org.postgresql:r2dbc-postgresql:1.0.7.RELEASE")
@@ -28,17 +28,17 @@ dependencies {
 
   developmentOnly("org.springframework.boot:spring-boot-devtools")
 
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.1.0")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.1.1")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.2")
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.24") {
     exclude(group = "io.swagger.core.v3")
   }
-  testImplementation("io.swagger.core.v3:swagger-core-jakarta:2.2.26")
+  testImplementation("io.swagger.core.v3:swagger-core-jakarta:2.2.27")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.testcontainers:postgresql:1.20.4")
   testImplementation("io.projectreactor:reactor-test")
-  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1")
 }
 
 kotlin {
