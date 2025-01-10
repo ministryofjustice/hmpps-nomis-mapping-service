@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.coreperson
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
+import org.hamcrest.Matchers
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -23,8 +24,12 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var corePersonMappingRepository: CorePersonMappingRepository
 
+  // @Autowired
+  // private lateinit var corePersonAddressMappingRepository: CorePersonAddressMappingRepository
+
   @AfterEach
   fun tearDown() = runTest {
+    // corePersonAddressMappingRepository.deleteAll()
     corePersonMappingRepository.deleteAll()
   }
 
@@ -35,13 +40,14 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
     @Nested
     inner class Security {
       val mappings = CorePersonMappingsDto(
-        personMapping = CorePersonSimpleMappingIdDto(
+        personMapping = CorePersonMappingIdDto(
           cprId = UUID.randomUUID().toString(),
-          prisonNumber = "A1234BC",
+          nomisPrisonNumber = "A1234BC",
         ),
         label = null,
         mappingType = CorePersonMappingType.CPR_CREATED,
         whenCreated = LocalDateTime.now(),
+        // addressMappings = emptyList(),
       )
 
       @Test
@@ -82,13 +88,14 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       private lateinit var existingCorePersonMapping: CorePersonMapping
 
       val mappings = CorePersonMappingsDto(
-        personMapping = CorePersonSimpleMappingIdDto(
+        personMapping = CorePersonMappingIdDto(
           cprId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
-          prisonNumber = "A1234BC",
+          nomisPrisonNumber = "A1234BC",
         ),
         label = null,
         mappingType = CorePersonMappingType.MIGRATED,
         whenCreated = LocalDateTime.now(),
+        // addressMappings = emptyList(),
       )
 
       @BeforeEach
@@ -96,11 +103,23 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         existingCorePersonMapping = corePersonMappingRepository.save(
           CorePersonMapping(
             cprId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
-            prisonNumber = "A1234BC",
+            nomisPrisonNumber = "A1234BC",
             label = "2023-01-01T12:45:12",
             mappingType = CorePersonMappingType.MIGRATED,
           ),
         )
+        /*
+        corePersonAddressMappingRepository.save(
+          CorePersonAddressMapping(
+            cprId = "18e89dec-6ace-4706-9283-8e11e9ebe886",
+            nomisId = 54321,
+            // Do we need this?
+            // nomisSequenceNumber = 1,
+            label = "2023-01-01T12:45:12",
+            mappingType = CorePersonMappingType.MIGRATED,
+          ),
+        )
+         */
       }
 
       @Test
@@ -132,11 +151,11 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         with(duplicateResponse!!) {
           // since this is an untyped map an int will be assumed for such small numbers
           assertThat(this.moreInfo.existing)
-            .containsEntry("prisonNumber", existingCorePersonMapping.prisonNumber)
+            .containsEntry("nomisPrisonNumber", existingCorePersonMapping.nomisPrisonNumber)
             .containsEntry("cprId", existingCorePersonMapping.cprId)
             .containsEntry("mappingType", existingCorePersonMapping.mappingType.toString())
           assertThat(this.moreInfo.duplicate)
-            .containsEntry("prisonNumber", mappings.personMapping.prisonNumber)
+            .containsEntry("nomisPrisonNumber", mappings.personMapping.nomisPrisonNumber)
             .containsEntry("cprId", mappings.personMapping.cprId)
             .containsEntry("mappingType", existingCorePersonMapping.mappingType.toString())
         }
@@ -146,13 +165,14 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
     @Nested
     inner class HappyPath {
       val mappings = CorePersonMappingsDto(
-        personMapping = CorePersonSimpleMappingIdDto(
+        personMapping = CorePersonMappingIdDto(
           cprId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
-          prisonNumber = "A1234BC",
+          nomisPrisonNumber = "A1234BC",
         ),
         label = null,
         mappingType = CorePersonMappingType.CPR_CREATED,
         whenCreated = LocalDateTime.now(),
+        // addressMappings = emptyList(),
       )
 
       @Test
@@ -176,14 +196,123 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isCreated
 
-        val personMapping =
-          corePersonMappingRepository.findOneByPrisonNumber(mappings.personMapping.prisonNumber)!!
+        val corePersonMapping =
+          corePersonMappingRepository.findOneByNomisPrisonNumber(mappings.personMapping.nomisPrisonNumber)!!
 
-        assertThat(personMapping.cprId).isEqualTo(mappings.personMapping.cprId)
-        assertThat(personMapping.prisonNumber).isEqualTo(mappings.personMapping.prisonNumber)
-        assertThat(personMapping.label).isEqualTo("2023-01-01T12:45:12")
-        assertThat(personMapping.mappingType).isEqualTo(mappings.mappingType)
-        assertThat(personMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        assertThat(corePersonMapping.cprId).isEqualTo(mappings.personMapping.cprId)
+        assertThat(corePersonMapping.nomisPrisonNumber).isEqualTo(mappings.personMapping.nomisPrisonNumber)
+        assertThat(corePersonMapping.label).isEqualTo("2023-01-01T12:45:12")
+        assertThat(corePersonMapping.mappingType).isEqualTo(mappings.mappingType)
+        assertThat(corePersonMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+      }
+    }
+  }
+
+  @DisplayName("GET /mapping/core-person/person/migration-id/{migrationId}")
+  @Nested
+  inner class GetPersonMappingsByMigrationId {
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get().uri("/mapping/core-person/person/migration-id/2022-01-01T00:00:00")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get().uri("/mapping/core-person/person/migration-id/2022-01-01T00:00:00")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get().uri("/mapping/core-person/person/migration-id/2022-01-01T00:00:00")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+
+      @Test
+      fun `can retrieve all mappings by migration Id`() = runTest {
+        (1L..4L).forEach {
+          corePersonMappingRepository.save(
+            CorePersonMapping(
+              cprId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
+              nomisPrisonNumber = "A123${it}BC",
+              label = "2023-01-01T12:45:12",
+              mappingType = CorePersonMappingType.MIGRATED,
+            ),
+          )
+        }
+
+        corePersonMappingRepository.save(
+          CorePersonMapping(
+            cprId = "edcd118c-91ba-42ea-b5c4-404b453ad58b",
+            nomisPrisonNumber = "A4321BC",
+            label = "2022-01-01T12:43:12",
+            mappingType = CorePersonMappingType.MIGRATED,
+          ),
+        )
+
+        webTestClient.get().uri("/mapping/core-person/person/migration-id/2023-01-01T12:45:12")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("totalElements").isEqualTo(4)
+          .jsonPath("$.content..nomisPrisonNumber").value(
+            Matchers.contains("A1231BC", "A1232BC", "A1233BC", "A1234BC"),
+          )
+          .jsonPath("$.content[0].whenCreated").isNotEmpty
+      }
+
+      @Test
+      fun `200 response even when no mappings are found`() {
+        webTestClient.get().uri("/mapping/core-person/person/migration-id/2044-01-01")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("totalElements").isEqualTo(0)
+          .jsonPath("content").isEmpty
+      }
+
+      @Test
+      fun `can request a different page size`() = runTest {
+        (1L..6L).forEach {
+          corePersonMappingRepository.save(
+            CorePersonMapping(
+              cprId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
+              nomisPrisonNumber = "A${it}123BC",
+              label = "2023-01-01T12:45:12",
+              mappingType = CorePersonMappingType.MIGRATED,
+            ),
+          )
+        }
+        webTestClient.get().uri {
+          it.path("/mapping/core-person/person/migration-id/2023-01-01T12:45:12")
+            .queryParam("size", "2")
+            .queryParam("sort", "nomisPrisonNumber,asc")
+            .build()
+        }
+          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("totalElements").isEqualTo(6)
+          .jsonPath("numberOfElements").isEqualTo(2)
+          .jsonPath("number").isEqualTo(0)
+          .jsonPath("totalPages").isEqualTo(3)
+          .jsonPath("size").isEqualTo(2)
       }
     }
   }

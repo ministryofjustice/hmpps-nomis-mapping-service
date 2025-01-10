@@ -1,0 +1,3 @@
+ALTER TABLE core_person_mapping rename column prison_number TO nomis_prison_number;
+ALTER TABLE core_person_mapping drop constraint core_person_mapping_prison_number_unique;
+ALTER TABLE core_person_mapping add constraint core_person_mapping_nomis_prison_number_unique unique (nomis_prison_number);
