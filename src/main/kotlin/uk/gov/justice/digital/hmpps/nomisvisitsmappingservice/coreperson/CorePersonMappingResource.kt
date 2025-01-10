@@ -8,10 +8,15 @@ import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -86,9 +91,105 @@ class CorePersonMappingResource(private val service: CorePersonService) {
       )
     }
 
-  private suspend fun getExistingCorePersonMappingSimilarTo(personMapping: CorePersonSimpleMappingIdDto) = runCatching {
-    service.getCorePersonMappingByPrisonNumber(
-      prisonNumber = personMapping.prisonNumber,
+  @GetMapping("/person/migration-id/{migrationId}")
+  @Operation(
+    summary = "Get paged core person mappings by migration id",
+    description = "Retrieve all core person mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role ROLE_NOMIS_CORE_PERSON",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Core Person mapping page returned",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPersonMappingsByMigrationId(
+    @PageableDefault pageRequest: Pageable,
+    @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
+    @PathVariable
+    migrationId: String,
+  ): Page<CorePersonMappingDto> =
+    service.getCorePersonMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+
+  /* wip
+  @GetMapping("/person/cpr-id/{cprCorePersonId}")
+  @Operation(
+    summary = "Get core person mapping by cpr core person Id",
+    description = "Retrieves the person mapping by CPR Core Person Id. Requires role ROLE_NOMIS_CORE_PERSON",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person mapping data"
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getCorePersonMappingByCprId(
+    @Schema(description = "CPR core person id", example = "12345", required = true)
+    @PathVariable
+    cprCorePersonId: String,
+  ): CorePersonMappingDto = service.getPersonMappingByCprId(cprId = cprCorePersonId)
+
+  @GetMapping("/address/cpr-address-id/{cprAddressId}")
+  @Operation(
+    summary = "Get person address mapping by cpr core person address Id",
+    description = "Retrieves the person address mapping by CPR Core Person Address Id. Requires role ROLE_NOMIS_CORE_PERSON",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person Address mapping data",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getAddressMappingByCprId(
+    @Schema(description = "CPR address id", example = "12345", required = true)
+    @PathVariable
+    cprAddressId: String,
+  ): CorePersonAddressMappingDto = service.getAddressMappingByCprId(cprId = cprAddressId)
+
+
+   */
+  private suspend fun getExistingCorePersonMappingSimilarTo(personMapping: CorePersonMappingIdDto) = runCatching {
+    service.getCorePersonMappingByNomisPrisonNumber(
+      nomisPrisonNumber = personMapping.nomisPrisonNumber,
     )
   }.getOrElse {
     service.getCorePersonMappingByCprIdOrNull(
@@ -99,7 +200,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
 
 private fun CorePersonMappingsDto.asCorePersonMappingDto() = CorePersonMappingDto(
   cprId = personMapping.cprId,
-  prisonNumber = personMapping.prisonNumber,
+  nomisPrisonNumber = personMapping.nomisPrisonNumber,
   mappingType = mappingType,
   label = label,
   whenCreated = whenCreated,

@@ -1,5 +1,11 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.coreperson
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.toList
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
@@ -8,27 +14,68 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundEx
 @Transactional(readOnly = true)
 class CorePersonService(
   private val corePersonMappingRepository: CorePersonMappingRepository,
+  // private val corePersonAddressMappingRepository: CorePersonAddressMappingRepository,
 ) {
   @Transactional
   suspend fun createMappings(mappings: CorePersonMappingsDto) {
     with(mappings) {
       corePersonMappingRepository.save(toCorePersonMapping())
+      // addressMappings.forEach {
+      //  corePersonAddressMappingRepository.save(toMapping(it))
+      // }
     }
   }
 
-  suspend fun getCorePersonMappingByPrisonNumber(prisonNumber: String) =
-    corePersonMappingRepository.findOneByPrisonNumber(prisonNumber = prisonNumber)
+  suspend fun getCorePersonMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<CorePersonMappingDto> =
+    coroutineScope {
+      val mappings = async {
+        corePersonMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+          label = migrationId,
+          mappingType = CorePersonMappingType.MIGRATED,
+          pageRequest = pageRequest,
+        )
+      }
+
+      val count = async {
+        corePersonMappingRepository.countAllByLabelAndMappingType(
+          migrationId = migrationId,
+          mappingType = CorePersonMappingType.MIGRATED,
+        )
+      }
+
+      PageImpl(
+        mappings.await().toList().map { it.toDto() },
+        pageRequest,
+        count.await(),
+      )
+    }
+
+  suspend fun getCorePersonMappingByNomisPrisonNumber(nomisPrisonNumber: String) =
+    corePersonMappingRepository.findOneByNomisPrisonNumber(nomisPrisonNumber = nomisPrisonNumber)
       ?.toDto()
-      ?: throw NotFoundException("No person mapping found for prisonNumber=$prisonNumber")
+      ?: throw NotFoundException("No person mapping found for nomisPrisonNumber=$nomisPrisonNumber")
+
+  suspend fun getCorePersonMappingByCprId(cprId: String) =
+    corePersonMappingRepository.findOneByCprId(cprId = cprId)
+      ?.toDto()
+      ?: throw NotFoundException("No core person mapping found for cprId=$cprId")
 
   suspend fun getCorePersonMappingByCprIdOrNull(cprId: String) =
     corePersonMappingRepository.findOneByCprId(cprId = cprId)
       ?.toDto()
+
+  /*
+  suspend fun getAddressMappingByCprId(cprId: String) =
+    corePersonAddressMappingRepository.findOneByCprId(cprId = cprId)
+      ?.toDto()
+      ?: throw NotFoundException("No person address mapping found for cprId=$cprId")
+
+   */
 }
 
 private fun CorePersonMappingsDto.toCorePersonMapping() = CorePersonMapping(
   cprId = personMapping.cprId,
-  prisonNumber = personMapping.prisonNumber,
+  nomisPrisonNumber = personMapping.nomisPrisonNumber,
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,
@@ -36,8 +83,33 @@ private fun CorePersonMappingsDto.toCorePersonMapping() = CorePersonMapping(
 
 private fun CorePersonMapping.toDto() = CorePersonMappingDto(
   cprId = cprId,
-  prisonNumber = prisonNumber,
+  nomisPrisonNumber = nomisPrisonNumber,
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,
 )
+
+/*
+private fun CorePersonAddressMapping.toDto() = CorePersonAddressMappingDto(
+  cprId = cprId,
+  nomisId = nomisId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private inline fun <reified T : AbstractCorePersonMapping> CorePersonMappingsDto.toMapping(mapping: CorePersonSimpleMappingIdDto): T =
+  T::class.java.getDeclaredConstructor(
+    String::class.java,
+    Long::class.java,
+    String::class.java,
+    CorePersonMappingType::class.java,
+    LocalDateTime::class.java,
+  ).newInstance(
+    mapping.cprId,
+    mapping.nomisId,
+    this.label,
+    this.mappingType,
+    this.whenCreated,
+  )
+*/

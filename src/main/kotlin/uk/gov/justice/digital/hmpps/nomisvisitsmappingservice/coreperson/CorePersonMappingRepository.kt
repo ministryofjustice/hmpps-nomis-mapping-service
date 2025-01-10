@@ -7,10 +7,10 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface CorePersonMappingRepository : CoroutineCrudRepository<CorePersonMapping, String> {
-  suspend fun findOneByPrisonNumber(prisonNumber: String): CorePersonMapping?
+  suspend fun findOneByNomisPrisonNumber(nomisPrisonNumber: String): CorePersonMapping?
   suspend fun findOneByCprId(cprId: String): CorePersonMapping?
   suspend fun findAllBy(pageRequest: Pageable): Flow<CorePersonMapping>
   suspend fun findAllByLabelAndMappingTypeOrderByLabelDesc(label: String, mappingType: CorePersonMappingType, pageRequest: Pageable): Flow<CorePersonMapping>
   suspend fun countAllByLabelAndMappingType(migrationId: String, mappingType: CorePersonMappingType): Long
-  suspend fun deleteByPrisonNumber(prisonNumber: String)
+  suspend fun deleteByNomisPrisonNumber(nomisPrisonNumber: String)
 }

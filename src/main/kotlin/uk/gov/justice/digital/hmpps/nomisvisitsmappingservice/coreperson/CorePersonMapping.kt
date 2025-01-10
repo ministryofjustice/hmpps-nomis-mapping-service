@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 class CorePersonMapping(
   @Id
   val cprId: String,
-  val prisonNumber: String,
+  val nomisPrisonNumber: String,
   label: String? = null,
   mappingType: CorePersonMappingType,
   whenCreated: LocalDateTime? = null,
