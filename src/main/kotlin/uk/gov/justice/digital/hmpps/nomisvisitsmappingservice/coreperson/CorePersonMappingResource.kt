@@ -91,7 +91,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
       )
     }
 
-  @GetMapping("/person/migration-id/{migrationId}")
+  @GetMapping("/migration-id/{migrationId}")
   @Operation(
     summary = "Get paged core person mappings by migration id",
     description = "Retrieve all core person mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role ROLE_NOMIS_CORE_PERSON",
@@ -120,15 +120,14 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   ): Page<CorePersonMappingDto> =
     service.getCorePersonMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
-  /* wip
-  @GetMapping("/person/cpr-id/{cprCorePersonId}")
+  @GetMapping("/person/cpr-id/{cprId}")
   @Operation(
     summary = "Get core person mapping by cpr core person Id",
     description = "Retrieves the person mapping by CPR Core Person Id. Requires role ROLE_NOMIS_CORE_PERSON",
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Person mapping data"
+        description = "Person mapping data",
       ),
       ApiResponse(
         responseCode = "401",
@@ -150,8 +149,8 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   suspend fun getCorePersonMappingByCprId(
     @Schema(description = "CPR core person id", example = "12345", required = true)
     @PathVariable
-    cprCorePersonId: String,
-  ): CorePersonMappingDto = service.getPersonMappingByCprId(cprId = cprCorePersonId)
+    cprId: String,
+  ): CorePersonMappingDto = service.getCorePersonMappingByCprId(cprId = cprId)
 
   @GetMapping("/address/cpr-address-id/{cprAddressId}")
   @Operation(
@@ -185,8 +184,6 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     cprAddressId: String,
   ): CorePersonAddressMappingDto = service.getAddressMappingByCprId(cprId = cprAddressId)
 
-
-   */
   private suspend fun getExistingCorePersonMappingSimilarTo(personMapping: CorePersonMappingIdDto) = runCatching {
     service.getCorePersonMappingByNomisPrisonNumber(
       nomisPrisonNumber = personMapping.nomisPrisonNumber,
