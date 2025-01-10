@@ -9,20 +9,21 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
+import java.time.LocalDateTime
 
 @Service
 @Transactional(readOnly = true)
 class CorePersonService(
   private val corePersonMappingRepository: CorePersonMappingRepository,
-  // private val corePersonAddressMappingRepository: CorePersonAddressMappingRepository,
+  private val corePersonAddressMappingRepository: CorePersonAddressMappingRepository,
 ) {
   @Transactional
   suspend fun createMappings(mappings: CorePersonMappingsDto) {
     with(mappings) {
       corePersonMappingRepository.save(toCorePersonMapping())
-      // addressMappings.forEach {
-      //  corePersonAddressMappingRepository.save(toMapping(it))
-      // }
+      addressMappings.forEach {
+        corePersonAddressMappingRepository.save(toMapping(it))
+      }
     }
   }
 
@@ -64,13 +65,10 @@ class CorePersonService(
     corePersonMappingRepository.findOneByCprId(cprId = cprId)
       ?.toDto()
 
-  /*
   suspend fun getAddressMappingByCprId(cprId: String) =
     corePersonAddressMappingRepository.findOneByCprId(cprId = cprId)
       ?.toDto()
       ?: throw NotFoundException("No person address mapping found for cprId=$cprId")
-
-   */
 }
 
 private fun CorePersonMappingsDto.toCorePersonMapping() = CorePersonMapping(
@@ -89,7 +87,6 @@ private fun CorePersonMapping.toDto() = CorePersonMappingDto(
   whenCreated = whenCreated,
 )
 
-/*
 private fun CorePersonAddressMapping.toDto() = CorePersonAddressMappingDto(
   cprId = cprId,
   nomisId = nomisId,
@@ -112,4 +109,3 @@ private inline fun <reified T : AbstractCorePersonMapping> CorePersonMappingsDto
     this.mappingType,
     this.whenCreated,
   )
-*/

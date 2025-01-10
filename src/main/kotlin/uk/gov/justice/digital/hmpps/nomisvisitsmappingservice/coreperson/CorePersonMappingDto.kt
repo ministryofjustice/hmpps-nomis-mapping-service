@@ -15,9 +15,9 @@ data class CorePersonMappingsDto(
   val whenCreated: LocalDateTime? = null,
   @Schema(description = "Core Person mapping")
   val personMapping: CorePersonMappingIdDto,
-  // @Schema(description = "Core Person address mappings")
-  // val addressMappings: List<CorePersonSimpleMappingIdDto>,
-  // TODO add more child mappings here
+  @Schema(description = "Core Person address mappings")
+  val addressMappings: List<CorePersonSimpleMappingIdDto>,
+  // TODO add more child mappings
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -46,7 +46,6 @@ class CorePersonMappingDto(
   whenCreated: LocalDateTime?,
 ) : AbstractCorePersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
 
-/*
 class CorePersonAddressMappingDto(
   @Schema(description = "CPR id")
   val cprId: String,
@@ -56,7 +55,6 @@ class CorePersonAddressMappingDto(
   mappingType: CorePersonMappingType,
   whenCreated: LocalDateTime?,
 ) : AbstractCorePersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
- */
 
 abstract class AbstractCorePersonMappingDto(
   @Schema(description = "Label (a timestamp for migrated ids)")

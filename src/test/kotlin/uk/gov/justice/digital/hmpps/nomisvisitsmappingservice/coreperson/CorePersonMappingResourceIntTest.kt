@@ -24,12 +24,12 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var corePersonMappingRepository: CorePersonMappingRepository
 
-  // @Autowired
-  // private lateinit var corePersonAddressMappingRepository: CorePersonAddressMappingRepository
+  @Autowired
+  private lateinit var corePersonAddressMappingRepository: CorePersonAddressMappingRepository
 
   @AfterEach
   fun tearDown() = runTest {
-    // corePersonAddressMappingRepository.deleteAll()
+    corePersonAddressMappingRepository.deleteAll()
     corePersonMappingRepository.deleteAll()
   }
 
@@ -47,7 +47,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         label = null,
         mappingType = CorePersonMappingType.CPR_CREATED,
         whenCreated = LocalDateTime.now(),
-        // addressMappings = emptyList(),
+        addressMappings = emptyList(),
       )
 
       @Test
@@ -95,7 +95,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         label = null,
         mappingType = CorePersonMappingType.MIGRATED,
         whenCreated = LocalDateTime.now(),
-        // addressMappings = emptyList(),
+        addressMappings = emptyList(),
       )
 
       @BeforeEach
@@ -108,7 +108,6 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
             mappingType = CorePersonMappingType.MIGRATED,
           ),
         )
-        /*
         corePersonAddressMappingRepository.save(
           CorePersonAddressMapping(
             cprId = "18e89dec-6ace-4706-9283-8e11e9ebe886",
@@ -119,7 +118,6 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
             mappingType = CorePersonMappingType.MIGRATED,
           ),
         )
-         */
       }
 
       @Test
@@ -172,7 +170,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         label = null,
         mappingType = CorePersonMappingType.CPR_CREATED,
         whenCreated = LocalDateTime.now(),
-        // addressMappings = emptyList(),
+        addressMappings = emptyList(),
       )
 
       @Test
@@ -205,10 +203,45 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         assertThat(corePersonMapping.mappingType).isEqualTo(mappings.mappingType)
         assertThat(corePersonMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
       }
+
+      @Test
+      fun `will persist the person address mapping`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/core-person/migrate")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              mappings.copy(
+                addressMappings = listOf(
+                  CorePersonSimpleMappingIdDto(cprId = "0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6", nomisId = 1),
+                  CorePersonSimpleMappingIdDto(cprId = "e96babce-4a24-49d7-8447-b45f8768f6c1", nomisId = 2),
+                ),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isCreated
+
+        with(corePersonAddressMappingRepository.findOneByNomisId(1)!!) {
+          assertThat(cprId).isEqualTo("0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6")
+          assertThat(nomisId).isEqualTo(1L)
+          assertThat(label).isEqualTo(mappings.label)
+          assertThat(mappingType).isEqualTo(mappings.mappingType)
+          assertThat(whenCreated).isCloseTo(java.time.LocalDateTime.now(), within(10, java.time.temporal.ChronoUnit.SECONDS))
+        }
+        with(corePersonAddressMappingRepository.findOneByCprId("e96babce-4a24-49d7-8447-b45f8768f6c1")!!) {
+          assertThat(cprId).isEqualTo("e96babce-4a24-49d7-8447-b45f8768f6c1")
+          assertThat(nomisId).isEqualTo(2L)
+          assertThat(label).isEqualTo(mappings.label)
+          assertThat(mappingType).isEqualTo(mappings.mappingType)
+          assertThat(whenCreated).isCloseTo(java.time.LocalDateTime.now(), within(10, java.time.temporal.ChronoUnit.SECONDS))
+        }
+      }
     }
   }
 
-  @DisplayName("GET /mapping/core-person/person/migration-id/{migrationId}")
+  @DisplayName("GET /mapping/core-person/migration-id/{migrationId}")
   @Nested
   inner class GetPersonMappingsByMigrationId {
 
@@ -216,14 +249,14 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
     inner class Security {
       @Test
       fun `access not authorised when no authority`() {
-        webTestClient.get().uri("/mapping/core-person/person/migration-id/2022-01-01T00:00:00")
+        webTestClient.get().uri("/mapping/core-person/migration-id/2022-01-01T00:00:00")
           .exchange()
           .expectStatus().isUnauthorized
       }
 
       @Test
       fun `access forbidden when no role`() {
-        webTestClient.get().uri("/mapping/core-person/person/migration-id/2022-01-01T00:00:00")
+        webTestClient.get().uri("/mapping/core-person/migration-id/2022-01-01T00:00:00")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -231,7 +264,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
 
       @Test
       fun `access forbidden with wrong role`() {
-        webTestClient.get().uri("/mapping/core-person/person/migration-id/2022-01-01T00:00:00")
+        webTestClient.get().uri("/mapping/core-person/migration-id/2022-01-01T00:00:00")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -263,7 +296,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
           ),
         )
 
-        webTestClient.get().uri("/mapping/core-person/person/migration-id/2023-01-01T12:45:12")
+        webTestClient.get().uri("/mapping/core-person/migration-id/2023-01-01T12:45:12")
           .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
           .exchange()
           .expectStatus().isOk
@@ -277,7 +310,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
 
       @Test
       fun `200 response even when no mappings are found`() {
-        webTestClient.get().uri("/mapping/core-person/person/migration-id/2044-01-01")
+        webTestClient.get().uri("/mapping/core-person/migration-id/2044-01-01")
           .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
           .exchange()
           .expectStatus().isOk
@@ -299,7 +332,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
           )
         }
         webTestClient.get().uri {
-          it.path("/mapping/core-person/person/migration-id/2023-01-01T12:45:12")
+          it.path("/mapping/core-person/migration-id/2023-01-01T12:45:12")
             .queryParam("size", "2")
             .queryParam("sort", "nomisPrisonNumber,asc")
             .build()
@@ -313,6 +346,165 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
           .jsonPath("number").isEqualTo(0)
           .jsonPath("totalPages").isEqualTo(3)
           .jsonPath("size").isEqualTo(2)
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/core-person/person/cpr-id/{cprId}")
+  inner class GetCorePersonByCprId {
+    private val cprCoreId = "12345"
+    private lateinit var personMapping: CorePersonMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      personMapping = corePersonMappingRepository.save(
+        CorePersonMapping(
+          cprId = cprCoreId,
+          nomisPrisonNumber = "A1234BC",
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/person/cpr-id/{cprId}", cprCoreId)
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/person/cpr-id/{cprId}", cprCoreId)
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/person/cpr-id/{cprId}", cprCoreId)
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `404 when mapping not found`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/person/cpr-id/{cprId}", "99999")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return the mapping data`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/person/cpr-id/{cprId}", cprCoreId)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("cprId").isEqualTo(cprCoreId)
+          .jsonPath("nomisPrisonNumber").isEqualTo("A1234BC")
+          .jsonPath("label").isEqualTo("2023-01-01T12:45:12")
+          .jsonPath("mappingType").isEqualTo("MIGRATED")
+          .jsonPath("whenCreated").isEqualTo("2023-01-01T12:45:12")
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/core-person/address/cpr-address-id/{cprAddressId}")
+  inner class GetPersonAddressByCprId {
+    private val nomisPersonAddressId = 7654321L
+    private val cprCorePersonAddressId = "1234567"
+    private lateinit var personAddressMapping: CorePersonAddressMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      personAddressMapping = corePersonAddressMappingRepository.save(
+        CorePersonAddressMapping(
+          cprId = cprCorePersonAddressId,
+          nomisId = nomisPersonAddressId,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/address/cpr-address-id/{cprAddressId}", cprCorePersonAddressId)
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/address/cpr-address-id/{cprAddressId}", cprCorePersonAddressId)
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/address/cpr-address-id/{cprAddressId}", cprCorePersonAddressId)
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `404 when mapping not found`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/address/cpr-address-id/{cprAddressId}", "99999")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return the mapping data`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/address/cpr-address-id/{cprAddressId}", cprCorePersonAddressId)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("cprId").isEqualTo(cprCorePersonAddressId)
+          .jsonPath("nomisId").isEqualTo(nomisPersonAddressId)
+          .jsonPath("label").isEqualTo("2023-01-01T12:45:12")
+          .jsonPath("mappingType").isEqualTo("MIGRATED")
+          .jsonPath("whenCreated").isEqualTo("2023-01-01T12:45:12")
       }
     }
   }
