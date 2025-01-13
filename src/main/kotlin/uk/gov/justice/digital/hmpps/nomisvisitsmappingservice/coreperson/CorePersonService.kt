@@ -54,7 +54,7 @@ class CorePersonService(
   suspend fun getCorePersonMappingByNomisPrisonNumber(nomisPrisonNumber: String) =
     corePersonMappingRepository.findOneByNomisPrisonNumber(nomisPrisonNumber = nomisPrisonNumber)
       ?.toDto()
-      ?: throw NotFoundException("No person mapping found for nomisPrisonNumber=$nomisPrisonNumber")
+      ?: throw NotFoundException("No core person mapping found for nomisPrisonNumber=$nomisPrisonNumber")
 
   suspend fun getCorePersonMappingByCprId(cprId: String) =
     corePersonMappingRepository.findOneByCprId(cprId = cprId)
@@ -71,10 +71,15 @@ class CorePersonService(
     corePersonMappingRepository.deleteAll()
   }
 
+  suspend fun getAddressMappingByNomisId(nomisId: Long) =
+    corePersonAddressMappingRepository.findOneByNomisId(nomisId = nomisId)
+      ?.toDto()
+      ?: throw NotFoundException("No core person address mapping found for nomisId=$nomisId")
+
   suspend fun getAddressMappingByCprId(cprId: String) =
     corePersonAddressMappingRepository.findOneByCprId(cprId = cprId)
       ?.toDto()
-      ?: throw NotFoundException("No person address mapping found for cprId=$cprId")
+      ?: throw NotFoundException("No core person address mapping found for cprId=$cprId")
 }
 
 private fun CorePersonMappingsDto.toCorePersonMapping() = CorePersonMapping(
