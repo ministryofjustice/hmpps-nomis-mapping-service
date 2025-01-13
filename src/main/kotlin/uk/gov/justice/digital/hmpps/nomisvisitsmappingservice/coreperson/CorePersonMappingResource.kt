@@ -336,6 +336,70 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     cprPhoneId: String,
   ): CorePersonPhoneMappingDto = service.getPhoneMappingByCprId(cprId = cprPhoneId, cprPhoneType = CprPhoneType.CORE_PERSON)
 
+  @GetMapping("/email/nomis-email-address-id/{nomisEmailAddressId}")
+  @Operation(
+    summary = "Get a core person email mapping by nomis email address Id",
+    description = "Retrieves the core person email mapping by NOMIS Email/Internet Address Id. Requires role ROLE_NOMIS_CORE_PERSON",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person email mapping data",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getCorePersonEmailMappingByNomisId(
+    @Schema(description = "NOMIS email address id", example = "12345", required = true)
+    @PathVariable
+    nomisEmailAddressId: Long,
+  ): CorePersonEmailAddressMappingDto = service.getEmailAddressMappingByNomisId(nomisId = nomisEmailAddressId)
+
+  @GetMapping("/email/cpr-email-address-id/{cprEmailAddressId}")
+  @Operation(
+    summary = "Get a core person email mapping by cpr email address Id",
+    description = "Retrieves the core person email mapping by CPR Email Address Id. Requires role ROLE_NOMIS_CORE_PERSON",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person Email mapping data",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getCorePersonEmailMappingByDpsId(
+    @Schema(description = "CPR email address id", example = "12345", required = true)
+    @PathVariable
+    cprEmailAddressId: String,
+  ): CorePersonEmailAddressMappingDto = service.getEmailAddressMappingByCprId(cprId = cprEmailAddressId)
+
   private suspend fun getExistingCorePersonMappingSimilarTo(personMapping: CorePersonMappingIdDto) = runCatching {
     service.getCorePersonMappingByNomisPrisonNumber(
       nomisPrisonNumber = personMapping.nomisPrisonNumber,
