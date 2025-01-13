@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.coreperson
 
+import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
@@ -584,6 +585,86 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
           .jsonPath("label").isEqualTo("2023-01-01T12:45:12")
           .jsonPath("mappingType").isEqualTo("MIGRATED")
           .jsonPath("whenCreated").isEqualTo("2023-01-01T12:45:12")
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("DELETE /mapping/core-person")
+  inner class DeleteAllMappings {
+    @BeforeEach
+    fun setUp() {
+      val mappings = CorePersonMappingsDto(
+        personMapping = CorePersonMappingIdDto(
+          cprId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+          nomisPrisonNumber = "A1234BC",
+        ),
+        label = null,
+        mappingType = CorePersonMappingType.CPR_CREATED,
+        whenCreated = LocalDateTime.now(),
+        addressMappings = listOf(
+          CorePersonSimpleMappingIdDto(
+            cprId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+            nomisId = 12345L,
+          ),
+        ),
+
+      )
+      webTestClient.post()
+        .uri("/mapping/core-person/migrate")
+        .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(mappings))
+        .exchange()
+        .expectStatus().isCreated
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/core-person")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/core-person")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/core-person")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `returns 204 when all mappings are deleted`() = runTest {
+        // TODO add other child mappings when implemented
+        assertThat(corePersonAddressMappingRepository.findAll().count()).isEqualTo(1)
+        assertThat(corePersonMappingRepository.findAll().count()).isEqualTo(1)
+
+        webTestClient.delete()
+          .uri("/mapping/core-person")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        // TODO add other child mappings when implemented
+        assertThat(corePersonAddressMappingRepository.findAll().count()).isEqualTo(0)
+        assertThat(corePersonMappingRepository.findAll().count()).isEqualTo(0)
       }
     }
   }
