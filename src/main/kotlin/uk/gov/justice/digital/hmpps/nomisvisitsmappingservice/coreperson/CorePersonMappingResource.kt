@@ -208,6 +208,38 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   )
   suspend fun deleteAllMappings() = service.deleteAllMappings()
 
+  @GetMapping("/address/nomis-address-id/{nomisAddressId}")
+  @Operation(
+    summary = "Get a core person address mapping by nomis address Id",
+    description = "Retrieves the core person address mapping by NOMIS Address Id. Requires role ROLE_NOMIS_CORE_PERSON",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Core Person address mapping data",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getAddressMappingByNomisId(
+    @Schema(description = "NOMIS address id", example = "12345", required = true)
+    @PathVariable
+    nomisAddressId: Long,
+  ): CorePersonAddressMappingDto = service.getAddressMappingByNomisId(nomisId = nomisAddressId)
+
   @GetMapping("/address/cpr-address-id/{cprAddressId}")
   @Operation(
     summary = "Get person address mapping by cpr core person address Id",
