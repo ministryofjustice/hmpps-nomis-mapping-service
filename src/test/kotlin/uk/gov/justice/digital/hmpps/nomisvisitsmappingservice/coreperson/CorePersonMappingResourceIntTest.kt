@@ -28,8 +28,12 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var corePersonAddressMappingRepository: CorePersonAddressMappingRepository
 
+  @Autowired
+  private lateinit var corePersonPhoneMappingRepository: CorePersonPhoneMappingRepository
+
   @AfterEach
   fun tearDown() = runTest {
+    corePersonPhoneMappingRepository.deleteAll()
     corePersonAddressMappingRepository.deleteAll()
     corePersonMappingRepository.deleteAll()
   }
@@ -49,6 +53,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         mappingType = CorePersonMappingType.CPR_CREATED,
         whenCreated = LocalDateTime.now(),
         addressMappings = emptyList(),
+        phoneMappings = emptyList(),
       )
 
       @Test
@@ -97,6 +102,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         mappingType = CorePersonMappingType.MIGRATED,
         whenCreated = LocalDateTime.now(),
         addressMappings = emptyList(),
+        phoneMappings = emptyList(),
       )
 
       @BeforeEach
@@ -172,6 +178,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         mappingType = CorePersonMappingType.CPR_CREATED,
         whenCreated = LocalDateTime.now(),
         addressMappings = emptyList(),
+        phoneMappings = emptyList(),
       )
 
       @Test
@@ -608,6 +615,13 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
             nomisId = 12345L,
           ),
         ),
+        phoneMappings = listOf(
+          CorePersonPhoneMappingIdDto(
+            cprId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+            cprPhoneType = CprPhoneType.CORE_PERSON,
+            nomisId = 12345L,
+          ),
+        ),
 
       )
       webTestClient.post()
@@ -653,6 +667,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 204 when all mappings are deleted`() = runTest {
         // TODO add other child mappings when implemented
+        assertThat(corePersonPhoneMappingRepository.findAll().count()).isEqualTo(1)
         assertThat(corePersonAddressMappingRepository.findAll().count()).isEqualTo(1)
         assertThat(corePersonMappingRepository.findAll().count()).isEqualTo(1)
 
@@ -663,6 +678,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isNoContent
 
         // TODO add other child mappings when implemented
+        assertThat(corePersonMappingRepository.findAll().count()).isEqualTo(0)
         assertThat(corePersonAddressMappingRepository.findAll().count()).isEqualTo(0)
         assertThat(corePersonMappingRepository.findAll().count()).isEqualTo(0)
       }

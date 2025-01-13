@@ -179,7 +179,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
       ),
     ],
   )
-  suspend fun getCorePersonMappingByCprId(
+  suspend fun getPersonMappingByCprId(
     @Schema(description = "CPR core person id", example = "12345", required = true)
     @PathVariable
     cprId: String,
@@ -271,6 +271,70 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     @PathVariable
     cprAddressId: String,
   ): CorePersonAddressMappingDto = service.getAddressMappingByCprId(cprId = cprAddressId)
+
+  @GetMapping("/phone/nomis-phone-id/{nomisPhoneId}")
+  @Operation(
+    summary = "Get a core person phone mapping by nomis phone Id",
+    description = "Retrieves the coreperson phone mapping by NOMIS Phone Id. Requires role ROLE_NOMIS_CORE_PERSON",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Core Person phone mapping data",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPhoneMappingByNomisId(
+    @Schema(description = "NOMIS phone id", example = "12345", required = true)
+    @PathVariable
+    nomisPhoneId: Long,
+  ): CorePersonPhoneMappingDto = service.getPhoneMappingByNomisId(nomisId = nomisPhoneId)
+
+  @GetMapping("/phone/cpr-phone-id/{cprPhoneId}")
+  @Operation(
+    summary = "Get core person phone mapping by cpr phone Id",
+    description = "Retrieves the core person phone mapping by CPR Phone Id. Requires role ROLE_NOMIS_CORE_PERSON",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Core Person phone mapping data",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPhoneMappingByCprId(
+    @Schema(description = "CPR phone id", example = "12345", required = true)
+    @PathVariable
+    cprPhoneId: String,
+  ): CorePersonPhoneMappingDto = service.getPhoneMappingByCprId(cprId = cprPhoneId, cprPhoneType = CprPhoneType.CORE_PERSON)
 
   private suspend fun getExistingCorePersonMappingSimilarTo(personMapping: CorePersonMappingIdDto) = runCatching {
     service.getCorePersonMappingByNomisPrisonNumber(
