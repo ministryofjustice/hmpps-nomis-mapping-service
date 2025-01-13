@@ -16,6 +16,7 @@ import java.time.LocalDateTime
 class CorePersonService(
   private val corePersonMappingRepository: CorePersonMappingRepository,
   private val corePersonAddressMappingRepository: CorePersonAddressMappingRepository,
+  private val corePersonPhoneMappingRepository: CorePersonPhoneMappingRepository,
 ) {
   @Transactional
   suspend fun createMappings(mappings: CorePersonMappingsDto) {
@@ -23,6 +24,9 @@ class CorePersonService(
       corePersonMappingRepository.save(toCorePersonMapping())
       addressMappings.forEach {
         corePersonAddressMappingRepository.save(toMapping(it))
+      }
+      phoneMappings.forEach {
+        corePersonPhoneMappingRepository.save(toMapping(it))
       }
     }
   }
@@ -67,6 +71,7 @@ class CorePersonService(
 
   @Transactional
   suspend fun deleteAllMappings() {
+    corePersonPhoneMappingRepository.deleteAll()
     corePersonAddressMappingRepository.deleteAll()
     corePersonMappingRepository.deleteAll()
   }
@@ -80,11 +85,44 @@ class CorePersonService(
     corePersonAddressMappingRepository.findOneByCprId(cprId = cprId)
       ?.toDto()
       ?: throw NotFoundException("No core person address mapping found for cprId=$cprId")
+
+  suspend fun getPhoneMappingByNomisId(nomisId: Long) =
+    corePersonPhoneMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
+      ?: throw NotFoundException("No core person phone mapping found for nomisId=$nomisId")
+
+  suspend fun getPhoneMappingByCprId(cprId: String, cprPhoneType: CprPhoneType) =
+    corePersonPhoneMappingRepository.findOneByCprIdAndCprPhoneType(cprId = cprId, cprPhoneType = cprPhoneType)
+      ?.toDto()
+      ?: throw NotFoundException("No core person phone mapping found for cprId=$cprId")
 }
 
 private fun CorePersonMappingsDto.toCorePersonMapping() = CorePersonMapping(
   cprId = personMapping.cprId,
   nomisPrisonNumber = personMapping.nomisPrisonNumber,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private inline fun <reified T : AbstractCorePersonMapping> CorePersonMappingsDto.toMapping(mapping: CorePersonSimpleMappingIdDto): T =
+  T::class.java.getDeclaredConstructor(
+    String::class.java,
+    Long::class.java,
+    String::class.java,
+    CorePersonMappingType::class.java,
+    LocalDateTime::class.java,
+  ).newInstance(
+    mapping.cprId,
+    mapping.nomisId,
+    this.label,
+    this.mappingType,
+    this.whenCreated,
+  )
+
+private fun CorePersonMappingsDto.toMapping(mapping: CorePersonPhoneMappingIdDto) = CorePersonPhoneMapping(
+  nomisId = mapping.nomisId,
+  cprId = mapping.cprId,
+  cprPhoneType = mapping.cprPhoneType,
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,
@@ -106,17 +144,11 @@ private fun CorePersonAddressMapping.toDto() = CorePersonAddressMappingDto(
   whenCreated = whenCreated,
 )
 
-private inline fun <reified T : AbstractCorePersonMapping> CorePersonMappingsDto.toMapping(mapping: CorePersonSimpleMappingIdDto): T =
-  T::class.java.getDeclaredConstructor(
-    String::class.java,
-    Long::class.java,
-    String::class.java,
-    CorePersonMappingType::class.java,
-    LocalDateTime::class.java,
-  ).newInstance(
-    mapping.cprId,
-    mapping.nomisId,
-    this.label,
-    this.mappingType,
-    this.whenCreated,
-  )
+private fun CorePersonPhoneMapping.toDto() = CorePersonPhoneMappingDto(
+  nomisId = nomisId,
+  cprId = cprId,
+  cprPhoneType = cprPhoneType,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)

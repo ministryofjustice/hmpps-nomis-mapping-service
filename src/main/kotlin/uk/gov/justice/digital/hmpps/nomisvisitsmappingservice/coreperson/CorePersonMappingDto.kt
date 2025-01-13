@@ -17,6 +17,8 @@ data class CorePersonMappingsDto(
   val personMapping: CorePersonMappingIdDto,
   @Schema(description = "Core Person address mappings")
   val addressMappings: List<CorePersonSimpleMappingIdDto>,
+  @Schema(description = "Core Person phone mapping")
+  val phoneMappings: List<CorePersonPhoneMappingIdDto>,
   // TODO add more child mappings
 )
 
@@ -36,6 +38,18 @@ data class CorePersonSimpleMappingIdDto(
   @Schema(description = "NOMIS id")
   val nomisId: Long,
 )
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "NOMIS to CPR phone mapping IDs")
+data class CorePersonPhoneMappingIdDto(
+  @Schema(description = "NOMIS id")
+  val nomisId: Long,
+  @Schema(description = "CPR id")
+  val cprId: String,
+  @Schema(description = "CPR phone type")
+  val cprPhoneType: CprPhoneType,
+)
+
 class CorePersonMappingDto(
   @Schema(description = "CPR id")
   val cprId: String,
@@ -51,6 +65,18 @@ class CorePersonAddressMappingDto(
   val cprId: String,
   @Schema(description = "NOMIS id")
   val nomisId: Long,
+  label: String?,
+  mappingType: CorePersonMappingType,
+  whenCreated: LocalDateTime?,
+) : AbstractCorePersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
+
+class CorePersonPhoneMappingDto(
+  @Schema(description = "CPR id")
+  val cprId: String,
+  @Schema(description = "NOMIS id")
+  val nomisId: Long,
+  @Schema(description = "CPR phone type")
+  val cprPhoneType: CprPhoneType,
   label: String?,
   mappingType: CorePersonMappingType,
   whenCreated: LocalDateTime?,
