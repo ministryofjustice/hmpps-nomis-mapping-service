@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -123,7 +124,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   @GetMapping("/person/nomis-prison-number/{nomisPrisonNumber}")
   @Operation(
     summary = "Get person mapping by nomis prison number",
-    description = "Retrieves the person a mapping by Nomis Prison Number (Offender number). Requires role ROLE_NOMIS_CORE_PERSON",
+    description = "Retrieves the core person mapping by Nomis Prison Number (Offender number). Requires role ROLE_NOMIS_CORE_PERSON",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -183,6 +184,29 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     @PathVariable
     cprId: String,
   ): CorePersonMappingDto = service.getCorePersonMappingByCprId(cprId = cprId)
+
+  @DeleteMapping
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes all core person mappings",
+    description = "Deletes all core person mappings regardless of source. This includes person and address." +
+      // TODO add other child tables in the description once implemented
+      " This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_CORE_PERSON",
+    responses = [
+      ApiResponse(responseCode = "204", description = "All mappings deleted"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteAllMappings() = service.deleteAllMappings()
 
   @GetMapping("/address/cpr-address-id/{cprAddressId}")
   @Operation(

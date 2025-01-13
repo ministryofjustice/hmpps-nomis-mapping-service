@@ -65,6 +65,12 @@ class CorePersonService(
     corePersonMappingRepository.findOneByCprId(cprId = cprId)
       ?.toDto()
 
+  @Transactional
+  suspend fun deleteAllMappings() {
+    corePersonAddressMappingRepository.deleteAll()
+    corePersonMappingRepository.deleteAll()
+  }
+
   suspend fun getAddressMappingByCprId(cprId: String) =
     corePersonAddressMappingRepository.findOneByCprId(cprId = cprId)
       ?.toDto()
