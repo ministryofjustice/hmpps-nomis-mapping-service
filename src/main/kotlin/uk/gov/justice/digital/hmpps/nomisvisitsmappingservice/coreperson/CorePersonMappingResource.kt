@@ -120,6 +120,38 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   ): Page<CorePersonMappingDto> =
     service.getCorePersonMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
+  @GetMapping("/person/nomis-prison-number/{nomisPrisonNumber}")
+  @Operation(
+    summary = "Get person mapping by nomis prison number",
+    description = "Retrieves the person a mapping by Nomis Prison Number (Offender number). Requires role ROLE_NOMIS_CORE_PERSON",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Core Person mapping data",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPersonMappingByNomisPrisonNumber(
+    @Schema(description = "NOMIS prison Number aka offender no.", example = "A1234BC", required = true)
+    @PathVariable
+    nomisPrisonNumber: String,
+  ): CorePersonMappingDto = service.getCorePersonMappingByNomisPrisonNumber(nomisPrisonNumber = nomisPrisonNumber)
+
   @GetMapping("/person/cpr-id/{cprId}")
   @Operation(
     summary = "Get core person mapping by cpr core person Id",
