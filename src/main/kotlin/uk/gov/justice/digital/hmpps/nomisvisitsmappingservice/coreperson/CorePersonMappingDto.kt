@@ -17,8 +17,10 @@ data class CorePersonMappingsDto(
   val personMapping: CorePersonMappingIdDto,
   @Schema(description = "Core Person address mappings")
   val addressMappings: List<CorePersonSimpleMappingIdDto>,
-  @Schema(description = "Core Person phone mapping")
+  @Schema(description = "Core Person phone mappings")
   val phoneMappings: List<CorePersonPhoneMappingIdDto>,
+  @Schema(description = "Core Person email mappings")
+  val emailMappings: List<CorePersonSimpleMappingIdDto>,
   // TODO add more child mappings
 )
 
@@ -77,6 +79,16 @@ class CorePersonPhoneMappingDto(
   val nomisId: Long,
   @Schema(description = "CPR phone type")
   val cprPhoneType: CprPhoneType,
+  label: String?,
+  mappingType: CorePersonMappingType,
+  whenCreated: LocalDateTime?,
+) : AbstractCorePersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
+
+class CorePersonEmailAddressMappingDto(
+  @Schema(description = "CPR id")
+  val cprId: String,
+  @Schema(description = "NOMIS id")
+  val nomisId: Long,
   label: String?,
   mappingType: CorePersonMappingType,
   whenCreated: LocalDateTime?,

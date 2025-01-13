@@ -31,8 +31,12 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var corePersonPhoneMappingRepository: CorePersonPhoneMappingRepository
 
+  @Autowired
+  private lateinit var corePersonEmailAddressMappingRepository: CorePersonEmailAddressMappingRepository
+
   @AfterEach
   fun tearDown() = runTest {
+    corePersonEmailAddressMappingRepository.deleteAll()
     corePersonPhoneMappingRepository.deleteAll()
     corePersonAddressMappingRepository.deleteAll()
     corePersonMappingRepository.deleteAll()
@@ -54,6 +58,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         whenCreated = LocalDateTime.now(),
         addressMappings = emptyList(),
         phoneMappings = emptyList(),
+        emailMappings = emptyList(),
       )
 
       @Test
@@ -103,6 +108,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         whenCreated = LocalDateTime.now(),
         addressMappings = emptyList(),
         phoneMappings = emptyList(),
+        emailMappings = emptyList(),
       )
 
       @BeforeEach
@@ -179,6 +185,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         whenCreated = LocalDateTime.now(),
         addressMappings = emptyList(),
         phoneMappings = emptyList(),
+        emailMappings = emptyList(),
       )
 
       @Test
@@ -193,7 +200,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       }
 
       @Test
-      fun `will persist the person mapping`() = runTest {
+      fun `will persist the core person mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/core-person/migrate")
           .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
@@ -213,7 +220,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       }
 
       @Test
-      fun `will persist the person address mapping`() = runTest {
+      fun `will persist the core person address mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/core-person/migrate")
           .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
@@ -236,17 +243,142 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
           assertThat(nomisId).isEqualTo(1L)
           assertThat(label).isEqualTo(mappings.label)
           assertThat(mappingType).isEqualTo(mappings.mappingType)
-          assertThat(whenCreated).isCloseTo(java.time.LocalDateTime.now(), within(10, java.time.temporal.ChronoUnit.SECONDS))
+          assertThat(whenCreated).isCloseTo(
+            LocalDateTime.now(),
+            within(10, ChronoUnit.SECONDS),
+          )
         }
         with(corePersonAddressMappingRepository.findOneByCprId("e96babce-4a24-49d7-8447-b45f8768f6c1")!!) {
           assertThat(cprId).isEqualTo("e96babce-4a24-49d7-8447-b45f8768f6c1")
           assertThat(nomisId).isEqualTo(2L)
           assertThat(label).isEqualTo(mappings.label)
           assertThat(mappingType).isEqualTo(mappings.mappingType)
-          assertThat(whenCreated).isCloseTo(java.time.LocalDateTime.now(), within(10, java.time.temporal.ChronoUnit.SECONDS))
+          assertThat(whenCreated).isCloseTo(
+            LocalDateTime.now(),
+            within(10, ChronoUnit.SECONDS),
+          )
+        }
+      }
+
+      @Test
+      fun `will persist the core person phone mapping`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/core-person/migrate")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              mappings.copy(
+                phoneMappings = listOf(
+                  CorePersonPhoneMappingIdDto(
+                    cprId = "0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6",
+                    cprPhoneType = CprPhoneType.CORE_PERSON,
+                    nomisId = 1,
+                  ),
+                  CorePersonPhoneMappingIdDto(
+                    cprId = "e96babce-4a24-49d7-8447-b45f8768f6c1",
+                    cprPhoneType = CprPhoneType.CORE_PERSON,
+                    nomisId = 2,
+                  ),
+                  CorePersonPhoneMappingIdDto(
+                    cprId = "e96babce-4a24-49d7-8447-b45f8768f6c1",
+                    cprPhoneType = CprPhoneType.ADDRESS,
+                    nomisId = 3,
+                  ),
+                ),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isCreated
+
+        with(corePersonPhoneMappingRepository.findOneByNomisId(1)!!) {
+          assertThat(cprId).isEqualTo("0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6")
+          assertThat(cprPhoneType).isEqualTo(CprPhoneType.CORE_PERSON)
+          assertThat(nomisId).isEqualTo(1L)
+          assertThat(label).isEqualTo(mappings.label)
+          assertThat(mappingType).isEqualTo(mappings.mappingType)
+          assertThat(whenCreated).isCloseTo(
+            LocalDateTime.now(),
+            within(10, ChronoUnit.SECONDS),
+          )
+        }
+        with(
+          corePersonPhoneMappingRepository.findOneByCprIdAndCprPhoneType(
+            "e96babce-4a24-49d7-8447-b45f8768f6c1",
+            CprPhoneType.CORE_PERSON,
+          )!!,
+        ) {
+          assertThat(cprId).isEqualTo("e96babce-4a24-49d7-8447-b45f8768f6c1")
+          assertThat(cprPhoneType).isEqualTo(CprPhoneType.CORE_PERSON)
+          assertThat(nomisId).isEqualTo(2L)
+          assertThat(label).isEqualTo(mappings.label)
+          assertThat(mappingType).isEqualTo(mappings.mappingType)
+          assertThat(whenCreated).isCloseTo(
+            LocalDateTime.now(),
+            within(10, ChronoUnit.SECONDS),
+          )
+        }
+        with(
+          corePersonPhoneMappingRepository.findOneByCprIdAndCprPhoneType(
+            "e96babce-4a24-49d7-8447-b45f8768f6c1",
+            CprPhoneType.ADDRESS,
+          )!!,
+        ) {
+          assertThat(cprId).isEqualTo("e96babce-4a24-49d7-8447-b45f8768f6c1")
+          assertThat(cprPhoneType).isEqualTo(CprPhoneType.ADDRESS)
+          assertThat(nomisId).isEqualTo(3L)
+          assertThat(label).isEqualTo(mappings.label)
+          assertThat(mappingType).isEqualTo(mappings.mappingType)
+          assertThat(whenCreated).isCloseTo(
+            LocalDateTime.now(),
+            within(10, ChronoUnit.SECONDS),
+          )
+        }
+      }
+
+      @Test
+      fun `will persist the core person email mapping`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/core-person/migrate")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              mappings.copy(
+                emailMappings = listOf(
+                  CorePersonSimpleMappingIdDto(cprId = "0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6", nomisId = 1),
+                  CorePersonSimpleMappingIdDto(cprId = "e96babce-4a24-49d7-8447-b45f8768f6c1", nomisId = 2),
+                ),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isCreated
+
+        with(corePersonEmailAddressMappingRepository.findOneByNomisId(1)!!) {
+          assertThat(cprId).isEqualTo("0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6")
+          assertThat(nomisId).isEqualTo(1L)
+          assertThat(label).isEqualTo(mappings.label)
+          assertThat(mappingType).isEqualTo(mappings.mappingType)
+          assertThat(whenCreated).isCloseTo(
+            LocalDateTime.now(),
+            within(10, ChronoUnit.SECONDS),
+          )
+        }
+        with(corePersonEmailAddressMappingRepository.findOneByCprId("e96babce-4a24-49d7-8447-b45f8768f6c1")!!) {
+          assertThat(cprId).isEqualTo("e96babce-4a24-49d7-8447-b45f8768f6c1")
+          assertThat(nomisId).isEqualTo(2L)
+          assertThat(label).isEqualTo(mappings.label)
+          assertThat(mappingType).isEqualTo(mappings.mappingType)
+          assertThat(whenCreated).isCloseTo(
+            LocalDateTime.now(),
+            within(10, ChronoUnit.SECONDS),
+          )
         }
       }
     }
+    // TODO add other child mapping tests when implemented
   }
 
   @DisplayName("GET /mapping/core-person/migration-id/{migrationId}")
@@ -622,7 +754,12 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
             nomisId = 12345L,
           ),
         ),
-
+        emailMappings = listOf(
+          CorePersonSimpleMappingIdDto(
+            cprId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+            nomisId = 12345L,
+          ),
+        ),
       )
       webTestClient.post()
         .uri("/mapping/core-person/migrate")
@@ -667,6 +804,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 204 when all mappings are deleted`() = runTest {
         // TODO add other child mappings when implemented
+        assertThat(corePersonEmailAddressMappingRepository.findAll().count()).isEqualTo(1)
         assertThat(corePersonPhoneMappingRepository.findAll().count()).isEqualTo(1)
         assertThat(corePersonAddressMappingRepository.findAll().count()).isEqualTo(1)
         assertThat(corePersonMappingRepository.findAll().count()).isEqualTo(1)
@@ -678,6 +816,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isNoContent
 
         // TODO add other child mappings when implemented
+        assertThat(corePersonEmailAddressMappingRepository.findAll().count()).isEqualTo(0)
         assertThat(corePersonMappingRepository.findAll().count()).isEqualTo(0)
         assertThat(corePersonAddressMappingRepository.findAll().count()).isEqualTo(0)
         assertThat(corePersonMappingRepository.findAll().count()).isEqualTo(0)
