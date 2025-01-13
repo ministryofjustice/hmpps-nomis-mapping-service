@@ -243,7 +243,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
 
   @DisplayName("GET /mapping/core-person/migration-id/{migrationId}")
   @Nested
-  inner class GetPersonMappingsByMigrationId {
+  inner class GetCorePersonMappingsByMigrationId {
 
     @Nested
     inner class Security {
@@ -346,6 +346,85 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
           .jsonPath("number").isEqualTo(0)
           .jsonPath("totalPages").isEqualTo(3)
           .jsonPath("size").isEqualTo(2)
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/core-person/person/nomis-prison-number/{nomisPrisonNumber}")
+  inner class GetCorePersonByNomisPrisonNumber {
+    private val nomisPrisonNumber = "A1234BC"
+    private lateinit var personMapping: CorePersonMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      personMapping = corePersonMappingRepository.save(
+        CorePersonMapping(
+          cprId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/person/nomis-prison-number/{nomisPrisonNumber}", nomisPrisonNumber)
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/person/nomis-prison-number/{nomisPrisonNumber}", nomisPrisonNumber)
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/person/nomis-prison-number/{nomisPrisonNumber}", nomisPrisonNumber)
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `404 when mapping not found`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/person/nomis-prison-number/{nomisPrisonNumber}", 99999)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return the mapping data`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/person/nomis-prison-number/{nomisPrisonNumber}", nomisPrisonNumber)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("cprId").isEqualTo("edcd118c-41ba-42ea-b5c4-404b453ad58b")
+          .jsonPath("nomisPrisonNumber").isEqualTo(nomisPrisonNumber)
+          .jsonPath("label").isEqualTo("2023-01-01T12:45:12")
+          .jsonPath("mappingType").isEqualTo("MIGRATED")
+          .jsonPath("whenCreated").isEqualTo("2023-01-01T12:45:12")
       }
     }
   }
