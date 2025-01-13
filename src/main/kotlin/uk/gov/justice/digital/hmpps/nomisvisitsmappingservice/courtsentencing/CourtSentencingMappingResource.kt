@@ -153,7 +153,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
       throw DuplicateMappingException(
         messageIn = "Court Case mapping or child mapping already exists",
         duplicate = mapping,
-        existing = existingMapping,
+        existing = existingMapping ?: mapping,
         cause = e,
       )
     }
