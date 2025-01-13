@@ -31,6 +31,7 @@ private const val NOMIS_COURT_CASE_ID = 54321L
 private const val DPS_COURT_CASE_ID = "dps123"
 private const val EXISTING_DPS_COURT_CASE_ID = "DPS321"
 private const val EXISTING_NOMIS_COURT_CASE_ID = 98765L
+private const val EXISTING_NOMIS_COURT_APPEARANCE_ID = 98733L
 
 class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
   @Autowired
@@ -255,6 +256,13 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
           nomisCourtCaseId = EXISTING_NOMIS_COURT_CASE_ID,
           label = "2023-01-01T12:45:12",
           mappingType = CourtCaseMappingType.MIGRATED,
+        ),
+      )
+      courtAppearanceRepository.save(
+        CourtAppearanceMapping(
+          nomisCourtAppearanceId = EXISTING_NOMIS_COURT_APPEARANCE_ID,
+          dpsCourtAppearanceId = "dps123",
+          mappingType = CourtAppearanceMappingType.NOMIS_CREATED,
         ),
       )
     }
@@ -534,6 +542,44 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
           assertThat(this.moreInfo.duplicate)
             .containsEntry("nomisCourtCaseId", 8877)
             .containsEntry("dpsCourtCaseId", existingMapping.dpsCourtCaseId)
+        }
+      }
+
+      @Test
+      fun `returns 409 and mapping dto if child is duplicate`() {
+        val duplicateResponse = webTestClient.post()
+          .uri("/mapping/court-sentencing/court-cases")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CourtCaseAllMappingDto(
+                // case ids are fine
+                nomisCourtCaseId = NOMIS_COURT_CASE_ID,
+                dpsCourtCaseId = DPS_COURT_CASE_ID,
+                courtAppearances = listOf(
+                  CourtAppearanceMappingDto(
+                    dpsCourtAppearanceId = "1234",
+                    nomisCourtAppearanceId = EXISTING_NOMIS_COURT_APPEARANCE_ID,
+                  ),
+                ),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isEqualTo(409)
+          .expectBody(
+            object :
+              ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
+          )
+          .returnResult().responseBody
+
+        with(duplicateResponse!!) {
+          // for a duplicate child  - will return the original mapping with some decent logging to help debug
+          assertThat(this.moreInfo.existing)
+            .containsEntry("nomisCourtCaseId", NOMIS_COURT_CASE_ID.toInt())
+          assertThat(this.moreInfo.duplicate)
+            .containsEntry("nomisCourtCaseId", NOMIS_COURT_CASE_ID.toInt())
         }
       }
     }

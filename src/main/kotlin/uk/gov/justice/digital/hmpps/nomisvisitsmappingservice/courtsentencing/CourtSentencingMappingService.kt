@@ -31,10 +31,26 @@ class CourtSentencingMappingService(
       courtCaseMappingRepository.save(createMappingRequest.toCourtCaseMapping())
         .also {
           createMappingRequest.courtAppearances.forEach {
-            createCourtAppearanceMapping(it)
+            try {
+              createCourtAppearanceMapping(it)
+            } catch (e: Exception) {
+              log.info(
+                "Failed to create court appearance mapping for dpsCourtAppearanceId=${it.dpsCourtAppearanceId}, nomisCourtAppearanceId=${it.nomisCourtAppearanceId}, dpsCourtCaseId=${createMappingRequest.dpsCourtCaseId} and nomisCourtCaseId=${createMappingRequest.nomisCourtCaseId}",
+                e,
+              )
+              throw e
+            }
           }
           createMappingRequest.courtCharges.forEach {
-            createCourtChargeMapping(it)
+            try {
+              createCourtChargeMapping(it)
+            } catch (e: Exception) {
+              log.info(
+                "Failed to create court charge mapping for dpsCourtChargeId=${it.dpsCourtChargeId}, nomisCourtAppearanceId=${it.nomisCourtChargeId}, dpsCourtCaseId=${createMappingRequest.dpsCourtCaseId} and nomisCourtCaseId=${createMappingRequest.nomisCourtCaseId}",
+                e,
+              )
+              throw e
+            }
           }
           telemetryClient.trackEvent(
             "court-case-mapping-created",
@@ -141,7 +157,10 @@ class CourtSentencingMappingService(
 
   @Transactional
   suspend fun deleteSentenceMappingByNomisId(bookingId: Long, sentenceSequence: Int) =
-    sentenceMappingRepository.deleteByNomisBookingIdAndNomisSentenceSequence(nomisBookingId = bookingId, nomisSentenceSeq = sentenceSequence).also {
+    sentenceMappingRepository.deleteByNomisBookingIdAndNomisSentenceSequence(
+      nomisBookingId = bookingId,
+      nomisSentenceSeq = sentenceSequence,
+    ).also {
       telemetryClient.trackEvent(
         "sentence-mapping-deleted",
         mapOf(
@@ -207,35 +226,39 @@ class CourtSentencingMappingService(
       ?: throw NotFoundException("Sentence mapping not found with dpsSentenceId =$dpsSentenceId")
 
   suspend fun getSentenceAllMappingByNomisId(nomisBookingId: Long, nomisSentenceSeq: Int): SentenceMappingDto =
-    sentenceMappingRepository.findByNomisBookingIdAndNomisSentenceSequence(nomisBookingId = nomisBookingId, nomisSentenceSeq = nomisSentenceSeq)?.toSentenceAllMappingDto()
+    sentenceMappingRepository.findByNomisBookingIdAndNomisSentenceSequence(
+      nomisBookingId = nomisBookingId,
+      nomisSentenceSeq = nomisSentenceSeq,
+    )?.toSentenceAllMappingDto()
       ?: throw NotFoundException("Sentence mapping not found with nomisBookingId =$nomisBookingId, nomisSentenceSeq =$nomisSentenceSeq")
 
   @Transactional
   suspend fun deleteCourtChargeMappingByNomisId(courtChargeId: Long) =
     courtChargeMappingRepository.deleteByNomisCourtChargeId(courtChargeId)
 
-  suspend fun getCourtCaseMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<CourtCaseMappingDto> = coroutineScope {
-    val mappings = async {
-      courtCaseMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
-        label = migrationId,
-        mappingType = CourtCaseMappingType.MIGRATED,
-        pageRequest = pageRequest,
+  suspend fun getCourtCaseMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<CourtCaseMappingDto> =
+    coroutineScope {
+      val mappings = async {
+        courtCaseMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+          label = migrationId,
+          mappingType = CourtCaseMappingType.MIGRATED,
+          pageRequest = pageRequest,
+        )
+      }
+
+      val count = async {
+        courtCaseMappingRepository.countAllByLabelAndMappingType(
+          migrationId = migrationId,
+          mappingType = CourtCaseMappingType.MIGRATED,
+        )
+      }
+
+      PageImpl(
+        mappings.await().toList().map { it.toCourtCaseMappingDto() },
+        pageRequest,
+        count.await(),
       )
     }
-
-    val count = async {
-      courtCaseMappingRepository.countAllByLabelAndMappingType(
-        migrationId = migrationId,
-        mappingType = CourtCaseMappingType.MIGRATED,
-      )
-    }
-
-    PageImpl(
-      mappings.await().toList().map { it.toCourtCaseMappingDto() },
-      pageRequest,
-      count.await(),
-    )
-  }
 }
 
 fun CourtCaseMapping.toCourtCaseMappingDto(): CourtCaseMappingDto = CourtCaseMappingDto(
@@ -271,13 +294,14 @@ fun CourtAppearanceMapping.toCourtAppearanceMappingDto(): CourtAppearanceMapping
 )
 
 // on duplicate the calling service are expecting CourtAppearanceAllMappingDto to be returned, child entities are NOT populated
-fun CourtAppearanceMapping.toCourtAppearanceAllMappingDto(): CourtAppearanceAllMappingDto = CourtAppearanceAllMappingDto(
-  dpsCourtAppearanceId = this.dpsCourtAppearanceId,
-  nomisCourtAppearanceId = this.nomisCourtAppearanceId,
-  label = this.label,
-  mappingType = this.mappingType,
-  whenCreated = this.whenCreated,
-)
+fun CourtAppearanceMapping.toCourtAppearanceAllMappingDto(): CourtAppearanceAllMappingDto =
+  CourtAppearanceAllMappingDto(
+    dpsCourtAppearanceId = this.dpsCourtAppearanceId,
+    nomisCourtAppearanceId = this.nomisCourtAppearanceId,
+    label = this.label,
+    mappingType = this.mappingType,
+    whenCreated = this.whenCreated,
+  )
 
 fun CourtAppearanceMappingDto.toCourtAppearanceMapping(): CourtAppearanceMapping = CourtAppearanceMapping(
   dpsCourtAppearanceId = this.dpsCourtAppearanceId,
