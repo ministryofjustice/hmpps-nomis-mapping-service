@@ -769,4 +769,83 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       }
     }
   }
+
+  @Nested
+  @DisplayName("GET /mapping/corporate/corporate/nomis-corporate-id/{corporateId}")
+  inner class GetCorporateByNomisId {
+    private val nomisCorporateId = 12345L
+    private lateinit var corporateMapping: CorporateMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      corporateMapping = corporateMappingRepository.save(
+        CorporateMapping(
+          dpsId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          nomisId = nomisCorporateId,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorporateMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/corporate/corporate/nomis-corporate-id/{corporateId}", nomisCorporateId)
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/corporate/corporate/nomis-corporate-id/{corporateId}", nomisCorporateId)
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/corporate/corporate/nomis-corporate-id/{corporateId}", nomisCorporateId)
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `404 when mapping not found`() {
+        webTestClient.get()
+          .uri("/mapping/corporate/corporate/nomis-corporate-id/{corporateId}", 99999)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return the mapping data`() {
+        webTestClient.get()
+          .uri("/mapping/corporate/corporate/nomis-corporate-id/{corporateId}", nomisCorporateId)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("dpsId").isEqualTo("edcd118c-41ba-42ea-b5c4-404b453ad58b")
+          .jsonPath("nomisId").isEqualTo(nomisCorporateId)
+          .jsonPath("label").isEqualTo("2023-01-01T12:45:12")
+          .jsonPath("mappingType").isEqualTo("MIGRATED")
+          .jsonPath("whenCreated").isEqualTo("2023-01-01T12:45:12")
+      }
+    }
+  }
 }

@@ -163,6 +163,41 @@ class CorporateMappingResource(private val service: CorporateService) {
   ): Page<CorporateMappingDto> =
     service.getAllCorporateMappings(pageRequest = pageRequest)
 
+  @GetMapping("/corporate/nomis-corporate-id/{nomisCorporateId}")
+  @Operation(
+    summary = "Get corporate mapping by nomis corporate Id",
+    description = "Retrieves the corporate mapping by NOMIS Corporate Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Corporate mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = CorporateMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getCorporateMappingByNomisId(
+    @Schema(description = "NOMIS corporate id", example = "12345", required = true)
+    @PathVariable
+    nomisCorporateId: Long,
+  ): CorporateMappingDto = service.getCorporateMappingByNomisId(nomisId = nomisCorporateId)
+
   private suspend fun getExistingCorporateMappingSimilarTo(corporateMapping: CorporateMappingIdDto) = runCatching {
     service.getCorporateMappingByNomisId(
       nomisId = corporateMapping.nomisId,
