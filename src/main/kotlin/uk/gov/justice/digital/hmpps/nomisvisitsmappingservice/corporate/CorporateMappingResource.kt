@@ -94,7 +94,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Person mapping page returned",
+        description = "Corporate mapping page returned",
       ),
       ApiResponse(
         responseCode = "401",
