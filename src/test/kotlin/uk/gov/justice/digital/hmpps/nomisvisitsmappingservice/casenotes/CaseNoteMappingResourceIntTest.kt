@@ -207,7 +207,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isOk
 
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/$DPS_CASENOTE_ID")
+          .uri("/mapping/casenotes/dps-casenote-id/$DPS_CASENOTE_ID/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isOk
@@ -799,84 +799,6 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("GET /mapping/casenotes/dps-casenote-id/{dpsCaseNoteId}")
-  inner class GetMappingByDpsId {
-    lateinit var mapping: CaseNoteMapping
-
-    @BeforeEach
-    fun setUp() = runTest {
-      mapping = repository.save(
-        CaseNoteMapping(
-          dpsCaseNoteId = UUID.fromString(DPS_CASENOTE_ID2),
-          nomisCaseNoteId = 54321L,
-          offenderNo = OFFENDER_NO,
-          nomisBookingId = 1,
-          label = "2023-01-01T12:45:12",
-          mappingType = CaseNoteMappingType.MIGRATED,
-        ),
-      )
-    }
-
-    @Nested
-    inner class Security {
-      @Test
-      fun `access not authorised when no authority`() {
-        webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/${mapping.dpsCaseNoteId}")
-          .exchange()
-          .expectStatus().isUnauthorized
-      }
-
-      @Test
-      fun `access forbidden when no role`() {
-        webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/${mapping.dpsCaseNoteId}")
-          .headers(setAuthorisation(roles = listOf()))
-          .exchange()
-          .expectStatus().isForbidden
-      }
-
-      @Test
-      fun `access forbidden with wrong role`() {
-        webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/${mapping.dpsCaseNoteId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
-          .exchange()
-          .expectStatus().isForbidden
-      }
-    }
-
-    @Nested
-    inner class HappyPath {
-      @Test
-      fun `will return 404 when mapping does not exist`() {
-        webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/00001111-0000-0000-0000-000011112222")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
-          .exchange()
-          .expectStatus().isNotFound
-      }
-
-      @Test
-      fun `will return 200 when mapping does exist`() {
-        webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/${mapping.dpsCaseNoteId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisCaseNoteId").isEqualTo(mapping.nomisCaseNoteId)
-          .jsonPath("dpsCaseNoteId").isEqualTo(mapping.dpsCaseNoteId.toString())
-          .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
-          .jsonPath("label").isEqualTo(mapping.label!!)
-          .jsonPath("whenCreated").value<String> {
-            assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
-          }
-      }
-    }
-  }
-
-  @Nested
   @DisplayName("GET /mapping/casenotes/dps-casenote-id/{dpsCaseNoteId}/all")
   inner class GetMappingsByDpsId {
     lateinit var mapping1: CaseNoteMapping
@@ -1374,7 +1296,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 204 when mapping does exist and is deleted`() {
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/${mapping.dpsCaseNoteId}")
+          .uri("/mapping/casenotes/dps-casenote-id/${mapping.dpsCaseNoteId}/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isOk
@@ -1386,7 +1308,7 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isNoContent
 
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/${mapping.dpsCaseNoteId}")
+          .uri("/mapping/casenotes/dps-casenote-id/${mapping.dpsCaseNoteId}/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isNotFound
@@ -1474,21 +1396,21 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
 
         // first record has changed
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/$dps1")
+          .uri("/mapping/casenotes/dps-casenote-id/$dps1/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("offenderNo").isEqualTo("B5678BB")
+          .jsonPath("$[0].offenderNo").isEqualTo("B5678BB")
 
         // second has not
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/$dps2")
+          .uri("/mapping/casenotes/dps-casenote-id/$dps2/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
+          .jsonPath("$[0].offenderNo").isEqualTo("A1234BB")
       }
 
       @Test
@@ -1499,34 +1421,34 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isOk
 
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/$dps1")
+          .uri("/mapping/casenotes/dps-casenote-id/$dps1/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCaseNoteId").isEqualTo(54321)
-          .jsonPath("offenderNo").isEqualTo("A1234AA")
-          .jsonPath("nomisBookingId").isEqualTo(1)
+          .jsonPath("$[0].nomisCaseNoteId").isEqualTo(54321)
+          .jsonPath("$[0].offenderNo").isEqualTo("A1234AA")
+          .jsonPath("$[0].nomisBookingId").isEqualTo(1)
 
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/$dps2")
+          .uri("/mapping/casenotes/dps-casenote-id/$dps2/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCaseNoteId").isEqualTo(54322)
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
-          .jsonPath("nomisBookingId").isEqualTo(2)
+          .jsonPath("$[0].nomisCaseNoteId").isEqualTo(54322)
+          .jsonPath("$[0].offenderNo").isEqualTo("A1234BB")
+          .jsonPath("$[0].nomisBookingId").isEqualTo(2)
 
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/$dps3")
+          .uri("/mapping/casenotes/dps-casenote-id/$dps3/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCaseNoteId").isEqualTo(54323)
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
-          .jsonPath("nomisBookingId").isEqualTo(2)
+          .jsonPath("$[0].nomisCaseNoteId").isEqualTo(54323)
+          .jsonPath("$[0].offenderNo").isEqualTo("A1234BB")
+          .jsonPath("$[0].nomisBookingId").isEqualTo(2)
       }
 
       @Test
@@ -1537,34 +1459,34 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isOk
 
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/$dps1")
+          .uri("/mapping/casenotes/dps-casenote-id/$dps1/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCaseNoteId").isEqualTo(54321)
-          .jsonPath("offenderNo").isEqualTo("A1234AA")
-          .jsonPath("nomisBookingId").isEqualTo(1)
+          .jsonPath("$[0].nomisCaseNoteId").isEqualTo(54321)
+          .jsonPath("$[0].offenderNo").isEqualTo("A1234AA")
+          .jsonPath("$[0].nomisBookingId").isEqualTo(1)
 
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/$dps2")
+          .uri("/mapping/casenotes/dps-casenote-id/$dps2/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCaseNoteId").isEqualTo(54322)
-          .jsonPath("offenderNo").isEqualTo("B5678BB")
-          .jsonPath("nomisBookingId").isEqualTo(2)
+          .jsonPath("$[0].nomisCaseNoteId").isEqualTo(54322)
+          .jsonPath("$[0].offenderNo").isEqualTo("B5678BB")
+          .jsonPath("$[0].nomisBookingId").isEqualTo(2)
 
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/$dps3")
+          .uri("/mapping/casenotes/dps-casenote-id/$dps3/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCaseNoteId").isEqualTo(54323)
-          .jsonPath("offenderNo").isEqualTo("B5678BB")
-          .jsonPath("nomisBookingId").isEqualTo(2)
+          .jsonPath("$[0].nomisCaseNoteId").isEqualTo(54323)
+          .jsonPath("$[0].offenderNo").isEqualTo("B5678BB")
+          .jsonPath("$[0].nomisBookingId").isEqualTo(2)
       }
     }
   }
@@ -1660,21 +1582,21 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
 
         // Check first record has changed
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/$dps1")
+          .uri("/mapping/casenotes/dps-casenote-id/$dps1/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("offenderNo").isEqualTo("B5678BB")
+          .jsonPath("$[0].offenderNo").isEqualTo("B5678BB")
 
         // second has not
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/$dps2")
+          .uri("/mapping/casenotes/dps-casenote-id/$dps2/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
+          .jsonPath("$[0].offenderNo").isEqualTo("A1234BB")
       }
 
       @Test
@@ -1687,34 +1609,34 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           .json("[]")
 
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/$dps1")
+          .uri("/mapping/casenotes/dps-casenote-id/$dps1/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCaseNoteId").isEqualTo(54321)
-          .jsonPath("offenderNo").isEqualTo("A1234AA")
-          .jsonPath("nomisBookingId").isEqualTo(1)
+          .jsonPath("$[0].nomisCaseNoteId").isEqualTo(54321)
+          .jsonPath("$[0].offenderNo").isEqualTo("A1234AA")
+          .jsonPath("$[0].nomisBookingId").isEqualTo(1)
 
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/$dps2")
+          .uri("/mapping/casenotes/dps-casenote-id/$dps2/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCaseNoteId").isEqualTo(54322)
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
-          .jsonPath("nomisBookingId").isEqualTo(2)
+          .jsonPath("$[0].nomisCaseNoteId").isEqualTo(54322)
+          .jsonPath("$[0].offenderNo").isEqualTo("A1234BB")
+          .jsonPath("$[0].nomisBookingId").isEqualTo(2)
 
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/$dps3")
+          .uri("/mapping/casenotes/dps-casenote-id/$dps3/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCaseNoteId").isEqualTo(54323)
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
-          .jsonPath("nomisBookingId").isEqualTo(2)
+          .jsonPath("$[0].nomisCaseNoteId").isEqualTo(54323)
+          .jsonPath("$[0].offenderNo").isEqualTo("A1234BB")
+          .jsonPath("$[0].nomisBookingId").isEqualTo(2)
       }
 
       @Test
@@ -1741,34 +1663,34 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
           )
 
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/$dps1")
+          .uri("/mapping/casenotes/dps-casenote-id/$dps1/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCaseNoteId").isEqualTo(54321)
-          .jsonPath("offenderNo").isEqualTo("A1234AA")
-          .jsonPath("nomisBookingId").isEqualTo(1)
+          .jsonPath("$[0].nomisCaseNoteId").isEqualTo(54321)
+          .jsonPath("$[0].offenderNo").isEqualTo("A1234AA")
+          .jsonPath("$[0].nomisBookingId").isEqualTo(1)
 
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/$dps2")
+          .uri("/mapping/casenotes/dps-casenote-id/$dps2/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCaseNoteId").isEqualTo(54322)
-          .jsonPath("offenderNo").isEqualTo("B5678BB")
-          .jsonPath("nomisBookingId").isEqualTo(2)
+          .jsonPath("$[0].nomisCaseNoteId").isEqualTo(54322)
+          .jsonPath("$[0].offenderNo").isEqualTo("B5678BB")
+          .jsonPath("$[0].nomisBookingId").isEqualTo(2)
 
         webTestClient.get()
-          .uri("/mapping/casenotes/dps-casenote-id/$dps3")
+          .uri("/mapping/casenotes/dps-casenote-id/$dps3/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("nomisCaseNoteId").isEqualTo(54323)
-          .jsonPath("offenderNo").isEqualTo("B5678BB")
-          .jsonPath("nomisBookingId").isEqualTo(2)
+          .jsonPath("$[0].nomisCaseNoteId").isEqualTo(54323)
+          .jsonPath("$[0].offenderNo").isEqualTo("B5678BB")
+          .jsonPath("$[0].nomisBookingId").isEqualTo(2)
       }
     }
 
