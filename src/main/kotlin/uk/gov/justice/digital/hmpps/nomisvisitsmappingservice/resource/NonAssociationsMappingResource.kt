@@ -290,4 +290,37 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
     @PathVariable
     newOffenderNo: String,
   ) = mappingService.updateMappingsByNomisId(oldOffenderNo, newOffenderNo)
+
+  @PutMapping("/update-list/from/{oldOffenderNo}/to/{newOffenderNo}")
+  @Operation(
+    summary = "Updates mappings in list",
+    description = "Updates mappings for a given list of non-association pairs. Requires role NOMIS_NON_ASSOCIATIONS",
+    responses = [
+      ApiResponse(responseCode = "200", description = "Mappings updated"),
+      ApiResponse(
+        responseCode = "400",
+        description = "Invalid request",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun updateMappingsInList(
+    @Schema(description = "Old prisoner number to replace", example = "A3456KM", required = true)
+    @PathVariable
+    oldOffenderNo: String,
+    @Schema(description = "New prisoner number to use", example = "A3457LZ", required = true)
+    @PathVariable
+    newOffenderNo: String,
+    @Schema(description = "List of other prisoner numbers whose NA mappings with oldOffenderNo should have oldOffenderNo updated to newOffenderNo.", required = true)
+    @RequestBody
+    @Valid
+    nonAssociations: List<String>,
+  ) {
+    mappingService.updateMappingsInList(oldOffenderNo, newOffenderNo, nonAssociations)
+  }
 }

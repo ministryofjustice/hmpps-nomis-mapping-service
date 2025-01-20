@@ -1199,4 +1199,168 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
       }
     }
   }
+
+  @DisplayName("PUT /mapping/non-associations/update-list/from/{oldOffenderNo}/to/{newOffenderNo}")
+  @Nested
+  inner class BookingMovedTest {
+    @AfterEach
+    internal fun deleteData() = runBlocking {
+      nonAssociationRepository.deleteAll()
+    }
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.put().uri("/mapping/non-associations/update-list/from/$FIRST_OFFENDER_NO/to/$SECOND_OFFENDER_NO")
+        .bodyValue(listOf("A1234AB", "A1234AC"))
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.put().uri("/mapping/non-associations/update-list/from/$FIRST_OFFENDER_NO/to/$SECOND_OFFENDER_NO")
+        .headers(setAuthorisation(roles = listOf()))
+        .bodyValue(listOf("A1234AB", "A1234AC"))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.put().uri("/mapping/non-associations/update-list/from/$FIRST_OFFENDER_NO/to/$SECOND_OFFENDER_NO")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .bodyValue(listOf("A1234AB", "A1234AC"))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `Move success`() {
+      postCreateNonAssociationMappingRequest(
+        nonAssociationId = 1,
+        firstOffenderNo = "A1234AA",
+        secondOffenderNo = "A1234AB",
+      )
+      postCreateNonAssociationMappingRequest(
+        nonAssociationId = 2,
+        firstOffenderNo = "A1234AC",
+        secondOffenderNo = "A1234AA",
+      )
+
+      webTestClient.put().uri("/mapping/non-associations/update-list/from/A1234AA/to/B5678BB")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .bodyValue(
+          listOf("A1234AB", "A1234AC"),
+        )
+        .exchange()
+        .expectStatus().isOk
+
+      // existing NAs have gone
+      webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/A1234AA/second-offender-no/A1234AB/type-sequence/1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isNotFound
+      webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/A1234AC/second-offender-no/A1234AA/type-sequence/1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isNotFound
+
+      // NAs now have new offender
+      val mapping = webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/B5678BB/second-offender-no/A1234AB/type-sequence/1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody(NonAssociationMappingDto::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(mapping.nonAssociationId).isEqualTo(1)
+      assertThat(mapping.firstOffenderNo).isEqualTo("B5678BB")
+      assertThat(mapping.secondOffenderNo).isEqualTo("A1234AB")
+
+      webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/A1234AC/second-offender-no/B5678BB/type-sequence/1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+    }
+
+    @Test
+    fun `Nothing happens if not found`() {
+      postCreateNonAssociationMappingRequest(
+        nonAssociationId = 1,
+        firstOffenderNo = "A1234AA",
+        secondOffenderNo = "A1234AB",
+      )
+
+      webTestClient.put().uri("/mapping/non-associations/update-list/from/Z1234ZZ/to/B5678BB")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .bodyValue(
+          listOf("A1234AB", "A1234AC"),
+        )
+        .exchange()
+        .expectStatus().isOk
+
+      val mapping = webTestClient.get()
+        .uri("/mapping/non-associations/first-offender-no/A1234AA/second-offender-no/A1234AB/type-sequence/1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody(NonAssociationMappingDto::class.java)
+        .returnResult().responseBody!!
+
+      assertThat(mapping.nonAssociationId).isEqualTo(1)
+      assertThat(mapping.firstOffenderNo).isEqualTo("A1234AA")
+      assertThat(mapping.secondOffenderNo).isEqualTo("A1234AB")
+      assertThat(mapping.nomisTypeSequence).isEqualTo(TYPE_SEQUENCE)
+      assertThat(mapping.label).isEqualTo("2022-01-01")
+      assertThat(mapping.mappingType).isEqualTo(NOMIS_CREATED.name)
+    }
+
+    @Test
+    fun `Error if it would result in both prisoners being the same - old offender`() {
+      postCreateNonAssociationMappingRequest(
+        nonAssociationId = 1,
+        firstOffenderNo = "A1234AA",
+        secondOffenderNo = "A1234AB",
+      )
+
+      webTestClient.put().uri("/mapping/non-associations/update-list/from/A1234AA/to/A1234AB")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .bodyValue(listOf("A1234AA"))
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody()
+        .jsonPath("userMessage").value<String> {
+          assertThat(it).matches(
+            "Validation failure: Old offenderNo is in the list, when updating offender id from A1234AA to A1234AB",
+          )
+        }
+    }
+
+    @Test
+    fun `Error if it would result in both prisoners being the same - new offender`() {
+      postCreateNonAssociationMappingRequest(
+        nonAssociationId = 1,
+        firstOffenderNo = "A1234AA",
+        secondOffenderNo = "A1234AB",
+      )
+
+      webTestClient.put().uri("/mapping/non-associations/update-list/from/A1234AA/to/A1234AB")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_NON_ASSOCIATIONS")))
+        .bodyValue(
+          listOf("A1234AB"),
+        )
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody()
+        .jsonPath("userMessage").value<String> {
+          assertThat(it).matches(
+            "Validation failure: New offenderNo is in the list, when updating offender id from A1234AA to A1234AB",
+          )
+        }
+    }
+  }
 }

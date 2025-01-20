@@ -99,12 +99,6 @@ class CaseNoteMappingService(
       CaseNoteMappingDto(it)
     }
 
-  // compatibility for old endpoint
-  suspend fun getMappingByDpsId(dpsCaseNoteId: String): CaseNoteMappingDto =
-    repository.findByDpsCaseNoteId(UUID.fromString(dpsCaseNoteId)).firstOrNull()
-      ?.let { CaseNoteMappingDto(it) }
-      ?: throw NotFoundException("CaseNote with dpsCaseNoteId=$dpsCaseNoteId not found")
-
   suspend fun getMappingsByDpsId(dpsCaseNoteId: String): List<CaseNoteMappingDto> =
     repository.findByDpsCaseNoteId(UUID.fromString(dpsCaseNoteId))
       .also {
@@ -113,30 +107,6 @@ class CaseNoteMappingService(
         }
       }
       .map { CaseNoteMappingDto(it) }
-
-//  suspend fun getMappingsByMigrationId(
-//    pageRequest: Pageable,
-//    migrationId: String,
-//  ): Page<CaseNoteMappingDto> =
-//    coroutineScope {
-//      val caseNoteMapping = async {
-//        repository.findAllByLabelAndMappingTypeOrderByLabelDesc(
-//          label = migrationId,
-//          CaseNoteMappingType.MIGRATED,
-//          pageRequest,
-//        )
-//      }
-//
-//      val count = async {
-//        repository.countAllByLabelAndMappingType(migrationId, mappingType = CaseNoteMappingType.MIGRATED)
-//      }
-//
-//      PageImpl(
-//        caseNoteMapping.await().toList().map { CaseNoteMappingDto(it) },
-//        pageRequest,
-//        count.await(),
-//      )
-//    }
 
   suspend fun getMappingForLatestMigrated(): CaseNoteMappingDto =
     repository.findFirstByMappingTypeOrderByWhenCreatedDesc(CaseNoteMappingType.MIGRATED)
