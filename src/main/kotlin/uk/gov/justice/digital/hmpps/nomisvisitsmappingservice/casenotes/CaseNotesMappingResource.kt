@@ -283,37 +283,6 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     caseNoteIds: List<Long>,
   ): List<CaseNoteMappingDto> = mappingService.getMappingsByNomisId(caseNoteIds)
 
-  @Deprecated("Use getMappingByDpsId instead")
-  @GetMapping("/dps-casenote-id/{dpsCaseNoteId}")
-  @Operation(
-    summary = "get mapping",
-    description = "Retrieves a mapping by DPS id (just the first if > 1). Requires role NOMIS_CASENOTES",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Mapping Information Returned",
-        content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CaseNoteMappingDto::class)),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "404",
-        description = "Id does not exist in mapping table",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun getMappingByDpsId(
-    @Schema(description = "DPS casenote id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
-    @PathVariable
-    dpsCaseNoteId: String,
-  ): CaseNoteMappingDto = mappingService.getMappingByDpsId(dpsCaseNoteId)
-
   @GetMapping("/dps-casenote-id/{dpsCaseNoteId}/all")
   @Operation(
     summary = "get multiple mappings",
@@ -340,34 +309,6 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     @PathVariable
     dpsCaseNoteId: String,
   ): List<CaseNoteMappingDto> = mappingService.getMappingsByDpsId(dpsCaseNoteId)
-
-//  @PreAuthorize("hasRole('ROLE_NOMIS_CASENOTES')")
-//  @GetMapping("/migration-id/{migrationId}")
-//  @Operation(
-//    summary = "get paged mappings by migration id",
-//    description = "Retrieve all mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role NOMIS_CASENOTES",
-//    responses = [
-//      ApiResponse(
-//        responseCode = "200",
-//        description = "Mapping page returned",
-//        content = [
-//          Content(mediaType = "application/json", schema = Schema(implementation = CaseNoteMappingDto::class)),
-//        ],
-//      ),
-//      ApiResponse(
-//        responseCode = "401",
-//        description = "Unauthorized to access this endpoint",
-//        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-//      ),
-//    ],
-//  )
-//  suspend fun getMigratedCaseNoteMappingsByMigrationId(
-//    @PageableDefault pageRequest: Pageable,
-//    @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
-//    @PathVariable
-//    migrationId: String,
-//  ): Page<CaseNoteMappingDto> =
-//    mappingService.getMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_CASENOTES')")
   @GetMapping("/migrated/latest")
@@ -525,13 +466,13 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
   private suspend fun getExistingMappingSimilarTo(mapping: CaseNoteMappingIdDto) = runCatching {
     mappingService.getMappingByNomisId(mapping.nomisCaseNoteId)
   }.getOrElse {
-    mappingService.getMappingByDpsId(mapping.dpsCaseNoteId)
+    mappingService.getMappingsByDpsId(mapping.dpsCaseNoteId).first()
   }
 
   private suspend fun getExistingMappingSimilarTo(mapping: CaseNoteMappingDto) = runCatching {
     mappingService.getMappingByNomisId(nomisCaseNoteId = mapping.nomisCaseNoteId)
   }.getOrElse {
-    mappingService.getMappingByDpsId(dpsCaseNoteId = mapping.dpsCaseNoteId)
+    mappingService.getMappingsByDpsId(dpsCaseNoteId = mapping.dpsCaseNoteId).first()
   }
 
   private suspend fun getMappingIdThatIsDuplicate(mappings: List<CaseNoteMappingIdDto>): CaseNoteMappingIdDto? =

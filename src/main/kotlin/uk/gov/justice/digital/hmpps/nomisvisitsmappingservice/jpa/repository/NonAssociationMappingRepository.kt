@@ -23,9 +23,33 @@ interface NonAssociationMappingRepository : CoroutineCrudRepository<NonAssociati
 
   @Modifying
   @Query("UPDATE non_association_mapping SET first_offender_no = :firstOffenderNo WHERE non_association_id = :nonAssociationId")
-  suspend fun updateFirstOffenderNo(nonAssociationId: Long, firstOffenderNo: String)
+  suspend fun updateFirstOffenderNo(nonAssociationId: Long, firstOffenderNo: String): Int
 
   @Modifying
   @Query("UPDATE non_association_mapping SET second_offender_no = :secondOffenderNo WHERE non_association_id = :nonAssociationId")
-  suspend fun updateSecondOffenderNo(nonAssociationId: Long, secondOffenderNo: String)
+  suspend fun updateSecondOffenderNo(nonAssociationId: Long, secondOffenderNo: String): Int
+
+  @Modifying
+  @Query(
+    """UPDATE non_association_mapping
+     SET first_offender_no = :newOffenderNo
+     WHERE first_offender_no = :firstOffenderNo AND second_offender_no = :secondOffenderNo""",
+  )
+  suspend fun updateFirstOffenderNoByOffenderNos(
+    firstOffenderNo: String,
+    secondOffenderNo: String,
+    newOffenderNo: String,
+  ): Int
+
+  @Modifying
+  @Query(
+    """UPDATE non_association_mapping
+     SET second_offender_no = :newOffenderNo
+     WHERE first_offender_no = :firstOffenderNo AND second_offender_no = :secondOffenderNo""",
+  )
+  suspend fun updateSecondOffenderNoByOffenderNos(
+    firstOffenderNo: String,
+    secondOffenderNo: String,
+    newOffenderNo: String,
+  ): Int
 }

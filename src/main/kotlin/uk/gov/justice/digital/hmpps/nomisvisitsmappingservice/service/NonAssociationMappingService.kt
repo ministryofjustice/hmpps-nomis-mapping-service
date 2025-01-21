@@ -187,4 +187,43 @@ class NonAssociationMappingService(
         }
       }
   }
+
+  @Transactional
+  suspend fun updateMappingsInList(
+    oldOffenderNo: String,
+    newOffenderNo: String,
+    nonAssociations: List<String>,
+  ) {
+    nonAssociations.forEach {
+      if (it == oldOffenderNo) {
+        throw ValidationException("Old offenderNo is in the list, when updating offender id from $oldOffenderNo to $newOffenderNo")
+      }
+      if (it == newOffenderNo) {
+        throw ValidationException("New offenderNo is in the list, when updating offender id from $oldOffenderNo to $newOffenderNo")
+      }
+
+      val rows1 = nonAssociationMappingRepository.updateFirstOffenderNoByOffenderNos(
+        firstOffenderNo = oldOffenderNo,
+        secondOffenderNo = it,
+        newOffenderNo = newOffenderNo,
+      )
+      val rows2 = nonAssociationMappingRepository.updateSecondOffenderNoByOffenderNos(
+        firstOffenderNo = it,
+        secondOffenderNo = oldOffenderNo,
+        newOffenderNo = newOffenderNo,
+      )
+
+      telemetryClient.trackEvent(
+        "nonAssociation-mapping-booking-moved",
+        mapOf(
+          "listEntry" to it,
+          "oldOffenderNo" to oldOffenderNo,
+          "newOffenderNo" to newOffenderNo,
+          "updatedRows1" to rows1.toString(),
+          "updatedRows2" to rows2.toString(),
+        ),
+        null,
+      )
+    }
+  }
 }
