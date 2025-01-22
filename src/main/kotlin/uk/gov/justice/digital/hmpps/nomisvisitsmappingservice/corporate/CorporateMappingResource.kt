@@ -294,6 +294,41 @@ class CorporateMappingResource(private val service: CorporateService) {
       )
     }
 
+  @GetMapping("/address/nomis-address-id/{nomisAddressId}")
+  @Operation(
+    summary = "Get address mapping by nomis address Id",
+    description = "Retrieves the address mapping by NOMIS Address Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Address mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = CorporateAddressMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getAddressMappingByNomisId(
+    @Schema(description = "NOMIS address id", example = "12345", required = true)
+    @PathVariable
+    nomisAddressId: Long,
+  ): CorporateAddressMappingDto = service.getAddressMappingByNomisId(nomisId = nomisAddressId)
+
   @PostMapping("/address-phone")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -341,6 +376,41 @@ class CorporateMappingResource(private val service: CorporateService) {
         cause = e,
       )
     }
+
+  @GetMapping("/address-phone/nomis-phone-id/{nomisPhoneId}")
+  @Operation(
+    summary = "Get address phone mapping by nomis phone Id",
+    description = "Retrieves the addressPhone mapping by NOMIS phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "AddressPhone mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = CorporateAddressPhoneMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getAddressPhoneMappingByNomisId(
+    @Schema(description = "NOMIS phone id", example = "12345", required = true)
+    @PathVariable
+    nomisPhoneId: Long,
+  ): CorporateAddressPhoneMappingDto = service.getAddressPhoneMappingByNomisId(nomisId = nomisPhoneId)
 
   @PostMapping("/phone")
   @ResponseStatus(HttpStatus.CREATED)
@@ -390,6 +460,41 @@ class CorporateMappingResource(private val service: CorporateService) {
       )
     }
 
+  @GetMapping("/phone/nomis-phone-id/{nomisPhoneId}")
+  @Operation(
+    summary = "Get phone mapping by nomis phone Id",
+    description = "Retrieves the phone mapping by NOMIS Phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Phone mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = CorporatePhoneMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPhoneMappingByNomisId(
+    @Schema(description = "NOMIS phone id", example = "12345", required = true)
+    @PathVariable
+    nomisPhoneId: Long,
+  ): CorporatePhoneMappingDto = service.getPhoneMappingByNomisId(nomisId = nomisPhoneId)
+
   @PostMapping("/email")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -438,6 +543,41 @@ class CorporateMappingResource(private val service: CorporateService) {
       )
     }
 
+  @GetMapping("/email/nomis-internet-address-id/{nomisEmailId}")
+  @Operation(
+    summary = "Get email mapping by nomis email Id",
+    description = "Retrieves the email mapping by NOMIS Email Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Email mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = CorporateEmailMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getEmailMappingByNomisId(
+    @Schema(description = "NOMIS email id", example = "12345", required = true)
+    @PathVariable
+    nomisEmailId: Long,
+  ): CorporateEmailMappingDto = service.getEmailMappingByNomisId(nomisId = nomisEmailId)
+
   @PostMapping("/web")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -485,6 +625,41 @@ class CorporateMappingResource(private val service: CorporateService) {
         cause = e,
       )
     }
+
+  @GetMapping("/web/nomis-internet-address-id/{nomisWebId}")
+  @Operation(
+    summary = "Get web mapping by nomis web Id",
+    description = "Retrieves the web mapping by NOMIS Web Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Web mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = CorporateWebMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getWebMappingByNomisId(
+    @Schema(description = "NOMIS web id", example = "12345", required = true)
+    @PathVariable
+    nomisWebId: Long,
+  ): CorporateWebMappingDto = service.getWebMappingByNomisId(nomisId = nomisWebId)
 
   private suspend fun getExistingCorporateMappingSimilarTo(corporateMapping: CorporateMappingIdDto) = runCatching {
     service.getCorporateMappingByNomisId(
