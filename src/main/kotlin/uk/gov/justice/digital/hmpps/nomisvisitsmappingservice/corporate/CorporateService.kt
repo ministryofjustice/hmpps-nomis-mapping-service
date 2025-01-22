@@ -152,10 +152,26 @@ class CorporateService(
     corporateEmailMappingRepository.save(mapping.toMapping())
   }
 
+  suspend fun getEmailMappingByNomisId(nomisId: Long) =
+    corporateEmailMappingRepository.findOneByNomisId(nomisId = nomisId)
+      ?.toDto<CorporateEmailMappingDto>() ?: throw NotFoundException("No email mapping found for nomisId=$nomisId")
+
+  suspend fun getEmailMappingByDpsIdOrNull(dpsId: String) =
+    corporateEmailMappingRepository.findOneByDpsId(dpsId = dpsId)
+      ?.toDto<CorporateEmailMappingDto>()
+
   @Transactional
   suspend fun createMapping(mapping: CorporateWebMappingDto) {
     corporateWebMappingRepository.save(mapping.toMapping())
   }
+
+  suspend fun getWebMappingByNomisId(nomisId: Long) =
+    corporateWebMappingRepository.findOneByNomisId(nomisId = nomisId)
+      ?.toDto<CorporateWebMappingDto>() ?: throw NotFoundException("No web mapping found for nomisId=$nomisId")
+
+  suspend fun getWebMappingByDpsIdOrNull(dpsId: String) =
+    corporateWebMappingRepository.findOneByDpsId(dpsId = dpsId)
+      ?.toDto<CorporateWebMappingDto>()
 }
 
 private fun CorporateMappingsDto.toCorporateMapping() = CorporateMapping(
