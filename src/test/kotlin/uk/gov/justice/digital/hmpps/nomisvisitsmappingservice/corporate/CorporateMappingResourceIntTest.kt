@@ -1155,4 +1155,157 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       }
     }
   }
+
+  @Nested
+  @DisplayName("POST /mapping/corporate/phone")
+  inner class CreatePhoneMapping {
+
+    @Nested
+    inner class Security {
+      val mapping = CorporatePhoneMappingDto(
+        dpsId = "54321",
+        nomisId = 12345L,
+        label = null,
+        mappingType = CorporateMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/corporate/phone")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/corporate/phone")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/corporate/phone")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      private lateinit var existingMapping: CorporatePhoneMapping
+
+      val mapping = CorporatePhoneMappingDto(
+        dpsId = "54321",
+        nomisId = 12345L,
+        label = null,
+        mappingType = CorporateMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+      )
+
+      @BeforeEach
+      fun setUp() = runTest {
+        existingMapping = corporatePhoneMappingRepository.save(
+          CorporatePhoneMapping(
+            dpsId = "98765",
+            nomisId = 12345L,
+            label = "2023-01-01T12:45:12",
+            mappingType = CorporateMappingType.MIGRATED,
+          ),
+        )
+      }
+
+      @Test
+      fun `will not allow the same phone to have duplicate mappings`() {
+        webTestClient.post()
+          .uri("/mapping/corporate/phone")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+      }
+
+      @Test
+      fun `will return details of the existing and duplicate mappings`() {
+        val duplicateResponse = webTestClient.post()
+          .uri("/mapping/corporate/phone")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+          .expectBody(
+            object :
+              ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
+          )
+          .returnResult().responseBody
+
+        with(duplicateResponse!!) {
+          // since this is an untyped map an int will be assumed for such small numbers
+          assertThat(this.moreInfo.existing)
+            .containsEntry("nomisId", existingMapping.nomisId.toInt())
+            .containsEntry("dpsId", existingMapping.dpsId)
+            .containsEntry("mappingType", existingMapping.mappingType.toString())
+          assertThat(this.moreInfo.duplicate)
+            .containsEntry("nomisId", mapping.nomisId.toInt())
+            .containsEntry("dpsId", mapping.dpsId)
+            .containsEntry("mappingType", mapping.mappingType.toString())
+        }
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = CorporatePhoneMappingDto(
+        dpsId = "54321",
+        nomisId = 12345L,
+        label = null,
+        mappingType = CorporateMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+      )
+
+      @Test
+      fun `returns 201 when mappings created`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/corporate/phone")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+      }
+
+      @Test
+      fun `will persist the phone mapping`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/corporate/phone")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+
+        with(corporatePhoneMappingRepository.findOneByNomisId(mapping.nomisId)!!) {
+          assertThat(dpsId).isEqualTo(mapping.dpsId)
+          assertThat(nomisId).isEqualTo(mapping.nomisId)
+          assertThat(label).isNull()
+          assertThat(mappingType).isEqualTo(mapping.mappingType)
+          assertThat(whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        }
+      }
+    }
+  }
 }

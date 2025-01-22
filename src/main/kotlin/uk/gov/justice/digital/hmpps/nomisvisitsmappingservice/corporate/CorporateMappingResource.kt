@@ -294,6 +294,54 @@ class CorporateMappingResource(private val service: CorporateService) {
       )
     }
 
+  @PostMapping("/phone")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates phone mappings for synchronisation",
+    description = "Creates mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = CorporatePhoneMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createMapping(
+    @RequestBody @Valid
+    mapping: CorporatePhoneMappingDto,
+  ) =
+    try {
+      service.createMapping(mapping)
+    } catch (e: DuplicateKeyException) {
+      val existingMapping = getExistingMappingSimilarTo(mapping)
+      throw DuplicateMappingException(
+        messageIn = "Mapping already exists",
+        duplicate = mapping,
+        existing = existingMapping ?: mapping,
+        cause = e,
+      )
+    }
+
   private suspend fun getExistingCorporateMappingSimilarTo(corporateMapping: CorporateMappingIdDto) = runCatching {
     service.getCorporateMappingByNomisId(
       nomisId = corporateMapping.nomisId,
@@ -320,6 +368,16 @@ class CorporateMappingResource(private val service: CorporateService) {
     )
   }.getOrElse {
     service.getAddressMappingByDpsIdOrNull(
+      dpsId = mapping.dpsId,
+    )
+  }
+
+  private suspend fun getExistingMappingSimilarTo(mapping: CorporatePhoneMappingDto) = runCatching {
+    service.getPhoneMappingByNomisId(
+      nomisId = mapping.nomisId,
+    )
+  }.getOrElse {
+    service.getPhoneMappingByDpsIdOrNull(
       dpsId = mapping.dpsId,
     )
   }

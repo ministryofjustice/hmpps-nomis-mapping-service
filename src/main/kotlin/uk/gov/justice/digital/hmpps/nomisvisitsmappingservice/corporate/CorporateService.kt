@@ -131,6 +131,14 @@ class CorporateService(
     corporatePhoneMappingRepository.save(mapping.toMapping())
   }
 
+  suspend fun getPhoneMappingByNomisId(nomisId: Long) =
+    corporatePhoneMappingRepository.findOneByNomisId(nomisId = nomisId)
+      ?.toDto<CorporatePhoneMappingDto>() ?: throw NotFoundException("No phone mapping found for nomisId=$nomisId")
+
+  suspend fun getPhoneMappingByDpsIdOrNull(dpsId: String) =
+    corporatePhoneMappingRepository.findOneByDpsId(dpsId = dpsId)
+      ?.toDto<CorporatePhoneMappingDto>()
+
   @Transactional
   suspend fun createMapping(mapping: CorporateEmailMappingDto) {
     corporateEmailMappingRepository.save(mapping.toMapping())
