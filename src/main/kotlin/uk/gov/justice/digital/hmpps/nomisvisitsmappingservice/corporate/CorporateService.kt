@@ -102,6 +102,36 @@ class CorporateService(
     corporateAddressMappingRepository.deleteAll()
     corporateMappingRepository.deleteAll()
   }
+
+  @Transactional
+  suspend fun createMapping(mapping: CorporateMappingDto) {
+    corporateMappingRepository.save(mapping.toMapping())
+  }
+
+  @Transactional
+  suspend fun createMapping(mapping: CorporateAddressMappingDto) {
+    corporateAddressMappingRepository.save(mapping.toMapping())
+  }
+
+  @Transactional
+  suspend fun createMapping(mapping: CorporateAddressPhoneMappingDto) {
+    corporateAddressPhoneMappingRepository.save(mapping.toMapping())
+  }
+
+  @Transactional
+  suspend fun createMapping(mapping: CorporatePhoneMappingDto) {
+    corporatePhoneMappingRepository.save(mapping.toMapping())
+  }
+
+  @Transactional
+  suspend fun createMapping(mapping: CorporateEmailMappingDto) {
+    corporateEmailMappingRepository.save(mapping.toMapping())
+  }
+
+  @Transactional
+  suspend fun createMapping(mapping: CorporateWebMappingDto) {
+    corporateWebMappingRepository.save(mapping.toMapping())
+  }
 }
 private fun CorporateMapping.toDto() = CorporateMappingDto(
   nomisId = nomisId,
@@ -129,6 +159,21 @@ private inline fun <reified T : AbstractCorporateMapping> CorporateMappingsDto.t
   ).newInstance(
     mapping.dpsId,
     mapping.nomisId,
+    this.label,
+    this.mappingType,
+    this.whenCreated,
+  )
+
+private inline fun <reified T : AbstractCorporateMapping> AbstractCorporateMappingDto.toMapping(): T =
+  T::class.java.getDeclaredConstructor(
+    String::class.java,
+    Long::class.java,
+    String::class.java,
+    CorporateMappingType::class.java,
+    LocalDateTime::class.java,
+  ).newInstance(
+    this.dpsId,
+    this.nomisId,
     this.label,
     this.mappingType,
     this.whenCreated,
