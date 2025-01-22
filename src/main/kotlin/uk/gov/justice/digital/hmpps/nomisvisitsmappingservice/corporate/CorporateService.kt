@@ -108,6 +108,10 @@ class CorporateService(
     corporateMappingRepository.findOneByDpsId(dpsId = dpsId)
       ?.toDto<CorporateMappingDto>()
 
+  suspend fun getCorporateMappingByDpsId(dpsId: String) =
+    getCorporateMappingByDpsIdOrNull(dpsId)
+      ?: throw NotFoundException("No corporate mapping found for dpsId=$dpsId")
+
   @Transactional
   suspend fun createMapping(mapping: CorporateAddressMappingDto) {
     corporateAddressMappingRepository.save(mapping.toMapping())
@@ -120,6 +124,10 @@ class CorporateService(
   suspend fun getAddressMappingByDpsIdOrNull(dpsId: String) =
     corporateAddressMappingRepository.findOneByDpsId(dpsId = dpsId)
       ?.toDto<CorporateAddressMappingDto>()
+
+  suspend fun getAddressMappingByDpsId(dpsId: String) =
+    getAddressMappingByDpsIdOrNull(dpsId)
+      ?: throw NotFoundException("No address mapping found for dpsId=$dpsId")
 
   @Transactional
   suspend fun createMapping(mapping: CorporateAddressPhoneMappingDto) {
@@ -134,6 +142,10 @@ class CorporateService(
     corporateAddressPhoneMappingRepository.findOneByDpsId(dpsId = dpsId)
       ?.toDto<CorporateAddressPhoneMappingDto>()
 
+  suspend fun getAddressPhoneMappingByDpsId(dpsId: String) =
+    getAddressPhoneMappingByDpsIdOrNull(dpsId)
+      ?: throw NotFoundException("No address phone mapping found for dpsId=$dpsId")
+
   @Transactional
   suspend fun createMapping(mapping: CorporatePhoneMappingDto) {
     corporatePhoneMappingRepository.save(mapping.toMapping())
@@ -146,6 +158,10 @@ class CorporateService(
   suspend fun getPhoneMappingByDpsIdOrNull(dpsId: String) =
     corporatePhoneMappingRepository.findOneByDpsId(dpsId = dpsId)
       ?.toDto<CorporatePhoneMappingDto>()
+
+  suspend fun getPhoneMappingByDpsId(dpsId: String) =
+    getPhoneMappingByDpsIdOrNull(dpsId)
+      ?: throw NotFoundException("No phone mapping found for dpsId=$dpsId")
 
   @Transactional
   suspend fun createMapping(mapping: CorporateEmailMappingDto) {
@@ -160,6 +176,10 @@ class CorporateService(
     corporateEmailMappingRepository.findOneByDpsId(dpsId = dpsId)
       ?.toDto<CorporateEmailMappingDto>()
 
+  suspend fun getEmailMappingByDpsId(dpsId: String) =
+    getEmailMappingByDpsIdOrNull(dpsId)
+      ?: throw NotFoundException("No email mapping found for dpsId=$dpsId")
+
   @Transactional
   suspend fun createMapping(mapping: CorporateWebMappingDto) {
     corporateWebMappingRepository.save(mapping.toMapping())
@@ -172,6 +192,10 @@ class CorporateService(
   suspend fun getWebMappingByDpsIdOrNull(dpsId: String) =
     corporateWebMappingRepository.findOneByDpsId(dpsId = dpsId)
       ?.toDto<CorporateWebMappingDto>()
+
+  suspend fun getWebMappingByDpsId(dpsId: String) =
+    getWebMappingByDpsIdOrNull(dpsId)
+      ?: throw NotFoundException("No web mapping found for dpsId=$dpsId")
 }
 
 private fun CorporateMappingsDto.toCorporateMapping() = CorporateMapping(
