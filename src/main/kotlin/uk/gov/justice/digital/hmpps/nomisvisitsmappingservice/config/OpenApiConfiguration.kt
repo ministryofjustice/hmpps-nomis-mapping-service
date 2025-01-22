@@ -31,7 +31,7 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
       ),
     ).tags(
       listOf(
-        Tag().name("NOMIS to DPS Mapping lookup")
+        Tag().name("NOMIS / DPS Mapping lookup")
           .description("APIs designed to be used by DPS services that need to map NOMIS ids stored in a DPS service to a sibling DPS domain service"),
       ),
     )
