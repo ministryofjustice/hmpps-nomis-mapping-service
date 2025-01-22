@@ -21,15 +21,6 @@ class CorporateService(
   private val corporateEmailMappingRepository: CorporateEmailMappingRepository,
   private val corporateWebMappingRepository: CorporateWebMappingRepository,
 ) {
-  suspend fun getCorporateMappingByNomisId(nomisId: Long) =
-    corporateMappingRepository.findOneByNomisId(nomisId = nomisId)
-      ?.toDto()
-      ?: throw NotFoundException("No corporate mapping found for nomisId=$nomisId")
-
-  suspend fun getCorporateMappingByDpsIdOrNull(dpsId: String) =
-    corporateMappingRepository.findOneByDpsId(dpsId = dpsId)
-      ?.toDto()
-
   @Transactional
   suspend fun createMappings(mappings: CorporateMappingsDto) {
     with(mappings) {
@@ -108,10 +99,27 @@ class CorporateService(
     corporateMappingRepository.save(mapping.toMapping())
   }
 
+  suspend fun getCorporateMappingByNomisId(nomisId: Long) =
+    corporateMappingRepository.findOneByNomisId(nomisId = nomisId)
+      ?.toDto<CorporateMappingDto>()
+      ?: throw NotFoundException("No corporate mapping found for nomisId=$nomisId")
+
+  suspend fun getCorporateMappingByDpsIdOrNull(dpsId: String) =
+    corporateMappingRepository.findOneByDpsId(dpsId = dpsId)
+      ?.toDto<CorporateMappingDto>()
+
   @Transactional
   suspend fun createMapping(mapping: CorporateAddressMappingDto) {
     corporateAddressMappingRepository.save(mapping.toMapping())
   }
+
+  suspend fun getAddressMappingByNomisId(nomisId: Long) =
+    corporateAddressMappingRepository.findOneByNomisId(nomisId = nomisId)
+      ?.toDto<CorporateAddressMappingDto>() ?: throw NotFoundException("No address mapping found for nomisId=$nomisId")
+
+  suspend fun getAddressMappingByDpsIdOrNull(dpsId: String) =
+    corporateAddressMappingRepository.findOneByDpsId(dpsId = dpsId)
+      ?.toDto<CorporateAddressMappingDto>()
 
   @Transactional
   suspend fun createMapping(mapping: CorporateAddressPhoneMappingDto) {
@@ -133,13 +141,6 @@ class CorporateService(
     corporateWebMappingRepository.save(mapping.toMapping())
   }
 }
-private fun CorporateMapping.toDto() = CorporateMappingDto(
-  nomisId = nomisId,
-  dpsId = dpsId,
-  label = label,
-  mappingType = mappingType,
-  whenCreated = whenCreated,
-)
 
 private fun CorporateMappingsDto.toCorporateMapping() = CorporateMapping(
   dpsId = corporateMapping.dpsId,
@@ -165,6 +166,21 @@ private inline fun <reified T : AbstractCorporateMapping> CorporateMappingsDto.t
   )
 
 private inline fun <reified T : AbstractCorporateMapping> AbstractCorporateMappingDto.toMapping(): T =
+  T::class.java.getDeclaredConstructor(
+    String::class.java,
+    Long::class.java,
+    String::class.java,
+    CorporateMappingType::class.java,
+    LocalDateTime::class.java,
+  ).newInstance(
+    this.dpsId,
+    this.nomisId,
+    this.label,
+    this.mappingType,
+    this.whenCreated,
+  )
+
+private inline fun <reified T : AbstractCorporateMappingDto> AbstractCorporateMapping.toDto(): T =
   T::class.java.getDeclaredConstructor(
     String::class.java,
     Long::class.java,
