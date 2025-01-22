@@ -1,16 +1,14 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.corporate
 
-import org.springframework.data.annotation.Id
 import java.time.LocalDateTime
 
 class CorporateWebMapping(
-  @Id
-  val dpsId: String,
-  val nomisId: Long,
+  dpsId: String,
+  nomisId: Long,
   label: String? = null,
   mappingType: CorporateMappingType,
   whenCreated: LocalDateTime? = null,
-) : AbstractCorporateMapping(label = label, mappingType = mappingType, whenCreated = whenCreated) {
+) : AbstractCorporateMapping(dpsId = dpsId, nomisId = nomisId, label = label, mappingType = mappingType, whenCreated = whenCreated) {
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
