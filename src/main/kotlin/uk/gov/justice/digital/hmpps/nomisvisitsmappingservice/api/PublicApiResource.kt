@@ -21,7 +21,7 @@ class PublicApiResource(private val locationService: LocationMappingService) {
 
   @PreAuthorize("hasRole('ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R')")
   @GetMapping("/locations/nomis/{nomisLocationId}")
-  @Tag(name = "NOMIS / DPS Mapping lookup")
+  @Tag(name = "NOMIS to DPS Mapping lookup")
   @Operation(
     summary = "Retrieves the DPS location id from the NOMIS internal location id",
     description = "Requires role <b>NOMIS_DPS_MAPPING__LOCATIONS__R</b>",
@@ -59,7 +59,7 @@ class PublicApiResource(private val locationService: LocationMappingService) {
 
   @PreAuthorize("hasRole('ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R')")
   @GetMapping("/locations/dps/{dpsLocationId}")
-  @Tag(name = "NOMIS / DPS Mapping lookup")
+  @Tag(name = "NOMIS to DPS Mapping lookup")
   @Operation(
     summary = "Retrieves the NOMIS location id from the DPS location id",
     description = "Requires role <b>NOMIS_DPS_MAPPING__LOCATIONS__R</b>",
