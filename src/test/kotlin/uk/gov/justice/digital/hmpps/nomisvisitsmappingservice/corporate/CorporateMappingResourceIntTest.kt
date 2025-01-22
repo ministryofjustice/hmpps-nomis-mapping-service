@@ -167,7 +167,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
                   dpsId = "87654",
                   nomisId = 45678,
                 ),
-                // an phone from a different corporate - this would be coding error - a can't happen
+                // n phone from a different corporate - this would be coding error - a can't happen
                 corporatePhoneMapping = listOf(
                   CorporateMappingIdDto(
                     dpsId = "9999",
@@ -443,7 +443,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("GET /mapping/corporate/corporate/migration-id/{migrationId}")
+  @DisplayName("GET /mapping/corporate/organisation/migration-id/{migrationId}")
   @Nested
   inner class GetCorporateMappingsByMigrationId {
 
@@ -451,14 +451,14 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
     inner class Security {
       @Test
       fun `access not authorised when no authority`() {
-        webTestClient.get().uri("/mapping/corporate/corporate/migration-id/2022-01-01T00:00:00")
+        webTestClient.get().uri("/mapping/corporate/organisation/migration-id/2022-01-01T00:00:00")
           .exchange()
           .expectStatus().isUnauthorized
       }
 
       @Test
       fun `access forbidden when no role`() {
-        webTestClient.get().uri("/mapping/corporate/corporate/migration-id/2022-01-01T00:00:00")
+        webTestClient.get().uri("/mapping/corporate/organisation/migration-id/2022-01-01T00:00:00")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -466,7 +466,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
       @Test
       fun `access forbidden with wrong role`() {
-        webTestClient.get().uri("/mapping/corporate/corporate/migration-id/2022-01-01T00:00:00")
+        webTestClient.get().uri("/mapping/corporate/organisation/migration-id/2022-01-01T00:00:00")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -498,7 +498,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
           ),
         )
 
-        webTestClient.get().uri("/mapping/corporate/corporate/migration-id/2023-01-01T12:45:12")
+        webTestClient.get().uri("/mapping/corporate/organisation/migration-id/2023-01-01T12:45:12")
           .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .exchange()
           .expectStatus().isOk
@@ -517,7 +517,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
       @Test
       fun `200 response even when no mappings are found`() {
-        webTestClient.get().uri("/mapping/corporate/corporate/migration-id/2044-01-01")
+        webTestClient.get().uri("/mapping/corporate/organisation/migration-id/2044-01-01")
           .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .exchange()
           .expectStatus().isOk
@@ -539,7 +539,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
           )
         }
         webTestClient.get().uri {
-          it.path("/mapping/corporate/corporate/migration-id/2023-01-01T12:45:12")
+          it.path("/mapping/corporate/organisation/migration-id/2023-01-01T12:45:12")
             .queryParam("size", "2")
             .queryParam("sort", "nomisId,asc")
             .build()
@@ -557,7 +557,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("GET /mapping/corporate/corporate/")
+  @DisplayName("GET /mapping/corporate/organisation/")
   @Nested
   inner class GetAllCorporateMappings {
 
@@ -565,14 +565,14 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
     inner class Security {
       @Test
       fun `access not authorised when no authority`() {
-        webTestClient.get().uri("/mapping/corporate/corporate")
+        webTestClient.get().uri("/mapping/corporate/organisation")
           .exchange()
           .expectStatus().isUnauthorized
       }
 
       @Test
       fun `access forbidden when no role`() {
-        webTestClient.get().uri("/mapping/corporate/corporate")
+        webTestClient.get().uri("/mapping/corporate/organisation")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -580,7 +580,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
       @Test
       fun `access forbidden with wrong role`() {
-        webTestClient.get().uri("/mapping/corporate/corporate")
+        webTestClient.get().uri("/mapping/corporate/organisation")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -612,7 +612,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
           ),
         )
 
-        webTestClient.get().uri("/mapping/corporate/corporate")
+        webTestClient.get().uri("/mapping/corporate/organisation")
           .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .exchange()
           .expectStatus().isOk
@@ -643,7 +643,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
           )
         }
         webTestClient.get().uri {
-          it.path("/mapping/corporate/corporate")
+          it.path("/mapping/corporate/organisation")
             .queryParam("size", "2")
             .queryParam("sort", "nomisId,asc")
             .build()
@@ -771,7 +771,161 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("GET /mapping/corporate/corporate/nomis-corporate-id/{corporateId}")
+  @DisplayName("POST /mapping/corporate/organisation")
+  inner class CreateCorporateMapping {
+
+    @Nested
+    inner class Security {
+      val mapping = CorporateMappingDto(
+        dpsId = "54321",
+        nomisId = 12345L,
+        label = null,
+        mappingType = CorporateMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/corporate/organisation")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/corporate/organisation")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/corporate/organisation")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      private lateinit var existingCorporateMapping: CorporateMapping
+
+      val mapping = CorporateMappingDto(
+        dpsId = "54321",
+        nomisId = 12345L,
+        label = null,
+        mappingType = CorporateMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+      )
+
+      @BeforeEach
+      fun setUp() = runTest {
+        existingCorporateMapping = corporateMappingRepository.save(
+          CorporateMapping(
+            dpsId = "12345",
+            nomisId = 12345L,
+            label = "2023-01-01T12:45:12",
+            mappingType = CorporateMappingType.MIGRATED,
+          ),
+        )
+      }
+
+      @Test
+      fun `will not allow the same organisation to have duplicate mappings`() {
+        webTestClient.post()
+          .uri("/mapping/corporate/organisation")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+      }
+
+      @Test
+      fun `will return details of the existing and duplicate mappings`() {
+        val duplicateResponse = webTestClient.post()
+          .uri("/mapping/corporate/organisation")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+          .expectBody(
+            object :
+              ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
+          )
+          .returnResult().responseBody
+
+        with(duplicateResponse!!) {
+          // since this is an untyped map an int will be assumed for such small numbers
+          assertThat(this.moreInfo.existing)
+            .containsEntry("nomisId", existingCorporateMapping.nomisId.toInt())
+            .containsEntry("dpsId", existingCorporateMapping.dpsId)
+            .containsEntry("mappingType", existingCorporateMapping.mappingType.toString())
+          assertThat(this.moreInfo.duplicate)
+            .containsEntry("nomisId", mapping.nomisId.toInt())
+            .containsEntry("dpsId", mapping.dpsId)
+            .containsEntry("mappingType", mapping.mappingType.toString())
+        }
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = CorporateMappingDto(
+        dpsId = "12345",
+        nomisId = 12345L,
+        label = null,
+        mappingType = CorporateMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+      )
+
+      @Test
+      fun `returns 201 when mappings created`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/corporate/organisation")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+      }
+
+      @Test
+      fun `will persist the organisation mapping`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/corporate/organisation")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+
+        val corporateMapping =
+          corporateMappingRepository.findOneByNomisId(mapping.nomisId)!!
+
+        assertThat(corporateMapping.dpsId).isEqualTo(mapping.dpsId)
+        assertThat(corporateMapping.nomisId).isEqualTo(mapping.nomisId)
+        assertThat(corporateMapping.label).isNull()
+        assertThat(corporateMapping.mappingType).isEqualTo(mapping.mappingType)
+        assertThat(corporateMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/corporate/organisation/nomis-corporate-id/{corporateId}")
   inner class GetCorporateByNomisId {
     private val nomisCorporateId = 12345L
     private lateinit var corporateMapping: CorporateMapping
@@ -780,7 +934,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
     fun setUp() = runTest {
       corporateMapping = corporateMappingRepository.save(
         CorporateMapping(
-          dpsId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          dpsId = "12345",
           nomisId = nomisCorporateId,
           label = "2023-01-01T12:45:12",
           mappingType = CorporateMappingType.MIGRATED,
@@ -794,7 +948,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.get()
-          .uri("/mapping/corporate/corporate/nomis-corporate-id/{corporateId}", nomisCorporateId)
+          .uri("/mapping/corporate/organisation/nomis-corporate-id/{corporateId}", nomisCorporateId)
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -802,7 +956,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.get()
-          .uri("/mapping/corporate/corporate/nomis-corporate-id/{corporateId}", nomisCorporateId)
+          .uri("/mapping/corporate/organisation/nomis-corporate-id/{corporateId}", nomisCorporateId)
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -811,7 +965,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/mapping/corporate/corporate/nomis-corporate-id/{corporateId}", nomisCorporateId)
+          .uri("/mapping/corporate/organisation/nomis-corporate-id/{corporateId}", nomisCorporateId)
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -823,7 +977,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `404 when mapping not found`() {
         webTestClient.get()
-          .uri("/mapping/corporate/corporate/nomis-corporate-id/{corporateId}", 99999)
+          .uri("/mapping/corporate/organisation/nomis-corporate-id/{corporateId}", 99999)
           .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .exchange()
           .expectStatus().isNotFound
@@ -835,12 +989,12 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return the mapping data`() {
         webTestClient.get()
-          .uri("/mapping/corporate/corporate/nomis-corporate-id/{corporateId}", nomisCorporateId)
+          .uri("/mapping/corporate/organisation/nomis-corporate-id/{corporateId}", nomisCorporateId)
           .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("dpsId").isEqualTo("edcd118c-41ba-42ea-b5c4-404b453ad58b")
+          .jsonPath("dpsId").isEqualTo("12345")
           .jsonPath("nomisId").isEqualTo(nomisCorporateId)
           .jsonPath("label").isEqualTo("2023-01-01T12:45:12")
           .jsonPath("mappingType").isEqualTo("MIGRATED")

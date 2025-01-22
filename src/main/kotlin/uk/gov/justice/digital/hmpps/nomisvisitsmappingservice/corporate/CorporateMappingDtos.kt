@@ -37,72 +37,62 @@ data class CorporateMappingIdDto(
 )
 
 class CorporateMappingDto(
-  @Schema(description = "DPS id")
-  val dpsId: String,
-  @Schema(description = "NOMIS id")
-  val nomisId: Long,
+  dpsId: String,
+  nomisId: Long,
   label: String?,
   mappingType: CorporateMappingType,
   whenCreated: LocalDateTime?,
-) : AbstractCorporateMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
+) : AbstractCorporateMappingDto(dpsId = dpsId, nomisId = nomisId, label = label, mappingType = mappingType, whenCreated = whenCreated)
 
 class CorporateAddressMappingDto(
-  @Schema(description = "DPS id")
-  val dpsId: String,
-  @Schema(description = "NOMIS id")
-  val nomisId: Long,
+  dpsId: String,
+  nomisId: Long,
   label: String?,
   mappingType: CorporateMappingType,
   whenCreated: LocalDateTime?,
-) : AbstractCorporateMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
+) : AbstractCorporateMappingDto(dpsId = dpsId, nomisId = nomisId, label = label, mappingType = mappingType, whenCreated = whenCreated)
 
 class CorporateAddressPhoneMappingDto(
-  @Schema(description = "DPS id")
-  val dpsId: String,
-  @Schema(description = "NOMIS id")
-  val nomisId: Long,
+  dpsId: String,
+  nomisId: Long,
   label: String?,
   mappingType: CorporateMappingType,
   whenCreated: LocalDateTime?,
-) : AbstractCorporateMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
+) : AbstractCorporateMappingDto(dpsId = dpsId, nomisId = nomisId, label = label, mappingType = mappingType, whenCreated = whenCreated)
 
 class CorporateEmailMappingDto(
-  @Schema(description = "DPS id")
-  val dpsId: String,
-  @Schema(description = "NOMIS id")
-  val nomisId: Long,
+  dpsId: String,
+  nomisId: Long,
   label: String?,
   mappingType: CorporateMappingType,
   whenCreated: LocalDateTime?,
-) : AbstractCorporateMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
+) : AbstractCorporateMappingDto(dpsId = dpsId, nomisId = nomisId, label = label, mappingType = mappingType, whenCreated = whenCreated)
 
 class CorporateWebMappingDto(
-  @Schema(description = "DPS id")
-  val dpsId: String,
-  @Schema(description = "NOMIS id")
-  val nomisId: Long,
+  dpsId: String,
+  nomisId: Long,
   label: String?,
   mappingType: CorporateMappingType,
   whenCreated: LocalDateTime?,
-) : AbstractCorporateMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
+) : AbstractCorporateMappingDto(dpsId = dpsId, nomisId = nomisId, label = label, mappingType = mappingType, whenCreated = whenCreated)
 
 class CorporatePhoneMappingDto(
+  dpsId: String,
+  nomisId: Long,
+  label: String?,
+  mappingType: CorporateMappingType,
+  whenCreated: LocalDateTime?,
+) : AbstractCorporateMappingDto(dpsId = dpsId, nomisId = nomisId, label = label, mappingType = mappingType, whenCreated = whenCreated)
+
+abstract class AbstractCorporateMappingDto(
   @Schema(description = "DPS id")
   val dpsId: String,
   @Schema(description = "NOMIS id")
   val nomisId: Long,
-  label: String?,
-  mappingType: CorporateMappingType,
-  whenCreated: LocalDateTime?,
-) : AbstractCorporateMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
-
-abstract class AbstractCorporateMappingDto(
   @Schema(description = "Label (a timestamp for migrated ids)")
   val label: String? = null,
-
   @Schema(description = "Mapping type")
   val mappingType: CorporateMappingType = CorporateMappingType.DPS_CREATED,
-
   @Schema(description = "Date time the mapping was created")
   val whenCreated: LocalDateTime? = null,
 )
