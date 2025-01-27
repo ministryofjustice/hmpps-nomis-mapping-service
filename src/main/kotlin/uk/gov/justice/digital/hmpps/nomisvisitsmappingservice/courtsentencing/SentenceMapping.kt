@@ -36,9 +36,7 @@ data class SentenceMapping(
     return dpsSentenceId == other.dpsSentenceId
   }
 
-  override fun hashCode(): Int {
-    return dpsSentenceId.hashCode()
-  }
+  override fun hashCode(): Int = dpsSentenceId.hashCode()
 
   override fun isNew(): Boolean = new
 

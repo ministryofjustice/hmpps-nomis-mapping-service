@@ -13,40 +13,35 @@ class CSIPAttendeeMappingService(
 ) {
 
   @Transactional
-  suspend fun createMapping(mappingDto: CSIPChildMappingDto): CSIPAttendeeMapping =
-    repository.save(mappingDto.fromDto())
+  suspend fun createMapping(mappingDto: CSIPChildMappingDto): CSIPAttendeeMapping = repository.save(mappingDto.fromDto())
 
   @Transactional
   suspend fun createMappings(mappingDtoList: List<CSIPChildMappingDto>) {
     repository.saveAll(mappingDtoList.map { it.fromDto() }).collect()
   }
 
-  suspend fun getMappingByNomisId(nomisCSIPAttendeeId: Long): CSIPChildMappingDto =
-    repository.findOneByNomisCSIPAttendeeId(
-      nomisCSIPAttendeeId = nomisCSIPAttendeeId,
-    )
-      ?.toDto()
-      ?: throw NotFoundException("No CSIP Attendee mapping for  nomisCSIPAttendeeId=$nomisCSIPAttendeeId")
+  suspend fun getMappingByNomisId(nomisCSIPAttendeeId: Long): CSIPChildMappingDto = repository.findOneByNomisCSIPAttendeeId(
+    nomisCSIPAttendeeId = nomisCSIPAttendeeId,
+  )
+    ?.toDto()
+    ?: throw NotFoundException("No CSIP Attendee mapping for  nomisCSIPAttendeeId=$nomisCSIPAttendeeId")
 
   suspend fun findAllByDpsCSIPReportId(dpsCSIPReportId: String) = repository.findAllByDpsCSIPReportId(dpsCSIPReportId).map { it.toDto() }
 
-  suspend fun getMappingByDpsId(dpsCSIPAttendeeId: String): CSIPChildMappingDto =
-    repository.findById(dpsCSIPAttendeeId)
-      ?.toDto()
-      ?: throw NotFoundException("No CSIP attendee mapping found for dpsCSIPAttendeeId=$dpsCSIPAttendeeId")
+  suspend fun getMappingByDpsId(dpsCSIPAttendeeId: String): CSIPChildMappingDto = repository.findById(dpsCSIPAttendeeId)
+    ?.toDto()
+    ?: throw NotFoundException("No CSIP attendee mapping found for dpsCSIPAttendeeId=$dpsCSIPAttendeeId")
 
   @Transactional
-  suspend fun deleteMappingByDpsId(dpsCSIPAttendeeId: String) =
-    repository.deleteById(dpsCSIPAttendeeId)
+  suspend fun deleteMappingByDpsId(dpsCSIPAttendeeId: String) = repository.deleteById(dpsCSIPAttendeeId)
 
   fun alreadyExistsMessage(
     duplicateMapping: CSIPChildMappingDto,
     existingMapping: CSIPChildMappingDto,
-  ) =
-    """CSIPAttendee Attendee mapping already exists.
+  ) = """CSIPAttendee Attendee mapping already exists.
        |Existing mapping: $existingMapping
        |Duplicate mapping: $duplicateMapping
-    """.trimMargin()
+  """.trimMargin()
 }
 
 fun CSIPAttendeeMapping.toDto() = CSIPChildMappingDto(

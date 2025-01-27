@@ -74,24 +74,22 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
     activityAllocationId: Long = ACTIVITY_ALLOCATION_ID,
     activityId: Long = ACTIVITY_ID,
     label: String = MIGRATION_ID,
-  ) =
-    webTestClient.post().uri("/mapping/allocations/migration")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(
-        fromValue(
-          createMapping(
-            nomisAllocationId = nomisAllocationId,
-            activityAllocationId = activityAllocationId,
-            activityId = activityId,
-            label = label,
-          ),
+  ) = webTestClient.post().uri("/mapping/allocations/migration")
+    .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+    .contentType(MediaType.APPLICATION_JSON)
+    .body(
+      fromValue(
+        createMapping(
+          nomisAllocationId = nomisAllocationId,
+          activityAllocationId = activityAllocationId,
+          activityId = activityId,
+          label = label,
         ),
-      )
-      .exchange()
+      ),
+    )
+    .exchange()
 
-  private fun saveMapping(offset: Int, label: String = MIGRATION_ID) =
-    saveMapping(NOMIS_ALLOCATION_ID + offset, ACTIVITY_ALLOCATION_ID + offset, ACTIVITY_ID + offset, label)
+  private fun saveMapping(offset: Int, label: String = MIGRATION_ID) = saveMapping(NOMIS_ALLOCATION_ID + offset, ACTIVITY_ALLOCATION_ID + offset, ACTIVITY_ID + offset, label)
 
   private fun saveMapping(
     nomisAllocationId: Long = NOMIS_ALLOCATION_ID,

@@ -35,9 +35,7 @@ data class AppointmentMapping(
     return appointmentInstanceId == other.appointmentInstanceId
   }
 
-  override fun hashCode(): Int {
-    return appointmentInstanceId.hashCode()
-  }
+  override fun hashCode(): Int = appointmentInstanceId.hashCode()
 
   override fun isNew(): Boolean = new
 

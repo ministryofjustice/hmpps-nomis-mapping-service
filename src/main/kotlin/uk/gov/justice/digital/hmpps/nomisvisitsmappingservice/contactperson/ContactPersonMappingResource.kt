@@ -71,21 +71,20 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   suspend fun createMappings(
     @RequestBody @Valid
     mappings: ContactPersonMappingsDto,
-  ) =
-    try {
-      service.createMappings(mappings)
-    } catch (e: DuplicateKeyException) {
-      val existingMapping = getExistingPersonMappingSimilarTo(mappings.personMapping)
-      if (existingMapping == null) {
-        log.error("Child duplicate key found for person even though the person has never been migrated", e)
-      }
-      throw DuplicateMappingException(
-        messageIn = "Person mapping already exists",
-        duplicate = mappings.asPersonMappingDto(),
-        existing = existingMapping ?: mappings.asPersonMappingDto(),
-        cause = e,
-      )
+  ) = try {
+    service.createMappings(mappings)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingPersonMappingSimilarTo(mappings.personMapping)
+    if (existingMapping == null) {
+      log.error("Child duplicate key found for person even though the person has never been migrated", e)
     }
+    throw DuplicateMappingException(
+      messageIn = "Person mapping already exists",
+      duplicate = mappings.asPersonMappingDto(),
+      existing = existingMapping ?: mappings.asPersonMappingDto(),
+      cause = e,
+    )
+  }
 
   @GetMapping("/person/nomis-person-id/{nomisPersonId}")
   @Operation(
@@ -239,8 +238,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<PersonMappingDto> =
-    service.getPersonMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<PersonMappingDto> = service.getPersonMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   @GetMapping("/person")
   @Operation(
@@ -265,8 +263,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   )
   suspend fun getAllPersonMappings(
     @PageableDefault pageRequest: Pageable,
-  ): Page<PersonMappingDto> =
-    service.getAllPersonMappings(pageRequest = pageRequest)
+  ): Page<PersonMappingDto> = service.getAllPersonMappings(pageRequest = pageRequest)
 
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -324,18 +321,17 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   suspend fun createPersonMapping(
     @RequestBody @Valid
     mapping: PersonMappingDto,
-  ) =
-    try {
-      service.createMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      val existingMapping = getExistingPersonMappingSimilarTo(mapping)
-      throw DuplicateMappingException(
-        messageIn = "Person mapping already exists",
-        duplicate = mapping,
-        existing = existingMapping ?: mapping,
-        cause = e,
-      )
-    }
+  ) = try {
+    service.createMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingPersonMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Person mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
 
   @GetMapping("/contact/nomis-contact-id/{nomisContactId}")
   @Operation(
@@ -470,18 +466,17 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   suspend fun createPersonContactMapping(
     @RequestBody @Valid
     mapping: PersonContactMappingDto,
-  ) =
-    try {
-      service.createMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      val existingMapping = getExistingPersonContactMappingSimilarTo(mapping)
-      throw DuplicateMappingException(
-        messageIn = "Person contact mapping already exists",
-        duplicate = mapping,
-        existing = existingMapping ?: mapping,
-        cause = e,
-      )
-    }
+  ) = try {
+    service.createMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingPersonContactMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Person contact mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
 
   @GetMapping("/address/nomis-address-id/{nomisAddressId}")
   @Operation(
@@ -616,18 +611,17 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   suspend fun createPersonAddressMapping(
     @RequestBody @Valid
     mapping: PersonAddressMappingDto,
-  ) =
-    try {
-      service.createMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      val existingMapping = getExistingPersonAddressMappingSimilarTo(mapping)
-      throw DuplicateMappingException(
-        messageIn = "Person address mapping already exists",
-        duplicate = mapping,
-        existing = existingMapping ?: mapping,
-        cause = e,
-      )
-    }
+  ) = try {
+    service.createMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingPersonAddressMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Person address mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
 
   @GetMapping("/phone/nomis-phone-id/{nomisPhoneId}")
   @Operation(
@@ -802,18 +796,17 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   suspend fun createPersonPhoneMapping(
     @RequestBody @Valid
     mapping: PersonPhoneMappingDto,
-  ) =
-    try {
-      service.createMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      val existingMapping = getExistingPersonPhoneMappingSimilarTo(mapping)
-      throw DuplicateMappingException(
-        messageIn = "Person phone mapping already exists",
-        duplicate = mapping,
-        existing = existingMapping ?: mapping,
-        cause = e,
-      )
-    }
+  ) = try {
+    service.createMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingPersonPhoneMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Person phone mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
 
   @GetMapping("/email/nomis-internet-address-id/{nomisInternetAddressId}")
   @Operation(
@@ -948,18 +941,17 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   suspend fun createPersonEmailMapping(
     @RequestBody @Valid
     mapping: PersonEmailMappingDto,
-  ) =
-    try {
-      service.createMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      val existingMapping = getExistingPersonEmailMappingSimilarTo(mapping)
-      throw DuplicateMappingException(
-        messageIn = "Person email mapping already exists",
-        duplicate = mapping,
-        existing = existingMapping ?: mapping,
-        cause = e,
-      )
-    }
+  ) = try {
+    service.createMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingPersonEmailMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Person email mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
 
   @GetMapping("/identifier/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}")
   @Operation(
@@ -1100,18 +1092,17 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   suspend fun createPersonIdentifierMapping(
     @RequestBody @Valid
     mapping: PersonIdentifierMappingDto,
-  ) =
-    try {
-      service.createMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      val existingMapping = getExistingPersonIdentifierMappingSimilarTo(mapping)
-      throw DuplicateMappingException(
-        messageIn = "Person identifier mapping already exists",
-        duplicate = mapping,
-        existing = existingMapping ?: mapping,
-        cause = e,
-      )
-    }
+  ) = try {
+    service.createMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingPersonIdentifierMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Person identifier mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
 
   @DeleteMapping("/employment/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -1277,18 +1268,17 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   suspend fun createPersonContactRestrictionMapping(
     @RequestBody @Valid
     mapping: PersonContactRestrictionMappingDto,
-  ) =
-    try {
-      service.createMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      val existingMapping = getExistingPersonContactRestrictionMappingSimilarTo(mapping)
-      throw DuplicateMappingException(
-        messageIn = "Person contactRestriction mapping already exists",
-        duplicate = mapping,
-        existing = existingMapping ?: mapping,
-        cause = e,
-      )
-    }
+  ) = try {
+    service.createMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingPersonContactRestrictionMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Person contactRestriction mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
 
   @PostMapping("/person-restriction")
   @ResponseStatus(HttpStatus.CREATED)
@@ -1325,18 +1315,17 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   suspend fun createPersonRestrictionMapping(
     @RequestBody @Valid
     mapping: PersonRestrictionMappingDto,
-  ) =
-    try {
-      service.createMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      val existingMapping = getExistingPersonRestrictionMappingSimilarTo(mapping)
-      throw DuplicateMappingException(
-        messageIn = "Person Restriction mapping already exists",
-        duplicate = mapping,
-        existing = existingMapping ?: mapping,
-        cause = e,
-      )
-    }
+  ) = try {
+    service.createMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingPersonRestrictionMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Person Restriction mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
 
   @GetMapping("/person-restriction/nomis-person-restriction-id/{nomisPersonRestrictionId}")
   @Operation(

@@ -13,15 +13,13 @@ import java.util.UUID
 class IdentifyingMarkImageService(
   private val repository: IdentifyingMarkImageMappingRepository,
 ) {
-  suspend fun getIdentifyingMarkImageMapping(nomisOffenderImageId: Long): IdentifyingMarkImageMappingDto =
-    repository.findById(nomisOffenderImageId)
-      ?.toDto()
-      ?: throw NotFoundException("Identifying mark image mapping not found for NOMIS offender image id $nomisOffenderImageId")
+  suspend fun getIdentifyingMarkImageMapping(nomisOffenderImageId: Long): IdentifyingMarkImageMappingDto = repository.findById(nomisOffenderImageId)
+    ?.toDto()
+    ?: throw NotFoundException("Identifying mark image mapping not found for NOMIS offender image id $nomisOffenderImageId")
 
-  suspend fun getIdentifyingMarkImageMapping(dpsImageId: UUID): IdentifyingMarkImageMappingDto =
-    repository.findByDpsId(dpsImageId)
-      ?.toDto()
-      ?: throw NotFoundException("Identifying mark image mapping not found for DPS image id $dpsImageId")
+  suspend fun getIdentifyingMarkImageMapping(dpsImageId: UUID): IdentifyingMarkImageMappingDto = repository.findByDpsId(dpsImageId)
+    ?.toDto()
+    ?: throw NotFoundException("Identifying mark image mapping not found for DPS image id $dpsImageId")
 
   @Transactional
   suspend fun createIdentifyingMarkImageMapping(mapping: IdentifyingMarkImageMappingDto) {

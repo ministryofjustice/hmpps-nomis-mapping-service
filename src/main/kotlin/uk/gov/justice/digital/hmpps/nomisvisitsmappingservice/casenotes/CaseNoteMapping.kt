@@ -39,9 +39,7 @@ data class CaseNoteMapping(
     return nomisCaseNoteId != other.nomisCaseNoteId
   }
 
-  override fun hashCode(): Int {
-    return nomisCaseNoteId.hashCode()
-  }
+  override fun hashCode(): Int = nomisCaseNoteId.hashCode()
 
   override fun isNew(): Boolean = new
 

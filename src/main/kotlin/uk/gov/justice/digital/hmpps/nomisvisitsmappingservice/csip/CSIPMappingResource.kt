@@ -68,17 +68,16 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
   suspend fun createMapping(
     @RequestBody @Valid
     createMappingRequest: CSIPReportMappingDto,
-  ) =
-    try {
-      mappingService.createCSIPMapping(createMappingRequest)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "CSIP mapping already exists",
-        duplicate = createMappingRequest,
-        existing = getExistingMappingSimilarTo(createMappingRequest),
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createCSIPMapping(createMappingRequest)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "CSIP mapping already exists",
+      duplicate = createMappingRequest,
+      existing = getExistingMappingSimilarTo(createMappingRequest),
+      cause = e,
+    )
+  }
 
   @PostMapping("/all")
   @ResponseStatus(HttpStatus.CREATED)
@@ -116,17 +115,16 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
   suspend fun createMappingWithChildren(
     @RequestBody @Valid
     createFullMappingRequest: CSIPFullMappingDto,
-  ) =
-    try {
-      mappingService.createCSIPMappingWithChildren(createFullMappingRequest)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "CSIP mapping already exists",
-        duplicate = createFullMappingRequest,
-        existing = getExistingMappingSimilarTo(createFullMappingRequest),
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createCSIPMappingWithChildren(createFullMappingRequest)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "CSIP mapping already exists",
+      duplicate = createFullMappingRequest,
+      existing = getExistingMappingSimilarTo(createFullMappingRequest),
+      cause = e,
+    )
+  }
 
   @PostMapping("/children/all")
   @ResponseStatus(HttpStatus.CREATED)
@@ -163,19 +161,18 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
   suspend fun createChildMappings(
     @RequestBody @Valid
     createChildFullMappingRequest: CSIPFullMappingDto,
-  ) =
-    try {
-      // Sanity check parent exists before creating children
-      mappingService.getMappingByDPSCSIPId(createChildFullMappingRequest.dpsCSIPReportId)
-      mappingService.createChildMappings(createChildFullMappingRequest)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "CSIP child mapping already exists",
-        duplicate = createChildFullMappingRequest,
-        existing = getExistingMappingSimilarTo(createChildFullMappingRequest),
-        cause = e,
-      )
-    }
+  ) = try {
+    // Sanity check parent exists before creating children
+    mappingService.getMappingByDPSCSIPId(createChildFullMappingRequest.dpsCSIPReportId)
+    mappingService.createChildMappings(createChildFullMappingRequest)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "CSIP child mapping already exists",
+      duplicate = createChildFullMappingRequest,
+      existing = getExistingMappingSimilarTo(createChildFullMappingRequest),
+      cause = e,
+    )
+  }
 
   @GetMapping("/nomis-csip-id/{nomisCSIPId}")
   @Operation(
@@ -398,8 +395,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
       ),
     ],
   )
-  suspend fun getLatestMigratedCSIPMapping(): CSIPFullMappingDto =
-    mappingService.getMappingForLatestMigrated()
+  suspend fun getLatestMigratedCSIPMapping(): CSIPFullMappingDto = mappingService.getMappingForLatestMigrated()
 
   private suspend fun getExistingMappingSimilarTo(mapping: CSIPReportMappingDto) = runCatching {
     mappingService.getMappingByNomisCSIPId(

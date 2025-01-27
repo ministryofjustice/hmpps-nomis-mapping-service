@@ -30,103 +30,97 @@ class LocationMappingService(
   fun alreadyExistsMessage(
     duplicateMapping: LocationMappingDto,
     existingMapping: LocationMappingDto,
-  ) =
-    """Location mapping already exists.
+  ) = """Location mapping already exists.
        |Existing mapping: $existingMapping
        |Duplicate mapping: $duplicateMapping
-    """.trimMargin()
+  """.trimMargin()
 
   @Transactional
-  suspend fun createMapping(createMappingRequest: LocationMappingDto) =
-    with(createMappingRequest) {
-      log.debug("creating location {}", createMappingRequest)
-      locationMappingRepository.findById(dpsLocationId)?.run {
-        if (this@run.nomisLocationId == this@with.nomisLocationId) {
-          log.debug(
-            "Not creating. All OK: {}",
-            alreadyExistsMessage(
-              duplicateMapping = createMappingRequest,
-              existingMapping = LocationMappingDto(this@run),
-            ),
-          )
-          return
-        }
-        throw DuplicateMappingException(
-          messageIn = alreadyExistsMessage(
+  suspend fun createMapping(createMappingRequest: LocationMappingDto) = with(createMappingRequest) {
+    log.debug("creating location {}", createMappingRequest)
+    locationMappingRepository.findById(dpsLocationId)?.run {
+      if (this@run.nomisLocationId == this@with.nomisLocationId) {
+        log.debug(
+          "Not creating. All OK: {}",
+          alreadyExistsMessage(
             duplicateMapping = createMappingRequest,
             existingMapping = LocationMappingDto(this@run),
           ),
-          duplicate = createMappingRequest,
-          existing = LocationMappingDto(this@run),
         )
+        return
       }
-
-      locationMappingRepository.findOneByNomisLocationId(nomisLocationId)?.run {
-        throw DuplicateMappingException(
-          messageIn = alreadyExistsMessage(
-            duplicateMapping = createMappingRequest,
-            existingMapping = LocationMappingDto(this@run),
-          ),
-          duplicate = createMappingRequest,
-          existing = LocationMappingDto(this),
-        )
-      }
-
-      locationMappingRepository.save(
-        LocationMapping(
-          dpsLocationId = dpsLocationId,
-          nomisLocationId = nomisLocationId,
-          label = label,
-          mappingType = LocationMappingType.valueOf(mappingType),
+      throw DuplicateMappingException(
+        messageIn = alreadyExistsMessage(
+          duplicateMapping = createMappingRequest,
+          existingMapping = LocationMappingDto(this@run),
         ),
+        duplicate = createMappingRequest,
+        existing = LocationMappingDto(this@run),
       )
-      telemetryClient.trackEvent(
-        "location-mapping-created",
-        mapOf(
-          "id" to dpsLocationId,
-          "nomisLocationId" to nomisLocationId.toString(),
-          "batchId" to label,
-        ),
-        null,
-      )
-      log.debug("Mapping created with id = $dpsLocationId, nomisLocationId=$nomisLocationId")
     }
 
-  suspend fun getMappingByNomisId(nomisLocationId: Long): LocationMappingDto =
-    locationMappingRepository.findOneByNomisLocationId(nomisLocationId)
-      ?.let { LocationMappingDto(it) }
-      ?: throw NotFoundException("Location with nomisLocationId=$nomisLocationId not found")
+    locationMappingRepository.findOneByNomisLocationId(nomisLocationId)?.run {
+      throw DuplicateMappingException(
+        messageIn = alreadyExistsMessage(
+          duplicateMapping = createMappingRequest,
+          existingMapping = LocationMappingDto(this@run),
+        ),
+        duplicate = createMappingRequest,
+        existing = LocationMappingDto(this),
+      )
+    }
 
-  suspend fun getMappingByDpsId(dpsLocationId: String): LocationMappingDto =
-    locationMappingRepository.findById(dpsLocationId)
-      ?.let { LocationMappingDto(it) }
-      ?: throw NotFoundException("Location with dpsLocationId=$dpsLocationId not found")
+    locationMappingRepository.save(
+      LocationMapping(
+        dpsLocationId = dpsLocationId,
+        nomisLocationId = nomisLocationId,
+        label = label,
+        mappingType = LocationMappingType.valueOf(mappingType),
+      ),
+    )
+    telemetryClient.trackEvent(
+      "location-mapping-created",
+      mapOf(
+        "id" to dpsLocationId,
+        "nomisLocationId" to nomisLocationId.toString(),
+        "batchId" to label,
+      ),
+      null,
+    )
+    log.debug("Mapping created with id = $dpsLocationId, nomisLocationId=$nomisLocationId")
+  }
 
-  suspend fun getMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<LocationMappingDto> =
-    coroutineScope {
-      val locationMapping = async {
-        locationMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
-          label = migrationId,
-          MIGRATED,
-          pageRequest,
-        )
-      }
+  suspend fun getMappingByNomisId(nomisLocationId: Long): LocationMappingDto = locationMappingRepository.findOneByNomisLocationId(nomisLocationId)
+    ?.let { LocationMappingDto(it) }
+    ?: throw NotFoundException("Location with nomisLocationId=$nomisLocationId not found")
 
-      val count = async {
-        locationMappingRepository.countAllByLabelAndMappingType(migrationId, mappingType = MIGRATED)
-      }
+  suspend fun getMappingByDpsId(dpsLocationId: String): LocationMappingDto = locationMappingRepository.findById(dpsLocationId)
+    ?.let { LocationMappingDto(it) }
+    ?: throw NotFoundException("Location with dpsLocationId=$dpsLocationId not found")
 
-      PageImpl(
-        locationMapping.await().toList().map { LocationMappingDto(it) },
+  suspend fun getMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<LocationMappingDto> = coroutineScope {
+    val locationMapping = async {
+      locationMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+        label = migrationId,
+        MIGRATED,
         pageRequest,
-        count.await(),
       )
     }
 
-  suspend fun getMappingForLatestMigrated(): LocationMappingDto =
-    locationMappingRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(MIGRATED)
-      ?.let { LocationMappingDto(it) }
-      ?: throw NotFoundException("No migrated mapping found")
+    val count = async {
+      locationMappingRepository.countAllByLabelAndMappingType(migrationId, mappingType = MIGRATED)
+    }
+
+    PageImpl(
+      locationMapping.await().toList().map { LocationMappingDto(it) },
+      pageRequest,
+      count.await(),
+    )
+  }
+
+  suspend fun getMappingForLatestMigrated(): LocationMappingDto = locationMappingRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(MIGRATED)
+    ?.let { LocationMappingDto(it) }
+    ?: throw NotFoundException("No migrated mapping found")
 
   @Transactional
   suspend fun deleteMapping(dpsLocationId: String) = locationMappingRepository.deleteById(dpsLocationId)
@@ -135,10 +129,9 @@ class LocationMappingService(
   suspend fun deleteMapping(nomisLocationId: Long) = locationMappingRepository.deleteByNomisLocationId(nomisLocationId)
 
   @Transactional
-  suspend fun deleteMappings(onlyMigrated: Boolean) =
-    onlyMigrated.takeIf { it }?.apply {
-      locationMappingRepository.deleteByMappingTypeEquals(MIGRATED)
-    } ?: run {
-      locationMappingRepository.deleteAll()
-    }
+  suspend fun deleteMappings(onlyMigrated: Boolean) = onlyMigrated.takeIf { it }?.apply {
+    locationMappingRepository.deleteByMappingTypeEquals(MIGRATED)
+  } ?: run {
+    locationMappingRepository.deleteAll()
+  }
 }

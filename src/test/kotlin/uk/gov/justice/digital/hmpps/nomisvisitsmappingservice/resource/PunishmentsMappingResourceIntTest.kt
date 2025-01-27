@@ -64,15 +64,13 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
     mappingType = ADJUDICATION_CREATED.name,
   )
 
-  private fun createMappingBatch(mapping: AdjudicationPunishmentMappingDto = createMapping()): AdjudicationPunishmentBatchMappingDto =
-    AdjudicationPunishmentBatchMappingDto(
-      punishments = listOf(mapping),
-    )
+  private fun createMappingBatch(mapping: AdjudicationPunishmentMappingDto = createMapping()): AdjudicationPunishmentBatchMappingDto = AdjudicationPunishmentBatchMappingDto(
+    punishments = listOf(mapping),
+  )
 
-  private fun updateMappingBatch(mapping: AdjudicationPunishmentMappingDto = createMapping()): AdjudicationPunishmentBatchUpdateMappingDto =
-    AdjudicationPunishmentBatchUpdateMappingDto(
-      punishmentsToCreate = listOf(mapping),
-    )
+  private fun updateMappingBatch(mapping: AdjudicationPunishmentMappingDto = createMapping()): AdjudicationPunishmentBatchUpdateMappingDto = AdjudicationPunishmentBatchUpdateMappingDto(
+    punishmentsToCreate = listOf(mapping),
+  )
 
   private fun postCreateSingleMappingRequest(
     dpsPunishmentId: String = DPS_PUNISHMENT_ID,

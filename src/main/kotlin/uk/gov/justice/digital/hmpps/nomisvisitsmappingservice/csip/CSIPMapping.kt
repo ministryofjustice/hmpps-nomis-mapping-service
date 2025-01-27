@@ -35,9 +35,7 @@ data class CSIPMapping(
     return dpsCSIPId != other.dpsCSIPId
   }
 
-  override fun hashCode(): Int {
-    return dpsCSIPId.hashCode()
-  }
+  override fun hashCode(): Int = dpsCSIPId.hashCode()
 
   override fun isNew(): Boolean = new
 

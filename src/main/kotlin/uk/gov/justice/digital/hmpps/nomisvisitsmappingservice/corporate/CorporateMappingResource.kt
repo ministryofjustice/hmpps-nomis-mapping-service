@@ -71,21 +71,20 @@ class CorporateMappingResource(private val service: CorporateService) {
   suspend fun createMappings(
     @RequestBody @Valid
     mappings: CorporateMappingsDto,
-  ) =
-    try {
-      service.createMappings(mappings)
-    } catch (e: DuplicateKeyException) {
-      val existingMapping = getExistingCorporateMappingSimilarTo(mappings.corporateMapping)
-      if (existingMapping == null) {
-        log.error("Child duplicate key found for corporate even though the corporate has never been migrated", e)
-      }
-      throw DuplicateMappingException(
-        messageIn = "Corporate mapping already exists",
-        duplicate = mappings.asCorporateMappingDto(),
-        existing = existingMapping ?: mappings.asCorporateMappingDto(),
-        cause = e,
-      )
+  ) = try {
+    service.createMappings(mappings)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingCorporateMappingSimilarTo(mappings.corporateMapping)
+    if (existingMapping == null) {
+      log.error("Child duplicate key found for corporate even though the corporate has never been migrated", e)
     }
+    throw DuplicateMappingException(
+      messageIn = "Corporate mapping already exists",
+      duplicate = mappings.asCorporateMappingDto(),
+      existing = existingMapping ?: mappings.asCorporateMappingDto(),
+      cause = e,
+    )
+  }
 
   @GetMapping("/organisation/migration-id/{migrationId}")
   @Operation(
@@ -113,8 +112,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<CorporateMappingDto> =
-    service.getCorporateMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<CorporateMappingDto> = service.getCorporateMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -172,18 +170,17 @@ class CorporateMappingResource(private val service: CorporateService) {
   suspend fun createMapping(
     @RequestBody @Valid
     mapping: CorporateMappingDto,
-  ) =
-    try {
-      service.createMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      val existingMapping = getExistingMappingSimilarTo(mapping)
-      throw DuplicateMappingException(
-        messageIn = "Mapping already exists",
-        duplicate = mapping,
-        existing = existingMapping ?: mapping,
-        cause = e,
-      )
-    }
+  ) = try {
+    service.createMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
 
   @GetMapping("/organisation")
   @Operation(
@@ -208,8 +205,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   )
   suspend fun getAllCorporateMappings(
     @PageableDefault pageRequest: Pageable,
-  ): Page<CorporateMappingDto> =
-    service.getAllCorporateMappings(pageRequest = pageRequest)
+  ): Page<CorporateMappingDto> = service.getAllCorporateMappings(pageRequest = pageRequest)
 
   @GetMapping("/organisation/nomis-corporate-id/{nomisCorporateId}")
   @Operation(
@@ -344,18 +340,17 @@ class CorporateMappingResource(private val service: CorporateService) {
   suspend fun createMapping(
     @RequestBody @Valid
     mapping: CorporateAddressMappingDto,
-  ) =
-    try {
-      service.createMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      val existingMapping = getExistingMappingSimilarTo(mapping)
-      throw DuplicateMappingException(
-        messageIn = "Mapping already exists",
-        duplicate = mapping,
-        existing = existingMapping ?: mapping,
-        cause = e,
-      )
-    }
+  ) = try {
+    service.createMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
 
   @GetMapping("/address/nomis-address-id/{nomisAddressId}")
   @Operation(
@@ -490,18 +485,17 @@ class CorporateMappingResource(private val service: CorporateService) {
   suspend fun createMapping(
     @RequestBody @Valid
     mapping: CorporateAddressPhoneMappingDto,
-  ) =
-    try {
-      service.createMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      val existingMapping = getExistingMappingSimilarTo(mapping)
-      throw DuplicateMappingException(
-        messageIn = "Mapping already exists",
-        duplicate = mapping,
-        existing = existingMapping ?: mapping,
-        cause = e,
-      )
-    }
+  ) = try {
+    service.createMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
 
   @GetMapping("/address-phone/nomis-phone-id/{nomisPhoneId}")
   @Operation(
@@ -636,18 +630,17 @@ class CorporateMappingResource(private val service: CorporateService) {
   suspend fun createMapping(
     @RequestBody @Valid
     mapping: CorporatePhoneMappingDto,
-  ) =
-    try {
-      service.createMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      val existingMapping = getExistingMappingSimilarTo(mapping)
-      throw DuplicateMappingException(
-        messageIn = "Mapping already exists",
-        duplicate = mapping,
-        existing = existingMapping ?: mapping,
-        cause = e,
-      )
-    }
+  ) = try {
+    service.createMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
 
   @GetMapping("/phone/nomis-phone-id/{nomisPhoneId}")
   @Operation(
@@ -782,18 +775,17 @@ class CorporateMappingResource(private val service: CorporateService) {
   suspend fun createMapping(
     @RequestBody @Valid
     mapping: CorporateEmailMappingDto,
-  ) =
-    try {
-      service.createMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      val existingMapping = getExistingMappingSimilarTo(mapping)
-      throw DuplicateMappingException(
-        messageIn = "Mapping already exists",
-        duplicate = mapping,
-        existing = existingMapping ?: mapping,
-        cause = e,
-      )
-    }
+  ) = try {
+    service.createMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
 
   @GetMapping("/email/nomis-internet-address-id/{nomisEmailId}")
   @Operation(
@@ -931,18 +923,17 @@ class CorporateMappingResource(private val service: CorporateService) {
   suspend fun createMapping(
     @RequestBody @Valid
     mapping: CorporateWebMappingDto,
-  ) =
-    try {
-      service.createMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      val existingMapping = getExistingMappingSimilarTo(mapping)
-      throw DuplicateMappingException(
-        messageIn = "Mapping already exists",
-        duplicate = mapping,
-        existing = existingMapping ?: mapping,
-        cause = e,
-      )
-    }
+  ) = try {
+    service.createMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
 
   @GetMapping("/web/nomis-internet-address-id/{nomisWebId}")
   @Operation(

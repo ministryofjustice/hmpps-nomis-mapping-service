@@ -61,16 +61,15 @@ class PunishmentsMappingResource(private val mappingService: AdjudicationMapping
   suspend fun createPunishmentBatchMappings(
     @RequestBody @Valid
     createMappingRequest: AdjudicationPunishmentBatchMappingDto,
-  ) =
-    try {
-      mappingService.createPunishmentMappings(createMappingRequest.punishments)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Adjudication punishment mapping already exists, detected by $e",
-        duplicate = createMappingRequest,
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createPunishmentMappings(createMappingRequest.punishments)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Adjudication punishment mapping already exists, detected by $e",
+      duplicate = createMappingRequest,
+      cause = e,
+    )
+  }
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
   @PutMapping("/mapping/punishments")
@@ -101,16 +100,15 @@ class PunishmentsMappingResource(private val mappingService: AdjudicationMapping
   suspend fun updatePunishmentBatchMappings(
     @RequestBody @Valid
     updateMappingRequest: AdjudicationPunishmentBatchUpdateMappingDto,
-  ) =
-    try {
-      mappingService.createAndDeletePunishmentMappings(updateMappingRequest)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Adjudication punishment mapping already exists, detected by $e",
-        duplicate = updateMappingRequest,
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createAndDeletePunishmentMappings(updateMappingRequest)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Adjudication punishment mapping already exists, detected by $e",
+      duplicate = updateMappingRequest,
+      cause = e,
+    )
+  }
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
   @GetMapping("/mapping/punishments/{dpsPunishmentId}")

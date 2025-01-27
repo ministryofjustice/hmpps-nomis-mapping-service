@@ -75,16 +75,15 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
   suspend fun createMapping(
     @RequestBody @Valid
     createMappingRequest: SentencingAdjustmentMappingDto,
-  ) =
-    try {
-      mappingService.createSentenceAdjustmentMapping(createMappingRequest)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Sentencing mapping already exists, detected by $e",
-        duplicate = createMappingRequest,
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createSentenceAdjustmentMapping(createMappingRequest)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Sentencing mapping already exists, detected by $e",
+      duplicate = createMappingRequest,
+      cause = e,
+    )
+  }
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
   @GetMapping("/mapping/sentencing/adjustments/nomis-adjustment-category/{nomisAdjustmentCategory}/nomis-adjustment-id/{nomisAdjustmentId}")
@@ -137,8 +136,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     )
     @PathVariable
     nomisAdjustmentCategory: String,
-  ): SentencingAdjustmentMappingDto =
-    mappingService.getSentenceAdjustmentMappingByNomisId(nomisAdjustmentId, nomisAdjustmentCategory)
+  ): SentencingAdjustmentMappingDto = mappingService.getSentenceAdjustmentMappingByNomisId(nomisAdjustmentId, nomisAdjustmentCategory)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
   @GetMapping("/mapping/sentencing/adjustments/adjustment-id/{adjustmentId}")
@@ -204,8 +202,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
       ),
     ],
   )
-  suspend fun getLatestMigratedSentenceAdjustmentMapping(): SentencingAdjustmentMappingDto =
-    mappingService.getSentencingAdjustmentMappingForLatestMigrated()
+  suspend fun getLatestMigratedSentenceAdjustmentMapping(): SentencingAdjustmentMappingDto = mappingService.getSentencingAdjustmentMappingForLatestMigrated()
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
   @DeleteMapping("/mapping/sentencing/adjustments")
@@ -289,8 +286,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<SentencingAdjustmentMappingDto> =
-    mappingService.getSentenceAdjustmentMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<SentencingAdjustmentMappingDto> = mappingService.getSentenceAdjustmentMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
   @GetMapping("/mapping/sentencing/adjustments")
@@ -318,6 +314,5 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
   )
   suspend fun getAllSentenceAdjustmentMappings(
     @PageableDefault pageRequest: Pageable,
-  ): Page<SentencingAdjustmentMappingDto> =
-    mappingService.getAllSentenceAdjustmentMappings(pageRequest = pageRequest)
+  ): Page<SentencingAdjustmentMappingDto> = mappingService.getAllSentenceAdjustmentMappings(pageRequest = pageRequest)
 }

@@ -34,9 +34,7 @@ data class LocationMapping(
     return dpsLocationId != other.dpsLocationId
   }
 
-  override fun hashCode(): Int {
-    return dpsLocationId.hashCode()
-  }
+  override fun hashCode(): Int = dpsLocationId.hashCode()
 
   override fun isNew(): Boolean = new
 

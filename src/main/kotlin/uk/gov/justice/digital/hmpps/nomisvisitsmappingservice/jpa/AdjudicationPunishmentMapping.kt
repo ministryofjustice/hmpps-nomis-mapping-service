@@ -36,9 +36,7 @@ data class AdjudicationPunishmentMapping(
     return dpsPunishmentId == other.dpsPunishmentId
   }
 
-  override fun hashCode(): Int {
-    return dpsPunishmentId.hashCode()
-  }
+  override fun hashCode(): Int = dpsPunishmentId.hashCode()
 
   override fun isNew(): Boolean = new
 

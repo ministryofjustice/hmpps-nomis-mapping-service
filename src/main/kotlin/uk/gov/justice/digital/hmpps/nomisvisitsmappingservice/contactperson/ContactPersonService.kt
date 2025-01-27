@@ -24,19 +24,16 @@ class ContactPersonService(
   private val personContactMappingRepository: PersonContactMappingRepository,
   private val personContactRestrictionMappingRepository: PersonContactRestrictionMappingRepository,
 ) {
-  suspend fun getPersonMappingByNomisId(nomisId: Long) =
-    personMappingRepository.findOneByNomisId(nomisId = nomisId)
-      ?.toDto()
-      ?: throw NotFoundException("No person mapping found for nomisId=$nomisId")
+  suspend fun getPersonMappingByNomisId(nomisId: Long) = personMappingRepository.findOneByNomisId(nomisId = nomisId)
+    ?.toDto()
+    ?: throw NotFoundException("No person mapping found for nomisId=$nomisId")
 
-  suspend fun getPersonMappingByDpsId(dpsId: String) =
-    personMappingRepository.findOneByDpsId(dpsId = dpsId)
-      ?.toDto()
-      ?: throw NotFoundException("No person mapping found for dpsId=$dpsId")
+  suspend fun getPersonMappingByDpsId(dpsId: String) = personMappingRepository.findOneByDpsId(dpsId = dpsId)
+    ?.toDto()
+    ?: throw NotFoundException("No person mapping found for dpsId=$dpsId")
 
-  suspend fun getPersonMappingByDpsIdOrNull(dpsId: String) =
-    personMappingRepository.findOneByDpsId(dpsId = dpsId)
-      ?.toDto()
+  suspend fun getPersonMappingByDpsIdOrNull(dpsId: String) = personMappingRepository.findOneByDpsId(dpsId = dpsId)
+    ?.toDto()
 
   @Transactional
   suspend fun createMappings(mappings: ContactPersonMappingsDto) {
@@ -75,30 +72,24 @@ class ContactPersonService(
   }
 
   @Transactional
-  suspend fun deletePersonMappingByNomisId(nomisId: Long) =
-    personMappingRepository.deleteByNomisId(nomisId = nomisId)
+  suspend fun deletePersonMappingByNomisId(nomisId: Long) = personMappingRepository.deleteByNomisId(nomisId = nomisId)
 
-  suspend fun getPersonContactMappingByNomisId(nomisId: Long) =
-    personContactMappingRepository.findOneByNomisId(nomisId = nomisId)
-      ?.toDto()
-      ?: throw NotFoundException("No person contact mapping found for nomisId=$nomisId")
+  suspend fun getPersonContactMappingByNomisId(nomisId: Long) = personContactMappingRepository.findOneByNomisId(nomisId = nomisId)
+    ?.toDto()
+    ?: throw NotFoundException("No person contact mapping found for nomisId=$nomisId")
 
-  suspend fun getPersonContactMappingByDpsId(dpsId: String) =
-    personContactMappingRepository.findOneByDpsId(dpsId = dpsId)
-      ?.toDto()
-      ?: throw NotFoundException("No person contact mapping found for dpsId=$dpsId")
+  suspend fun getPersonContactMappingByDpsId(dpsId: String) = personContactMappingRepository.findOneByDpsId(dpsId = dpsId)
+    ?.toDto()
+    ?: throw NotFoundException("No person contact mapping found for dpsId=$dpsId")
 
   @Transactional
-  suspend fun deletePersonMappingByDpsId(dpsId: String) =
-    personMappingRepository.deleteById(dpsId)
+  suspend fun deletePersonMappingByDpsId(dpsId: String) = personMappingRepository.deleteById(dpsId)
 
-  suspend fun getPersonContactMappingByDpsIdOrNull(dpsId: String) =
-    personContactMappingRepository.findOneByDpsId(dpsId = dpsId)
-      ?.toDto()
+  suspend fun getPersonContactMappingByDpsIdOrNull(dpsId: String) = personContactMappingRepository.findOneByDpsId(dpsId = dpsId)
+    ?.toDto()
 
   @Transactional
-  suspend fun deletePersonContactMappingByNomisId(nomisId: Long) =
-    personContactMappingRepository.deleteByNomisId(nomisId)
+  suspend fun deletePersonContactMappingByNomisId(nomisId: Long) = personContactMappingRepository.deleteByNomisId(nomisId)
 
   @Transactional
   suspend fun createMapping(mapping: PersonContactMappingDto) {
@@ -158,85 +149,69 @@ class ContactPersonService(
     personMappingRepository.deleteAll()
   }
 
-  suspend fun getPersonAddressMappingByNomisId(nomisId: Long) =
-    personAddressMappingRepository.findOneByNomisId(nomisId = nomisId)
-      ?.toDto()
-      ?: throw NotFoundException("No person address mapping found for nomisId=$nomisId")
+  suspend fun getPersonAddressMappingByNomisId(nomisId: Long) = personAddressMappingRepository.findOneByNomisId(nomisId = nomisId)
+    ?.toDto()
+    ?: throw NotFoundException("No person address mapping found for nomisId=$nomisId")
 
   @Transactional
-  suspend fun deletePersonAddressMappingByNomisId(nomisId: Long) =
-    personAddressMappingRepository.deleteByNomisId(nomisId = nomisId)
+  suspend fun deletePersonAddressMappingByNomisId(nomisId: Long) = personAddressMappingRepository.deleteByNomisId(nomisId = nomisId)
 
-  suspend fun getPersonAddressMappingByDpsId(dpsId: String) =
-    personAddressMappingRepository.findOneByDpsId(dpsId = dpsId)
-      ?.toDto()
-      ?: throw NotFoundException("No person address mapping found for dpsId=$dpsId")
+  suspend fun getPersonAddressMappingByDpsId(dpsId: String) = personAddressMappingRepository.findOneByDpsId(dpsId = dpsId)
+    ?.toDto()
+    ?: throw NotFoundException("No person address mapping found for dpsId=$dpsId")
 
-  suspend fun getPersonAddressMappingByDpsIdOrNull(dpsId: String) =
-    personAddressMappingRepository.findOneByDpsId(dpsId = dpsId)
-      ?.toDto()
+  suspend fun getPersonAddressMappingByDpsIdOrNull(dpsId: String) = personAddressMappingRepository.findOneByDpsId(dpsId = dpsId)
+    ?.toDto()
 
   @Transactional
   suspend fun createMapping(mapping: PersonAddressMappingDto) {
     personAddressMappingRepository.save(mapping.toPersonAddressMapping())
   }
 
-  suspend fun getPersonEmailMappingByNomisId(nomisId: Long) =
-    personEmailMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
-      ?: throw NotFoundException("No person email mapping found for nomisId=$nomisId")
+  suspend fun getPersonEmailMappingByNomisId(nomisId: Long) = personEmailMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
+    ?: throw NotFoundException("No person email mapping found for nomisId=$nomisId")
 
   @Transactional
-  suspend fun deletePersonEmailMappingByNomisId(nomisId: Long) =
-    personEmailMappingRepository.deleteByNomisId(nomisId = nomisId)
+  suspend fun deletePersonEmailMappingByNomisId(nomisId: Long) = personEmailMappingRepository.deleteByNomisId(nomisId = nomisId)
 
-  suspend fun getPersonEmailMappingByDpsId(dpsId: String) =
-    personEmailMappingRepository.findOneByDpsId(dpsId = dpsId)
-      ?.toDto()
-      ?: throw NotFoundException("No person email mapping found for dpsId=$dpsId")
+  suspend fun getPersonEmailMappingByDpsId(dpsId: String) = personEmailMappingRepository.findOneByDpsId(dpsId = dpsId)
+    ?.toDto()
+    ?: throw NotFoundException("No person email mapping found for dpsId=$dpsId")
 
-  suspend fun getPersonEmailMappingByDpsIdOrNull(dpsId: String) =
-    personEmailMappingRepository.findOneByDpsId(dpsId = dpsId)?.toDto()
+  suspend fun getPersonEmailMappingByDpsIdOrNull(dpsId: String) = personEmailMappingRepository.findOneByDpsId(dpsId = dpsId)?.toDto()
 
   @Transactional
   suspend fun createMapping(mapping: PersonEmailMappingDto) {
     personEmailMappingRepository.save(mapping.toPersonEmailMapping())
   }
-  suspend fun getPersonPhoneMappingByNomisId(nomisId: Long) =
-    personPhoneMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
-      ?: throw NotFoundException("No person phone mapping found for nomisId=$nomisId")
+  suspend fun getPersonPhoneMappingByNomisId(nomisId: Long) = personPhoneMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
+    ?: throw NotFoundException("No person phone mapping found for nomisId=$nomisId")
 
   @Transactional
-  suspend fun deletePersonPhoneMappingByNomisId(nomisId: Long) =
-    personPhoneMappingRepository.deleteByNomisId(nomisId = nomisId)
+  suspend fun deletePersonPhoneMappingByNomisId(nomisId: Long) = personPhoneMappingRepository.deleteByNomisId(nomisId = nomisId)
 
-  suspend fun getPersonPhoneMappingByDpsId(dpsId: String, dpsPhoneType: DpsPersonPhoneType) =
-    personPhoneMappingRepository.findOneByDpsIdAndDpsPhoneType(dpsId = dpsId, dpsPhoneType = dpsPhoneType)
-      ?.toDto()
-      ?: throw NotFoundException("No person phone mapping found for dpsId=$dpsId")
+  suspend fun getPersonPhoneMappingByDpsId(dpsId: String, dpsPhoneType: DpsPersonPhoneType) = personPhoneMappingRepository.findOneByDpsIdAndDpsPhoneType(dpsId = dpsId, dpsPhoneType = dpsPhoneType)
+    ?.toDto()
+    ?: throw NotFoundException("No person phone mapping found for dpsId=$dpsId")
 
-  suspend fun getPersonPhoneMappingByDpsIdOrNull(dpsId: String, dpsPhoneType: DpsPersonPhoneType) =
-    personPhoneMappingRepository.findOneByDpsIdAndDpsPhoneType(dpsId = dpsId, dpsPhoneType = dpsPhoneType)?.toDto()
+  suspend fun getPersonPhoneMappingByDpsIdOrNull(dpsId: String, dpsPhoneType: DpsPersonPhoneType) = personPhoneMappingRepository.findOneByDpsIdAndDpsPhoneType(dpsId = dpsId, dpsPhoneType = dpsPhoneType)?.toDto()
 
   @Transactional
   suspend fun createMapping(mapping: PersonPhoneMappingDto) {
     personPhoneMappingRepository.save(mapping.toPersonPhoneMapping())
   }
 
-  suspend fun getPersonIdentifierMappingByNomisIds(nomisPersonId: Long, nomisSequenceNumber: Long) =
-    personIdentifierMappingRepository.findOneByNomisPersonIdAndNomisSequenceNumber(nomisPersonId = nomisPersonId, nomisSequenceNumber = nomisSequenceNumber) ?.toDto()
-      ?: throw NotFoundException("No person identifier mapping found for nomisPersonId=$nomisPersonId and nomisSequenceNumber=$nomisSequenceNumber")
+  suspend fun getPersonIdentifierMappingByNomisIds(nomisPersonId: Long, nomisSequenceNumber: Long) = personIdentifierMappingRepository.findOneByNomisPersonIdAndNomisSequenceNumber(nomisPersonId = nomisPersonId, nomisSequenceNumber = nomisSequenceNumber) ?.toDto()
+    ?: throw NotFoundException("No person identifier mapping found for nomisPersonId=$nomisPersonId and nomisSequenceNumber=$nomisSequenceNumber")
 
   @Transactional
-  suspend fun deletePersonIdentifierMappingByNomisIds(nomisPersonId: Long, nomisSequenceNumber: Long) =
-    personIdentifierMappingRepository.deleteByNomisPersonIdAndNomisSequenceNumber(nomisPersonId = nomisPersonId, nomisSequenceNumber = nomisSequenceNumber)
+  suspend fun deletePersonIdentifierMappingByNomisIds(nomisPersonId: Long, nomisSequenceNumber: Long) = personIdentifierMappingRepository.deleteByNomisPersonIdAndNomisSequenceNumber(nomisPersonId = nomisPersonId, nomisSequenceNumber = nomisSequenceNumber)
 
-  suspend fun getPersonIdentifierMappingByDpsId(dpsId: String) =
-    personIdentifierMappingRepository.findOneByDpsId(dpsId = dpsId)
-      ?.toDto()
-      ?: throw NotFoundException("No person identifier mapping found for dpsId=$dpsId")
+  suspend fun getPersonIdentifierMappingByDpsId(dpsId: String) = personIdentifierMappingRepository.findOneByDpsId(dpsId = dpsId)
+    ?.toDto()
+    ?: throw NotFoundException("No person identifier mapping found for dpsId=$dpsId")
 
-  suspend fun getPersonIdentifierMappingByDpsIdOrNull(dpsId: String) =
-    personIdentifierMappingRepository.findOneByDpsId(dpsId = dpsId)?.toDto()
+  suspend fun getPersonIdentifierMappingByDpsIdOrNull(dpsId: String) = personIdentifierMappingRepository.findOneByDpsId(dpsId = dpsId)?.toDto()
 
   @Transactional
   suspend fun createMapping(mapping: PersonIdentifierMappingDto) {
@@ -244,44 +219,35 @@ class ContactPersonService(
   }
 
   @Transactional
-  suspend fun deletePersonEmploymentMappingByNomisIds(nomisPersonId: Long, nomisSequenceNumber: Long) =
-    personEmploymentMappingRepository.deleteByNomisPersonIdAndNomisSequenceNumber(nomisPersonId = nomisPersonId, nomisSequenceNumber = nomisSequenceNumber)
+  suspend fun deletePersonEmploymentMappingByNomisIds(nomisPersonId: Long, nomisSequenceNumber: Long) = personEmploymentMappingRepository.deleteByNomisPersonIdAndNomisSequenceNumber(nomisPersonId = nomisPersonId, nomisSequenceNumber = nomisSequenceNumber)
 
-  suspend fun getPersonContactRestrictionMappingByNomisId(nomisId: Long) =
-    personContactRestrictionMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
-      ?: throw NotFoundException("No person contact restriction mapping found for nomisId=$nomisId")
+  suspend fun getPersonContactRestrictionMappingByNomisId(nomisId: Long) = personContactRestrictionMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
+    ?: throw NotFoundException("No person contact restriction mapping found for nomisId=$nomisId")
 
   @Transactional
-  suspend fun deletePersonContactRestrictionMappingByNomisId(nomisId: Long) =
-    personContactRestrictionMappingRepository.deleteByNomisId(nomisId = nomisId)
+  suspend fun deletePersonContactRestrictionMappingByNomisId(nomisId: Long) = personContactRestrictionMappingRepository.deleteByNomisId(nomisId = nomisId)
 
-  suspend fun getPersonContactRestrictionMappingByDpsId(dpsId: String) =
-    personContactRestrictionMappingRepository.findOneByDpsId(dpsId = dpsId)
-      ?.toDto()
-      ?: throw NotFoundException("No person contact restriction mapping found for dpsId=$dpsId")
+  suspend fun getPersonContactRestrictionMappingByDpsId(dpsId: String) = personContactRestrictionMappingRepository.findOneByDpsId(dpsId = dpsId)
+    ?.toDto()
+    ?: throw NotFoundException("No person contact restriction mapping found for dpsId=$dpsId")
 
-  suspend fun getPersonContactRestrictionMappingByDpsIdOrNull(dpsId: String) =
-    personContactRestrictionMappingRepository.findOneByDpsId(dpsId = dpsId)?.toDto()
+  suspend fun getPersonContactRestrictionMappingByDpsIdOrNull(dpsId: String) = personContactRestrictionMappingRepository.findOneByDpsId(dpsId = dpsId)?.toDto()
 
   @Transactional
   suspend fun createMapping(mapping: PersonContactRestrictionMappingDto) {
     personContactRestrictionMappingRepository.save(mapping.toPersonContactRestrictionMapping())
   }
-  suspend fun getPersonRestrictionMappingByNomisId(nomisId: Long) =
-    personRestrictionMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
-      ?: throw NotFoundException("No person  restriction mapping found for nomisId=$nomisId")
+  suspend fun getPersonRestrictionMappingByNomisId(nomisId: Long) = personRestrictionMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
+    ?: throw NotFoundException("No person  restriction mapping found for nomisId=$nomisId")
 
   @Transactional
-  suspend fun deletePersonRestrictionMappingByNomisId(nomisId: Long) =
-    personRestrictionMappingRepository.deleteByNomisId(nomisId = nomisId)
+  suspend fun deletePersonRestrictionMappingByNomisId(nomisId: Long) = personRestrictionMappingRepository.deleteByNomisId(nomisId = nomisId)
 
-  suspend fun getPersonRestrictionMappingByDpsId(dpsId: String) =
-    personRestrictionMappingRepository.findOneByDpsId(dpsId = dpsId)
-      ?.toDto()
-      ?: throw NotFoundException("No person restriction mapping found for dpsId=$dpsId")
+  suspend fun getPersonRestrictionMappingByDpsId(dpsId: String) = personRestrictionMappingRepository.findOneByDpsId(dpsId = dpsId)
+    ?.toDto()
+    ?: throw NotFoundException("No person restriction mapping found for dpsId=$dpsId")
 
-  suspend fun getPersonRestrictionMappingByDpsIdOrNull(dpsId: String) =
-    personRestrictionMappingRepository.findOneByDpsId(dpsId = dpsId)?.toDto()
+  suspend fun getPersonRestrictionMappingByDpsIdOrNull(dpsId: String) = personRestrictionMappingRepository.findOneByDpsId(dpsId = dpsId)?.toDto()
 
   @Transactional
   suspend fun createMapping(mapping: PersonRestrictionMappingDto) {
@@ -421,37 +387,35 @@ private fun PersonRestrictionMapping.toDto() = PersonRestrictionMappingDto(
   whenCreated = whenCreated,
 )
 
-private inline fun <reified T : AbstractContactPersonMapping> ContactPersonMappingsDto.toMapping(mapping: ContactPersonSequenceMappingIdDto): T =
-  T::class.java.getDeclaredConstructor(
-    String::class.java,
-    Long::class.java,
-    Long::class.java,
-    String::class.java,
-    ContactPersonMappingType::class.java,
-    LocalDateTime::class.java,
-  ).newInstance(
-    mapping.dpsId,
-    mapping.nomisPersonId,
-    mapping.nomisSequenceNumber,
-    this.label,
-    this.mappingType,
-    this.whenCreated,
-  )
+private inline fun <reified T : AbstractContactPersonMapping> ContactPersonMappingsDto.toMapping(mapping: ContactPersonSequenceMappingIdDto): T = T::class.java.getDeclaredConstructor(
+  String::class.java,
+  Long::class.java,
+  Long::class.java,
+  String::class.java,
+  ContactPersonMappingType::class.java,
+  LocalDateTime::class.java,
+).newInstance(
+  mapping.dpsId,
+  mapping.nomisPersonId,
+  mapping.nomisSequenceNumber,
+  this.label,
+  this.mappingType,
+  this.whenCreated,
+)
 
-private inline fun <reified T : AbstractContactPersonMapping> ContactPersonMappingsDto.toMapping(mapping: ContactPersonSimpleMappingIdDto): T =
-  T::class.java.getDeclaredConstructor(
-    String::class.java,
-    Long::class.java,
-    String::class.java,
-    ContactPersonMappingType::class.java,
-    LocalDateTime::class.java,
-  ).newInstance(
-    mapping.dpsId,
-    mapping.nomisId,
-    this.label,
-    this.mappingType,
-    this.whenCreated,
-  )
+private inline fun <reified T : AbstractContactPersonMapping> ContactPersonMappingsDto.toMapping(mapping: ContactPersonSimpleMappingIdDto): T = T::class.java.getDeclaredConstructor(
+  String::class.java,
+  Long::class.java,
+  String::class.java,
+  ContactPersonMappingType::class.java,
+  LocalDateTime::class.java,
+).newInstance(
+  mapping.dpsId,
+  mapping.nomisId,
+  this.label,
+  this.mappingType,
+  this.whenCreated,
+)
 
 private fun ContactPersonMappingsDto.toMapping(mapping: ContactPersonPhoneMappingIdDto) = PersonPhoneMapping(
   nomisId = mapping.nomisId,

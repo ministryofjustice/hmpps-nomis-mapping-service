@@ -76,16 +76,15 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
   suspend fun createMapping(
     @RequestBody @Valid
     createMappingRequest: NonAssociationMappingDto,
-  ) =
-    try {
-      mappingService.createNonAssociationMapping(createMappingRequest)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Non-association mapping already exists, detected by $e",
-        duplicate = createMappingRequest,
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createNonAssociationMapping(createMappingRequest)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Non-association mapping already exists, detected by $e",
+      duplicate = createMappingRequest,
+      cause = e,
+    )
+  }
 
   @GetMapping("/first-offender-no/{firstOffenderNo}/second-offender-no/{secondOffenderNo}/type-sequence/{typeSequence}")
   @Operation(
@@ -121,8 +120,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
     @Schema(description = "Nomis type sequence", example = "2", required = true)
     @PathVariable
     typeSequence: Int,
-  ): NonAssociationMappingDto =
-    mappingService.getNonAssociationMappingByNomisId(firstOffenderNo, secondOffenderNo, typeSequence)
+  ): NonAssociationMappingDto = mappingService.getNonAssociationMappingByNomisId(firstOffenderNo, secondOffenderNo, typeSequence)
 
   @GetMapping("/non-association-id/{nonAssociationId}")
   @Operation(
@@ -182,8 +180,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<NonAssociationMappingDto> =
-    mappingService.getNonAssociationMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<NonAssociationMappingDto> = mappingService.getNonAssociationMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   @GetMapping("/migrated/latest")
   @Operation(
@@ -212,8 +209,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
       ),
     ],
   )
-  suspend fun getLatestMigratedNonAssociationMapping(): NonAssociationMappingDto =
-    mappingService.getNonAssociationMappingForLatestMigrated()
+  suspend fun getLatestMigratedNonAssociationMapping(): NonAssociationMappingDto = mappingService.getNonAssociationMappingForLatestMigrated()
 
   @DeleteMapping("/non-association-id/{nonAssociationId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)

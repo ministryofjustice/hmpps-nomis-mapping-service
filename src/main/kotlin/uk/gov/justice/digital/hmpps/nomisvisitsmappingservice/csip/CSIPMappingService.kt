@@ -37,8 +37,7 @@ class CSIPMappingService(
 ) {
 
   @Transactional
-  suspend fun createCSIPMapping(mapping: CSIPReportMappingDto) =
-    csipMappingRepository.save(mapping.fromDto())
+  suspend fun createCSIPMapping(mapping: CSIPReportMappingDto) = csipMappingRepository.save(mapping.fromDto())
 
   @Transactional
   suspend fun createCSIPMappingWithChildren(fullMappingDto: CSIPFullMappingDto) {
@@ -57,50 +56,44 @@ class CSIPMappingService(
     }
   }
 
-  suspend fun getMappingByNomisCSIPId(nomisCSIPReportId: Long): CSIPReportMappingDto =
-    csipMappingRepository.findOneByNomisCSIPId(
-      nomisCSIPId = nomisCSIPReportId,
-    )
-      ?.toDto()
-      ?: throw NotFoundException("No CSIP Report mapping found for nomisCSIPReportId=$nomisCSIPReportId")
+  suspend fun getMappingByNomisCSIPId(nomisCSIPReportId: Long): CSIPReportMappingDto = csipMappingRepository.findOneByNomisCSIPId(
+    nomisCSIPId = nomisCSIPReportId,
+  )
+    ?.toDto()
+    ?: throw NotFoundException("No CSIP Report mapping found for nomisCSIPReportId=$nomisCSIPReportId")
 
-  suspend fun getMappingByDPSCSIPId(dpsCSIPReportId: String): CSIPReportMappingDto =
-    csipMappingRepository.findById(dpsCSIPReportId)
-      ?.toDto()
-      ?: throw NotFoundException("No CSIP Report mapping found for dpsCSIPReportId=$dpsCSIPReportId")
+  suspend fun getMappingByDPSCSIPId(dpsCSIPReportId: String): CSIPReportMappingDto = csipMappingRepository.findById(dpsCSIPReportId)
+    ?.toDto()
+    ?: throw NotFoundException("No CSIP Report mapping found for dpsCSIPReportId=$dpsCSIPReportId")
 
-  suspend fun getFulMappingByDPSCSIPId(dpsCSIPReportId: String): CSIPFullMappingDto =
-    csipMappingRepository.findById(dpsCSIPReportId)
-      ?.let { csipReportMapping ->
-        CSIPFullMappingDto(
-          dpsCSIPReportId = csipReportMapping.dpsCSIPId,
-          nomisCSIPReportId = csipReportMapping.nomisCSIPId,
-          label = csipReportMapping.label,
-          mappingType = csipReportMapping.mappingType,
-          whenCreated = csipReportMapping.whenCreated,
-          attendeeMappings = csipAttendeeMappingService.findAllByDpsCSIPReportId(dpsCSIPReportId),
-          factorMappings = csipFactorMappingService.findAllByDpsCSIPReportId(dpsCSIPReportId),
-          interviewMappings = csipInterviewMappingService.findAllByDpsCSIPReportId(dpsCSIPReportId),
-          planMappings = csipPlanMappingService.findAllByDpsCSIPReportId(dpsCSIPReportId),
-          reviewMappings = csipReviewMappingService.findAllByDpsCSIPReportId(dpsCSIPReportId),
-        )
-      }
-      ?: throw NotFoundException("No CSIP Report mapping found for dpsCSIPReportId=$dpsCSIPReportId")
+  suspend fun getFulMappingByDPSCSIPId(dpsCSIPReportId: String): CSIPFullMappingDto = csipMappingRepository.findById(dpsCSIPReportId)
+    ?.let { csipReportMapping ->
+      CSIPFullMappingDto(
+        dpsCSIPReportId = csipReportMapping.dpsCSIPId,
+        nomisCSIPReportId = csipReportMapping.nomisCSIPId,
+        label = csipReportMapping.label,
+        mappingType = csipReportMapping.mappingType,
+        whenCreated = csipReportMapping.whenCreated,
+        attendeeMappings = csipAttendeeMappingService.findAllByDpsCSIPReportId(dpsCSIPReportId),
+        factorMappings = csipFactorMappingService.findAllByDpsCSIPReportId(dpsCSIPReportId),
+        interviewMappings = csipInterviewMappingService.findAllByDpsCSIPReportId(dpsCSIPReportId),
+        planMappings = csipPlanMappingService.findAllByDpsCSIPReportId(dpsCSIPReportId),
+        reviewMappings = csipReviewMappingService.findAllByDpsCSIPReportId(dpsCSIPReportId),
+      )
+    }
+    ?: throw NotFoundException("No CSIP Report mapping found for dpsCSIPReportId=$dpsCSIPReportId")
 
-  suspend fun getFulMappingNoChildrenByNomisCSIPId(nomisCSIPReportId: Long): CSIPFullMappingDto =
-    csipMappingRepository.findOneByNomisCSIPId(nomisCSIPId = nomisCSIPReportId)
-      ?.toFullDto()
-      ?: throw NotFoundException("No CSIP Report mapping found for nomisCSIPReportId=$nomisCSIPReportId")
+  suspend fun getFulMappingNoChildrenByNomisCSIPId(nomisCSIPReportId: Long): CSIPFullMappingDto = csipMappingRepository.findOneByNomisCSIPId(nomisCSIPId = nomisCSIPReportId)
+    ?.toFullDto()
+    ?: throw NotFoundException("No CSIP Report mapping found for nomisCSIPReportId=$nomisCSIPReportId")
 
-  suspend fun getFulMappingNoChildrenByDPSCSIPId(dpsCSIPReportId: String): CSIPFullMappingDto =
-    csipMappingRepository.findById(dpsCSIPReportId)
-      ?.toFullDto()
-      ?: throw NotFoundException("No CSIP Report mapping found for dpsCSIPReportId=$dpsCSIPReportId")
+  suspend fun getFulMappingNoChildrenByDPSCSIPId(dpsCSIPReportId: String): CSIPFullMappingDto = csipMappingRepository.findById(dpsCSIPReportId)
+    ?.toFullDto()
+    ?: throw NotFoundException("No CSIP Report mapping found for dpsCSIPReportId=$dpsCSIPReportId")
 
-  suspend fun getMappingsByNomisCSIPId(nomisCSIPReportIds: List<Long>): List<CSIPReportMappingDto> =
-    csipMappingRepository.findByNomisCSIPIdIn(nomisCSIPIds = nomisCSIPReportIds).takeIf { nomisCSIPReportIds.size == it.size }
-      ?.map { it.toDto() }
-      ?: throw NotFoundException("Could not find all csip report mappings for $nomisCSIPReportIds")
+  suspend fun getMappingsByNomisCSIPId(nomisCSIPReportIds: List<Long>): List<CSIPReportMappingDto> = csipMappingRepository.findByNomisCSIPIdIn(nomisCSIPIds = nomisCSIPReportIds).takeIf { nomisCSIPReportIds.size == it.size }
+    ?.map { it.toDto() }
+    ?: throw NotFoundException("Could not find all csip report mappings for $nomisCSIPReportIds")
 
   @Transactional
   suspend fun deleteMappingByDPSId(dpsCSIPId: String) {
@@ -136,58 +129,53 @@ class CSIPMappingService(
   }
 
   @Transactional
-  suspend fun deleteMappings(onlyMigrated: Boolean) =
-    onlyMigrated.takeIf { it }?.apply {
-      // The status of the child mapping will match the top level report status
-      deleteMigratedChildren()
-      csipMappingRepository.deleteByMappingTypeEquals(CSIPMappingType.MIGRATED)
-    } ?: run {
-      deleteAllChildren()
-      csipMappingRepository.deleteAll()
-    }
+  suspend fun deleteMappings(onlyMigrated: Boolean) = onlyMigrated.takeIf { it }?.apply {
+    // The status of the child mapping will match the top level report status
+    deleteMigratedChildren()
+    csipMappingRepository.deleteByMappingTypeEquals(CSIPMappingType.MIGRATED)
+  } ?: run {
+    deleteAllChildren()
+    csipMappingRepository.deleteAll()
+  }
 
-  suspend fun getByMigrationId(pageRequest: Pageable, migrationId: String): Page<CSIPFullMappingDto> =
-    coroutineScope {
-      val csipMapping = async {
-        csipMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
-          label = migrationId,
-          CSIPMappingType.MIGRATED,
-          pageRequest,
-        )
-      }
-
-      val count = async {
-        csipMappingRepository.countAllByLabelAndMappingType(migrationId, mappingType = CSIPMappingType.MIGRATED)
-      }
-
-      PageImpl(
-        csipMapping.await().toList().map { it.toFullDto() },
+  suspend fun getByMigrationId(pageRequest: Pageable, migrationId: String): Page<CSIPFullMappingDto> = coroutineScope {
+    val csipMapping = async {
+      csipMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+        label = migrationId,
+        CSIPMappingType.MIGRATED,
         pageRequest,
-        count.await(),
       )
     }
 
-  suspend fun getMappingForLatestMigrated(): CSIPFullMappingDto =
-    csipMappingRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(CSIPMappingType.MIGRATED)
-      ?.toFullDto()
-      ?: throw NotFoundException("No migrated mapping found")
+    val count = async {
+      csipMappingRepository.countAllByLabelAndMappingType(migrationId, mappingType = CSIPMappingType.MIGRATED)
+    }
+
+    PageImpl(
+      csipMapping.await().toList().map { it.toFullDto() },
+      pageRequest,
+      count.await(),
+    )
+  }
+
+  suspend fun getMappingForLatestMigrated(): CSIPFullMappingDto = csipMappingRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(CSIPMappingType.MIGRATED)
+    ?.toFullDto()
+    ?: throw NotFoundException("No migrated mapping found")
 }
 
-fun CSIPMapping.toFullDto() =
-  CSIPFullMappingDto(
-    dpsCSIPReportId = dpsCSIPId,
-    nomisCSIPReportId = nomisCSIPId,
-    label = label,
-    mappingType = mappingType,
-    whenCreated = whenCreated,
-  )
-fun CSIPFullMappingDto.fromFullDto() =
-  CSIPMapping(
-    dpsCSIPId = dpsCSIPReportId,
-    nomisCSIPId = nomisCSIPReportId,
-    label = label,
-    mappingType = mappingType,
-  )
+fun CSIPMapping.toFullDto() = CSIPFullMappingDto(
+  dpsCSIPReportId = dpsCSIPId,
+  nomisCSIPReportId = nomisCSIPId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+fun CSIPFullMappingDto.fromFullDto() = CSIPMapping(
+  dpsCSIPId = dpsCSIPReportId,
+  nomisCSIPId = nomisCSIPReportId,
+  label = label,
+  mappingType = mappingType,
+)
 
 fun CSIPMapping.toDto() = CSIPReportMappingDto(
   dpsCSIPReportId = dpsCSIPId,

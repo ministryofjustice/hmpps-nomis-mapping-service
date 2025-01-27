@@ -36,9 +36,7 @@ data class ActivityMigrationMapping(
     return true
   }
 
-  override fun hashCode(): Int {
-    return nomisCourseActivityId.hashCode()
-  }
+  override fun hashCode(): Int = nomisCourseActivityId.hashCode()
 
   override fun isNew(): Boolean = new
 

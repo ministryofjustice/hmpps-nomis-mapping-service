@@ -35,43 +35,39 @@ class CorePersonService(
     }
   }
 
-  suspend fun getCorePersonMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<CorePersonMappingDto> =
-    coroutineScope {
-      val mappings = async {
-        corePersonMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
-          label = migrationId,
-          mappingType = CorePersonMappingType.MIGRATED,
-          pageRequest = pageRequest,
-        )
-      }
-
-      val count = async {
-        corePersonMappingRepository.countAllByLabelAndMappingType(
-          migrationId = migrationId,
-          mappingType = CorePersonMappingType.MIGRATED,
-        )
-      }
-
-      PageImpl(
-        mappings.await().toList().map { it.toDto() },
-        pageRequest,
-        count.await(),
+  suspend fun getCorePersonMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<CorePersonMappingDto> = coroutineScope {
+    val mappings = async {
+      corePersonMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+        label = migrationId,
+        mappingType = CorePersonMappingType.MIGRATED,
+        pageRequest = pageRequest,
       )
     }
 
-  suspend fun getCorePersonMappingByNomisPrisonNumber(nomisPrisonNumber: String) =
-    corePersonMappingRepository.findOneByNomisPrisonNumber(nomisPrisonNumber = nomisPrisonNumber)
-      ?.toDto()
-      ?: throw NotFoundException("No core person mapping found for nomisPrisonNumber=$nomisPrisonNumber")
+    val count = async {
+      corePersonMappingRepository.countAllByLabelAndMappingType(
+        migrationId = migrationId,
+        mappingType = CorePersonMappingType.MIGRATED,
+      )
+    }
 
-  suspend fun getCorePersonMappingByCprId(cprId: String) =
-    corePersonMappingRepository.findOneByCprId(cprId = cprId)
-      ?.toDto()
-      ?: throw NotFoundException("No core person mapping found for cprId=$cprId")
+    PageImpl(
+      mappings.await().toList().map { it.toDto() },
+      pageRequest,
+      count.await(),
+    )
+  }
 
-  suspend fun getCorePersonMappingByCprIdOrNull(cprId: String) =
-    corePersonMappingRepository.findOneByCprId(cprId = cprId)
-      ?.toDto()
+  suspend fun getCorePersonMappingByNomisPrisonNumber(nomisPrisonNumber: String) = corePersonMappingRepository.findOneByNomisPrisonNumber(nomisPrisonNumber = nomisPrisonNumber)
+    ?.toDto()
+    ?: throw NotFoundException("No core person mapping found for nomisPrisonNumber=$nomisPrisonNumber")
+
+  suspend fun getCorePersonMappingByCprId(cprId: String) = corePersonMappingRepository.findOneByCprId(cprId = cprId)
+    ?.toDto()
+    ?: throw NotFoundException("No core person mapping found for cprId=$cprId")
+
+  suspend fun getCorePersonMappingByCprIdOrNull(cprId: String) = corePersonMappingRepository.findOneByCprId(cprId = cprId)
+    ?.toDto()
 
   @Transactional
   suspend fun deleteAllMappings() {
@@ -81,33 +77,27 @@ class CorePersonService(
     corePersonMappingRepository.deleteAll()
   }
 
-  suspend fun getAddressMappingByNomisId(nomisId: Long) =
-    corePersonAddressMappingRepository.findOneByNomisId(nomisId = nomisId)
-      ?.toDto()
-      ?: throw NotFoundException("No core person address mapping found for nomisId=$nomisId")
+  suspend fun getAddressMappingByNomisId(nomisId: Long) = corePersonAddressMappingRepository.findOneByNomisId(nomisId = nomisId)
+    ?.toDto()
+    ?: throw NotFoundException("No core person address mapping found for nomisId=$nomisId")
 
-  suspend fun getAddressMappingByCprId(cprId: String) =
-    corePersonAddressMappingRepository.findOneByCprId(cprId = cprId)
-      ?.toDto()
-      ?: throw NotFoundException("No core person address mapping found for cprId=$cprId")
+  suspend fun getAddressMappingByCprId(cprId: String) = corePersonAddressMappingRepository.findOneByCprId(cprId = cprId)
+    ?.toDto()
+    ?: throw NotFoundException("No core person address mapping found for cprId=$cprId")
 
-  suspend fun getPhoneMappingByNomisId(nomisId: Long) =
-    corePersonPhoneMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
-      ?: throw NotFoundException("No core person phone mapping found for nomisId=$nomisId")
+  suspend fun getPhoneMappingByNomisId(nomisId: Long) = corePersonPhoneMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
+    ?: throw NotFoundException("No core person phone mapping found for nomisId=$nomisId")
 
-  suspend fun getPhoneMappingByCprId(cprId: String, cprPhoneType: CprPhoneType) =
-    corePersonPhoneMappingRepository.findOneByCprIdAndCprPhoneType(cprId = cprId, cprPhoneType = cprPhoneType)
-      ?.toDto()
-      ?: throw NotFoundException("No core person phone mapping found for cprId=$cprId")
+  suspend fun getPhoneMappingByCprId(cprId: String, cprPhoneType: CprPhoneType) = corePersonPhoneMappingRepository.findOneByCprIdAndCprPhoneType(cprId = cprId, cprPhoneType = cprPhoneType)
+    ?.toDto()
+    ?: throw NotFoundException("No core person phone mapping found for cprId=$cprId")
 
-  suspend fun getEmailAddressMappingByNomisId(nomisId: Long) =
-    corePersonEmailMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
-      ?: throw NotFoundException("No core person email mapping found for nomisId=$nomisId")
+  suspend fun getEmailAddressMappingByNomisId(nomisId: Long) = corePersonEmailMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
+    ?: throw NotFoundException("No core person email mapping found for nomisId=$nomisId")
 
-  suspend fun getEmailAddressMappingByCprId(cprId: String) =
-    corePersonEmailMappingRepository.findOneByCprId(cprId = cprId)
-      ?.toDto()
-      ?: throw NotFoundException("No core person email mapping found for cprId=$cprId")
+  suspend fun getEmailAddressMappingByCprId(cprId: String) = corePersonEmailMappingRepository.findOneByCprId(cprId = cprId)
+    ?.toDto()
+    ?: throw NotFoundException("No core person email mapping found for cprId=$cprId")
 }
 
 private fun CorePersonMappingsDto.toCorePersonMapping() = CorePersonMapping(
@@ -118,20 +108,19 @@ private fun CorePersonMappingsDto.toCorePersonMapping() = CorePersonMapping(
   whenCreated = whenCreated,
 )
 
-private inline fun <reified T : AbstractCorePersonMapping> CorePersonMappingsDto.toMapping(mapping: CorePersonSimpleMappingIdDto): T =
-  T::class.java.getDeclaredConstructor(
-    String::class.java,
-    Long::class.java,
-    String::class.java,
-    CorePersonMappingType::class.java,
-    LocalDateTime::class.java,
-  ).newInstance(
-    mapping.cprId,
-    mapping.nomisId,
-    this.label,
-    this.mappingType,
-    this.whenCreated,
-  )
+private inline fun <reified T : AbstractCorePersonMapping> CorePersonMappingsDto.toMapping(mapping: CorePersonSimpleMappingIdDto): T = T::class.java.getDeclaredConstructor(
+  String::class.java,
+  Long::class.java,
+  String::class.java,
+  CorePersonMappingType::class.java,
+  LocalDateTime::class.java,
+).newInstance(
+  mapping.cprId,
+  mapping.nomisId,
+  this.label,
+  this.mappingType,
+  this.whenCreated,
+)
 
 private fun CorePersonMappingsDto.toMapping(mapping: CorePersonPhoneMappingIdDto) = CorePersonPhoneMapping(
   nomisId = mapping.nomisId,

@@ -38,9 +38,7 @@ data class IncentiveMapping(
     return true
   }
 
-  override fun hashCode(): Int {
-    return incentiveId.hashCode()
-  }
+  override fun hashCode(): Int = incentiveId.hashCode()
 
   override fun isNew(): Boolean = new
 

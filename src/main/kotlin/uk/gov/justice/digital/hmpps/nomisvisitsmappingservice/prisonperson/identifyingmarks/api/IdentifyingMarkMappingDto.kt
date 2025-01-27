@@ -26,24 +26,22 @@ class IdentifyingMarkMappingDto(
   val whenCreated: LocalDateTime,
 )
 
-fun IdentifyingMarkMapping.toDto(): IdentifyingMarkMappingDto =
-  IdentifyingMarkMappingDto(
-    nomisBookingId = this.nomisBookingId,
-    nomisMarksSequence = this.nomisMarksSequence,
-    dpsId = this.dpsId,
-    offenderNo = this.offenderNo,
-    label = this.label,
-    mappingType = this.mappingType,
-    whenCreated = this.whenCreated,
-  )
+fun IdentifyingMarkMapping.toDto(): IdentifyingMarkMappingDto = IdentifyingMarkMappingDto(
+  nomisBookingId = this.nomisBookingId,
+  nomisMarksSequence = this.nomisMarksSequence,
+  dpsId = this.dpsId,
+  offenderNo = this.offenderNo,
+  label = this.label,
+  mappingType = this.mappingType,
+  whenCreated = this.whenCreated,
+)
 
-fun IdentifyingMarkMappingDto.toEntity(): IdentifyingMarkMapping =
-  IdentifyingMarkMapping(
-    nomisBookingId = this.nomisBookingId,
-    nomisMarksSequence = this.nomisMarksSequence,
-    dpsId = this.dpsId,
-    offenderNo = this.offenderNo,
-    label = this.label,
-    mappingType = this.mappingType,
-    whenCreated = this.whenCreated,
-  )
+fun IdentifyingMarkMappingDto.toEntity(): IdentifyingMarkMapping = IdentifyingMarkMapping(
+  nomisBookingId = this.nomisBookingId,
+  nomisMarksSequence = this.nomisMarksSequence,
+  dpsId = this.dpsId,
+  offenderNo = this.offenderNo,
+  label = this.label,
+  mappingType = this.mappingType,
+  whenCreated = this.whenCreated,
+)

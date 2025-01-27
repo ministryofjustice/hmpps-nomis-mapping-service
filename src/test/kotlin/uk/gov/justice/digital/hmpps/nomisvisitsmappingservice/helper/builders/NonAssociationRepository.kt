@@ -7,5 +7,4 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.Non
 
 @Repository
 @Transactional
-class NonAssociationRepository(@Qualifier("nonAssociationMappingRepository") private val nonAssociationRepository: NonAssociationMappingRepository) :
-  NonAssociationMappingRepository by nonAssociationRepository
+class NonAssociationRepository(@Qualifier("nonAssociationMappingRepository") private val nonAssociationRepository: NonAssociationMappingRepository) : NonAssociationMappingRepository by nonAssociationRepository

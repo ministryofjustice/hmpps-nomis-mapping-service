@@ -56,16 +56,15 @@ class ActivityMigrationResource(private val mappingService: ActivityMigrationSer
   suspend fun createMapping(
     @RequestBody @Valid
     createMappingRequest: ActivityMigrationMappingDto,
-  ) =
-    try {
-      mappingService.createMapping(createMappingRequest)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Activity migration mapping already exists, detected by $e",
-        duplicate = createMappingRequest,
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createMapping(createMappingRequest)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Activity migration mapping already exists, detected by $e",
+      duplicate = createMappingRequest,
+      cause = e,
+    )
+  }
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
   @GetMapping("/mapping/activities/migration/nomis-course-activity-id/{courseActivityId}")
@@ -126,8 +125,7 @@ class ActivityMigrationResource(private val mappingService: ActivityMigrationSer
       ),
     ],
   )
-  suspend fun getLatestMigratedMapping(): ActivityMigrationMappingDto =
-    mappingService.getLatestMigrated()
+  suspend fun getLatestMigratedMapping(): ActivityMigrationMappingDto = mappingService.getLatestMigrated()
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
   @GetMapping("/mapping/activities/migration/migration-id/{migrationId}")
@@ -157,6 +155,5 @@ class ActivityMigrationResource(private val mappingService: ActivityMigrationSer
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<ActivityMigrationMappingDto> =
-    mappingService.getMappings(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<ActivityMigrationMappingDto> = mappingService.getMappings(pageRequest = pageRequest, migrationId = migrationId)
 }

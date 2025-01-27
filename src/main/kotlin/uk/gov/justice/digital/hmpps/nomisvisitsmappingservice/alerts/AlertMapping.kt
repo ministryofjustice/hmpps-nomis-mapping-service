@@ -39,9 +39,7 @@ data class AlertMapping(
     return true
   }
 
-  override fun hashCode(): Int {
-    return dpsAlertId.hashCode()
-  }
+  override fun hashCode(): Int = dpsAlertId.hashCode()
 
   override fun isNew(): Boolean = new
 

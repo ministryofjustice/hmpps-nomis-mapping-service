@@ -39,9 +39,7 @@ data class SentencingAdjustmentMapping(
     return true
   }
 
-  override fun hashCode(): Int {
-    return adjustmentId.hashCode()
-  }
+  override fun hashCode(): Int = adjustmentId.hashCode()
 
   override fun isNew(): Boolean = new
 

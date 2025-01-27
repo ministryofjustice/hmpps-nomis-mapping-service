@@ -28,26 +28,24 @@ class IdentifyingMarkImageMappingDto(
   val whenCreated: LocalDateTime,
 )
 
-fun IdentifyingMarkImageMapping.toDto(): IdentifyingMarkImageMappingDto =
-  IdentifyingMarkImageMappingDto(
-    nomisOffenderImageId = this.nomisOffenderImageId,
-    nomisBookingId = this.nomisBookingId,
-    nomisMarksSequence = this.nomisMarksSequence,
-    dpsId = this.dpsId,
-    offenderNo = this.offenderNo,
-    label = this.label,
-    mappingType = this.mappingType,
-    whenCreated = this.whenCreated,
-  )
+fun IdentifyingMarkImageMapping.toDto(): IdentifyingMarkImageMappingDto = IdentifyingMarkImageMappingDto(
+  nomisOffenderImageId = this.nomisOffenderImageId,
+  nomisBookingId = this.nomisBookingId,
+  nomisMarksSequence = this.nomisMarksSequence,
+  dpsId = this.dpsId,
+  offenderNo = this.offenderNo,
+  label = this.label,
+  mappingType = this.mappingType,
+  whenCreated = this.whenCreated,
+)
 
-fun IdentifyingMarkImageMappingDto.toEntity(): IdentifyingMarkImageMapping =
-  IdentifyingMarkImageMapping(
-    nomisOffenderImageId = this.nomisOffenderImageId,
-    nomisBookingId = this.nomisBookingId,
-    nomisMarksSequence = this.nomisMarksSequence,
-    dpsId = this.dpsId,
-    offenderNo = this.offenderNo,
-    label = this.label,
-    mappingType = this.mappingType,
-    whenCreated = this.whenCreated,
-  )
+fun IdentifyingMarkImageMappingDto.toEntity(): IdentifyingMarkImageMapping = IdentifyingMarkImageMapping(
+  nomisOffenderImageId = this.nomisOffenderImageId,
+  nomisBookingId = this.nomisBookingId,
+  nomisMarksSequence = this.nomisMarksSequence,
+  dpsId = this.dpsId,
+  offenderNo = this.offenderNo,
+  label = this.label,
+  mappingType = this.mappingType,
+  whenCreated = this.whenCreated,
+)

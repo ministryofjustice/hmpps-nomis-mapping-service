@@ -36,9 +36,7 @@ data class VisitId(
     return true
   }
 
-  override fun hashCode(): Int {
-    return nomisId.hashCode()
-  }
+  override fun hashCode(): Int = nomisId.hashCode()
 
   override fun isNew(): Boolean = new
 

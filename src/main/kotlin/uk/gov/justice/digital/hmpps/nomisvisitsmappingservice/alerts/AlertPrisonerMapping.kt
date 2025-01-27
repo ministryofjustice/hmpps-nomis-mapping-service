@@ -37,9 +37,7 @@ data class AlertPrisonerMapping(
     return true
   }
 
-  override fun hashCode(): Int {
-    return offenderNo.hashCode()
-  }
+  override fun hashCode(): Int = offenderNo.hashCode()
 
   override fun isNew(): Boolean = new
 

@@ -72,16 +72,15 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
   suspend fun createMapping(
     @RequestBody @Valid
     createMappingRequest: VisitMappingDto,
-  ) =
-    try {
-      mappingService.createVisitMapping(createMappingRequest)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Visit mapping already exists, detected by $e",
-        duplicate = createMappingRequest,
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createVisitMapping(createMappingRequest)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Visit mapping already exists, detected by $e",
+      duplicate = createMappingRequest,
+      cause = e,
+    )
+  }
 
   @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
   @GetMapping("/mapping/visits/nomisId/{nomisId}")
@@ -260,8 +259,7 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     prisonId: String,
     @RequestBody @Valid
     createMappingRequest: CreateRoomMappingDto,
-  ) =
-    mappingService.createRoomMapping(prisonId, createMappingRequest)
+  ) = mappingService.createRoomMapping(prisonId, createMappingRequest)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
   @DeleteMapping("/prison/{prisonId}/room-mappings/nomis-room-id/{nomisRoomDescription}")
@@ -288,8 +286,7 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     @Schema(description = "NOMIS room description", example = "MDI", required = true)
     @PathVariable
     nomisRoomDescription: String,
-  ) =
-    mappingService.deleteRoomMapping(prisonId, nomisRoomDescription)
+  ) = mappingService.deleteRoomMapping(prisonId, nomisRoomDescription)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
   @DeleteMapping("/mapping/visits")
@@ -370,6 +367,5 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<VisitMappingDto> =
-    mappingService.getVisitMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<VisitMappingDto> = mappingService.getVisitMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 }

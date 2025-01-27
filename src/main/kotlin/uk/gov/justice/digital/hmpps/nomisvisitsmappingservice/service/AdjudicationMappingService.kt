@@ -64,123 +64,116 @@ class AdjudicationMappingService(
   }
 
   @Transactional
-  suspend fun createMapping(createMappingRequest: AdjudicationMappingDto) =
-    with(createMappingRequest) {
-      log.debug("creating adjudication {}", createMappingRequest)
+  suspend fun createMapping(createMappingRequest: AdjudicationMappingDto) = with(createMappingRequest) {
+    log.debug("creating adjudication {}", createMappingRequest)
 
-      adjudicationMappingRepository.findById(chargeNumber)
-        ?.let {
-          throw DuplicateMappingException(
-            existing = chargeNumber,
-            duplicate = chargeNumber,
-            messageIn = "Adjudication mapping with id $chargeNumber already exists",
-          )
-        }
-        ?: adjudicationMappingRepository.save(
-          AdjudicationMapping(
-            adjudicationNumber = adjudicationNumber,
-            chargeSequence = chargeSequence,
-            chargeNumber = chargeNumber,
-            label = label,
-            mappingType = AdjudicationMappingType.valueOf(mappingType ?: "ADJUDICATION_CREATED"),
-          ),
-        )
-
-      telemetryClient.trackEvent(
-        "adjudication-mapping-created",
-        mapOf(
-          "adjudicationNumber" to adjudicationNumber.toString(),
-        ),
-        null,
-      )
-      log.debug("Mapping created with adjudicationNumber = $adjudicationNumber")
-    }
-
-  @Transactional
-  suspend fun createMapping(createMappingRequest: AdjudicationHearingMappingDto) =
-    with(createMappingRequest) {
-      log.debug("creating adjudication hearing {}", createMappingRequest)
-
-      adjudicationHearingMappingRepository.findById(dpsHearingId)
-        ?.let {
-          throw DuplicateMappingException(
-            existing = dpsHearingId,
-            duplicate = nomisHearingId.toString(),
-            messageIn = "Adjudication hearing mapping with id $dpsHearingId already exists",
-          )
-        }
-        ?: adjudicationHearingMappingRepository.save(
-          AdjudicationHearingMapping(
-            dpsHearingId = dpsHearingId,
-            nomisHearingId = nomisHearingId,
-            label = label,
-            mappingType = AdjudicationMappingType.valueOf(mappingType ?: "ADJUDICATION_CREATED"),
-          ),
-        )
-
-      telemetryClient.trackEvent(
-        "adjudication-hearing-mapping-created",
-        mapOf(
-          "dpsHearingId" to dpsHearingId,
-          "nomisHearingId" to nomisHearingId.toString(),
-        ),
-        null,
-      )
-    }
-
-  @Transactional
-  suspend fun createMapping(createMappingRequest: AdjudicationPunishmentMappingDto) =
-    with(createMappingRequest) {
-      log.debug("creating adjudication punishment {}", createMappingRequest)
-
-      adjudicationPunishmentMappingRepository.findById(dpsPunishmentId)
-        ?.let {
-          throw DuplicateMappingException(
-            existing = it,
-            duplicate = createMappingRequest,
-            messageIn = "Adjudication punishment mapping with id $dpsPunishmentId already exists",
-          )
-        }
-        ?: adjudicationPunishmentMappingRepository.save(
-          AdjudicationPunishmentMapping(
-            dpsPunishmentId = dpsPunishmentId,
-            nomisBookingId = nomisBookingId,
-            nomisSanctionSequence = nomisSanctionSequence,
-            label = label,
-            mappingType = AdjudicationMappingType.valueOf(mappingType ?: "ADJUDICATION_CREATED"),
-          ),
-        )
-
-      telemetryClient.trackEvent(
-        "adjudication-punishment-mapping-created",
-        mapOf(
-          "dpsPunishmentId" to dpsPunishmentId,
-          "nomisBookingId" to nomisBookingId.toString(),
-          "nomisSanctionSequence" to nomisSanctionSequence.toString(),
-        ),
-        null,
-      )
-    }
-
-  suspend fun getMappingByDpsId(chargeNumber: String): AdjudicationMappingDto =
     adjudicationMappingRepository.findById(chargeNumber)
-      ?.let { AdjudicationMappingDto(it) }
-      ?: throw NotFoundException("chargeNumber=$chargeNumber")
+      ?.let {
+        throw DuplicateMappingException(
+          existing = chargeNumber,
+          duplicate = chargeNumber,
+          messageIn = "Adjudication mapping with id $chargeNumber already exists",
+        )
+      }
+      ?: adjudicationMappingRepository.save(
+        AdjudicationMapping(
+          adjudicationNumber = adjudicationNumber,
+          chargeSequence = chargeSequence,
+          chargeNumber = chargeNumber,
+          label = label,
+          mappingType = AdjudicationMappingType.valueOf(mappingType ?: "ADJUDICATION_CREATED"),
+        ),
+      )
 
-  suspend fun getMappingByNomisId(adjudicationNumber: Long, chargeSequence: Int): AdjudicationMappingDto =
-    adjudicationMappingRepository.findByAdjudicationNumberAndChargeSequence(adjudicationNumber, chargeSequence)
-      ?.let { AdjudicationMappingDto(it) }
-      ?: throw NotFoundException("adjudicationNumber=$adjudicationNumber, chargeSequence=$chargeSequence")
+    telemetryClient.trackEvent(
+      "adjudication-mapping-created",
+      mapOf(
+        "adjudicationNumber" to adjudicationNumber.toString(),
+      ),
+      null,
+    )
+    log.debug("Mapping created with adjudicationNumber = $adjudicationNumber")
+  }
 
-  suspend fun getHearingMappingByDpsId(hearingId: String): AdjudicationHearingMappingDto =
-    adjudicationHearingMappingRepository.findById(hearingId)
-      ?.let { AdjudicationHearingMappingDto(it) }
-      ?: throw NotFoundException("DPS hearing Id=$hearingId")
+  @Transactional
+  suspend fun createMapping(createMappingRequest: AdjudicationHearingMappingDto) = with(createMappingRequest) {
+    log.debug("creating adjudication hearing {}", createMappingRequest)
 
-  suspend fun getHearingMappingByNomisId(hearingId: Long): AdjudicationHearingMappingDto =
-    adjudicationHearingMappingRepository.findByNomisHearingId(hearingId)
-      ?.let { AdjudicationHearingMappingDto(it) }
-      ?: throw NotFoundException("NOMIS hearing Id=$hearingId")
+    adjudicationHearingMappingRepository.findById(dpsHearingId)
+      ?.let {
+        throw DuplicateMappingException(
+          existing = dpsHearingId,
+          duplicate = nomisHearingId.toString(),
+          messageIn = "Adjudication hearing mapping with id $dpsHearingId already exists",
+        )
+      }
+      ?: adjudicationHearingMappingRepository.save(
+        AdjudicationHearingMapping(
+          dpsHearingId = dpsHearingId,
+          nomisHearingId = nomisHearingId,
+          label = label,
+          mappingType = AdjudicationMappingType.valueOf(mappingType ?: "ADJUDICATION_CREATED"),
+        ),
+      )
+
+    telemetryClient.trackEvent(
+      "adjudication-hearing-mapping-created",
+      mapOf(
+        "dpsHearingId" to dpsHearingId,
+        "nomisHearingId" to nomisHearingId.toString(),
+      ),
+      null,
+    )
+  }
+
+  @Transactional
+  suspend fun createMapping(createMappingRequest: AdjudicationPunishmentMappingDto) = with(createMappingRequest) {
+    log.debug("creating adjudication punishment {}", createMappingRequest)
+
+    adjudicationPunishmentMappingRepository.findById(dpsPunishmentId)
+      ?.let {
+        throw DuplicateMappingException(
+          existing = it,
+          duplicate = createMappingRequest,
+          messageIn = "Adjudication punishment mapping with id $dpsPunishmentId already exists",
+        )
+      }
+      ?: adjudicationPunishmentMappingRepository.save(
+        AdjudicationPunishmentMapping(
+          dpsPunishmentId = dpsPunishmentId,
+          nomisBookingId = nomisBookingId,
+          nomisSanctionSequence = nomisSanctionSequence,
+          label = label,
+          mappingType = AdjudicationMappingType.valueOf(mappingType ?: "ADJUDICATION_CREATED"),
+        ),
+      )
+
+    telemetryClient.trackEvent(
+      "adjudication-punishment-mapping-created",
+      mapOf(
+        "dpsPunishmentId" to dpsPunishmentId,
+        "nomisBookingId" to nomisBookingId.toString(),
+        "nomisSanctionSequence" to nomisSanctionSequence.toString(),
+      ),
+      null,
+    )
+  }
+
+  suspend fun getMappingByDpsId(chargeNumber: String): AdjudicationMappingDto = adjudicationMappingRepository.findById(chargeNumber)
+    ?.let { AdjudicationMappingDto(it) }
+    ?: throw NotFoundException("chargeNumber=$chargeNumber")
+
+  suspend fun getMappingByNomisId(adjudicationNumber: Long, chargeSequence: Int): AdjudicationMappingDto = adjudicationMappingRepository.findByAdjudicationNumberAndChargeSequence(adjudicationNumber, chargeSequence)
+    ?.let { AdjudicationMappingDto(it) }
+    ?: throw NotFoundException("adjudicationNumber=$adjudicationNumber, chargeSequence=$chargeSequence")
+
+  suspend fun getHearingMappingByDpsId(hearingId: String): AdjudicationHearingMappingDto = adjudicationHearingMappingRepository.findById(hearingId)
+    ?.let { AdjudicationHearingMappingDto(it) }
+    ?: throw NotFoundException("DPS hearing Id=$hearingId")
+
+  suspend fun getHearingMappingByNomisId(hearingId: Long): AdjudicationHearingMappingDto = adjudicationHearingMappingRepository.findByNomisHearingId(hearingId)
+    ?.let { AdjudicationHearingMappingDto(it) }
+    ?: throw NotFoundException("NOMIS hearing Id=$hearingId")
 
   @Transactional
   suspend fun deleteMapping(chargeNumber: String) = adjudicationMappingRepository.deleteById(chargeNumber)
@@ -216,41 +209,37 @@ class AdjudicationMappingService(
   suspend fun getAdjudicationMappingsByMigrationId(
     pageRequest: Pageable,
     migrationId: String,
-  ): Page<AdjudicationMappingDto> =
-    coroutineScope {
-      val adjudicationMapping = async {
-        adjudicationMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
-          label = migrationId,
-          AdjudicationMappingType.MIGRATED,
-          pageRequest,
-        )
-      }
-
-      val count = async {
-        adjudicationMappingRepository.countAllByLabelAndMappingType(
-          migrationId,
-          mappingType = AdjudicationMappingType.MIGRATED,
-        )
-      }
-
-      PageImpl(
-        adjudicationMapping.await().toList().map { AdjudicationMappingDto(it) },
+  ): Page<AdjudicationMappingDto> = coroutineScope {
+    val adjudicationMapping = async {
+      adjudicationMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+        label = migrationId,
+        AdjudicationMappingType.MIGRATED,
         pageRequest,
-        count.await(),
       )
     }
 
-  suspend fun getAdjudicationMappingForLatestMigrated(): AdjudicationMappingDto =
-    adjudicationMappingRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(AdjudicationMappingType.MIGRATED)
-      ?.let { AdjudicationMappingDto(it) }
-      ?: throw NotFoundException("No migrated mapping found")
+    val count = async {
+      adjudicationMappingRepository.countAllByLabelAndMappingType(
+        migrationId,
+        mappingType = AdjudicationMappingType.MIGRATED,
+      )
+    }
 
-  suspend fun getAllMappings(): List<AdjudicationMappingDto> =
-    adjudicationMappingRepository.findAll().toList().map { AdjudicationMappingDto(it) }
+    PageImpl(
+      adjudicationMapping.await().toList().map { AdjudicationMappingDto(it) },
+      pageRequest,
+      count.await(),
+    )
+  }
+
+  suspend fun getAdjudicationMappingForLatestMigrated(): AdjudicationMappingDto = adjudicationMappingRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(AdjudicationMappingType.MIGRATED)
+    ?.let { AdjudicationMappingDto(it) }
+    ?: throw NotFoundException("No migrated mapping found")
+
+  suspend fun getAllMappings(): List<AdjudicationMappingDto> = adjudicationMappingRepository.findAll().toList().map { AdjudicationMappingDto(it) }
 
   @Transactional
-  suspend fun createPunishmentMappings(punishments: List<AdjudicationPunishmentMappingDto>) =
-    punishments.forEach { createMapping(it) }
+  suspend fun createPunishmentMappings(punishments: List<AdjudicationPunishmentMappingDto>) = punishments.forEach { createMapping(it) }
 
   @Transactional
   suspend fun createAndDeletePunishmentMappings(request: AdjudicationPunishmentBatchUpdateMappingDto) {
@@ -258,25 +247,21 @@ class AdjudicationMappingService(
     deletePunishmentMappings(request.punishmentsToDelete)
   }
 
-  private suspend fun deletePunishmentMappings(punishments: List<AdjudicationPunishmentNomisIdDto>) =
-    punishments.forEach {
-      adjudicationPunishmentMappingRepository.deleteByNomisBookingIdAndNomisSanctionSequence(
-        it.nomisBookingId,
-        it.nomisSanctionSequence,
-      )
-    }
+  private suspend fun deletePunishmentMappings(punishments: List<AdjudicationPunishmentNomisIdDto>) = punishments.forEach {
+    adjudicationPunishmentMappingRepository.deleteByNomisBookingIdAndNomisSanctionSequence(
+      it.nomisBookingId,
+      it.nomisSanctionSequence,
+    )
+  }
 
-  suspend fun getPunishmentMappingByDpsId(dpsPunishmentId: String): AdjudicationPunishmentMappingDto =
-    adjudicationPunishmentMappingRepository.findById(dpsPunishmentId)
-      ?.let { AdjudicationPunishmentMappingDto(it) }
-      ?: throw NotFoundException("DPS punishment Id=$dpsPunishmentId")
+  suspend fun getPunishmentMappingByDpsId(dpsPunishmentId: String): AdjudicationPunishmentMappingDto = adjudicationPunishmentMappingRepository.findById(dpsPunishmentId)
+    ?.let { AdjudicationPunishmentMappingDto(it) }
+    ?: throw NotFoundException("DPS punishment Id=$dpsPunishmentId")
 
-  suspend fun getPunishmentMappingByNomisId(bookingId: Long, sanctionSequence: Int): AdjudicationPunishmentMappingDto =
-    adjudicationPunishmentMappingRepository.findByNomisBookingIdAndNomisSanctionSequence(nomisBookingId = bookingId, nomisSanctionSequence = sanctionSequence)
-      ?.let { AdjudicationPunishmentMappingDto(it) }
-      ?: throw NotFoundException("NOMIS booking Id=$bookingId, sanction sequence=$sanctionSequence")
+  suspend fun getPunishmentMappingByNomisId(bookingId: Long, sanctionSequence: Int): AdjudicationPunishmentMappingDto = adjudicationPunishmentMappingRepository.findByNomisBookingIdAndNomisSanctionSequence(nomisBookingId = bookingId, nomisSanctionSequence = sanctionSequence)
+    ?.let { AdjudicationPunishmentMappingDto(it) }
+    ?: throw NotFoundException("NOMIS booking Id=$bookingId, sanction sequence=$sanctionSequence")
 
   @Transactional
-  suspend fun deletePunishmentMappingByDpsId(dpsPunishmentId: String) =
-    adjudicationPunishmentMappingRepository.deleteById(dpsPunishmentId)
+  suspend fun deletePunishmentMappingByDpsId(dpsPunishmentId: String) = adjudicationPunishmentMappingRepository.deleteById(dpsPunishmentId)
 }

@@ -434,24 +434,21 @@ class IdentifyingMarkResourceIntTest : IntegrationTestBase() {
       }
     }
 
-    private fun WebTestClient.postMapping(requestBody: Any): WebTestClient.ResponseSpec =
-      post()
-        .uri("/mapping/prisonperson/identifying-mark")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_PRISONPERSON")))
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(BodyInserters.fromValue(requestBody))
-        .exchange()
+    private fun WebTestClient.postMapping(requestBody: Any): WebTestClient.ResponseSpec = post()
+      .uri("/mapping/prisonperson/identifying-mark")
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_PRISONPERSON")))
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(BodyInserters.fromValue(requestBody))
+      .exchange()
 
-    private fun WebTestClient.getNomisMapping(bookingId: Long, marksSeq: Long) =
-      get()
-        .uri("/mapping/prisonperson/nomis-booking-id/$bookingId/identifying-mark-sequence/$marksSeq")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_PRISONPERSON")))
-        .exchange()
+    private fun WebTestClient.getNomisMapping(bookingId: Long, marksSeq: Long) = get()
+      .uri("/mapping/prisonperson/nomis-booking-id/$bookingId/identifying-mark-sequence/$marksSeq")
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_PRISONPERSON")))
+      .exchange()
 
-    private fun WebTestClient.getDpsMapping(id: UUID) =
-      get()
-        .uri("/mapping/prisonperson/dps-identifying-mark-id/$id")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_PRISONPERSON")))
-        .exchange()
+    private fun WebTestClient.getDpsMapping(id: UUID) = get()
+      .uri("/mapping/prisonperson/dps-identifying-mark-id/$id")
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_PRISONPERSON")))
+      .exchange()
   }
 }

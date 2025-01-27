@@ -13,14 +13,12 @@ import java.util.UUID
 class IdentifyingMarkService(
   private val repository: IdentifyingMarkMappingRepository,
 ) {
-  suspend fun getIdentifyingMarkMapping(bookingId: Long, markSequence: Long): IdentifyingMarkMappingDto =
-    repository.findByNomisBookingIdAndNomisMarksSequence(bookingId, markSequence)
-      ?.toDto()
-      ?: throw NotFoundException("Identifying mark mapping not found for booking id $bookingId and sequence $markSequence")
+  suspend fun getIdentifyingMarkMapping(bookingId: Long, markSequence: Long): IdentifyingMarkMappingDto = repository.findByNomisBookingIdAndNomisMarksSequence(bookingId, markSequence)
+    ?.toDto()
+    ?: throw NotFoundException("Identifying mark mapping not found for booking id $bookingId and sequence $markSequence")
 
-  suspend fun getIdentifyingMarkMappings(dpsId: UUID): List<IdentifyingMarkMappingDto> =
-    repository.findByDpsId(dpsId)
-      .map { it.toDto() }
+  suspend fun getIdentifyingMarkMappings(dpsId: UUID): List<IdentifyingMarkMappingDto> = repository.findByDpsId(dpsId)
+    .map { it.toDto() }
 
   @Transactional
   suspend fun createIdentifyingMarkMapping(mapping: IdentifyingMarkMappingDto) {

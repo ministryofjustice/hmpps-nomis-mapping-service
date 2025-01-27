@@ -18,19 +18,16 @@ class AlertMappingService(
   val repository: AlertsMappingRepository,
   val prisonerMappingRepository: AlertPrisonerMappingRepository,
 ) {
-  suspend fun getMappingByNomisId(bookingId: Long, alertSequence: Long) =
-    repository.findOneByNomisBookingIdAndNomisAlertSequence(bookingId = bookingId, alertSequence = alertSequence)
-      ?.toDto()
-      ?: throw NotFoundException("No alert mapping found for bookingId=$bookingId,alertSequence=$alertSequence")
+  suspend fun getMappingByNomisId(bookingId: Long, alertSequence: Long) = repository.findOneByNomisBookingIdAndNomisAlertSequence(bookingId = bookingId, alertSequence = alertSequence)
+    ?.toDto()
+    ?: throw NotFoundException("No alert mapping found for bookingId=$bookingId,alertSequence=$alertSequence")
 
-  suspend fun getMappingByDpsId(alertId: String) =
-    repository.findOneByDpsAlertId(dpsAlertId = alertId)
-      ?.toDto()
-      ?: throw NotFoundException("No alert mapping found for dpsAlertId=$alertId")
+  suspend fun getMappingByDpsId(alertId: String) = repository.findOneByDpsAlertId(dpsAlertId = alertId)
+    ?.toDto()
+    ?: throw NotFoundException("No alert mapping found for dpsAlertId=$alertId")
 
   @Transactional
-  suspend fun deleteMappingByDpsId(alertId: String) =
-    repository.deleteById(alertId)
+  suspend fun deleteMappingByDpsId(alertId: String) = repository.deleteById(alertId)
 
   @Transactional
   suspend fun createMapping(mapping: AlertMappingDto) {
@@ -170,18 +167,16 @@ class AlertMappingService(
   }
 
   @Transactional
-  suspend fun updateMappingByNomisId(previousBookingId: Long, alertSequence: Long, newBookingId: Long) =
-    repository.findOneByNomisBookingIdAndNomisAlertSequence(
-      bookingId = previousBookingId,
-      alertSequence = alertSequence,
-    )
-      ?.let {
-        repository.save(it.copy(nomisBookingId = newBookingId)).toDto()
-      }
-      ?: throw NotFoundException("No alert mapping found for bookingId=$previousBookingId,alertSequence=$alertSequence")
+  suspend fun updateMappingByNomisId(previousBookingId: Long, alertSequence: Long, newBookingId: Long) = repository.findOneByNomisBookingIdAndNomisAlertSequence(
+    bookingId = previousBookingId,
+    alertSequence = alertSequence,
+  )
+    ?.let {
+      repository.save(it.copy(nomisBookingId = newBookingId)).toDto()
+    }
+    ?: throw NotFoundException("No alert mapping found for bookingId=$previousBookingId,alertSequence=$alertSequence")
 
-  suspend fun getMappings(offenderNo: String): AllPrisonerAlertMappingsDto =
-    repository.findAllByOffenderNoOrderByNomisBookingIdAscNomisAlertSequenceAsc(offenderNo).map { it.toDto() }.let { AllPrisonerAlertMappingsDto(it) }
+  suspend fun getMappings(offenderNo: String): AllPrisonerAlertMappingsDto = repository.findAllByOffenderNoOrderByNomisBookingIdAscNomisAlertSequenceAsc(offenderNo).map { it.toDto() }.let { AllPrisonerAlertMappingsDto(it) }
 }
 
 fun AlertMapping.toDto() = AlertMappingDto(

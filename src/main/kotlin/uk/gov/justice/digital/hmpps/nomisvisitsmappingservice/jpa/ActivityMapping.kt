@@ -36,9 +36,7 @@ data class ActivityMapping(
     return true
   }
 
-  override fun hashCode(): Int {
-    return activityScheduleId.hashCode()
-  }
+  override fun hashCode(): Int = activityScheduleId.hashCode()
 
   override fun isNew(): Boolean = new
 

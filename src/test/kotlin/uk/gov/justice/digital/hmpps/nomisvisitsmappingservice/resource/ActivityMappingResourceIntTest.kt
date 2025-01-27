@@ -536,12 +536,11 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
         )
     }
 
-    private fun WebTestClient.putScheduleMappings(request: String = createUpdateRequest()) =
-      put().uri("/mapping/activities")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(BodyInserters.fromValue(request))
-        .exchange()
+    private fun WebTestClient.putScheduleMappings(request: String = createUpdateRequest()) = put().uri("/mapping/activities")
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(BodyInserters.fromValue(request))
+      .exchange()
   }
 
   @DisplayName("GET /mapping/activities/activity-schedule/{activityScheduleId}")

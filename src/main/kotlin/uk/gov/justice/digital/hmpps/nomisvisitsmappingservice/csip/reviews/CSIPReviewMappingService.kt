@@ -13,8 +13,7 @@ class CSIPReviewMappingService(
   private val repository: CSIPReviewMappingRepository,
 ) {
   @Transactional
-  suspend fun createMapping(mappingDto: CSIPChildMappingDto): CSIPReviewMapping =
-    repository.save(mappingDto.fromDto())
+  suspend fun createMapping(mappingDto: CSIPChildMappingDto): CSIPReviewMapping = repository.save(mappingDto.fromDto())
 
   @Transactional
   suspend fun createMappings(mappingDtoList: List<CSIPChildMappingDto>) {
@@ -23,30 +22,26 @@ class CSIPReviewMappingService(
 
   suspend fun findAllByDpsCSIPReportId(dpsCSIPReportId: String) = repository.findAllByDpsCSIPReportId(dpsCSIPReportId).map { it.toDto() }
 
-  suspend fun getMappingByNomisId(nomisCSIPReviewId: Long): CSIPChildMappingDto =
-    repository.findOneByNomisCSIPReviewId(
-      nomisCSIPReviewId = nomisCSIPReviewId,
-    )
-      ?.toDto()
-      ?: throw NotFoundException("No CSIP Review mapping for  nomisCSIPReviewId=$nomisCSIPReviewId")
+  suspend fun getMappingByNomisId(nomisCSIPReviewId: Long): CSIPChildMappingDto = repository.findOneByNomisCSIPReviewId(
+    nomisCSIPReviewId = nomisCSIPReviewId,
+  )
+    ?.toDto()
+    ?: throw NotFoundException("No CSIP Review mapping for  nomisCSIPReviewId=$nomisCSIPReviewId")
 
-  suspend fun getMappingByDpsId(dpsCSIPReviewId: String): CSIPChildMappingDto =
-    repository.findById(dpsCSIPReviewId)
-      ?.toDto()
-      ?: throw NotFoundException("No CSIP review mapping found for dpsCSIPReviewId=$dpsCSIPReviewId")
+  suspend fun getMappingByDpsId(dpsCSIPReviewId: String): CSIPChildMappingDto = repository.findById(dpsCSIPReviewId)
+    ?.toDto()
+    ?: throw NotFoundException("No CSIP review mapping found for dpsCSIPReviewId=$dpsCSIPReviewId")
 
   @Transactional
-  suspend fun deleteMappingByDpsId(dpsCSIPReviewId: String) =
-    repository.deleteById(dpsCSIPReviewId)
+  suspend fun deleteMappingByDpsId(dpsCSIPReviewId: String) = repository.deleteById(dpsCSIPReviewId)
 
   fun alreadyExistsMessage(
     duplicateMapping: CSIPChildMappingDto,
     existingMapping: CSIPChildMappingDto,
-  ) =
-    """CSIPReview Review mapping already exists.
+  ) = """CSIPReview Review mapping already exists.
        |Existing mapping: $existingMapping
        |Duplicate mapping: $duplicateMapping
-    """.trimMargin()
+  """.trimMargin()
 }
 
 fun CSIPReviewMapping.toDto() = CSIPChildMappingDto(

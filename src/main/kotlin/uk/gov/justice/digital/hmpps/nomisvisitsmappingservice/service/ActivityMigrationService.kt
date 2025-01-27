@@ -64,33 +64,30 @@ class ActivityMigrationService(
     }
   }
 
-  suspend fun getMapping(courseActivityId: Long): ActivityMigrationMappingDto =
-    activityMigrationMappingRepository.findById(courseActivityId)
-      ?.let { ActivityMigrationMappingDto(it) }
-      ?: throw NotFoundException("nomisCourseActivityId=$courseActivityId")
+  suspend fun getMapping(courseActivityId: Long): ActivityMigrationMappingDto = activityMigrationMappingRepository.findById(courseActivityId)
+    ?.let { ActivityMigrationMappingDto(it) }
+    ?: throw NotFoundException("nomisCourseActivityId=$courseActivityId")
 
-  suspend fun getLatestMigrated(): ActivityMigrationMappingDto =
-    activityMigrationMappingRepository.findFirstByOrderByWhenCreatedDesc()
-      ?.let { ActivityMigrationMappingDto(it) }
-      ?: throw NotFoundException("No migrated mapping found")
+  suspend fun getLatestMigrated(): ActivityMigrationMappingDto = activityMigrationMappingRepository.findFirstByOrderByWhenCreatedDesc()
+    ?.let { ActivityMigrationMappingDto(it) }
+    ?: throw NotFoundException("No migrated mapping found")
 
   suspend fun getMappings(
     pageRequest: Pageable,
     migrationId: String,
-  ): Page<ActivityMigrationMappingDto> =
-    coroutineScope {
-      val activityMigrationMappings = async {
-        activityMigrationMappingRepository.findAllByLabelOrderByNomisCourseActivityIdAsc(label = migrationId, pageRequest)
-      }
-
-      val count = async {
-        activityMigrationMappingRepository.countAllByLabel(migrationId)
-      }
-
-      PageImpl(
-        activityMigrationMappings.await().toList().map { ActivityMigrationMappingDto(it) },
-        pageRequest,
-        count.await(),
-      )
+  ): Page<ActivityMigrationMappingDto> = coroutineScope {
+    val activityMigrationMappings = async {
+      activityMigrationMappingRepository.findAllByLabelOrderByNomisCourseActivityIdAsc(label = migrationId, pageRequest)
     }
+
+    val count = async {
+      activityMigrationMappingRepository.countAllByLabel(migrationId)
+    }
+
+    PageImpl(
+      activityMigrationMappings.await().toList().map { ActivityMigrationMappingDto(it) },
+      pageRequest,
+      count.await(),
+    )
+  }
 }
