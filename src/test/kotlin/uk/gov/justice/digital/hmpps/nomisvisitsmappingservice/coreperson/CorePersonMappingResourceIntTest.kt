@@ -123,6 +123,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         )
         corePersonAddressMappingRepository.save(
           CorePersonAddressMapping(
+            nomisPrisonNumber = "A1234BC",
             cprId = "18e89dec-6ace-4706-9283-8e11e9ebe886",
             nomisId = 54321,
             // Do we need this?
@@ -657,8 +658,17 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setUp() = runTest {
+      corePersonMappingRepository.save(
+        CorePersonMapping(
+          cprId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          nomisPrisonNumber = "A1234BA",
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+        ),
+      )
       personAddressMapping = corePersonAddressMappingRepository.save(
         CorePersonAddressMapping(
+          nomisPrisonNumber = "A1234BA",
           cprId = cprCorePersonAddressId,
           nomisId = nomisPersonAddressId,
           label = "2023-01-01T12:45:12",

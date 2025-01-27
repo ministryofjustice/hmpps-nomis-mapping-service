@@ -6,11 +6,11 @@ import java.time.LocalDateTime
 class CorePersonMapping(
   @Id
   val cprId: String,
-  val nomisPrisonNumber: String,
+  nomisPrisonNumber: String,
   label: String? = null,
   mappingType: CorePersonMappingType,
   whenCreated: LocalDateTime? = null,
-) : AbstractCorePersonMapping(label = label, mappingType = mappingType, whenCreated = whenCreated) {
+) : AbstractCorePersonMapping(nomisPrisonNumber = nomisPrisonNumber, label = label, mappingType = mappingType, whenCreated = whenCreated) {
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

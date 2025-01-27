@@ -110,11 +110,13 @@ private fun CorePersonMappingsDto.toCorePersonMapping() = CorePersonMapping(
 
 private inline fun <reified T : AbstractCorePersonMapping> CorePersonMappingsDto.toMapping(mapping: CorePersonSimpleMappingIdDto): T = T::class.java.getDeclaredConstructor(
   String::class.java,
+  String::class.java,
   Long::class.java,
   String::class.java,
   CorePersonMappingType::class.java,
   LocalDateTime::class.java,
 ).newInstance(
+  this.personMapping.nomisPrisonNumber,
   mapping.cprId,
   mapping.nomisId,
   this.label,
@@ -123,6 +125,7 @@ private inline fun <reified T : AbstractCorePersonMapping> CorePersonMappingsDto
 )
 
 private fun CorePersonMappingsDto.toMapping(mapping: CorePersonPhoneMappingIdDto) = CorePersonPhoneMapping(
+  nomisPrisonNumber = this.personMapping.nomisPrisonNumber,
   nomisId = mapping.nomisId,
   cprId = mapping.cprId,
   cprPhoneType = mapping.cprPhoneType,

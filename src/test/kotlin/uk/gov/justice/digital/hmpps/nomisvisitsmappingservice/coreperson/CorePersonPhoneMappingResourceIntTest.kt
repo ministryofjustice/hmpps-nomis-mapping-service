@@ -12,11 +12,15 @@ import java.time.LocalDateTime
 
 class CorePersonPhoneMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
+  private lateinit var corePersonMappingRepository: CorePersonMappingRepository
+
+  @Autowired
   private lateinit var corePersonPhoneMappingRepository: CorePersonPhoneMappingRepository
 
   @AfterEach
   fun tearDown() = runTest {
     corePersonPhoneMappingRepository.deleteAll()
+    corePersonMappingRepository.deleteAll()
   }
 
   @Nested
@@ -28,8 +32,17 @@ class CorePersonPhoneMappingResourceIntTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setUp() = runTest {
+      corePersonMappingRepository.save(
+        CorePersonMapping(
+          cprId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          nomisPrisonNumber = "A1234AA",
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+        ),
+      )
       personPhoneMapping = corePersonPhoneMappingRepository.save(
         CorePersonPhoneMapping(
+          nomisPrisonNumber = "A1234AA",
           cprId = cprPhoneId,
           nomisId = nomisPhoneId,
           label = "2023-01-01T12:45:12",
@@ -110,8 +123,17 @@ class CorePersonPhoneMappingResourceIntTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setUp() = runTest {
+      corePersonMappingRepository.save(
+        CorePersonMapping(
+          cprId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          nomisPrisonNumber = "A1234AA",
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+        ),
+      )
       personPhoneMapping = corePersonPhoneMappingRepository.save(
         CorePersonPhoneMapping(
+          nomisPrisonNumber = "A1234AA",
           cprId = cprPhoneId,
           nomisId = nomisInternetAddressId,
           cprPhoneType = CprPhoneType.CORE_PERSON,
