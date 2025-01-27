@@ -281,6 +281,34 @@ class CorporateMappingResource(private val service: CorporateService) {
     dpsOrganisationId: String,
   ): CorporateMappingDto = service.getCorporateMappingByDpsId(dpsId = dpsOrganisationId)
 
+  @DeleteMapping("/organisation/nomis-corporate-id/{nomisCorporateId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes corporate mapping by nomis corporate Id",
+    description = "Deletes the corporate mapping by NOMIS Corporate Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Deletes Corporate mapping data or it doesn't exist",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteCorporateMappingByNomisId(
+    @Schema(description = "NOMIS corporate id", example = "12345", required = true)
+    @PathVariable
+    nomisCorporateId: Long,
+  ) = service.deleteCorporateMappingByNomisId(nomisId = nomisCorporateId)
+
   @PostMapping("/address")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -398,6 +426,34 @@ class CorporateMappingResource(private val service: CorporateService) {
     @PathVariable
     dpsAddressId: String,
   ): CorporateAddressMappingDto = service.getAddressMappingByDpsId(dpsId = dpsAddressId)
+
+  @DeleteMapping("/address/nomis-address-id/{nomisAddressId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes address mapping by nomis address Id",
+    description = "Deletes the address mapping by NOMIS Address Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Address mapping data deleted or doesn't exist",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteAddressMappingByNomisId(
+    @Schema(description = "NOMIS address id", example = "12345", required = true)
+    @PathVariable
+    nomisAddressId: Long,
+  ) = service.deleteAddressMappingByNomisId(nomisId = nomisAddressId)
 
   @PostMapping("/address-phone")
   @ResponseStatus(HttpStatus.CREATED)
@@ -517,6 +573,34 @@ class CorporateMappingResource(private val service: CorporateService) {
     dpsAddressPhoneId: String,
   ): CorporateAddressPhoneMappingDto = service.getAddressPhoneMappingByDpsId(dpsId = dpsAddressPhoneId)
 
+  @DeleteMapping("/address-phone/nomis-phone-id/{nomisPhoneId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes address phone mapping by nomis phone Id",
+    description = "Deletes the address phone mapping by NOMIS phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Deletes AddressPhone mapping data or it doesn't exist",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteAddressPhoneMappingByNomisId(
+    @Schema(description = "NOMIS phone id", example = "12345", required = true)
+    @PathVariable
+    nomisPhoneId: Long,
+  ) = service.deleteAddressPhoneMappingByNomisId(nomisId = nomisPhoneId)
+
   @PostMapping("/phone")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -634,6 +718,34 @@ class CorporateMappingResource(private val service: CorporateService) {
     @PathVariable
     dpsPhoneId: String,
   ): CorporatePhoneMappingDto = service.getPhoneMappingByDpsId(dpsId = dpsPhoneId)
+
+  @DeleteMapping("/phone/nomis-phone-id/{nomisPhoneId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete phone mapping by nomis phone Id",
+    description = "Deletes the phone mapping by NOMIS Phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Delete Phone mapping data or does not exist",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deletePhoneMappingByNomisId(
+    @Schema(description = "NOMIS phone id", example = "12345", required = true)
+    @PathVariable
+    nomisPhoneId: Long,
+  ) = service.deletePhoneMappingByNomisId(nomisId = nomisPhoneId)
 
   @PostMapping("/email")
   @ResponseStatus(HttpStatus.CREATED)
@@ -753,6 +865,37 @@ class CorporateMappingResource(private val service: CorporateService) {
     dpsEmailId: String,
   ): CorporateEmailMappingDto = service.getEmailMappingByDpsId(dpsId = dpsEmailId)
 
+  @DeleteMapping("/email/nomis-internet-address-id/{nomisEmailId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete email mapping by nomis email Id",
+    description = "Deletes the email mapping by NOMIS Email Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Deletes Email mapping data or it doesn't exist",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = CorporateEmailMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteEmailMappingByNomisId(
+    @Schema(description = "NOMIS email id", example = "12345", required = true)
+    @PathVariable
+    nomisEmailId: Long,
+  ) = service.deleteEmailMappingByNomisId(nomisId = nomisEmailId)
+
   @PostMapping("/web")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -870,6 +1013,34 @@ class CorporateMappingResource(private val service: CorporateService) {
     @PathVariable
     dpsWebId: String,
   ): CorporateWebMappingDto = service.getWebMappingByDpsId(dpsId = dpsWebId)
+
+  @DeleteMapping("/web/nomis-internet-address-id/{nomisWebId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete web mapping by nomis web Id",
+    description = "Deletes the web mapping by NOMIS Web Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Delete Web mapping data or doesnot exist",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteWebMappingByNomisId(
+    @Schema(description = "NOMIS web id", example = "12345", required = true)
+    @PathVariable
+    nomisWebId: Long,
+  ) = service.deleteWebMappingByNomisId(nomisId = nomisWebId)
 
   private suspend fun getExistingCorporateMappingSimilarTo(corporateMapping: CorporateMappingIdDto) = runCatching {
     service.getCorporateMappingByNomisId(

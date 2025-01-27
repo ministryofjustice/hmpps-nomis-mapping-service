@@ -113,6 +113,10 @@ class CorporateService(
       ?: throw NotFoundException("No corporate mapping found for dpsId=$dpsId")
 
   @Transactional
+  suspend fun deleteCorporateMappingByNomisId(nomisId: Long) =
+    corporateMappingRepository.deleteByNomisId(nomisId = nomisId)
+
+  @Transactional
   suspend fun createMapping(mapping: CorporateAddressMappingDto) {
     corporateAddressMappingRepository.save(mapping.toMapping())
   }
@@ -128,6 +132,10 @@ class CorporateService(
   suspend fun getAddressMappingByDpsId(dpsId: String) =
     getAddressMappingByDpsIdOrNull(dpsId)
       ?: throw NotFoundException("No address mapping found for dpsId=$dpsId")
+
+  @Transactional
+  suspend fun deleteAddressMappingByNomisId(nomisId: Long) =
+    corporateAddressMappingRepository.deleteByNomisId(nomisId = nomisId)
 
   @Transactional
   suspend fun createMapping(mapping: CorporateAddressPhoneMappingDto) {
@@ -147,6 +155,10 @@ class CorporateService(
       ?: throw NotFoundException("No address phone mapping found for dpsId=$dpsId")
 
   @Transactional
+  suspend fun deleteAddressPhoneMappingByNomisId(nomisId: Long) =
+    corporateAddressPhoneMappingRepository.deleteByNomisId(nomisId = nomisId)
+
+  @Transactional
   suspend fun createMapping(mapping: CorporatePhoneMappingDto) {
     corporatePhoneMappingRepository.save(mapping.toMapping())
   }
@@ -162,6 +174,10 @@ class CorporateService(
   suspend fun getPhoneMappingByDpsId(dpsId: String) =
     getPhoneMappingByDpsIdOrNull(dpsId)
       ?: throw NotFoundException("No phone mapping found for dpsId=$dpsId")
+
+  @Transactional
+  suspend fun deletePhoneMappingByNomisId(nomisId: Long) =
+    corporatePhoneMappingRepository.deleteByNomisId(nomisId = nomisId)
 
   @Transactional
   suspend fun createMapping(mapping: CorporateEmailMappingDto) {
@@ -181,6 +197,10 @@ class CorporateService(
       ?: throw NotFoundException("No email mapping found for dpsId=$dpsId")
 
   @Transactional
+  suspend fun deleteEmailMappingByNomisId(nomisId: Long) =
+    corporateEmailMappingRepository.deleteByNomisId(nomisId = nomisId)
+
+  @Transactional
   suspend fun createMapping(mapping: CorporateWebMappingDto) {
     corporateWebMappingRepository.save(mapping.toMapping())
   }
@@ -196,6 +216,10 @@ class CorporateService(
   suspend fun getWebMappingByDpsId(dpsId: String) =
     getWebMappingByDpsIdOrNull(dpsId)
       ?: throw NotFoundException("No web mapping found for dpsId=$dpsId")
+
+  @Transactional
+  suspend fun deleteWebMappingByNomisId(nomisId: Long) =
+    corporateWebMappingRepository.deleteByNomisId(nomisId = nomisId)
 }
 
 private fun CorporateMappingsDto.toCorporateMapping() = CorporateMapping(
