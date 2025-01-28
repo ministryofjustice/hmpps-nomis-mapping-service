@@ -4,13 +4,14 @@ import org.springframework.data.annotation.Id
 import java.time.LocalDateTime
 
 class CorePersonAddressMapping(
+  nomisPrisonNumber: String,
   @Id
   val cprId: String,
   val nomisId: Long,
   label: String? = null,
   mappingType: CorePersonMappingType,
   whenCreated: LocalDateTime? = null,
-) : AbstractCorePersonMapping(label = label, mappingType = mappingType, whenCreated = whenCreated) {
+) : AbstractCorePersonMapping(nomisPrisonNumber = nomisPrisonNumber, label = label, mappingType = mappingType, whenCreated = whenCreated) {
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

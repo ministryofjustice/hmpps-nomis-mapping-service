@@ -6,6 +6,7 @@ import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 
 abstract class AbstractCorePersonMappingTyped<T>(
+  val nomisPrisonNumber: String,
   val label: String? = null,
   val mappingType: CorePersonMappingType,
 
