@@ -98,26 +98,24 @@ class PrisonPersonResourceIntTest : IntegrationTestBase() {
       }
     }
 
-    private fun WebTestClient.upsertMigrationMapping(request: PrisonPersonMigrationMappingRequest) =
-      put()
-        .uri("/mapping/prisonperson/migration")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_PRISONPERSON")))
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(BodyInserters.fromValue(request))
-        .exchange()
+    private fun WebTestClient.upsertMigrationMapping(request: PrisonPersonMigrationMappingRequest) = put()
+      .uri("/mapping/prisonperson/migration")
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_PRISONPERSON")))
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(BodyInserters.fromValue(request))
+      .exchange()
 
     private fun request(
       prisonerNumber: String = "any",
       type: PrisonPersonMigrationType = PHYSICAL_ATTRIBUTES,
       dpsIds: List<Long> = listOf(1),
       label: String = "label",
-    ) =
-      PrisonPersonMigrationMappingRequest(
-        nomisPrisonerNumber = prisonerNumber,
-        migrationType = type,
-        dpsIds = dpsIds,
-        label = label,
-      )
+    ) = PrisonPersonMigrationMappingRequest(
+      nomisPrisonerNumber = prisonerNumber,
+      migrationType = type,
+      dpsIds = dpsIds,
+      label = label,
+    )
   }
 
   @DisplayName("GET /mapping/prisonperson/migration/migration-id/{migrationId}")
@@ -231,8 +229,7 @@ class PrisonPersonResourceIntTest : IntegrationTestBase() {
         .jsonPath("content[0].nomisPrisonerNumber").isEqualTo("A0004BC")
     }
 
-    private fun saveMapping(offset: Int, label: String = "some_migration_id") =
-      saveMapping("A${offset.toString().padStart(4, '0')}BC", PHYSICAL_ATTRIBUTES, "[$offset]", label)
+    private fun saveMapping(offset: Int, label: String = "some_migration_id") = saveMapping("A${offset.toString().padStart(4, '0')}BC", PHYSICAL_ATTRIBUTES, "[$offset]", label)
 
     private fun saveMapping(
       nomisPrisonerNumber: String = "A1234BC",

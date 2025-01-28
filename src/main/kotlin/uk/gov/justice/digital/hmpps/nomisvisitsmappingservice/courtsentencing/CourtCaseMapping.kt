@@ -35,9 +35,7 @@ data class CourtCaseMapping(
     return dpsCourtCaseId == other.dpsCourtCaseId
   }
 
-  override fun hashCode(): Int {
-    return dpsCourtCaseId.hashCode()
-  }
+  override fun hashCode(): Int = dpsCourtCaseId.hashCode()
 
   override fun isNew(): Boolean = new
 

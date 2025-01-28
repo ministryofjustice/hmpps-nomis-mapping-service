@@ -80,6 +80,5 @@ class PrisonPersonResource(private val service: PrisonPersonMigrationService) {
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<PrisonPersonMigrationMapping> =
-    service.getMappings(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<PrisonPersonMigrationMapping> = service.getMappings(pageRequest = pageRequest, migrationId = migrationId)
 }

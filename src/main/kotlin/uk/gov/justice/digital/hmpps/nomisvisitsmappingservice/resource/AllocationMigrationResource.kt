@@ -56,16 +56,15 @@ class AllocationMigrationResource(private val mappingService: AllocationMigratio
   suspend fun createMapping(
     @RequestBody @Valid
     createMappingRequest: AllocationMigrationMappingDto,
-  ) =
-    try {
-      mappingService.createMapping(createMappingRequest)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Allocation migration mapping already exists, detected by $e",
-        duplicate = createMappingRequest,
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createMapping(createMappingRequest)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Allocation migration mapping already exists, detected by $e",
+      duplicate = createMappingRequest,
+      cause = e,
+    )
+  }
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
   @GetMapping("/mapping/allocations/migration/nomis-allocation-id/{nomisAllocationId}")
@@ -124,8 +123,7 @@ class AllocationMigrationResource(private val mappingService: AllocationMigratio
       ),
     ],
   )
-  suspend fun getLatestMigratedMapping(): AllocationMigrationMappingDto =
-    mappingService.getLatestMigrated()
+  suspend fun getLatestMigratedMapping(): AllocationMigrationMappingDto = mappingService.getLatestMigrated()
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
   @GetMapping("/mapping/allocations/migration/migration-id/{migrationId}")
@@ -155,6 +153,5 @@ class AllocationMigrationResource(private val mappingService: AllocationMigratio
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<AllocationMigrationMappingDto> =
-    mappingService.getMappings(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<AllocationMigrationMappingDto> = mappingService.getMappings(pageRequest = pageRequest, migrationId = migrationId)
 }

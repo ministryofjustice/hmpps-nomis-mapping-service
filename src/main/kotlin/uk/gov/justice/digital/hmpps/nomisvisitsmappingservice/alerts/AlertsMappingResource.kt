@@ -158,17 +158,16 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
   suspend fun createMapping(
     @RequestBody @Valid
     mapping: AlertMappingDto,
-  ) =
-    try {
-      mappingService.createMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Alert mapping already exists",
-        duplicate = mapping,
-        existing = getExistingMappingSimilarTo(mapping),
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Alert mapping already exists",
+      duplicate = mapping,
+      existing = getExistingMappingSimilarTo(mapping),
+      cause = e,
+    )
+  }
 
   @PostMapping("/batch")
   @ResponseStatus(HttpStatus.CREATED)
@@ -205,21 +204,20 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
   suspend fun createMappings(
     @RequestBody @Valid
     mappings: List<AlertMappingDto>,
-  ) =
-    try {
-      mappingService.createMappings(mappings)
-    } catch (e: DuplicateKeyException) {
-      val duplicateMapping = getMappingThatIsDuplicate(mappings)
-      if (duplicateMapping != null) {
-        throw DuplicateMappingException(
-          messageIn = "Alert mapping already exists",
-          duplicate = duplicateMapping,
-          existing = getExistingMappingSimilarTo(duplicateMapping),
-          cause = e,
-        )
-      }
-      throw e
+  ) = try {
+    mappingService.createMappings(mappings)
+  } catch (e: DuplicateKeyException) {
+    val duplicateMapping = getMappingThatIsDuplicate(mappings)
+    if (duplicateMapping != null) {
+      throw DuplicateMappingException(
+        messageIn = "Alert mapping already exists",
+        duplicate = duplicateMapping,
+        existing = getExistingMappingSimilarTo(duplicateMapping),
+        cause = e,
+      )
     }
+    throw e
+  }
 
   @PostMapping("{offenderNo}/all")
   @ResponseStatus(HttpStatus.CREATED)
@@ -264,30 +262,29 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
     offenderNo: String,
     @RequestBody @Valid
     prisonerMapping: PrisonerAlertMappingsDto,
-  ) =
-    try {
-      mappingService.createMappings(offenderNo, prisonerMapping)
-    } catch (e: DuplicateKeyException) {
-      val duplicateMapping = getMappingIdThatIsDuplicate(prisonerMapping.mappings)
-      if (duplicateMapping != null) {
-        throw DuplicateMappingException(
-          messageIn = "Alert mapping already exists",
-          duplicate = duplicateMapping.let {
-            AlertMappingDto(
-              dpsAlertId = it.dpsAlertId,
-              nomisBookingId = it.nomisBookingId,
-              nomisAlertSequence = it.nomisAlertSequence,
-              offenderNo = offenderNo,
-              label = prisonerMapping.label,
-              mappingType = prisonerMapping.mappingType,
-            )
-          },
-          existing = getExistingMappingSimilarTo(duplicateMapping),
-          cause = e,
-        )
-      }
-      throw e
+  ) = try {
+    mappingService.createMappings(offenderNo, prisonerMapping)
+  } catch (e: DuplicateKeyException) {
+    val duplicateMapping = getMappingIdThatIsDuplicate(prisonerMapping.mappings)
+    if (duplicateMapping != null) {
+      throw DuplicateMappingException(
+        messageIn = "Alert mapping already exists",
+        duplicate = duplicateMapping.let {
+          AlertMappingDto(
+            dpsAlertId = it.dpsAlertId,
+            nomisBookingId = it.nomisBookingId,
+            nomisAlertSequence = it.nomisAlertSequence,
+            offenderNo = offenderNo,
+            label = prisonerMapping.label,
+            mappingType = prisonerMapping.mappingType,
+          )
+        },
+        existing = getExistingMappingSimilarTo(duplicateMapping),
+        cause = e,
+      )
     }
+    throw e
+  }
 
   @PutMapping("{offenderNo}/all")
   @Operation(
@@ -436,8 +433,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<AlertMappingDto> =
-    mappingService.getByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<AlertMappingDto> = mappingService.getByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   @GetMapping
   @Operation(
@@ -462,8 +458,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
   )
   suspend fun getMappings(
     @PageableDefault pageRequest: Pageable,
-  ): Page<AlertMappingDto> =
-    mappingService.getMappings(pageRequest = pageRequest)
+  ): Page<AlertMappingDto> = mappingService.getMappings(pageRequest = pageRequest)
 
   @GetMapping("/migration-id/{migrationId}/grouped-by-prisoner")
   @Operation(
@@ -491,8 +486,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<PrisonerAlertMappingsSummaryDto> =
-    mappingService.getByMigrationIdGroupedByPrisoner(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<PrisonerAlertMappingsSummaryDto> = mappingService.getByMigrationIdGroupedByPrisoner(pageRequest = pageRequest, migrationId = migrationId)
 
   @PutMapping("/nomis-booking-id/{bookingId}/nomis-alert-sequence/{alertSequence}")
   @Operation(
@@ -551,14 +545,12 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
     )
   }
 
-  private suspend fun getMappingIdThatIsDuplicate(mappings: List<AlertMappingIdDto>): AlertMappingIdDto? =
-    mappings.find {
-      // look for each mapping until I find one (i.e. that is there is no exception thrown)
-      kotlin.runCatching { getExistingMappingSimilarTo(it) }.map { true }.getOrElse { false }
-    }
-  private suspend fun getMappingThatIsDuplicate(mappings: List<AlertMappingDto>): AlertMappingDto? =
-    mappings.find {
-      // look for each mapping until I find one (i.e. that is there is no exception thrown)
-      kotlin.runCatching { getExistingMappingSimilarTo(it) }.map { true }.getOrElse { false }
-    }
+  private suspend fun getMappingIdThatIsDuplicate(mappings: List<AlertMappingIdDto>): AlertMappingIdDto? = mappings.find {
+    // look for each mapping until I find one (i.e. that is there is no exception thrown)
+    kotlin.runCatching { getExistingMappingSimilarTo(it) }.map { true }.getOrElse { false }
+  }
+  private suspend fun getMappingThatIsDuplicate(mappings: List<AlertMappingDto>): AlertMappingDto? = mappings.find {
+    // look for each mapping until I find one (i.e. that is there is no exception thrown)
+    kotlin.runCatching { getExistingMappingSimilarTo(it) }.map { true }.getOrElse { false }
+  }
 }

@@ -127,18 +127,16 @@ class IdentifyingMarkResource(private val service: IdentifyingMarkService) {
   )
   suspend fun createIdentifyingMarkMapping(
     @RequestBody mapping: IdentifyingMarkMappingDto,
-  ) =
-    try {
-      service.createIdentifyingMarkMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Identifying mark mapping already exists",
-        duplicate = mapping,
-        existing = getExistingMappingSimilarTo(mapping),
-        cause = e,
-      )
-    }
+  ) = try {
+    service.createIdentifyingMarkMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Identifying mark mapping already exists",
+      duplicate = mapping,
+      existing = getExistingMappingSimilarTo(mapping),
+      cause = e,
+    )
+  }
 
-  private suspend fun getExistingMappingSimilarTo(mapping: IdentifyingMarkMappingDto) =
-    service.getIdentifyingMarkMapping(mapping.nomisBookingId, mapping.nomisMarksSequence)
+  private suspend fun getExistingMappingSimilarTo(mapping: IdentifyingMarkMappingDto) = service.getIdentifyingMarkMapping(mapping.nomisBookingId, mapping.nomisMarksSequence)
 }

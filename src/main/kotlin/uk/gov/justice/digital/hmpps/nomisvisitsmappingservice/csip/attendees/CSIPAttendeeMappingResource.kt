@@ -66,17 +66,16 @@ class CSIPAttendeeMappingResource(
     @RequestBody
     @Valid
     csipAttendeeMapping: CSIPChildMappingDto,
-  ) =
-    try {
-      attendeeMappingService.createMapping(csipAttendeeMapping)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "CSIP Attendee mapping already exists, detected by $e",
-        duplicate = csipAttendeeMapping,
-        existing = getExistingMappingSimilarTo(csipAttendeeMapping),
-        cause = e,
-      )
-    }
+  ) = try {
+    attendeeMappingService.createMapping(csipAttendeeMapping)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "CSIP Attendee mapping already exists, detected by $e",
+      duplicate = csipAttendeeMapping,
+      existing = getExistingMappingSimilarTo(csipAttendeeMapping),
+      cause = e,
+    )
+  }
 
   @GetMapping("/nomis-csip-attendee-id/{nomisCSIPAttendeeId}")
   @Operation(

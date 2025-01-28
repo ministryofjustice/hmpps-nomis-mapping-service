@@ -141,22 +141,21 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   suspend fun createMapping(
     @RequestBody @Valid
     mapping: CourtCaseAllMappingDto,
-  ) =
-    try {
-      mappingService.createMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      log.error("Duplicate court sentencing mapping detected for mapping: $mapping ", e)
-      val existingMapping = getExistingMappingSimilarTo(mapping)
-      if (existingMapping == null) {
-        log.error("Child duplicate key found for court case even though the court case has never been migrated", e)
-      }
-      throw DuplicateMappingException(
-        messageIn = "Court Case mapping or child mapping already exists",
-        duplicate = mapping,
-        existing = existingMapping ?: mapping,
-        cause = e,
-      )
+  ) = try {
+    mappingService.createMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    log.error("Duplicate court sentencing mapping detected for mapping: $mapping ", e)
+    val existingMapping = getExistingMappingSimilarTo(mapping)
+    if (existingMapping == null) {
+      log.error("Child duplicate key found for court case even though the court case has never been migrated", e)
     }
+    throw DuplicateMappingException(
+      messageIn = "Court Case mapping or child mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
 
   @DeleteMapping("/court-cases/dps-court-case-id/{dpsCourtCaseId}")
   @Operation(
@@ -240,8 +239,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<CourtCaseMappingDto> =
-    mappingService.getCourtCaseMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<CourtCaseMappingDto> = mappingService.getCourtCaseMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   @GetMapping("/court-appearances/dps-court-appearance-id/{courtAppearanceId}")
   @Operation(
@@ -479,17 +477,16 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   suspend fun createCourtAppearanceMapping(
     @RequestBody @Valid
     mapping: CourtAppearanceMappingDto,
-  ) =
-    try {
-      mappingService.createCourtAppearanceMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Court Appearance mapping already exists",
-        duplicate = mapping,
-        existing = getExistingCourtAppearanceMappingSimilarTo(mapping),
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createCourtAppearanceMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Court Appearance mapping already exists",
+      duplicate = mapping,
+      existing = getExistingCourtAppearanceMappingSimilarTo(mapping),
+      cause = e,
+    )
+  }
 
   @PutMapping("/court-charges")
   @Operation(
@@ -519,16 +516,15 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   suspend fun courtChargeBatchUpdateMappings(
     @RequestBody @Valid
     updateMappingRequest: CourtChargeBatchUpdateMappingDto,
-  ) =
-    try {
-      mappingService.createAndDeleteCourtChargeMappings(updateMappingRequest)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Court Charge mapping already exists, detected by $e",
-        duplicate = updateMappingRequest,
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createAndDeleteCourtChargeMappings(updateMappingRequest)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Court Charge mapping already exists, detected by $e",
+      duplicate = updateMappingRequest,
+      cause = e,
+    )
+  }
 
   @PostMapping("/court-charges")
   @ResponseStatus(HttpStatus.CREATED)
@@ -570,17 +566,16 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   suspend fun createCourtChargeMapping(
     @RequestBody @Valid
     mapping: CourtChargeMappingDto,
-  ) =
-    try {
-      mappingService.createCourtChargeMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Court charge mapping already exists",
-        duplicate = mapping,
-        existing = getExistingChargeMappingSimilarTo(mapping),
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createCourtChargeMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Court charge mapping already exists",
+      duplicate = mapping,
+      existing = getExistingChargeMappingSimilarTo(mapping),
+      cause = e,
+    )
+  }
 
   @DeleteMapping("/court-charges/nomis-court-charge-id/{nomisCourtChargeId}")
   @Operation(
@@ -718,17 +713,16 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   suspend fun createSentenceMapping(
     @RequestBody @Valid
     mapping: SentenceMappingDto,
-  ) =
-    try {
-      mappingService.createSentenceAllMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Sentence mapping already exists",
-        duplicate = mapping,
-        existing = getExistingSentenceAllMappingSimilarTo(mapping),
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createSentenceAllMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Sentence mapping already exists",
+      duplicate = mapping,
+      existing = getExistingSentenceAllMappingSimilarTo(mapping),
+      cause = e,
+    )
+  }
 
   @DeleteMapping("/sentences/dps-sentence-id/{dpsSentenceId}")
   @Operation(

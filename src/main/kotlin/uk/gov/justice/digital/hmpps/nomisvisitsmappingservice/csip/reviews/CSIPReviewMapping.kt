@@ -38,9 +38,7 @@ data class CSIPReviewMapping(
     return dpsCSIPReviewId != other.dpsCSIPReviewId
   }
 
-  override fun hashCode(): Int {
-    return dpsCSIPReviewId.hashCode()
-  }
+  override fun hashCode(): Int = dpsCSIPReviewId.hashCode()
 
   override fun isNew(): Boolean = new
 

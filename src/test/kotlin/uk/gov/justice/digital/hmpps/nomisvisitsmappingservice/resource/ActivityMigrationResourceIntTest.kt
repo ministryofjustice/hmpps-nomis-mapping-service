@@ -74,24 +74,22 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
     activityId: Long = ACTIVITY_ID,
     activityId2: Long? = ACTIVITY_ID_2,
     label: String = MIGRATION_ID,
-  ) =
-    webTestClient.post().uri("/mapping/activities/migration")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
-      .contentType(MediaType.APPLICATION_JSON)
-      .body(
-        fromValue(
-          createMapping(
-            nomisId = nomisId,
-            activityId = activityId,
-            activityId2 = activityId2,
-            label = label,
-          ),
+  ) = webTestClient.post().uri("/mapping/activities/migration")
+    .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+    .contentType(MediaType.APPLICATION_JSON)
+    .body(
+      fromValue(
+        createMapping(
+          nomisId = nomisId,
+          activityId = activityId,
+          activityId2 = activityId2,
+          label = label,
         ),
-      )
-      .exchange()
+      ),
+    )
+    .exchange()
 
-  private fun saveMapping(offset: Int, label: String = MIGRATION_ID) =
-    saveMapping(NOMIS_ID + offset, ACTIVITY_ID + offset, ACTIVITY_ID_2 + offset, label)
+  private fun saveMapping(offset: Int, label: String = MIGRATION_ID) = saveMapping(NOMIS_ID + offset, ACTIVITY_ID + offset, ACTIVITY_ID_2 + offset, label)
 
   private fun saveMapping(
     nomisId: Long = NOMIS_ID,

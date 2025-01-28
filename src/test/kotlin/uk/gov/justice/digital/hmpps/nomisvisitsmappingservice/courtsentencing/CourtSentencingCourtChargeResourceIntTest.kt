@@ -534,10 +534,9 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
     courtChargeRepository.deleteAll()
   }
 
-  private fun updateMappingBatch(mapping: CourtChargeMappingDto = createMapping()): CourtChargeBatchUpdateMappingDto =
-    CourtChargeBatchUpdateMappingDto(
-      courtChargesToCreate = listOf(mapping),
-    )
+  private fun updateMappingBatch(mapping: CourtChargeMappingDto = createMapping()): CourtChargeBatchUpdateMappingDto = CourtChargeBatchUpdateMappingDto(
+    courtChargesToCreate = listOf(mapping),
+  )
 
   private fun createMapping(
     dpsCourtChargeId: String = DPS_COURT_CHARGE_ID,

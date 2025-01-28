@@ -66,17 +66,16 @@ class CSIPFactorMappingResource(
     @RequestBody
     @Valid
     csipFactorMapping: CSIPChildMappingDto,
-  ) =
-    try {
-      factorMappingService.createMapping(csipFactorMapping)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "CSIP Factor mapping already exists, detected by $e",
-        duplicate = csipFactorMapping,
-        existing = getExistingMappingSimilarTo(csipFactorMapping),
-        cause = e,
-      )
-    }
+  ) = try {
+    factorMappingService.createMapping(csipFactorMapping)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "CSIP Factor mapping already exists, detected by $e",
+      duplicate = csipFactorMapping,
+      existing = getExistingMappingSimilarTo(csipFactorMapping),
+      cause = e,
+    )
+  }
 
   @GetMapping("/nomis-csip-factor-id/{nomisCSIPFactorId}")
   @Operation(

@@ -56,16 +56,15 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
   suspend fun createMapping(
     @RequestBody @Valid
     createMappingRequest: ActivityMappingDto,
-  ) =
-    try {
-      mappingService.createMapping(createMappingRequest)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Activity mapping already exists, detected by $e",
-        duplicate = createMappingRequest,
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createMapping(createMappingRequest)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Activity mapping already exists, detected by $e",
+      duplicate = createMappingRequest,
+      cause = e,
+    )
+  }
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
   @PutMapping("/mapping/activities")

@@ -35,107 +35,98 @@ class VisitMappingService(
   fun alreadyExistsMessage(
     duplicateMapping: VisitMappingDto,
     existingMapping: VisitMappingDto,
-  ) =
-    """Visit mapping already exists.
+  ) = """Visit mapping already exists.
        |Existing mapping: $existingMapping
        |Duplicate mapping: $duplicateMapping
-    """.trimMargin()
+  """.trimMargin()
 
   @Transactional
-  suspend fun createVisitMapping(createMappingRequest: VisitMappingDto) =
-    with(createMappingRequest) {
-      visitIdRepository.findById(nomisId)?.run {
-        if (this@run.vsipId == this@with.vsipId) {
-          log.debug("Visit mapping already exists for nomisId: $nomisId and vsipId: $vsipId so not creating. All OK")
-          return
-        }
-        throw DuplicateMappingException(
-          messageIn = alreadyExistsMessage(
-            duplicateMapping = createMappingRequest,
-            existingMapping = VisitMappingDto(this@run),
-          ),
-          duplicate = createMappingRequest,
-          existing = VisitMappingDto(this@run),
-        )
+  suspend fun createVisitMapping(createMappingRequest: VisitMappingDto) = with(createMappingRequest) {
+    visitIdRepository.findById(nomisId)?.run {
+      if (this@run.vsipId == this@with.vsipId) {
+        log.debug("Visit mapping already exists for nomisId: $nomisId and vsipId: $vsipId so not creating. All OK")
+        return
       }
-
-      visitIdRepository.findOneByVsipId(vsipId)?.run {
-        throw DuplicateMappingException(
-          messageIn = alreadyExistsMessage(
-            duplicateMapping = createMappingRequest,
-            existingMapping = VisitMappingDto(this@run),
-          ),
-          duplicate = createMappingRequest,
-          existing = VisitMappingDto(this),
-        )
-      }
-
-      visitIdRepository.save(VisitId(nomisId, vsipId, label, MappingType.valueOf(mappingType)))
-      telemetryClient.trackEvent(
-        "visit-created",
-        mapOf(
-          "nomisVisitId" to nomisId.toString(),
-          "vsipVisitId" to vsipId,
-          "batchId" to label,
+      throw DuplicateMappingException(
+        messageIn = alreadyExistsMessage(
+          duplicateMapping = createMappingRequest,
+          existingMapping = VisitMappingDto(this@run),
         ),
-        null,
+        duplicate = createMappingRequest,
+        existing = VisitMappingDto(this@run),
       )
-      log.debug("Mapping created with VSIP visit id = $vsipId, Nomis visit id = $nomisId")
     }
 
-  suspend fun getVisitMappingGivenNomisId(nomisId: Long): VisitMappingDto =
-    visitIdRepository.findById(nomisId)
-      ?.let { VisitMappingDto(it) }
-      ?: throw NotFoundException("NOMIS visit id=$nomisId")
+    visitIdRepository.findOneByVsipId(vsipId)?.run {
+      throw DuplicateMappingException(
+        messageIn = alreadyExistsMessage(
+          duplicateMapping = createMappingRequest,
+          existingMapping = VisitMappingDto(this@run),
+        ),
+        duplicate = createMappingRequest,
+        existing = VisitMappingDto(this),
+      )
+    }
 
-  suspend fun getVisitMappingGivenVsipId(vsipId: String): VisitMappingDto =
-    visitIdRepository.findOneByVsipId(vsipId)
-      ?.let { VisitMappingDto(it) }
-      ?: throw NotFoundException("VSIP visit id=$vsipId")
+    visitIdRepository.save(VisitId(nomisId, vsipId, label, MappingType.valueOf(mappingType)))
+    telemetryClient.trackEvent(
+      "visit-created",
+      mapOf(
+        "nomisVisitId" to nomisId.toString(),
+        "vsipVisitId" to vsipId,
+        "batchId" to label,
+      ),
+      null,
+    )
+    log.debug("Mapping created with VSIP visit id = $vsipId, Nomis visit id = $nomisId")
+  }
 
-  suspend fun getRoomMapping(prisonId: String, nomisRoomDescription: String): RoomMappingDto =
-    roomIdRepository.findOneByPrisonIdAndNomisRoomDescription(prisonId, nomisRoomDescription)
-      ?.let { RoomMappingDto(it.vsipId, it.nomisRoomDescription, it.prisonId, it.isOpen) }
-      ?: throw NotFoundException("prison id=$prisonId, nomis room id=$nomisRoomDescription")
+  suspend fun getVisitMappingGivenNomisId(nomisId: Long): VisitMappingDto = visitIdRepository.findById(nomisId)
+    ?.let { VisitMappingDto(it) }
+    ?: throw NotFoundException("NOMIS visit id=$nomisId")
+
+  suspend fun getVisitMappingGivenVsipId(vsipId: String): VisitMappingDto = visitIdRepository.findOneByVsipId(vsipId)
+    ?.let { VisitMappingDto(it) }
+    ?: throw NotFoundException("VSIP visit id=$vsipId")
+
+  suspend fun getRoomMapping(prisonId: String, nomisRoomDescription: String): RoomMappingDto = roomIdRepository.findOneByPrisonIdAndNomisRoomDescription(prisonId, nomisRoomDescription)
+    ?.let { RoomMappingDto(it.vsipId, it.nomisRoomDescription, it.prisonId, it.isOpen) }
+    ?: throw NotFoundException("prison id=$prisonId, nomis room id=$nomisRoomDescription")
 
   @Transactional
-  suspend fun deleteVisitMappings(onlyMigrated: Boolean) =
-    onlyMigrated.takeIf { it }?.apply {
-      visitIdRepository.deleteByMappingTypeEquals(MappingType.MIGRATED)
-    } ?: run {
-      visitIdRepository.deleteAll()
-    }
+  suspend fun deleteVisitMappings(onlyMigrated: Boolean) = onlyMigrated.takeIf { it }?.apply {
+    visitIdRepository.deleteByMappingTypeEquals(MappingType.MIGRATED)
+  } ?: run {
+    visitIdRepository.deleteAll()
+  }
 
-  suspend fun getVisitMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<VisitMappingDto> =
-    coroutineScope {
-      val visits = async {
-        visitIdRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
-          label = migrationId,
-          MappingType.MIGRATED,
-          pageRequest,
-        )
-      }
-
-      val count = async {
-        visitIdRepository.countAllByLabelAndMappingType(migrationId, mappingType = MappingType.MIGRATED)
-      }
-
-      PageImpl(
-        visits.await().toList().map { VisitMappingDto(it) },
+  suspend fun getVisitMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<VisitMappingDto> = coroutineScope {
+    val visits = async {
+      visitIdRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+        label = migrationId,
+        MappingType.MIGRATED,
         pageRequest,
-        count.await(),
       )
     }
 
-  suspend fun getVisitMappingForLatestMigrated(): VisitMappingDto =
-    visitIdRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(MappingType.MIGRATED)
-      ?.let { VisitMappingDto(it) }
-      ?: throw NotFoundException("No migrated mapping found")
-
-  suspend fun getRoomMappings(prisonId: String): List<RoomMappingDto> =
-    roomIdRepository.findByPrisonIdOrderByNomisRoomDescription(prisonId).map {
-      RoomMappingDto(it.vsipId, it.nomisRoomDescription, it.prisonId, it.isOpen)
+    val count = async {
+      visitIdRepository.countAllByLabelAndMappingType(migrationId, mappingType = MappingType.MIGRATED)
     }
+
+    PageImpl(
+      visits.await().toList().map { VisitMappingDto(it) },
+      pageRequest,
+      count.await(),
+    )
+  }
+
+  suspend fun getVisitMappingForLatestMigrated(): VisitMappingDto = visitIdRepository.findFirstByMappingTypeOrderByWhenCreatedDesc(MappingType.MIGRATED)
+    ?.let { VisitMappingDto(it) }
+    ?: throw NotFoundException("No migrated mapping found")
+
+  suspend fun getRoomMappings(prisonId: String): List<RoomMappingDto> = roomIdRepository.findByPrisonIdOrderByNomisRoomDescription(prisonId).map {
+    RoomMappingDto(it.vsipId, it.nomisRoomDescription, it.prisonId, it.isOpen)
+  }
 
   @Transactional
   suspend fun createRoomMapping(prisonId: String, createRoomMappingDto: CreateRoomMappingDto) {
@@ -187,6 +178,5 @@ class VisitMappingService(
   }
 
   @Transactional
-  suspend fun deleteVisitMappingsByMigrationId(migrationId: String) =
-    visitIdRepository.deleteByLabel(migrationId)
+  suspend fun deleteVisitMappingsByMigrationId(migrationId: String) = visitIdRepository.deleteByLabel(migrationId)
 }

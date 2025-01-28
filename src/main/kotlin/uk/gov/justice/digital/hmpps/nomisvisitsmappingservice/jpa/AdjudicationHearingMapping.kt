@@ -35,9 +35,7 @@ data class AdjudicationHearingMapping(
     return dpsHearingId == other.dpsHearingId
   }
 
-  override fun hashCode(): Int {
-    return dpsHearingId.hashCode()
-  }
+  override fun hashCode(): Int = dpsHearingId.hashCode()
 
   override fun isNew(): Boolean = new
 

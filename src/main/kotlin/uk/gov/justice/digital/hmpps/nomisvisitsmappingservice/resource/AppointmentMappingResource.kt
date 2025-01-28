@@ -73,16 +73,15 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
   suspend fun createMapping(
     @RequestBody @Valid
     createMappingRequest: AppointmentMappingDto,
-  ) =
-    try {
-      mappingService.createMapping(createMappingRequest)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Appointment mapping already exists, detected by $e",
-        duplicate = createMappingRequest,
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createMapping(createMappingRequest)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Appointment mapping already exists, detected by $e",
+      duplicate = createMappingRequest,
+      cause = e,
+    )
+  }
 
   @PreAuthorize("hasRole('ROLE_NOMIS_APPOINTMENTS')")
   @GetMapping("/mapping/appointments/appointment-instance-id/{appointmentInstanceId}")
@@ -174,8 +173,7 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
       ),
     ],
   )
-  suspend fun getLatestMigratedAppointmentMapping(): AppointmentMappingDto =
-    mappingService.getAppointmentMappingForLatestMigrated()
+  suspend fun getLatestMigratedAppointmentMapping(): AppointmentMappingDto = mappingService.getAppointmentMappingForLatestMigrated()
 
   @PreAuthorize("hasRole('ROLE_NOMIS_APPOINTMENTS')")
   @DeleteMapping("/mapping/appointments/appointment-instance-id/{id}")
@@ -258,8 +256,7 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<AppointmentMappingDto> =
-    mappingService.getAppointmentMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<AppointmentMappingDto> = mappingService.getAppointmentMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_APPOINTMENTS')")
   @GetMapping("/mapping/appointments")

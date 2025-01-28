@@ -66,17 +66,16 @@ class CSIPInterviewMappingResource(
     @RequestBody
     @Valid
     csipInterviewMapping: CSIPChildMappingDto,
-  ) =
-    try {
-      interviewMappingService.createMapping(csipInterviewMapping)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "CSIP Interview mapping already exists, detected by $e",
-        duplicate = csipInterviewMapping,
-        existing = getExistingMappingSimilarTo(csipInterviewMapping),
-        cause = e,
-      )
-    }
+  ) = try {
+    interviewMappingService.createMapping(csipInterviewMapping)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "CSIP Interview mapping already exists, detected by $e",
+      duplicate = csipInterviewMapping,
+      existing = getExistingMappingSimilarTo(csipInterviewMapping),
+      cause = e,
+    )
+  }
 
   @GetMapping("/nomis-csip-interview-id/{nomisCSIPInterviewId}")
   @Operation(

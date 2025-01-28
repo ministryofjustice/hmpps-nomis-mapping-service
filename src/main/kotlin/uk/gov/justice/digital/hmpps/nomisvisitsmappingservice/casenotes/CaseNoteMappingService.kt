@@ -25,11 +25,10 @@ class CaseNoteMappingService(
   fun alreadyExistsMessage(
     duplicateMapping: CaseNoteMappingDto,
     existingMapping: CaseNoteMappingDto,
-  ) =
-    """CaseNote mapping already exists.
+  ) = """CaseNote mapping already exists.
        |Existing mapping: $existingMapping
        |Duplicate mapping: $duplicateMapping
-    """.trimMargin()
+  """.trimMargin()
 
   @Transactional
   suspend fun createMapping(createMappingRequest: CaseNoteMappingDto) {
@@ -89,29 +88,25 @@ class CaseNoteMappingService(
     ).collect()
   }
 
-  suspend fun getMappingByNomisId(nomisCaseNoteId: Long): CaseNoteMappingDto =
-    repository.findById(nomisCaseNoteId)
-      ?.let { CaseNoteMappingDto(it) }
-      ?: throw NotFoundException("CaseNote with nomisCaseNoteId=$nomisCaseNoteId not found")
+  suspend fun getMappingByNomisId(nomisCaseNoteId: Long): CaseNoteMappingDto = repository.findById(nomisCaseNoteId)
+    ?.let { CaseNoteMappingDto(it) }
+    ?: throw NotFoundException("CaseNote with nomisCaseNoteId=$nomisCaseNoteId not found")
 
-  suspend fun getMappingsByNomisId(nomisCaseNoteIds: List<Long>): List<CaseNoteMappingDto> =
-    repository.findByNomisCaseNoteIdIn(nomisCaseNoteIds).map {
-      CaseNoteMappingDto(it)
-    }
+  suspend fun getMappingsByNomisId(nomisCaseNoteIds: List<Long>): List<CaseNoteMappingDto> = repository.findByNomisCaseNoteIdIn(nomisCaseNoteIds).map {
+    CaseNoteMappingDto(it)
+  }
 
-  suspend fun getMappingsByDpsId(dpsCaseNoteId: String): List<CaseNoteMappingDto> =
-    repository.findByDpsCaseNoteId(UUID.fromString(dpsCaseNoteId))
-      .also {
-        if (it.isEmpty()) {
-          throw NotFoundException("CaseNote with dpsCaseNoteId=$dpsCaseNoteId not found")
-        }
+  suspend fun getMappingsByDpsId(dpsCaseNoteId: String): List<CaseNoteMappingDto> = repository.findByDpsCaseNoteId(UUID.fromString(dpsCaseNoteId))
+    .also {
+      if (it.isEmpty()) {
+        throw NotFoundException("CaseNote with dpsCaseNoteId=$dpsCaseNoteId not found")
       }
-      .map { CaseNoteMappingDto(it) }
+    }
+    .map { CaseNoteMappingDto(it) }
 
-  suspend fun getMappingForLatestMigrated(): CaseNoteMappingDto =
-    repository.findFirstByMappingTypeOrderByWhenCreatedDesc(CaseNoteMappingType.MIGRATED)
-      ?.let { CaseNoteMappingDto(it) }
-      ?: throw NotFoundException("No migrated mapping found")
+  suspend fun getMappingForLatestMigrated(): CaseNoteMappingDto = repository.findFirstByMappingTypeOrderByWhenCreatedDesc(CaseNoteMappingType.MIGRATED)
+    ?.let { CaseNoteMappingDto(it) }
+    ?: throw NotFoundException("No migrated mapping found")
 
   suspend fun getCountByMigrationIdGroupedByPrisoner(
     pageRequest: Pageable,
@@ -124,10 +119,9 @@ class CaseNoteMappingService(
   @Transactional
   suspend fun deleteMapping(nomisCaseNoteId: Long) = repository.deleteById(nomisCaseNoteId)
 
-  suspend fun getMappings(offenderNo: String): AllPrisonerCaseNoteMappingsDto =
-    repository.findAllByOffenderNoOrderByNomisBookingIdAscNomisCaseNoteIdAsc(offenderNo)
-      .map { it.toDto() }
-      .let { AllPrisonerCaseNoteMappingsDto(it) }
+  suspend fun getMappings(offenderNo: String): AllPrisonerCaseNoteMappingsDto = repository.findAllByOffenderNoOrderByNomisBookingIdAscNomisCaseNoteIdAsc(offenderNo)
+    .map { it.toDto() }
+    .let { AllPrisonerCaseNoteMappingsDto(it) }
 
   @Transactional
   suspend fun updateMappingsByNomisId(oldOffenderNo: String, newOffenderNo: String) {

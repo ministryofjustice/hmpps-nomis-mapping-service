@@ -109,8 +109,7 @@ class ActivityMappingService(
     return getMappingById(activityScheduleId)
   }
 
-  private fun List<ActivityScheduleMappingDto>.findRequestedMapping(existingMapping: ActivityScheduleMapping) =
-    find { it.scheduledInstanceId == existingMapping.scheduledInstanceId }
+  private fun List<ActivityScheduleMappingDto>.findRequestedMapping(existingMapping: ActivityScheduleMapping) = find { it.scheduledInstanceId == existingMapping.scheduledInstanceId }
 
   private suspend fun ActivityScheduleMappingDto.createForActivity(activityScheduleId: Long) {
     ActivityScheduleMapping(
@@ -123,8 +122,7 @@ class ActivityMappingService(
     }
   }
 
-  private fun List<ActivityScheduleMapping>.doesNotExist(requestedMapping: ActivityScheduleMappingDto) =
-    none { it.scheduledInstanceId == requestedMapping.scheduledInstanceId }
+  private fun List<ActivityScheduleMapping>.doesNotExist(requestedMapping: ActivityScheduleMappingDto) = none { it.scheduledInstanceId == requestedMapping.scheduledInstanceId }
 
   private suspend fun ActivityScheduleMapping.saveIfChanged(requestedMapping: ActivityScheduleMappingDto) {
     if (nomisCourseScheduleId != requestedMapping.nomisCourseScheduleId) {
@@ -134,38 +132,33 @@ class ActivityMappingService(
     }
   }
 
-  suspend fun getMappingById(id: Long): ActivityMappingDto =
-    activityScheduleMappingRepository.findAllByActivityScheduleId(id)
-      .map { ActivityScheduleMappingDto(it) }
-      .let { schedules ->
-        activityMappingRepository.findById(id)
-          ?.let { ActivityMappingDto(it, schedules) }
-          ?: throw NotFoundException("Activity schedule id=$id")
-      }
+  suspend fun getMappingById(id: Long): ActivityMappingDto = activityScheduleMappingRepository.findAllByActivityScheduleId(id)
+    .map { ActivityScheduleMappingDto(it) }
+    .let { schedules ->
+      activityMappingRepository.findById(id)
+        ?.let { ActivityMappingDto(it, schedules) }
+        ?: throw NotFoundException("Activity schedule id=$id")
+    }
 
-  suspend fun getScheduleMappingById(activityScheduleId: Long, scheduledInstanceId: Long): ActivityScheduleMappingDto =
-    activityScheduleMappingRepository.findOneByActivityScheduleIdAndScheduledInstanceId(activityScheduleId, scheduledInstanceId)
-      ?.let { ActivityScheduleMappingDto(it) }
-      ?: throw NotFoundException("Activity schedule id=$activityScheduleId, Scheduled instance id=$scheduledInstanceId")
+  suspend fun getScheduleMappingById(activityScheduleId: Long, scheduledInstanceId: Long): ActivityScheduleMappingDto = activityScheduleMappingRepository.findOneByActivityScheduleIdAndScheduledInstanceId(activityScheduleId, scheduledInstanceId)
+    ?.let { ActivityScheduleMappingDto(it) }
+    ?: throw NotFoundException("Activity schedule id=$activityScheduleId, Scheduled instance id=$scheduledInstanceId")
 
-  suspend fun getScheduleMappingByScheduleId(scheduledInstanceId: Long): ActivityScheduleMappingDto =
-    activityScheduleMappingRepository.findOneByScheduledInstanceId(scheduledInstanceId)
-      ?.let { ActivityScheduleMappingDto(it) }
-      ?: throw NotFoundException("Scheduled instance id=$scheduledInstanceId")
+  suspend fun getScheduleMappingByScheduleId(scheduledInstanceId: Long): ActivityScheduleMappingDto = activityScheduleMappingRepository.findOneByScheduledInstanceId(scheduledInstanceId)
+    ?.let { ActivityScheduleMappingDto(it) }
+    ?: throw NotFoundException("Scheduled instance id=$scheduledInstanceId")
 
   @Transactional
-  suspend fun deleteMapping(id: Long) =
-    activityMappingRepository.deleteById(id)
-      .also { activityScheduleMappingRepository.deleteAllByActivityScheduleId(id) }
+  suspend fun deleteMapping(id: Long) = activityMappingRepository.deleteById(id)
+    .also { activityScheduleMappingRepository.deleteAllByActivityScheduleId(id) }
 
-  suspend fun getAllMappings(): List<ActivityMappingDto> =
-    activityMappingRepository.findAll().toList().map { activityMapping ->
-      activityScheduleMappingRepository.findAllByActivityScheduleId(activityMapping.activityScheduleId)
-        .map { ActivityScheduleMappingDto(it) }
-        .let { scheduleMappingDtos ->
-          ActivityMappingDto(activityMapping, scheduleMappingDtos.toList())
-        }
-    }
+  suspend fun getAllMappings(): List<ActivityMappingDto> = activityMappingRepository.findAll().toList().map { activityMapping ->
+    activityScheduleMappingRepository.findAllByActivityScheduleId(activityMapping.activityScheduleId)
+      .map { ActivityScheduleMappingDto(it) }
+      .let { scheduleMappingDtos ->
+        ActivityMappingDto(activityMapping, scheduleMappingDtos.toList())
+      }
+  }
 
   @Transactional
   suspend fun deleteCourseSchedulesAfterId(maxCourseScheduleId: Long) = activityScheduleMappingRepository.deleteByNomisCourseScheduleIdGreaterThan(maxCourseScheduleId)

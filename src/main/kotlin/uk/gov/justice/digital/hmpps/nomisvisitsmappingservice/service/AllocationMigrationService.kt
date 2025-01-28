@@ -61,33 +61,30 @@ class AllocationMigrationService(
     }
   }
 
-  suspend fun getMapping(nomisAllocationId: Long): AllocationMigrationMappingDto =
-    allocationMigrationMappingRepository.findById(nomisAllocationId)
-      ?.let { AllocationMigrationMappingDto(it) }
-      ?: throw NotFoundException("nomisAllocationId=$nomisAllocationId")
+  suspend fun getMapping(nomisAllocationId: Long): AllocationMigrationMappingDto = allocationMigrationMappingRepository.findById(nomisAllocationId)
+    ?.let { AllocationMigrationMappingDto(it) }
+    ?: throw NotFoundException("nomisAllocationId=$nomisAllocationId")
 
-  suspend fun getLatestMigrated(): AllocationMigrationMappingDto =
-    allocationMigrationMappingRepository.findFirstByOrderByWhenCreatedDesc()
-      ?.let { AllocationMigrationMappingDto(it) }
-      ?: throw NotFoundException("No migrated mapping found")
+  suspend fun getLatestMigrated(): AllocationMigrationMappingDto = allocationMigrationMappingRepository.findFirstByOrderByWhenCreatedDesc()
+    ?.let { AllocationMigrationMappingDto(it) }
+    ?: throw NotFoundException("No migrated mapping found")
 
   suspend fun getMappings(
     pageRequest: Pageable,
     migrationId: String,
-  ): Page<AllocationMigrationMappingDto> =
-    coroutineScope {
-      val allocationMigrationMappings = async {
-        allocationMigrationMappingRepository.findAllByLabelOrderByNomisAllocationIdAsc(label = migrationId, pageRequest)
-      }
-
-      val count = async {
-        allocationMigrationMappingRepository.countAllByLabel(migrationId)
-      }
-
-      PageImpl(
-        allocationMigrationMappings.await().toList().map { AllocationMigrationMappingDto(it) },
-        pageRequest,
-        count.await(),
-      )
+  ): Page<AllocationMigrationMappingDto> = coroutineScope {
+    val allocationMigrationMappings = async {
+      allocationMigrationMappingRepository.findAllByLabelOrderByNomisAllocationIdAsc(label = migrationId, pageRequest)
     }
+
+    val count = async {
+      allocationMigrationMappingRepository.countAllByLabel(migrationId)
+    }
+
+    PageImpl(
+      allocationMigrationMappings.await().toList().map { AllocationMigrationMappingDto(it) },
+      pageRequest,
+      count.await(),
+    )
+  }
 }

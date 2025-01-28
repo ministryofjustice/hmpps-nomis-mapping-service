@@ -64,16 +64,15 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
   suspend fun createMapping(
     @RequestBody @Valid
     createMappingRequest: AdjudicationMappingDto,
-  ) =
-    try {
-      mappingService.createMapping(createMappingRequest)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Adjudication mapping already exists, detected by $e",
-        duplicate = createMappingRequest,
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createMapping(createMappingRequest)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Adjudication mapping already exists, detected by $e",
+      duplicate = createMappingRequest,
+      cause = e,
+    )
+  }
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
   @PostMapping("/mapping/adjudications/all")
@@ -106,16 +105,15 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
   suspend fun createAllMappings(
     @RequestBody @Valid
     createMappingRequest: AdjudicationAllMappingDto,
-  ) =
-    try {
-      mappingService.createMapping(createMappingRequest)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Adjudication mapping already exists, detected by $e",
-        duplicate = createMappingRequest,
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createMapping(createMappingRequest)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Adjudication mapping already exists, detected by $e",
+      duplicate = createMappingRequest,
+      cause = e,
+    )
+  }
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
   @GetMapping("/mapping/adjudications/charge-number/{chargeNumber}")
@@ -210,8 +208,7 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
       ),
     ],
   )
-  suspend fun getLatestMigratedAdjudicationMapping(): AdjudicationMappingDto =
-    mappingService.getAdjudicationMappingForLatestMigrated()
+  suspend fun getLatestMigratedAdjudicationMapping(): AdjudicationMappingDto = mappingService.getAdjudicationMappingForLatestMigrated()
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
   @DeleteMapping("/mapping/adjudications/charge-number/{chargeNumber}")
@@ -265,8 +262,7 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<AdjudicationMappingDto> =
-    mappingService.getAdjudicationMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<AdjudicationMappingDto> = mappingService.getAdjudicationMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
   @GetMapping("/mapping/adjudications")

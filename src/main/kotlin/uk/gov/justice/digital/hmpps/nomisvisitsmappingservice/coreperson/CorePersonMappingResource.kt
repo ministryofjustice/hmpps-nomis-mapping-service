@@ -76,21 +76,20 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   suspend fun createMappings(
     @RequestBody @Valid
     mappings: CorePersonMappingsDto,
-  ) =
-    try {
-      service.createMappings(mappings)
-    } catch (e: DuplicateKeyException) {
-      val existingMapping = getExistingCorePersonMappingSimilarTo(mappings.personMapping)
-      if (existingMapping == null) {
-        log.error("Child duplicate key found for core person even though the core person has never been migrated", e)
-      }
-      throw DuplicateMappingException(
-        messageIn = "Core Person mapping already exists",
-        duplicate = mappings.asCorePersonMappingDto(),
-        existing = existingMapping ?: mappings.asCorePersonMappingDto(),
-        cause = e,
-      )
+  ) = try {
+    service.createMappings(mappings)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingCorePersonMappingSimilarTo(mappings.personMapping)
+    if (existingMapping == null) {
+      log.error("Child duplicate key found for core person even though the core person has never been migrated", e)
     }
+    throw DuplicateMappingException(
+      messageIn = "Core Person mapping already exists",
+      duplicate = mappings.asCorePersonMappingDto(),
+      existing = existingMapping ?: mappings.asCorePersonMappingDto(),
+      cause = e,
+    )
+  }
 
   @GetMapping("/migration-id/{migrationId}")
   @Operation(
@@ -118,8 +117,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<CorePersonMappingDto> =
-    service.getCorePersonMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<CorePersonMappingDto> = service.getCorePersonMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   @GetMapping("/person/nomis-prison-number/{nomisPrisonNumber}")
   @Operation(

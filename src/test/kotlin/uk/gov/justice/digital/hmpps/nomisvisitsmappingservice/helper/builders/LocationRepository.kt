@@ -7,5 +7,4 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.jpa.repository.Loc
 
 @Repository
 @Transactional
-class LocationRepository(@Qualifier("locationMappingRepository") private val locationRepository: LocationMappingRepository) :
-  LocationMappingRepository by locationRepository
+class LocationRepository(@Qualifier("locationMappingRepository") private val locationRepository: LocationMappingRepository) : LocationMappingRepository by locationRepository

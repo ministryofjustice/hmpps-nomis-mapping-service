@@ -37,9 +37,7 @@ data class AdjudicationMapping(
     return chargeNumber == other.chargeNumber
   }
 
-  override fun hashCode(): Int {
-    return chargeNumber.hashCode()
-  }
+  override fun hashCode(): Int = chargeNumber.hashCode()
 
   override fun isNew(): Boolean = new
 

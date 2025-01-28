@@ -75,16 +75,15 @@ class LocationMappingResource(private val mappingService: LocationMappingService
   suspend fun createMapping(
     @RequestBody @Valid
     createMappingRequest: LocationMappingDto,
-  ) =
-    try {
-      mappingService.createMapping(createMappingRequest)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Location mapping already exists, detected by $e",
-        duplicate = createMappingRequest,
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createMapping(createMappingRequest)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Location mapping already exists, detected by $e",
+      duplicate = createMappingRequest,
+      cause = e,
+    )
+  }
 
   @PreAuthorize("hasRole('ROLE_NOMIS_LOCATIONS')")
   @GetMapping("/mapping/locations/nomis/{nomisLocationId}")
@@ -177,8 +176,7 @@ class LocationMappingResource(private val mappingService: LocationMappingService
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<LocationMappingDto> =
-    mappingService.getMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<LocationMappingDto> = mappingService.getMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_LOCATIONS')")
   @GetMapping("/mapping/locations/migrated/latest")
@@ -208,8 +206,7 @@ class LocationMappingResource(private val mappingService: LocationMappingService
       ),
     ],
   )
-  suspend fun getLatestMigratedMapping(): LocationMappingDto =
-    mappingService.getMappingForLatestMigrated()
+  suspend fun getLatestMigratedMapping(): LocationMappingDto = mappingService.getMappingForLatestMigrated()
 
   @PreAuthorize("hasRole('ROLE_NOMIS_LOCATIONS')")
   @DeleteMapping("/mapping/locations/dps/{locationId}")

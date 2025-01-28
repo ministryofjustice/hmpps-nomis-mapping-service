@@ -12,8 +12,7 @@ class CSIPFactorMappingService(
   private val repository: CSIPFactorMappingRepository,
 ) {
   @Transactional
-  suspend fun createMapping(mappingDto: CSIPChildMappingDto): CSIPFactorMapping =
-    repository.save(mappingDto.fromDto())
+  suspend fun createMapping(mappingDto: CSIPChildMappingDto): CSIPFactorMapping = repository.save(mappingDto.fromDto())
 
   @Transactional
   suspend fun createMappings(mappingDtoList: List<CSIPChildMappingDto>) {
@@ -22,30 +21,26 @@ class CSIPFactorMappingService(
 
   suspend fun findAllByDpsCSIPReportId(dpsCSIPReportId: String) = repository.findAllByDpsCSIPReportId(dpsCSIPReportId).map { it.toDto() }
 
-  suspend fun getMappingByNomisId(nomisCSIPFactorId: Long): CSIPChildMappingDto =
-    repository.findOneByNomisCSIPFactorId(
-      nomisCSIPFactorId = nomisCSIPFactorId,
-    )
-      ?.toDto()
-      ?: throw NotFoundException("No CSIP Factor mapping for  nomisCSIPFactorId=$nomisCSIPFactorId")
+  suspend fun getMappingByNomisId(nomisCSIPFactorId: Long): CSIPChildMappingDto = repository.findOneByNomisCSIPFactorId(
+    nomisCSIPFactorId = nomisCSIPFactorId,
+  )
+    ?.toDto()
+    ?: throw NotFoundException("No CSIP Factor mapping for  nomisCSIPFactorId=$nomisCSIPFactorId")
 
-  suspend fun getMappingByDpsId(dpsCSIPFactorId: String): CSIPChildMappingDto =
-    repository.findById(dpsCSIPFactorId)
-      ?.toDto()
-      ?: throw NotFoundException("No CSIP factor mapping found for dpsCSIPFactorId=$dpsCSIPFactorId")
+  suspend fun getMappingByDpsId(dpsCSIPFactorId: String): CSIPChildMappingDto = repository.findById(dpsCSIPFactorId)
+    ?.toDto()
+    ?: throw NotFoundException("No CSIP factor mapping found for dpsCSIPFactorId=$dpsCSIPFactorId")
 
   @Transactional
-  suspend fun deleteMappingByDpsId(dpsCSIPFactorId: String) =
-    repository.deleteById(dpsCSIPFactorId)
+  suspend fun deleteMappingByDpsId(dpsCSIPFactorId: String) = repository.deleteById(dpsCSIPFactorId)
 
   fun alreadyExistsMessage(
     duplicateMapping: CSIPChildMappingDto,
     existingMapping: CSIPChildMappingDto,
-  ) =
-    """CSIPFactor Factor mapping already exists.
+  ) = """CSIPFactor Factor mapping already exists.
        |Existing mapping: $existingMapping
        |Duplicate mapping: $duplicateMapping
-    """.trimMargin()
+  """.trimMargin()
 }
 
 fun CSIPFactorMapping.toDto() = CSIPChildMappingDto(

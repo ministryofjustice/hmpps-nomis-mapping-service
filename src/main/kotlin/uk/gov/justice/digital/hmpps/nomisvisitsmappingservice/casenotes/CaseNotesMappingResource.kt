@@ -66,17 +66,16 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
   suspend fun createMapping(
     @RequestBody @Valid
     mapping: CaseNoteMappingDto,
-  ) =
-    try {
-      mappingService.createMapping(mapping)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Casenote mapping already exists",
-        duplicate = mapping,
-        existing = getExistingMappingSimilarTo(mapping),
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Casenote mapping already exists",
+      duplicate = mapping,
+      existing = getExistingMappingSimilarTo(mapping),
+      cause = e,
+    )
+  }
 
   @PostMapping("/batch")
   @ResponseStatus(HttpStatus.CREATED)
@@ -118,21 +117,20 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
   suspend fun createMappings(
     @RequestBody @Valid
     mappings: List<CaseNoteMappingDto>,
-  ) =
-    try {
-      mappingService.createMappings(mappings)
-    } catch (e: DuplicateKeyException) {
-      val duplicateMapping = getMappingThatIsDuplicate(mappings)
-      if (duplicateMapping != null) {
-        throw DuplicateMappingException(
-          messageIn = "Casenote mapping already exists",
-          duplicate = duplicateMapping,
-          existing = getExistingMappingSimilarTo(duplicateMapping),
-          cause = e,
-        )
-      }
-      throw e
+  ) = try {
+    mappingService.createMappings(mappings)
+  } catch (e: DuplicateKeyException) {
+    val duplicateMapping = getMappingThatIsDuplicate(mappings)
+    if (duplicateMapping != null) {
+      throw DuplicateMappingException(
+        messageIn = "Casenote mapping already exists",
+        duplicate = duplicateMapping,
+        existing = getExistingMappingSimilarTo(duplicateMapping),
+        cause = e,
+      )
     }
+    throw e
+  }
 
   @PostMapping("{offenderNo}/all")
   @ResponseStatus(HttpStatus.CREATED)
@@ -174,30 +172,29 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     offenderNo: String,
     @RequestBody @Valid
     prisonerMapping: PrisonerCaseNoteMappingsDto,
-  ) =
-    try {
-      mappingService.createMappings(offenderNo, prisonerMapping)
-    } catch (e: DuplicateKeyException) {
-      val duplicateMapping = getMappingIdThatIsDuplicate(prisonerMapping.mappings)
-      if (duplicateMapping != null) {
-        throw DuplicateMappingException(
-          messageIn = "CaseNote mapping already exists",
-          duplicate = duplicateMapping.let {
-            CaseNoteMappingDto(
-              dpsCaseNoteId = it.dpsCaseNoteId,
-              nomisCaseNoteId = it.nomisCaseNoteId,
-              nomisBookingId = it.nomisBookingId,
-              offenderNo = offenderNo,
-              label = prisonerMapping.label,
-              mappingType = prisonerMapping.mappingType,
-            )
-          },
-          existing = getExistingMappingSimilarTo(duplicateMapping),
-          cause = e,
-        )
-      }
-      throw e
+  ) = try {
+    mappingService.createMappings(offenderNo, prisonerMapping)
+  } catch (e: DuplicateKeyException) {
+    val duplicateMapping = getMappingIdThatIsDuplicate(prisonerMapping.mappings)
+    if (duplicateMapping != null) {
+      throw DuplicateMappingException(
+        messageIn = "CaseNote mapping already exists",
+        duplicate = duplicateMapping.let {
+          CaseNoteMappingDto(
+            dpsCaseNoteId = it.dpsCaseNoteId,
+            nomisCaseNoteId = it.nomisCaseNoteId,
+            nomisBookingId = it.nomisBookingId,
+            offenderNo = offenderNo,
+            label = prisonerMapping.label,
+            mappingType = prisonerMapping.mappingType,
+          )
+        },
+        existing = getExistingMappingSimilarTo(duplicateMapping),
+        cause = e,
+      )
     }
+    throw e
+  }
 
   @GetMapping("{offenderNo}/all")
   @Operation(
@@ -335,8 +332,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
       ),
     ],
   )
-  suspend fun getLatestMigratedCaseNoteMapping(): CaseNoteMappingDto =
-    mappingService.getMappingForLatestMigrated()
+  suspend fun getLatestMigratedCaseNoteMapping(): CaseNoteMappingDto = mappingService.getMappingForLatestMigrated()
 
   @GetMapping("/migration-id/{migrationId}/count-by-prisoner")
   @Operation(
@@ -364,8 +360,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Long =
-    mappingService.getCountByMigrationIdGroupedByPrisoner(pageRequest = pageRequest, migrationId = migrationId)
+  ): Long = mappingService.getCountByMigrationIdGroupedByPrisoner(pageRequest = pageRequest, migrationId = migrationId)
 
   @DeleteMapping("/nomis-casenote-id/{nomisCaseNoteId}")
   @Operation(
@@ -475,15 +470,13 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     mappingService.getMappingsByDpsId(dpsCaseNoteId = mapping.dpsCaseNoteId).first()
   }
 
-  private suspend fun getMappingIdThatIsDuplicate(mappings: List<CaseNoteMappingIdDto>): CaseNoteMappingIdDto? =
-    mappings.find {
-      // look for each mapping until I find one (i.e. that is there is no exception thrown)
-      kotlin.runCatching { getExistingMappingSimilarTo(it) }.map { true }.getOrElse { false }
-    }
+  private suspend fun getMappingIdThatIsDuplicate(mappings: List<CaseNoteMappingIdDto>): CaseNoteMappingIdDto? = mappings.find {
+    // look for each mapping until I find one (i.e. that is there is no exception thrown)
+    kotlin.runCatching { getExistingMappingSimilarTo(it) }.map { true }.getOrElse { false }
+  }
 
-  private suspend fun getMappingThatIsDuplicate(mappings: List<CaseNoteMappingDto>): CaseNoteMappingDto? =
-    mappings.find {
-      // look for each mapping until I find one (i.e. that is there is no exception thrown)
-      kotlin.runCatching { getExistingMappingSimilarTo(it) }.map { true }.getOrElse { false }
-    }
+  private suspend fun getMappingThatIsDuplicate(mappings: List<CaseNoteMappingDto>): CaseNoteMappingDto? = mappings.find {
+    // look for each mapping until I find one (i.e. that is there is no exception thrown)
+    kotlin.runCatching { getExistingMappingSimilarTo(it) }.map { true }.getOrElse { false }
+  }
 }

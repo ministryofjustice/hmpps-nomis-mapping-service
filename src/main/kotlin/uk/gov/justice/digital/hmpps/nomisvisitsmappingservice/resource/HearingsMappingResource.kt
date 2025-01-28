@@ -60,16 +60,15 @@ class HearingsMappingResource(private val mappingService: AdjudicationMappingSer
   suspend fun createMapping(
     @RequestBody @Valid
     createMappingRequest: AdjudicationHearingMappingDto,
-  ) =
-    try {
-      mappingService.createMapping(createMappingRequest)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Hearing mapping already exists, detected by $e",
-        duplicate = createMappingRequest,
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createMapping(createMappingRequest)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Hearing mapping already exists, detected by $e",
+      duplicate = createMappingRequest,
+      cause = e,
+    )
+  }
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
   @GetMapping("/mapping/hearings/nomis/{id}")

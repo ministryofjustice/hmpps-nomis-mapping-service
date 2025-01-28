@@ -66,17 +66,16 @@ class CSIPPlanMappingResource(
     @RequestBody
     @Valid
     csipPlanMapping: CSIPChildMappingDto,
-  ) =
-    try {
-      planMappingService.createMapping(csipPlanMapping)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "CSIP Plan mapping already exists, detected by $e",
-        duplicate = csipPlanMapping,
-        existing = getExistingMappingSimilarTo(csipPlanMapping),
-        cause = e,
-      )
-    }
+  ) = try {
+    planMappingService.createMapping(csipPlanMapping)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "CSIP Plan mapping already exists, detected by $e",
+      duplicate = csipPlanMapping,
+      existing = getExistingMappingSimilarTo(csipPlanMapping),
+      cause = e,
+    )
+  }
 
   @GetMapping("/nomis-csip-plan-id/{nomisCSIPPlanId}")
   @Operation(

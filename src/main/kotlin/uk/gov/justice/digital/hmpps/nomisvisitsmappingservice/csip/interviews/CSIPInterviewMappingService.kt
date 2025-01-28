@@ -14,8 +14,7 @@ class CSIPInterviewMappingService(
 ) {
 
   @Transactional
-  suspend fun createMapping(mappingDto: CSIPChildMappingDto): CSIPInterviewMapping =
-    repository.save(mappingDto.fromDto())
+  suspend fun createMapping(mappingDto: CSIPChildMappingDto): CSIPInterviewMapping = repository.save(mappingDto.fromDto())
 
   @Transactional
   suspend fun createMappings(mappingDtoList: List<CSIPChildMappingDto>) {
@@ -24,30 +23,26 @@ class CSIPInterviewMappingService(
 
   suspend fun findAllByDpsCSIPReportId(dpsCSIPReportId: String) = repository.findAllByDpsCSIPReportId(dpsCSIPReportId).map { it.toDto() }
 
-  suspend fun getMappingByNomisId(nomisCSIPInterviewId: Long): CSIPChildMappingDto =
-    repository.findOneByNomisCSIPInterviewId(
-      nomisCSIPInterviewId = nomisCSIPInterviewId,
-    )
-      ?.toDto()
-      ?: throw NotFoundException("No CSIP Interview mapping for  nomisCSIPInterviewId=$nomisCSIPInterviewId")
+  suspend fun getMappingByNomisId(nomisCSIPInterviewId: Long): CSIPChildMappingDto = repository.findOneByNomisCSIPInterviewId(
+    nomisCSIPInterviewId = nomisCSIPInterviewId,
+  )
+    ?.toDto()
+    ?: throw NotFoundException("No CSIP Interview mapping for  nomisCSIPInterviewId=$nomisCSIPInterviewId")
 
-  suspend fun getMappingByDpsId(dpsCSIPInterviewId: String): CSIPChildMappingDto =
-    repository.findById(dpsCSIPInterviewId)
-      ?.toDto()
-      ?: throw NotFoundException("No CSIP interview mapping found for dpsCSIPInterviewId=$dpsCSIPInterviewId")
+  suspend fun getMappingByDpsId(dpsCSIPInterviewId: String): CSIPChildMappingDto = repository.findById(dpsCSIPInterviewId)
+    ?.toDto()
+    ?: throw NotFoundException("No CSIP interview mapping found for dpsCSIPInterviewId=$dpsCSIPInterviewId")
 
   @Transactional
-  suspend fun deleteMappingByDpsId(dpsCSIPInterviewId: String) =
-    repository.deleteById(dpsCSIPInterviewId)
+  suspend fun deleteMappingByDpsId(dpsCSIPInterviewId: String) = repository.deleteById(dpsCSIPInterviewId)
 
   fun alreadyExistsMessage(
     duplicateMapping: CSIPChildMappingDto,
     existingMapping: CSIPChildMappingDto,
-  ) =
-    """CSIPInterview Interview mapping already exists.
+  ) = """CSIPInterview Interview mapping already exists.
        |Existing mapping: $existingMapping
        |Duplicate mapping: $duplicateMapping
-    """.trimMargin()
+  """.trimMargin()
 }
 
 fun CSIPInterviewMapping.toDto() = CSIPChildMappingDto(

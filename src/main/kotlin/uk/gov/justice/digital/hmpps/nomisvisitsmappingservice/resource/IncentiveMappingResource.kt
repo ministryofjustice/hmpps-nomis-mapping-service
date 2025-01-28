@@ -70,16 +70,15 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
   suspend fun createMapping(
     @RequestBody @Valid
     createMappingRequest: IncentiveMappingDto,
-  ) =
-    try {
-      mappingService.createIncentiveMapping(createMappingRequest)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Incentive mapping already exists, detected by $e",
-        duplicate = createMappingRequest,
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createIncentiveMapping(createMappingRequest)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Incentive mapping already exists, detected by $e",
+      duplicate = createMappingRequest,
+      cause = e,
+    )
+  }
 
   @PreAuthorize("hasRole('ROLE_NOMIS_INCENTIVES')")
   @GetMapping("/mapping/incentives/nomis-booking-id/{bookingId}/nomis-incentive-sequence/{incentiveSequence}")
@@ -183,8 +182,7 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
       ),
     ],
   )
-  suspend fun getLatestMigratedIncentiveMapping(): IncentiveMappingDto =
-    mappingService.getIncentiveMappingForLatestMigrated()
+  suspend fun getLatestMigratedIncentiveMapping(): IncentiveMappingDto = mappingService.getIncentiveMappingForLatestMigrated()
 
   @PreAuthorize("hasRole('ROLE_NOMIS_INCENTIVES')")
   @DeleteMapping("/mapping/incentives")
@@ -268,6 +266,5 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<IncentiveMappingDto> =
-    mappingService.getIncentiveMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<IncentiveMappingDto> = mappingService.getIncentiveMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 }

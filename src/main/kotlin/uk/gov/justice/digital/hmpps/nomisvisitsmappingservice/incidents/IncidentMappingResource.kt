@@ -68,16 +68,15 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
   suspend fun createMapping(
     @RequestBody @Valid
     createMappingRequest: IncidentMappingDto,
-  ) =
-    try {
-      mappingService.createIncidentMapping(createMappingRequest)
-    } catch (e: DuplicateKeyException) {
-      throw DuplicateMappingException(
-        messageIn = "Incident mapping already exists, detected by $e",
-        duplicate = createMappingRequest,
-        cause = e,
-      )
-    }
+  ) = try {
+    mappingService.createIncidentMapping(createMappingRequest)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Incident mapping already exists, detected by $e",
+      duplicate = createMappingRequest,
+      cause = e,
+    )
+  }
 
   @GetMapping("/nomis-incident-id/{nomisIncidentId}")
   @Operation(

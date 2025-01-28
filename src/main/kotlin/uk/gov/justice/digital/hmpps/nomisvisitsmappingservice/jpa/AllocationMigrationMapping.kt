@@ -36,9 +36,7 @@ data class AllocationMigrationMapping(
     return true
   }
 
-  override fun hashCode(): Int {
-    return nomisAllocationId.hashCode()
-  }
+  override fun hashCode(): Int = nomisAllocationId.hashCode()
 
   override fun isNew(): Boolean = new
 

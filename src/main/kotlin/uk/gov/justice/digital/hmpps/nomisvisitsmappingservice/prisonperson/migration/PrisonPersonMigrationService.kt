@@ -23,57 +23,52 @@ class PrisonPersonMigrationService(
   private val template: R2dbcEntityTemplate,
 ) {
   @Transactional
-  suspend fun upsert(mappingRequest: PrisonPersonMigrationMappingRequest): PrisonPersonMigrationMapping =
-    mappingRequest.find()
-      ?.let { mappingRequest.update() }
-      ?: let { mappingRequest.insert() }
+  suspend fun upsert(mappingRequest: PrisonPersonMigrationMappingRequest): PrisonPersonMigrationMapping = mappingRequest.find()
+    ?.let { mappingRequest.update() }
+    ?: let { mappingRequest.insert() }
 
-  private suspend fun PrisonPersonMigrationMappingRequest.find() =
-    repository.findByNomisPrisonerNumberAndMigrationTypeAndLabel(nomisPrisonerNumber, migrationType, label)
+  private suspend fun PrisonPersonMigrationMappingRequest.find() = repository.findByNomisPrisonerNumberAndMigrationTypeAndLabel(nomisPrisonerNumber, migrationType, label)
 
-  private suspend fun PrisonPersonMigrationMappingRequest.update(): PrisonPersonMigrationMapping =
-    template.update<PrisonPersonMigrationMapping>()
-      .inTable("prison_person_migration_mapping")
-      .matching(
-        query(
-          where("nomis_prisoner_number").`is`(nomisPrisonerNumber)
-            .and(where("migration_type").`is`(migrationType))
-            .and(where("label").`is`(label)),
-        ),
-      )
-      .apply(update("dps_ids", dpsIds.toString()))
-      .awaitSingle()
-      .let { find()!! }
+  private suspend fun PrisonPersonMigrationMappingRequest.update(): PrisonPersonMigrationMapping = template.update<PrisonPersonMigrationMapping>()
+    .inTable("prison_person_migration_mapping")
+    .matching(
+      query(
+        where("nomis_prisoner_number").`is`(nomisPrisonerNumber)
+          .and(where("migration_type").`is`(migrationType))
+          .and(where("label").`is`(label)),
+      ),
+    )
+    .apply(update("dps_ids", dpsIds.toString()))
+    .awaitSingle()
+    .let { find()!! }
 
-  private suspend fun PrisonPersonMigrationMappingRequest.insert(): PrisonPersonMigrationMapping =
-    template.insert<PrisonPersonMigrationMapping>()
-      .using(
-        PrisonPersonMigrationMapping(
-          nomisPrisonerNumber = nomisPrisonerNumber,
-          migrationType = migrationType,
-          dpsIds = dpsIds.toString(),
-          label = label,
-        ),
-      )
-      .awaitSingle()
+  private suspend fun PrisonPersonMigrationMappingRequest.insert(): PrisonPersonMigrationMapping = template.insert<PrisonPersonMigrationMapping>()
+    .using(
+      PrisonPersonMigrationMapping(
+        nomisPrisonerNumber = nomisPrisonerNumber,
+        migrationType = migrationType,
+        dpsIds = dpsIds.toString(),
+        label = label,
+      ),
+    )
+    .awaitSingle()
 
   suspend fun getMappings(
     pageRequest: Pageable,
     migrationId: String,
-  ): Page<PrisonPersonMigrationMapping> =
-    coroutineScope {
-      val migrationMappings = async {
-        prisonPersonMigrationMappingRepository.findAllByLabelOrderByNomisPrisonerNumberAsc(label = migrationId, pageRequest)
-      }
-
-      val count = async {
-        prisonPersonMigrationMappingRepository.countAllByLabel(migrationId)
-      }
-
-      PageImpl(
-        migrationMappings.await().toList(),
-        pageRequest,
-        count.await(),
-      )
+  ): Page<PrisonPersonMigrationMapping> = coroutineScope {
+    val migrationMappings = async {
+      prisonPersonMigrationMappingRepository.findAllByLabelOrderByNomisPrisonerNumberAsc(label = migrationId, pageRequest)
     }
+
+    val count = async {
+      prisonPersonMigrationMappingRepository.countAllByLabel(migrationId)
+    }
+
+    PageImpl(
+      migrationMappings.await().toList(),
+      pageRequest,
+      count.await(),
+    )
+  }
 }
