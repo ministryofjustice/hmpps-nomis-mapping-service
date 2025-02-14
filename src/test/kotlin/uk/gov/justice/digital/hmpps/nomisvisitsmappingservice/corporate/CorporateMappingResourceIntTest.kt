@@ -776,7 +776,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
     @Nested
     inner class Security {
-      val mapping = CorporateMappingDto(
+      val mapping = OrganisationsMappingDto(
         dpsId = "54321",
         nomisId = 12345L,
         label = null,
@@ -821,7 +821,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
     inner class Validation {
       private lateinit var existingCorporateMapping: CorporateMapping
 
-      val mapping = CorporateMappingDto(
+      val mapping = OrganisationsMappingDto(
         dpsId = "54321",
         nomisId = 12345L,
         label = null,
@@ -883,7 +883,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
     @Nested
     inner class HappyPath {
-      val mapping = CorporateMappingDto(
+      val mapping = OrganisationsMappingDto(
         dpsId = "12345",
         nomisId = 12345L,
         label = null,
@@ -1165,7 +1165,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
     @Nested
     inner class Security {
-      val mapping = CorporateAddressMappingDto(
+      val mapping = OrganisationsMappingDto(
         dpsId = "54321",
         nomisId = 12345L,
         label = null,
@@ -1210,7 +1210,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
     inner class Validation {
       private lateinit var existingMapping: CorporateAddressMapping
 
-      val mapping = CorporateAddressMappingDto(
+      val mapping = OrganisationsMappingDto(
         dpsId = "54321",
         nomisId = 12345L,
         label = null,
@@ -1272,7 +1272,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
     @Nested
     inner class HappyPath {
-      val mapping = CorporateAddressMappingDto(
+      val mapping = OrganisationsMappingDto(
         dpsId = "54321",
         nomisId = 12345L,
         label = null,
@@ -1553,7 +1553,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
     @Nested
     inner class Security {
-      val mapping = CorporateAddressPhoneMappingDto(
+      val mapping = OrganisationsMappingDto(
         dpsId = "54321",
         nomisId = 12345L,
         label = null,
@@ -1598,7 +1598,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
     inner class Validation {
       private lateinit var existingMapping: CorporateAddressPhoneMapping
 
-      val mapping = CorporateAddressPhoneMappingDto(
+      val mapping = OrganisationsMappingDto(
         dpsId = "54321",
         nomisId = 12345L,
         label = null,
@@ -1660,7 +1660,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
     @Nested
     inner class HappyPath {
-      val mapping = CorporateAddressPhoneMappingDto(
+      val mapping = OrganisationsMappingDto(
         dpsId = "54321",
         nomisId = 12345L,
         label = null,
@@ -1939,7 +1939,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
     @Nested
     inner class Security {
-      val mapping = CorporatePhoneMappingDto(
+      val mapping = OrganisationsMappingDto(
         dpsId = "54321",
         nomisId = 12345L,
         label = null,
@@ -1984,7 +1984,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
     inner class Validation {
       private lateinit var existingMapping: CorporatePhoneMapping
 
-      val mapping = CorporatePhoneMappingDto(
+      val mapping = OrganisationsMappingDto(
         dpsId = "54321",
         nomisId = 12345L,
         label = null,
@@ -2046,7 +2046,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
     @Nested
     inner class HappyPath {
-      val mapping = CorporatePhoneMappingDto(
+      val mapping = OrganisationsMappingDto(
         dpsId = "54321",
         nomisId = 12345L,
         label = null,
@@ -2325,7 +2325,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
     @Nested
     inner class Security {
-      val mapping = CorporateEmailMappingDto(
+      val mapping = OrganisationsMappingDto(
         dpsId = "54321",
         nomisId = 12345L,
         label = null,
@@ -2370,7 +2370,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
     inner class Validation {
       private lateinit var existingMapping: CorporateEmailMapping
 
-      val mapping = CorporateEmailMappingDto(
+      val mapping = OrganisationsMappingDto(
         dpsId = "54321",
         nomisId = 12345L,
         label = null,
@@ -2432,7 +2432,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
     @Nested
     inner class HappyPath {
-      val mapping = CorporateEmailMappingDto(
+      val mapping = OrganisationsMappingDto(
         dpsId = "54321",
         nomisId = 12345L,
         label = null,
@@ -2711,7 +2711,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
     @Nested
     inner class Security {
-      val mapping = CorporateWebMappingDto(
+      val mapping = OrganisationsMappingDto(
         dpsId = "54321",
         nomisId = 12345L,
         label = null,
@@ -2756,7 +2756,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
     inner class Validation {
       private lateinit var existingMapping: CorporateWebMapping
 
-      val mapping = CorporateWebMappingDto(
+      val mapping = OrganisationsMappingDto(
         dpsId = "54321",
         nomisId = 12345L,
         label = null,
@@ -2818,7 +2818,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
     @Nested
     inner class HappyPath {
-      val mapping = CorporateWebMappingDto(
+      val mapping = OrganisationsMappingDto(
         dpsId = "54321",
         nomisId = 12345L,
         label = null,

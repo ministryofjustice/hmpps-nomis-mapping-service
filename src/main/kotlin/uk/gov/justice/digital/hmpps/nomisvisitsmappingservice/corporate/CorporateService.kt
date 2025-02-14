@@ -43,7 +43,7 @@ class CorporateService(
     }
   }
 
-  suspend fun getCorporateMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<CorporateMappingDto> = coroutineScope {
+  suspend fun getCorporateMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<OrganisationsMappingDto> = coroutineScope {
     val mappings = async {
       corporateMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
         label = migrationId,
@@ -65,7 +65,7 @@ class CorporateService(
       count.await(),
     )
   }
-  suspend fun getAllCorporateMappings(pageRequest: Pageable): Page<CorporateMappingDto> = coroutineScope {
+  suspend fun getAllCorporateMappings(pageRequest: Pageable): Page<OrganisationsMappingDto> = coroutineScope {
     val mappings = async {
       corporateMappingRepository.findAllBy(
         pageRequest = pageRequest,
@@ -94,16 +94,16 @@ class CorporateService(
   }
 
   @Transactional
-  suspend fun createMapping(mapping: CorporateMappingDto) {
+  suspend fun createOrganisationMapping(mapping: OrganisationsMappingDto) {
     corporateMappingRepository.save(mapping.toMapping())
   }
 
   suspend fun getCorporateMappingByNomisId(nomisId: Long) = corporateMappingRepository.findOneByNomisId(nomisId = nomisId)
-    ?.toDto<CorporateMappingDto>()
+    ?.toDto()
     ?: throw NotFoundException("No corporate mapping found for nomisId=$nomisId")
 
   suspend fun getCorporateMappingByDpsIdOrNull(dpsId: String) = corporateMappingRepository.findOneByDpsId(dpsId = dpsId)
-    ?.toDto<CorporateMappingDto>()
+    ?.toDto()
 
   suspend fun getCorporateMappingByDpsId(dpsId: String) = getCorporateMappingByDpsIdOrNull(dpsId)
     ?: throw NotFoundException("No corporate mapping found for dpsId=$dpsId")
@@ -112,15 +112,15 @@ class CorporateService(
   suspend fun deleteCorporateMappingByNomisId(nomisId: Long) = corporateMappingRepository.deleteByNomisId(nomisId = nomisId)
 
   @Transactional
-  suspend fun createMapping(mapping: CorporateAddressMappingDto) {
+  suspend fun createAddressMapping(mapping: OrganisationsMappingDto) {
     corporateAddressMappingRepository.save(mapping.toMapping())
   }
 
   suspend fun getAddressMappingByNomisId(nomisId: Long) = corporateAddressMappingRepository.findOneByNomisId(nomisId = nomisId)
-    ?.toDto<CorporateAddressMappingDto>() ?: throw NotFoundException("No address mapping found for nomisId=$nomisId")
+    ?.toDto() ?: throw NotFoundException("No address mapping found for nomisId=$nomisId")
 
   suspend fun getAddressMappingByDpsIdOrNull(dpsId: String) = corporateAddressMappingRepository.findOneByDpsId(dpsId = dpsId)
-    ?.toDto<CorporateAddressMappingDto>()
+    ?.toDto()
 
   suspend fun getAddressMappingByDpsId(dpsId: String) = getAddressMappingByDpsIdOrNull(dpsId)
     ?: throw NotFoundException("No address mapping found for dpsId=$dpsId")
@@ -129,15 +129,15 @@ class CorporateService(
   suspend fun deleteAddressMappingByNomisId(nomisId: Long) = corporateAddressMappingRepository.deleteByNomisId(nomisId = nomisId)
 
   @Transactional
-  suspend fun createMapping(mapping: CorporateAddressPhoneMappingDto) {
+  suspend fun createAddressPhoneMapping(mapping: OrganisationsMappingDto) {
     corporateAddressPhoneMappingRepository.save(mapping.toMapping())
   }
 
   suspend fun getAddressPhoneMappingByNomisId(nomisId: Long) = corporateAddressPhoneMappingRepository.findOneByNomisId(nomisId = nomisId)
-    ?.toDto<CorporateAddressPhoneMappingDto>() ?: throw NotFoundException("No address phone mapping found for nomisId=$nomisId")
+    ?.toDto() ?: throw NotFoundException("No address phone mapping found for nomisId=$nomisId")
 
   suspend fun getAddressPhoneMappingByDpsIdOrNull(dpsId: String) = corporateAddressPhoneMappingRepository.findOneByDpsId(dpsId = dpsId)
-    ?.toDto<CorporateAddressPhoneMappingDto>()
+    ?.toDto()
 
   suspend fun getAddressPhoneMappingByDpsId(dpsId: String) = getAddressPhoneMappingByDpsIdOrNull(dpsId)
     ?: throw NotFoundException("No address phone mapping found for dpsId=$dpsId")
@@ -146,15 +146,15 @@ class CorporateService(
   suspend fun deleteAddressPhoneMappingByNomisId(nomisId: Long) = corporateAddressPhoneMappingRepository.deleteByNomisId(nomisId = nomisId)
 
   @Transactional
-  suspend fun createMapping(mapping: CorporatePhoneMappingDto) {
+  suspend fun createPhoneMapping(mapping: OrganisationsMappingDto) {
     corporatePhoneMappingRepository.save(mapping.toMapping())
   }
 
   suspend fun getPhoneMappingByNomisId(nomisId: Long) = corporatePhoneMappingRepository.findOneByNomisId(nomisId = nomisId)
-    ?.toDto<CorporatePhoneMappingDto>() ?: throw NotFoundException("No phone mapping found for nomisId=$nomisId")
+    ?.toDto() ?: throw NotFoundException("No phone mapping found for nomisId=$nomisId")
 
   suspend fun getPhoneMappingByDpsIdOrNull(dpsId: String) = corporatePhoneMappingRepository.findOneByDpsId(dpsId = dpsId)
-    ?.toDto<CorporatePhoneMappingDto>()
+    ?.toDto()
 
   suspend fun getPhoneMappingByDpsId(dpsId: String) = getPhoneMappingByDpsIdOrNull(dpsId)
     ?: throw NotFoundException("No phone mapping found for dpsId=$dpsId")
@@ -163,15 +163,15 @@ class CorporateService(
   suspend fun deletePhoneMappingByNomisId(nomisId: Long) = corporatePhoneMappingRepository.deleteByNomisId(nomisId = nomisId)
 
   @Transactional
-  suspend fun createMapping(mapping: CorporateEmailMappingDto) {
+  suspend fun createEmailMapping(mapping: OrganisationsMappingDto) {
     corporateEmailMappingRepository.save(mapping.toMapping())
   }
 
   suspend fun getEmailMappingByNomisId(nomisId: Long) = corporateEmailMappingRepository.findOneByNomisId(nomisId = nomisId)
-    ?.toDto<CorporateEmailMappingDto>() ?: throw NotFoundException("No email mapping found for nomisId=$nomisId")
+    ?.toDto() ?: throw NotFoundException("No email mapping found for nomisId=$nomisId")
 
   suspend fun getEmailMappingByDpsIdOrNull(dpsId: String) = corporateEmailMappingRepository.findOneByDpsId(dpsId = dpsId)
-    ?.toDto<CorporateEmailMappingDto>()
+    ?.toDto()
 
   suspend fun getEmailMappingByDpsId(dpsId: String) = getEmailMappingByDpsIdOrNull(dpsId)
     ?: throw NotFoundException("No email mapping found for dpsId=$dpsId")
@@ -180,15 +180,15 @@ class CorporateService(
   suspend fun deleteEmailMappingByNomisId(nomisId: Long) = corporateEmailMappingRepository.deleteByNomisId(nomisId = nomisId)
 
   @Transactional
-  suspend fun createMapping(mapping: CorporateWebMappingDto) {
+  suspend fun createWebMapping(mapping: OrganisationsMappingDto) {
     corporateWebMappingRepository.save(mapping.toMapping())
   }
 
   suspend fun getWebMappingByNomisId(nomisId: Long) = corporateWebMappingRepository.findOneByNomisId(nomisId = nomisId)
-    ?.toDto<CorporateWebMappingDto>() ?: throw NotFoundException("No web mapping found for nomisId=$nomisId")
+    ?.toDto() ?: throw NotFoundException("No web mapping found for nomisId=$nomisId")
 
   suspend fun getWebMappingByDpsIdOrNull(dpsId: String) = corporateWebMappingRepository.findOneByDpsId(dpsId = dpsId)
-    ?.toDto<CorporateWebMappingDto>()
+    ?.toDto()
 
   suspend fun getWebMappingByDpsId(dpsId: String) = getWebMappingByDpsIdOrNull(dpsId)
     ?: throw NotFoundException("No web mapping found for dpsId=$dpsId")
@@ -219,7 +219,7 @@ private inline fun <reified T : AbstractCorporateMapping> CorporateMappingsDto.t
   this.whenCreated,
 )
 
-private inline fun <reified T : AbstractCorporateMapping> AbstractCorporateMappingDto.toMapping(): T = T::class.java.getDeclaredConstructor(
+private inline fun <reified T : AbstractCorporateMapping> OrganisationsMappingDto.toMapping(): T = T::class.java.getDeclaredConstructor(
   String::class.java,
   Long::class.java,
   String::class.java,
@@ -233,13 +233,7 @@ private inline fun <reified T : AbstractCorporateMapping> AbstractCorporateMappi
   this.whenCreated,
 )
 
-private inline fun <reified T : AbstractCorporateMappingDto> AbstractCorporateMapping.toDto(): T = T::class.java.getDeclaredConstructor(
-  String::class.java,
-  Long::class.java,
-  String::class.java,
-  CorporateMappingType::class.java,
-  LocalDateTime::class.java,
-).newInstance(
+private fun AbstractCorporateMapping.toDto() = OrganisationsMappingDto(
   this.dpsId,
   this.nomisId,
   this.label,

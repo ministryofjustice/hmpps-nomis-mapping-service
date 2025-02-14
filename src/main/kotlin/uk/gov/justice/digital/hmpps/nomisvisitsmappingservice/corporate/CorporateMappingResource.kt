@@ -80,8 +80,8 @@ class CorporateMappingResource(private val service: CorporateService) {
     }
     throw DuplicateMappingException(
       messageIn = "Corporate mapping already exists",
-      duplicate = mappings.asCorporateMappingDto(),
-      existing = existingMapping ?: mappings.asCorporateMappingDto(),
+      duplicate = mappings.asOrganisationsMappingDto(),
+      existing = existingMapping ?: mappings.asOrganisationsMappingDto(),
       cause = e,
     )
   }
@@ -112,7 +112,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<CorporateMappingDto> = service.getCorporateMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<OrganisationsMappingDto> = service.getCorporateMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -141,7 +141,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     summary = "Creates corporate mappings for synchronisation",
     description = "Creates mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = CorporateMappingDto::class))],
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class))],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Mapping created"),
@@ -167,13 +167,13 @@ class CorporateMappingResource(private val service: CorporateService) {
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createOrganisationMapping(
     @RequestBody @Valid
-    mapping: CorporateMappingDto,
+    mapping: OrganisationsMappingDto,
   ) = try {
-    service.createMapping(mapping)
+    service.createOrganisationMapping(mapping)
   } catch (e: DuplicateKeyException) {
-    val existingMapping = getExistingMappingSimilarTo(mapping)
+    val existingMapping = getExistingOrganisationMappingSimilarTo(mapping)
     throw DuplicateMappingException(
       messageIn = "Mapping already exists",
       duplicate = mapping,
@@ -205,7 +205,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   )
   suspend fun getAllCorporateMappings(
     @PageableDefault pageRequest: Pageable,
-  ): Page<CorporateMappingDto> = service.getAllCorporateMappings(pageRequest = pageRequest)
+  ): Page<OrganisationsMappingDto> = service.getAllCorporateMappings(pageRequest = pageRequest)
 
   @GetMapping("/organisation/nomis-corporate-id/{nomisCorporateId}")
   @Operation(
@@ -216,7 +216,7 @@ class CorporateMappingResource(private val service: CorporateService) {
         responseCode = "200",
         description = "Corporate mapping data",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CorporateMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -240,7 +240,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     @Schema(description = "NOMIS corporate id", example = "12345", required = true)
     @PathVariable
     nomisCorporateId: Long,
-  ): CorporateMappingDto = service.getCorporateMappingByNomisId(nomisId = nomisCorporateId)
+  ): OrganisationsMappingDto = service.getCorporateMappingByNomisId(nomisId = nomisCorporateId)
 
   @GetMapping("/organisation/dps-organisation-id/{dpsOrganisationId}")
   @Operation(
@@ -251,7 +251,7 @@ class CorporateMappingResource(private val service: CorporateService) {
         responseCode = "200",
         description = "Corporate mapping data",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CorporateMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -275,7 +275,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     @Schema(description = "DPS organisation id", example = "12345", required = true)
     @PathVariable
     dpsOrganisationId: String,
-  ): CorporateMappingDto = service.getCorporateMappingByDpsId(dpsId = dpsOrganisationId)
+  ): OrganisationsMappingDto = service.getCorporateMappingByDpsId(dpsId = dpsOrganisationId)
 
   @DeleteMapping("/organisation/nomis-corporate-id/{nomisCorporateId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -311,7 +311,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     summary = "Creates address mappings for synchronisation",
     description = "Creates mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = CorporateAddressMappingDto::class))],
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class))],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Mapping created"),
@@ -337,13 +337,13 @@ class CorporateMappingResource(private val service: CorporateService) {
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createAddressMapping(
     @RequestBody @Valid
-    mapping: CorporateAddressMappingDto,
+    mapping: OrganisationsMappingDto,
   ) = try {
-    service.createMapping(mapping)
+    service.createAddressMapping(mapping)
   } catch (e: DuplicateKeyException) {
-    val existingMapping = getExistingMappingSimilarTo(mapping)
+    val existingMapping = getExistingAddressMappingSimilarTo(mapping)
     throw DuplicateMappingException(
       messageIn = "Mapping already exists",
       duplicate = mapping,
@@ -361,7 +361,7 @@ class CorporateMappingResource(private val service: CorporateService) {
         responseCode = "200",
         description = "Address mapping data",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CorporateAddressMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -385,7 +385,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     @Schema(description = "NOMIS address id", example = "12345", required = true)
     @PathVariable
     nomisAddressId: Long,
-  ): CorporateAddressMappingDto = service.getAddressMappingByNomisId(nomisId = nomisAddressId)
+  ): OrganisationsMappingDto = service.getAddressMappingByNomisId(nomisId = nomisAddressId)
 
   @GetMapping("/address/dps-address-id/{dpsAddressId}")
   @Operation(
@@ -396,7 +396,7 @@ class CorporateMappingResource(private val service: CorporateService) {
         responseCode = "200",
         description = "Address mapping data",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CorporateAddressMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -420,7 +420,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     @Schema(description = "DPS address id", example = "12345", required = true)
     @PathVariable
     dpsAddressId: String,
-  ): CorporateAddressMappingDto = service.getAddressMappingByDpsId(dpsId = dpsAddressId)
+  ): OrganisationsMappingDto = service.getAddressMappingByDpsId(dpsId = dpsAddressId)
 
   @DeleteMapping("/address/nomis-address-id/{nomisAddressId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -456,7 +456,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     summary = "Creates address phone mappings for synchronisation",
     description = "Creates mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = CorporateAddressPhoneMappingDto::class))],
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class))],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Mapping created"),
@@ -482,13 +482,13 @@ class CorporateMappingResource(private val service: CorporateService) {
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createAddressPhoneMapping(
     @RequestBody @Valid
-    mapping: CorporateAddressPhoneMappingDto,
+    mapping: OrganisationsMappingDto,
   ) = try {
-    service.createMapping(mapping)
+    service.createAddressPhoneMapping(mapping)
   } catch (e: DuplicateKeyException) {
-    val existingMapping = getExistingMappingSimilarTo(mapping)
+    val existingMapping = getExistingAddressPhoneMappingSimilarTo(mapping)
     throw DuplicateMappingException(
       messageIn = "Mapping already exists",
       duplicate = mapping,
@@ -506,7 +506,7 @@ class CorporateMappingResource(private val service: CorporateService) {
         responseCode = "200",
         description = "AddressPhone mapping data",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CorporateAddressPhoneMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -530,7 +530,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     @Schema(description = "NOMIS phone id", example = "12345", required = true)
     @PathVariable
     nomisPhoneId: Long,
-  ): CorporateAddressPhoneMappingDto = service.getAddressPhoneMappingByNomisId(nomisId = nomisPhoneId)
+  ): OrganisationsMappingDto = service.getAddressPhoneMappingByNomisId(nomisId = nomisPhoneId)
 
   @GetMapping("/address-phone/dps-address-phone-id/{dpsAddressPhoneId}")
   @Operation(
@@ -541,7 +541,7 @@ class CorporateMappingResource(private val service: CorporateService) {
         responseCode = "200",
         description = "Address mapping data",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CorporateAddressPhoneMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -565,7 +565,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     @Schema(description = "DPS address phone id", example = "12345", required = true)
     @PathVariable
     dpsAddressPhoneId: String,
-  ): CorporateAddressPhoneMappingDto = service.getAddressPhoneMappingByDpsId(dpsId = dpsAddressPhoneId)
+  ): OrganisationsMappingDto = service.getAddressPhoneMappingByDpsId(dpsId = dpsAddressPhoneId)
 
   @DeleteMapping("/address-phone/nomis-phone-id/{nomisPhoneId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -601,7 +601,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     summary = "Creates phone mappings for synchronisation",
     description = "Creates mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = CorporatePhoneMappingDto::class))],
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class))],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Mapping created"),
@@ -627,13 +627,13 @@ class CorporateMappingResource(private val service: CorporateService) {
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createPhoneMapping(
     @RequestBody @Valid
-    mapping: CorporatePhoneMappingDto,
+    mapping: OrganisationsMappingDto,
   ) = try {
-    service.createMapping(mapping)
+    service.createPhoneMapping(mapping)
   } catch (e: DuplicateKeyException) {
-    val existingMapping = getExistingMappingSimilarTo(mapping)
+    val existingMapping = getExistingPhoneMappingSimilarTo(mapping)
     throw DuplicateMappingException(
       messageIn = "Mapping already exists",
       duplicate = mapping,
@@ -651,7 +651,7 @@ class CorporateMappingResource(private val service: CorporateService) {
         responseCode = "200",
         description = "Phone mapping data",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CorporatePhoneMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -675,7 +675,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     @Schema(description = "NOMIS phone id", example = "12345", required = true)
     @PathVariable
     nomisPhoneId: Long,
-  ): CorporatePhoneMappingDto = service.getPhoneMappingByNomisId(nomisId = nomisPhoneId)
+  ): OrganisationsMappingDto = service.getPhoneMappingByNomisId(nomisId = nomisPhoneId)
 
   @GetMapping("/phone/dps-phone-id/{dpsPhoneId}")
   @Operation(
@@ -686,7 +686,7 @@ class CorporateMappingResource(private val service: CorporateService) {
         responseCode = "200",
         description = " mapping data",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CorporatePhoneMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -710,7 +710,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     @Schema(description = "DPS  phone id", example = "12345", required = true)
     @PathVariable
     dpsPhoneId: String,
-  ): CorporatePhoneMappingDto = service.getPhoneMappingByDpsId(dpsId = dpsPhoneId)
+  ): OrganisationsMappingDto = service.getPhoneMappingByDpsId(dpsId = dpsPhoneId)
 
   @DeleteMapping("/phone/nomis-phone-id/{nomisPhoneId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -746,7 +746,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     summary = "Creates email mappings for synchronisation",
     description = "Creates mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = CorporateEmailMappingDto::class))],
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class))],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Mapping created"),
@@ -772,13 +772,13 @@ class CorporateMappingResource(private val service: CorporateService) {
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createEmailMapping(
     @RequestBody @Valid
-    mapping: CorporateEmailMappingDto,
+    mapping: OrganisationsMappingDto,
   ) = try {
-    service.createMapping(mapping)
+    service.createEmailMapping(mapping)
   } catch (e: DuplicateKeyException) {
-    val existingMapping = getExistingMappingSimilarTo(mapping)
+    val existingMapping = getExistingEmailMappingSimilarTo(mapping)
     throw DuplicateMappingException(
       messageIn = "Mapping already exists",
       duplicate = mapping,
@@ -796,7 +796,7 @@ class CorporateMappingResource(private val service: CorporateService) {
         responseCode = "200",
         description = "Email mapping data",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CorporateEmailMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -820,7 +820,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     @Schema(description = "NOMIS email id", example = "12345", required = true)
     @PathVariable
     nomisEmailId: Long,
-  ): CorporateEmailMappingDto = service.getEmailMappingByNomisId(nomisId = nomisEmailId)
+  ): OrganisationsMappingDto = service.getEmailMappingByNomisId(nomisId = nomisEmailId)
 
   @GetMapping("/email/dps-email-id/{dpsEmailId}")
   @Operation(
@@ -831,7 +831,7 @@ class CorporateMappingResource(private val service: CorporateService) {
         responseCode = "200",
         description = " mapping data",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CorporateEmailMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -855,7 +855,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     @Schema(description = "DPS  email id", example = "12345", required = true)
     @PathVariable
     dpsEmailId: String,
-  ): CorporateEmailMappingDto = service.getEmailMappingByDpsId(dpsId = dpsEmailId)
+  ): OrganisationsMappingDto = service.getEmailMappingByDpsId(dpsId = dpsEmailId)
 
   @DeleteMapping("/email/nomis-internet-address-id/{nomisEmailId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -867,7 +867,7 @@ class CorporateMappingResource(private val service: CorporateService) {
         responseCode = "204",
         description = "Deletes Email mapping data or it doesn't exist",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CorporateEmailMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -894,7 +894,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     summary = "Creates web mappings for synchronisation",
     description = "Creates mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = CorporateWebMappingDto::class))],
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class))],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Mapping created"),
@@ -920,13 +920,13 @@ class CorporateMappingResource(private val service: CorporateService) {
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createWebMapping(
     @RequestBody @Valid
-    mapping: CorporateWebMappingDto,
+    mapping: OrganisationsMappingDto,
   ) = try {
-    service.createMapping(mapping)
+    service.createWebMapping(mapping)
   } catch (e: DuplicateKeyException) {
-    val existingMapping = getExistingMappingSimilarTo(mapping)
+    val existingMapping = getExistingWebMappingSimilarTo(mapping)
     throw DuplicateMappingException(
       messageIn = "Mapping already exists",
       duplicate = mapping,
@@ -944,7 +944,7 @@ class CorporateMappingResource(private val service: CorporateService) {
         responseCode = "200",
         description = "Web mapping data",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CorporateWebMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -968,7 +968,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     @Schema(description = "NOMIS web id", example = "12345", required = true)
     @PathVariable
     nomisWebId: Long,
-  ): CorporateWebMappingDto = service.getWebMappingByNomisId(nomisId = nomisWebId)
+  ): OrganisationsMappingDto = service.getWebMappingByNomisId(nomisId = nomisWebId)
 
   @GetMapping("/web/dps-web-address-id/{dpsWebId}")
   @Operation(
@@ -979,7 +979,7 @@ class CorporateMappingResource(private val service: CorporateService) {
         responseCode = "200",
         description = " mapping data",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CorporateWebMappingDto::class)),
+          Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class)),
         ],
       ),
       ApiResponse(
@@ -1003,7 +1003,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     @Schema(description = "DPS  web id", example = "12345", required = true)
     @PathVariable
     dpsWebId: String,
-  ): CorporateWebMappingDto = service.getWebMappingByDpsId(dpsId = dpsWebId)
+  ): OrganisationsMappingDto = service.getWebMappingByDpsId(dpsId = dpsWebId)
 
   @DeleteMapping("/web/nomis-internet-address-id/{nomisWebId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -1013,7 +1013,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     responses = [
       ApiResponse(
         responseCode = "204",
-        description = "Delete Web mapping data or doesnot exist",
+        description = "Delete Web mapping data or does not exist",
       ),
       ApiResponse(
         responseCode = "401",
@@ -1043,7 +1043,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     )
   }
 
-  private suspend fun getExistingMappingSimilarTo(mapping: CorporateMappingDto) = runCatching {
+  private suspend fun getExistingOrganisationMappingSimilarTo(mapping: OrganisationsMappingDto) = runCatching {
     service.getCorporateMappingByNomisId(
       nomisId = mapping.nomisId,
     )
@@ -1053,7 +1053,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     )
   }
 
-  private suspend fun getExistingMappingSimilarTo(mapping: CorporateAddressMappingDto) = runCatching {
+  private suspend fun getExistingAddressMappingSimilarTo(mapping: OrganisationsMappingDto) = runCatching {
     service.getAddressMappingByNomisId(
       nomisId = mapping.nomisId,
     )
@@ -1063,7 +1063,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     )
   }
 
-  private suspend fun getExistingMappingSimilarTo(mapping: CorporateAddressPhoneMappingDto) = runCatching {
+  private suspend fun getExistingAddressPhoneMappingSimilarTo(mapping: OrganisationsMappingDto) = runCatching {
     service.getAddressPhoneMappingByNomisId(
       nomisId = mapping.nomisId,
     )
@@ -1073,7 +1073,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     )
   }
 
-  private suspend fun getExistingMappingSimilarTo(mapping: CorporatePhoneMappingDto) = runCatching {
+  private suspend fun getExistingPhoneMappingSimilarTo(mapping: OrganisationsMappingDto) = runCatching {
     service.getPhoneMappingByNomisId(
       nomisId = mapping.nomisId,
     )
@@ -1083,7 +1083,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     )
   }
 
-  private suspend fun getExistingMappingSimilarTo(mapping: CorporateEmailMappingDto) = runCatching {
+  private suspend fun getExistingEmailMappingSimilarTo(mapping: OrganisationsMappingDto) = runCatching {
     service.getEmailMappingByNomisId(
       nomisId = mapping.nomisId,
     )
@@ -1092,7 +1092,7 @@ class CorporateMappingResource(private val service: CorporateService) {
       dpsId = mapping.dpsId,
     )
   }
-  private suspend fun getExistingMappingSimilarTo(mapping: CorporateWebMappingDto) = runCatching {
+  private suspend fun getExistingWebMappingSimilarTo(mapping: OrganisationsMappingDto) = runCatching {
     service.getWebMappingByNomisId(
       nomisId = mapping.nomisId,
     )
@@ -1103,7 +1103,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   }
 }
 
-private fun CorporateMappingsDto.asCorporateMappingDto() = CorporateMappingDto(
+private fun CorporateMappingsDto.asOrganisationsMappingDto() = OrganisationsMappingDto(
   dpsId = corporateMapping.dpsId,
   nomisId = corporateMapping.nomisId,
   mappingType = mappingType,
