@@ -22,6 +22,7 @@ import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationAllMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationDeleteMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationHearingMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationPunishmentMappingDto
@@ -943,94 +944,20 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("DELETE /mapping/adjudications/all/migration-id/{migrationId}")
+  @DisplayName("POST /mapping/adjudications/delete-mappings")
   @Nested
-  inner class DeleteAllByMigrationIdMappingTest {
-    @BeforeEach
-    fun setUp() {
-      webTestClient.post().uri("/mapping/adjudications/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(BodyInserters.fromValue(createAllMapping(label = "2022-01-01")))
-        .exchange()
-        .expectStatus().isCreated
-      webTestClient.post().uri("/mapping/adjudications/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(
-          BodyInserters.fromValue(
-            createAllMapping(
-              label = "2022-01-02",
-              chargeNumber = "$ADJUDICATION_NUMBER-99",
-              adjudicationNumber = ADJUDICATION_NUMBER,
-              chargeSequence = CHARGE_SEQ + 99,
-              bookingId = BOOKING_ID + 1,
-              hearingIdPairs = listOf("1239" to 3219L, "4569" to 6549L, "7899" to 6549L),
-              punishmentIdPairs = listOf("1239" to 98769, "4569" to 98759),
-            ),
-          ),
-        )
-        .exchange()
-        .expectStatus().isCreated
-    }
+  inner class DeleteMappingsForAdjudication {
+    val deleteAllMappingsDto = AdjudicationDeleteMappingDto(
+      dpsChargeNumber = "111111-1",
+      dpsHearingIds = listOf("111", "112"),
+      dpsPunishmentIds = listOf("1111", "1112"),
+    )
 
-    @Test
-    fun `access forbidden when no authority`() {
-      webTestClient.delete().uri("/mapping/adjudications/all/migration-id/2022-01-01")
-        .exchange()
-        .expectStatus().isUnauthorized
-    }
-
-    @Test
-    fun `access forbidden when no role`() {
-      webTestClient.delete().uri("/mapping/adjudications/all/migration-id/2022-01-01")
-        .headers(setAuthorisation(roles = listOf()))
-        .exchange()
-        .expectStatus().isForbidden
-    }
-
-    @Test
-    fun `access forbidden with wrong role`() {
-      webTestClient.delete().uri("/mapping/adjudications/all/migration-id/2022-01-01")
-        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
-        .exchange()
-        .expectStatus().isForbidden
-    }
-
-    @Test
-    fun `delete all mapping for migration`(): Unit = runBlocking {
-      assertThat(repository.findAll().count()).isEqualTo(2)
-      assertThat(hearingRepository.findAll().count()).isEqualTo(6)
-      assertThat(punishmentRepository.findAll().count()).isEqualTo(4)
-
-      webTestClient.delete().uri("/mapping/adjudications/all/migration-id/2022-01-01")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
-        .exchange()
-        .expectStatus().isNoContent
-
-      assertThat(repository.findAll().count()).isEqualTo(1)
-      assertThat(hearingRepository.findAll().count()).isEqualTo(3)
-      assertThat(punishmentRepository.findAll().count()).isEqualTo(2)
-
-      webTestClient.delete().uri("/mapping/adjudications/all/migration-id/2022-01-02")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
-        .exchange()
-        .expectStatus().isNoContent
-
-      assertThat(repository.findAll().count()).isEqualTo(0)
-      assertThat(hearingRepository.findAll().count()).isEqualTo(0)
-      assertThat(punishmentRepository.findAll().count()).isEqualTo(0)
-    }
-  }
-
-  @DisplayName("DELETE /mapping/adjudications/all")
-  @Nested
-  inner class DeleteAllMappingTest {
     @BeforeEach
     fun setUp() = runTest {
       repository.save(
         AdjudicationMapping(
-          chargeNumber = "111111-1",
+          chargeNumber = deleteAllMappingsDto.dpsChargeNumber,
           chargeSequence = 1,
           adjudicationNumber = 111111,
           label = "2022-01-01",
@@ -1039,17 +966,34 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
       )
       hearingRepository.save(
         AdjudicationHearingMapping(
-          dpsHearingId = "111",
+          dpsHearingId = deleteAllMappingsDto.dpsHearingIds[0],
           nomisHearingId = 111,
+          label = "2022-01-01",
+          mappingType = MIGRATED,
+        ),
+      )
+      hearingRepository.save(
+        AdjudicationHearingMapping(
+          dpsHearingId = deleteAllMappingsDto.dpsHearingIds[1],
+          nomisHearingId = 112,
           label = "2022-01-01",
           mappingType = MIGRATED,
         ),
       )
       punishmentRepository.save(
         AdjudicationPunishmentMapping(
-          dpsPunishmentId = "111",
+          dpsPunishmentId = deleteAllMappingsDto.dpsPunishmentIds[0],
           nomisBookingId = 111,
           nomisSanctionSequence = 1,
+          label = "2022-01-01",
+          mappingType = MIGRATED,
+        ),
+      )
+      punishmentRepository.save(
+        AdjudicationPunishmentMapping(
+          dpsPunishmentId = deleteAllMappingsDto.dpsPunishmentIds[1],
+          nomisBookingId = 111,
+          nomisSanctionSequence = 2,
           label = "2022-01-01",
           mappingType = MIGRATED,
         ),
@@ -1081,48 +1025,23 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
           mappingType = MIGRATED,
         ),
       )
-      repository.save(
-        AdjudicationMapping(
-          chargeNumber = "333333-1",
-          chargeSequence = 1,
-          adjudicationNumber = 333333,
-          label = null,
-          mappingType = ADJUDICATION_CREATED,
-        ),
-      )
-      hearingRepository.save(
-        AdjudicationHearingMapping(
-          dpsHearingId = "333",
-          nomisHearingId = 333,
-          label = null,
-          mappingType = ADJUDICATION_CREATED,
-        ),
-      )
-      punishmentRepository.save(
-        AdjudicationPunishmentMapping(
-          dpsPunishmentId = "333",
-          nomisBookingId = 333,
-          nomisSanctionSequence = 3,
-          label = null,
-          mappingType = ADJUDICATION_CREATED,
-        ),
-      )
-
-      assertThat(repository.findAll().count()).isEqualTo(3)
+      assertThat(repository.findAll().count()).isEqualTo(2)
       assertThat(hearingRepository.findAll().count()).isEqualTo(3)
       assertThat(punishmentRepository.findAll().count()).isEqualTo(3)
     }
 
     @Test
     fun `access forbidden when no authority`() {
-      webTestClient.delete().uri("/mapping/adjudications/all")
+      webTestClient.post().uri("/mapping/adjudications/delete-mappings")
+        .bodyValue(deleteAllMappingsDto)
         .exchange()
         .expectStatus().isUnauthorized
     }
 
     @Test
     fun `access forbidden when no role`() {
-      webTestClient.delete().uri("/mapping/adjudications/all")
+      webTestClient.post().uri("/mapping/adjudications/delete-mappings")
+        .bodyValue(deleteAllMappingsDto)
         .headers(setAuthorisation(roles = listOf()))
         .exchange()
         .expectStatus().isForbidden
@@ -1130,71 +1049,24 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `access forbidden with wrong role`() {
-      webTestClient.delete().uri("/mapping/adjudications/all")
+      webTestClient.post().uri("/mapping/adjudications/delete-mappings")
+        .bodyValue(deleteAllMappingsDto)
         .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
         .exchange()
         .expectStatus().isForbidden
     }
 
     @Test
-    fun `delete all mapping`(): Unit = runBlocking {
-      webTestClient.delete().uri("/mapping/adjudications/all")
+    fun `will delete all mappings for an adjudication`(): Unit = runBlocking {
+      webTestClient.post().uri("/mapping/adjudications/delete-mappings")
+        .bodyValue(deleteAllMappingsDto)
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
         .exchange()
         .expectStatus().isNoContent
 
-      assertThat(repository.findAll().count()).isEqualTo(0)
-      assertThat(hearingRepository.findAll().count()).isEqualTo(0)
-      assertThat(punishmentRepository.findAll().count()).isEqualTo(0)
-    }
-
-    @Test
-    fun `delete all migration mappings`(): Unit = runBlocking {
-      webTestClient.delete().uri("/mapping/adjudications/all?migrationOnly=true")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
-        .exchange()
-        .expectStatus().isNoContent
-
-      assertThat(repository.findAll().toList()).hasSize(1).noneMatch { it.mappingType == MIGRATED }
-      assertThat(hearingRepository.findAll().toList()).hasSize(1).noneMatch { it.mappingType == MIGRATED }
-      assertThat(punishmentRepository.findAll().toList()).hasSize(1).noneMatch { it.mappingType == MIGRATED }
-    }
-
-    @Test
-    fun `delete all synchronisation mappings`(): Unit = runBlocking {
-      webTestClient.delete().uri("/mapping/adjudications/all?synchronisationOnly=true")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
-        .exchange()
-        .expectStatus().isNoContent
-
-      assertThat(repository.findAll().toList()).hasSize(2).noneMatch { it.mappingType == ADJUDICATION_CREATED }
-      assertThat(hearingRepository.findAll().toList()).hasSize(2).noneMatch { it.mappingType == ADJUDICATION_CREATED }
-      assertThat(punishmentRepository.findAll().toList()).hasSize(2)
-        .noneMatch { it.mappingType == ADJUDICATION_CREATED }
-    }
-
-    @Test
-    fun `delete all mappings (both true which for sure makes no sense, by whatever)`(): Unit = runBlocking {
-      webTestClient.delete().uri("/mapping/adjudications/all?migrationOnly=true&synchronisationOnly=true")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
-        .exchange()
-        .expectStatus().isNoContent
-
-      assertThat(repository.findAll().count()).isEqualTo(0)
-      assertThat(hearingRepository.findAll().count()).isEqualTo(0)
-      assertThat(punishmentRepository.findAll().count()).isEqualTo(0)
-    }
-
-    @Test
-    fun `delete all mappings (both false which is default anyway)`(): Unit = runBlocking {
-      webTestClient.delete().uri("/mapping/adjudications/all?migrationOnly=false&synchronisationOnly=false")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
-        .exchange()
-        .expectStatus().isNoContent
-
-      assertThat(repository.findAll().count()).isEqualTo(0)
-      assertThat(hearingRepository.findAll().count()).isEqualTo(0)
-      assertThat(punishmentRepository.findAll().count()).isEqualTo(0)
+      assertThat(repository.findAll().count()).isEqualTo(1)
+      assertThat(hearingRepository.findAll().count()).isEqualTo(1)
+      assertThat(punishmentRepository.findAll().count()).isEqualTo(1)
     }
   }
 
