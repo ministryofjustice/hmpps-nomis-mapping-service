@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationAllMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationDeleteMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationHearingMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationPunishmentBatchUpdateMappingDto
@@ -179,28 +180,10 @@ class AdjudicationMappingService(
   suspend fun deleteMapping(chargeNumber: String) = adjudicationMappingRepository.deleteById(chargeNumber)
 
   @Transactional
-  suspend fun deleteAllMappings(migrationId: String) {
-    adjudicationMappingRepository.deleteByLabel(migrationId)
-    adjudicationHearingMappingRepository.deleteByLabel(migrationId)
-    adjudicationPunishmentMappingRepository.deleteByLabel(migrationId)
-  }
-
-  @Transactional
-  suspend fun deleteAllMappings(migrationOnly: Boolean, synchronisationOnly: Boolean) {
-    if (migrationOnly == synchronisationOnly) { // implies delete everything even for the weird true/true scenario
-      adjudicationMappingRepository.deleteAll()
-      adjudicationHearingMappingRepository.deleteAll()
-      adjudicationPunishmentMappingRepository.deleteAll()
-    } else {
-      val type = if (migrationOnly) {
-        AdjudicationMappingType.MIGRATED
-      } else {
-        AdjudicationMappingType.ADJUDICATION_CREATED
-      }
-      adjudicationMappingRepository.deleteAllByMappingType(type)
-      adjudicationHearingMappingRepository.deleteAllByMappingType(type)
-      adjudicationPunishmentMappingRepository.deleteAllByMappingType(type)
-    }
+  suspend fun deleteMappingsForAdjudication(mappings: AdjudicationDeleteMappingDto) {
+    adjudicationMappingRepository.deleteById(mappings.dpsChargeNumber)
+    mappings.dpsHearingIds.forEach { adjudicationHearingMappingRepository.deleteById(it) }
+    mappings.dpsPunishmentIds.forEach { adjudicationPunishmentMappingRepository.deleteById(it) }
   }
 
   @Transactional

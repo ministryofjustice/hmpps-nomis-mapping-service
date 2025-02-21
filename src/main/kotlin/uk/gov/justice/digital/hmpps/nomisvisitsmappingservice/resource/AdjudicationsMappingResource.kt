@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.resource
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -24,6 +23,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationAllMappingDto
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationDeleteMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.AdjudicationMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.AdjudicationMappingService
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
@@ -284,11 +284,19 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
   suspend fun getAllMappings() = mappingService.getAllMappings()
 
   @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
-  @DeleteMapping("/mapping/adjudications/all/migration-id/{migrationId}")
+  @PostMapping("/mapping/adjudications/delete-mappings")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
-    summary = "Delete all adjudication related mapping entries for the given migration id",
-    description = "Delete mapping entries created during a single migration for adjudications and associated hearings and punishments",
+    summary = "Delete all mappings related to a specific adjudication",
+    description = "Delete mapping entries created for a specific adjudication and associated hearings and punishments",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = AdjudicationDeleteMappingDto::class),
+        ),
+      ],
+    ),
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -301,36 +309,8 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
       ),
     ],
   )
-  suspend fun deleteMappingsByMigrationId(
-    @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
-    @PathVariable
-    migrationId: String,
-  ) = mappingService.deleteAllMappings(migrationId)
-
-  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
-  @DeleteMapping("/mapping/adjudications/all")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(
-    summary = "Delete all adjudication related mapping entries",
-    description = "Delete mapping entries created during any migration or synchronisation for adjudications and associated hearings and punishments",
-    responses = [
-      ApiResponse(
-        responseCode = "204",
-        description = "Adjudication mappings deleted",
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun deleteAllMappings(
-    @Schema(description = "Migration mappings only", example = "true", required = false, defaultValue = "false")
-    @Parameter
-    migrationOnly: Boolean = false,
-    @Schema(description = "Synchronisation mappings only", example = "true", required = false, defaultValue = "false")
-    @Parameter
-    synchronisationOnly: Boolean = false,
-  ) = mappingService.deleteAllMappings(migrationOnly = migrationOnly, synchronisationOnly = synchronisationOnly)
+  suspend fun deleteMappingsForAdjudication(
+    @RequestBody @Valid
+    deleteMappingRequest: AdjudicationDeleteMappingDto,
+  ) = mappingService.deleteMappingsForAdjudication(deleteMappingRequest)
 }
