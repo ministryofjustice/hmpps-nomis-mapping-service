@@ -218,6 +218,20 @@ class ContactPersonService(
     personIdentifierMappingRepository.save(mapping.toPersonIdentifierMapping())
   }
 
+  suspend fun getPersonEmploymentMappingByNomisIds(nomisPersonId: Long, nomisSequenceNumber: Long) = personEmploymentMappingRepository.findOneByNomisPersonIdAndNomisSequenceNumber(nomisPersonId = nomisPersonId, nomisSequenceNumber = nomisSequenceNumber) ?.toDto()
+    ?: throw NotFoundException("No person employment mapping found for nomisPersonId=$nomisPersonId and nomisSequenceNumber=$nomisSequenceNumber")
+
+  suspend fun getPersonEmploymentMappingByDpsId(dpsId: String) = personEmploymentMappingRepository.findOneByDpsId(dpsId = dpsId)
+    ?.toDto()
+    ?: throw NotFoundException("No person employment mapping found for dpsId=$dpsId")
+
+  suspend fun getPersonEmploymentMappingByDpsIdOrNull(dpsId: String) = personEmploymentMappingRepository.findOneByDpsId(dpsId = dpsId)?.toDto()
+
+  @Transactional
+  suspend fun createMapping(mapping: PersonEmploymentMappingDto) {
+    personEmploymentMappingRepository.save(mapping.toPersonEmploymentMapping())
+  }
+
   @Transactional
   suspend fun deletePersonEmploymentMappingByNomisIds(nomisPersonId: Long, nomisSequenceNumber: Long) = personEmploymentMappingRepository.deleteByNomisPersonIdAndNomisSequenceNumber(nomisPersonId = nomisPersonId, nomisSequenceNumber = nomisSequenceNumber)
 
@@ -349,6 +363,23 @@ private fun PersonIdentifierMappingDto.toPersonIdentifierMapping() = PersonIdent
 )
 
 private fun PersonIdentifierMapping.toDto() = PersonIdentifierMappingDto(
+  nomisPersonId = nomisPersonId,
+  nomisSequenceNumber = nomisSequenceNumber,
+  dpsId = dpsId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private fun PersonEmploymentMappingDto.toPersonEmploymentMapping() = PersonEmploymentMapping(
+  dpsId = dpsId,
+  nomisPersonId = nomisPersonId,
+  nomisSequenceNumber = nomisSequenceNumber,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private fun PersonEmploymentMapping.toDto() = PersonEmploymentMappingDto(
   nomisPersonId = nomisPersonId,
   nomisSequenceNumber = nomisSequenceNumber,
   dpsId = dpsId,

@@ -1104,6 +1104,126 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     )
   }
 
+  @GetMapping("/employment/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}")
+  @Operation(
+    summary = "Get person employment mapping by nomis person id and sequence",
+    description = "Retrieves the person employment mapping by NOMIS person id and NOMIS sequence number. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person employment mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = PersonEmploymentMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPersonEmploymentMappingByNomisIds(
+    @Schema(description = "NOMIS person id", example = "12345", required = true)
+    @PathVariable
+    nomisPersonId: Long,
+    @Schema(description = "NOMIS employment sequence", example = "4", required = true)
+    @PathVariable
+    nomisSequenceNumber: Long,
+  ): PersonEmploymentMappingDto = service.getPersonEmploymentMappingByNomisIds(nomisPersonId = nomisPersonId, nomisSequenceNumber = nomisSequenceNumber)
+
+  @GetMapping("/employment/dps-contact-employment-id/{dpsContactEmploymentId}")
+  @Operation(
+    summary = "Get contact employment mapping by dps contact employment Id",
+    description = "Retrieves the person employment mapping by DPS Contact Employment Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person Employment mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = PersonEmploymentMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPersonEmploymentMappingByDpsId(
+    @Schema(description = "DPS contact employment id", example = "12345", required = true)
+    @PathVariable
+    dpsContactEmploymentId: String,
+  ): PersonEmploymentMappingDto = service.getPersonEmploymentMappingByDpsId(dpsId = dpsContactEmploymentId)
+
+  @PostMapping("/employment")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates person employment mappings for synchronisation",
+    description = "Creates person employment mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = PersonEmploymentMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createPersonEmploymentMapping(
+    @RequestBody @Valid
+    mapping: PersonEmploymentMappingDto,
+  ) = try {
+    service.createMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingPersonEmploymentMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Person employment mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
+
   @DeleteMapping("/employment/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
@@ -1491,6 +1611,17 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     )
   }.getOrElse {
     service.getPersonIdentifierMappingByDpsIdOrNull(
+      dpsId = mapping.dpsId,
+    )
+  }
+
+  private suspend fun getExistingPersonEmploymentMappingSimilarTo(mapping: PersonEmploymentMappingDto): PersonEmploymentMappingDto? = runCatching {
+    service.getPersonEmploymentMappingByNomisIds(
+      nomisPersonId = mapping.nomisPersonId,
+      nomisSequenceNumber = mapping.nomisSequenceNumber,
+    )
+  }.getOrElse {
+    service.getPersonEmploymentMappingByDpsIdOrNull(
       dpsId = mapping.dpsId,
     )
   }
