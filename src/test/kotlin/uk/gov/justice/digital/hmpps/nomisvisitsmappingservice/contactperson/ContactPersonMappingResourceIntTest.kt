@@ -3197,6 +3197,342 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("GET /mapping/contact-person/employment/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}")
+  inner class GetPersonEmploymentByNomisIds {
+    private val nomisPersonId = 12345L
+    private val nomisSequenceNumber = 4L
+    private val dpsContactEmploymentId = "54321"
+    private lateinit var personEmploymentMapping: PersonEmploymentMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      personEmploymentMapping = personEmploymentMappingRepository.save(
+        PersonEmploymentMapping(
+          dpsId = dpsContactEmploymentId,
+          nomisPersonId = nomisPersonId,
+          nomisSequenceNumber = nomisSequenceNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = ContactPersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/employment/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}", nomisPersonId, nomisSequenceNumber)
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/employment/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}", nomisPersonId, nomisSequenceNumber)
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/employment/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}", nomisPersonId, nomisSequenceNumber)
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `404 when mapping not found`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/employment/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}", nomisPersonId, 999)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isNotFound
+
+        webTestClient.get()
+          .uri("/mapping/contact-person/employment/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}", 999, nomisSequenceNumber)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return the mapping data`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/employment/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}", nomisPersonId, nomisSequenceNumber)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("dpsId").isEqualTo(dpsContactEmploymentId)
+          .jsonPath("nomisPersonId").isEqualTo(nomisPersonId)
+          .jsonPath("nomisSequenceNumber").isEqualTo(nomisSequenceNumber)
+          .jsonPath("label").isEqualTo("2023-01-01T12:45:12")
+          .jsonPath("mappingType").isEqualTo("MIGRATED")
+          .jsonPath("whenCreated").isEqualTo("2023-01-01T12:45:12")
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/contact-person/employment/dps-contact-employment-id/{dpsContactEmploymentId}")
+  inner class GetPersonEmploymentByDpsId {
+    private val nomisPersonId = 7654321L
+    private val dpsContactEmploymentId = "1234567"
+    private val nomisSequenceNumber = 4L
+    private lateinit var personEmploymentMapping: PersonEmploymentMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      personEmploymentMapping = personEmploymentMappingRepository.save(
+        PersonEmploymentMapping(
+          dpsId = dpsContactEmploymentId,
+          nomisPersonId = nomisPersonId,
+          nomisSequenceNumber = nomisSequenceNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = ContactPersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/employment/dps-contact-employment-id/{dpsContactEmploymentId}", dpsContactEmploymentId)
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/employment/dps-contact-employment-id/{dpsContactEmploymentId}", dpsContactEmploymentId)
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/employment/dps-contact-employment-id/{dpsContactEmploymentId}", dpsContactEmploymentId)
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `404 when mapping not found`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/employment/dps-contact-employment-id/{dpsContactEmploymentId}", "99999")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return the mapping data`() {
+        webTestClient.get()
+          .uri("/mapping/contact-person/employment/dps-contact-employment-id/{dpsContactEmploymentId}", dpsContactEmploymentId)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("dpsId").isEqualTo(dpsContactEmploymentId)
+          .jsonPath("nomisPersonId").isEqualTo(nomisPersonId)
+          .jsonPath("nomisSequenceNumber").isEqualTo(nomisSequenceNumber)
+          .jsonPath("label").isEqualTo("2023-01-01T12:45:12")
+          .jsonPath("mappingType").isEqualTo("MIGRATED")
+          .jsonPath("whenCreated").isEqualTo("2023-01-01T12:45:12")
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("POST mapping/contact-person/employment")
+  inner class CreatePersonEmploymentMapping {
+
+    @Nested
+    inner class Security {
+      val mapping = PersonEmploymentMappingDto(
+        dpsId = "54321",
+        nomisPersonId = 12345L,
+        nomisSequenceNumber = 4L,
+        label = null,
+        mappingType = ContactPersonMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/employment")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/employment")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/employment")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      private lateinit var existingPersonEmploymentMapping: PersonEmploymentMapping
+
+      val mapping = PersonEmploymentMappingDto(
+        dpsId = "54321",
+        nomisPersonId = 12345L,
+        nomisSequenceNumber = 4L,
+        label = null,
+        mappingType = ContactPersonMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+      )
+
+      @BeforeEach
+      fun setUp() = runTest {
+        existingPersonEmploymentMapping = personEmploymentMappingRepository.save(
+          PersonEmploymentMapping(
+            dpsId = "765432",
+            nomisPersonId = 12345L,
+            nomisSequenceNumber = 4L,
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+          ),
+        )
+      }
+
+      @Test
+      fun `will not allow the same person employment to have duplicate mappings`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/employment")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+      }
+
+      @Test
+      fun `will return details of the existing and duplicate mappings`() {
+        val duplicateResponse = webTestClient.post()
+          .uri("/mapping/contact-person/employment")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+          .expectBody(
+            object :
+              ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
+          )
+          .returnResult().responseBody
+
+        with(duplicateResponse!!) {
+          // since this is an untyped map an int will be assumed for such small numbers
+          assertThat(this.moreInfo.existing)
+            .containsEntry("nomisPersonId", existingPersonEmploymentMapping.nomisPersonId.toInt())
+            .containsEntry("nomisSequenceNumber", existingPersonEmploymentMapping.nomisSequenceNumber.toInt())
+            .containsEntry("dpsId", existingPersonEmploymentMapping.dpsId)
+            .containsEntry("mappingType", existingPersonEmploymentMapping.mappingType.toString())
+          assertThat(this.moreInfo.duplicate)
+            .containsEntry("nomisPersonId", mapping.nomisPersonId.toInt())
+            .containsEntry("nomisSequenceNumber", mapping.nomisSequenceNumber.toInt())
+            .containsEntry("dpsId", mapping.dpsId)
+            .containsEntry("mappingType", mapping.mappingType.toString())
+        }
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = PersonEmploymentMappingDto(
+        dpsId = "54321",
+        nomisPersonId = 12345L,
+        nomisSequenceNumber = 4L,
+        label = null,
+        mappingType = ContactPersonMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+      )
+
+      @Test
+      fun `returns 201 when mappings created`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/contact-person/employment")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+      }
+
+      @Test
+      fun `will persist the person employment mapping`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/contact-person/employment")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+
+        val personEmploymentMapping =
+          personEmploymentMappingRepository.findOneByNomisPersonIdAndNomisSequenceNumber(
+            nomisPersonId = mapping.nomisPersonId,
+            nomisSequenceNumber = mapping.nomisSequenceNumber,
+          )!!
+
+        assertThat(personEmploymentMapping.dpsId).isEqualTo(mapping.dpsId)
+        assertThat(personEmploymentMapping.nomisPersonId).isEqualTo(mapping.nomisPersonId)
+        assertThat(personEmploymentMapping.nomisSequenceNumber).isEqualTo(mapping.nomisSequenceNumber)
+        assertThat(personEmploymentMapping.label).isNull()
+        assertThat(personEmploymentMapping.mappingType).isEqualTo(mapping.mappingType)
+        assertThat(personEmploymentMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("DELETE /mapping/contact-person/employment/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}")
   inner class DeletePersonEmploymentByNomisIds {
     private val nomisPersonId = 12345L
