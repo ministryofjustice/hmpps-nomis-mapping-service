@@ -6,8 +6,8 @@ import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Prisoner Visit Order mapping")
-data class PrisonerVisitOrderMappingDto(
+@Schema(description = "Prisoner Visit Order Balance mapping")
+data class VisitOrderBalanceMappingDto(
 
   @Schema(description = "NOMIS Prison Number", required = true)
   val nomisPrisonNumber: String,
@@ -20,7 +20,7 @@ data class PrisonerVisitOrderMappingDto(
   val label: String? = null,
 
   @Schema(description = "Mapping type", allowableValues = ["MIGRATED", "NOMIS_CREATED", "DPS_CREATED"])
-  val mappingType: PrisonerVisitOrderMappingType = PrisonerVisitOrderMappingType.DPS_CREATED,
+  val mappingType: VisitOrderBalanceMappingType = VisitOrderBalanceMappingType.DPS_CREATED,
 
   @Schema(description = "Date-time the mapping was created")
   val whenCreated: LocalDateTime? = null,

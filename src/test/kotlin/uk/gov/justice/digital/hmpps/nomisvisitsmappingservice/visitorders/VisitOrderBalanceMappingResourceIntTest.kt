@@ -16,25 +16,25 @@ import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.visitorders.PrisonerVisitOrderMappingType.MIGRATED
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.visitorders.PrisonerVisitOrderMappingType.NOMIS_CREATED
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.visitorders.VisitOrderBalanceMappingType.MIGRATED
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.visitorders.VisitOrderBalanceMappingType.NOMIS_CREATED
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
-class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
+class VisitOrderBalanceMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
-  private lateinit var repository: PrisonerVisitOrderMappingRepository
+  private lateinit var repository: VisitOrderBalanceMappingRepository
 
   @Nested
-  @DisplayName("GET /mapping/visit-orders/nomis-prison-number/{nomisPrisonNumber}")
+  @DisplayName("GET /mapping/visit-order-balance/nomis-prison-number/{nomisPrisonNumber}")
   inner class GetMappingByNomisId {
-    lateinit var mapping: PrisonerVisitOrderMapping
+    lateinit var mapping: VisitOrderBalanceMapping
 
     @BeforeEach
     fun setUp() = runTest {
       mapping = repository.save(
-        PrisonerVisitOrderMapping(
+        VisitOrderBalanceMapping(
           dpsId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisPrisonNumber = "A1234KT",
           label = "2023-01-01T12:45:12",
@@ -53,7 +53,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.get()
-          .uri("/mapping/visit-orders/nomis-prison-number/${mapping.nomisPrisonNumber}")
+          .uri("/mapping/visit-order-balance/nomis-prison-number/${mapping.nomisPrisonNumber}")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -61,7 +61,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.get()
-          .uri("/mapping/visit-orders/nomis-prison-number/${mapping.nomisPrisonNumber}")
+          .uri("/mapping/visit-order-balance/nomis-prison-number/${mapping.nomisPrisonNumber}")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -70,7 +70,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/mapping/visit-orders/nomis-prison-number/${mapping.nomisPrisonNumber}")
+          .uri("/mapping/visit-order-balance/nomis-prison-number/${mapping.nomisPrisonNumber}")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -82,7 +82,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 404 when mapping does not exist`() {
         webTestClient.get()
-          .uri("/mapping/visit-orders/nomis-prison-number/9999")
+          .uri("/mapping/visit-order-balance/nomis-prison-number/9999")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_ORDERS")))
           .exchange()
           .expectStatus().isNotFound
@@ -91,7 +91,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 200 when mapping does exist`() {
         webTestClient.get()
-          .uri("/mapping/visit-orders/nomis-prison-number/${mapping.nomisPrisonNumber}")
+          .uri("/mapping/visit-order-balance/nomis-prison-number/${mapping.nomisPrisonNumber}")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_ORDERS")))
           .exchange()
           .expectStatus().isOk
@@ -108,14 +108,14 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("GET /mapping/visit-orders/dps-id/{dpsId}")
+  @DisplayName("GET /mapping/visit-order-balance/dps-id/{dpsId}")
   inner class GetMappingByDpsId {
-    lateinit var mapping: PrisonerVisitOrderMapping
+    lateinit var mapping: VisitOrderBalanceMapping
 
     @BeforeEach
     fun setUp() = runTest {
       mapping = repository.save(
-        PrisonerVisitOrderMapping(
+        VisitOrderBalanceMapping(
           dpsId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisPrisonNumber = "A1234KT",
           label = "2023-01-01T12:45:12",
@@ -134,7 +134,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.get()
-          .uri("/mapping/visit-orders/dps-id/${mapping.dpsId}")
+          .uri("/mapping/visit-order-balance/dps-id/${mapping.dpsId}")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -142,7 +142,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.get()
-          .uri("/mapping/visit-orders/dps-id/${mapping.dpsId}")
+          .uri("/mapping/visit-order-balance/dps-id/${mapping.dpsId}")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -151,7 +151,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/mapping/visit-orders/dps-id/${mapping.dpsId}")
+          .uri("/mapping/visit-order-balance/dps-id/${mapping.dpsId}")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -163,7 +163,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 404 when mapping does not exist`() {
         webTestClient.get()
-          .uri("/mapping/visit-orders/dps-id/DOESNOTEXIST")
+          .uri("/mapping/visit-order-balance/dps-id/DOESNOTEXIST")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_ORDERS")))
           .exchange()
           .expectStatus().isNotFound
@@ -172,7 +172,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 200 when mapping does exist`() {
         webTestClient.get()
-          .uri("/mapping/visit-orders/dps-id/${mapping.dpsId}")
+          .uri("/mapping/visit-order-balance/dps-id/${mapping.dpsId}")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_ORDERS")))
           .exchange()
           .expectStatus().isOk
@@ -189,14 +189,14 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("DELETE /mapping/visit-orders/dps-id/{dpsId}")
+  @DisplayName("DELETE /mapping/visit-order-balance/dps-id/{dpsId}")
   inner class DeleteMappingByDpsId {
-    lateinit var mapping: PrisonerVisitOrderMapping
+    lateinit var mapping: VisitOrderBalanceMapping
 
     @BeforeEach
     fun setUp() = runTest {
       mapping = repository.save(
-        PrisonerVisitOrderMapping(
+        VisitOrderBalanceMapping(
           dpsId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisPrisonNumber = "A1234KT",
           label = "2023-01-01T12:45:12",
@@ -215,7 +215,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.delete()
-          .uri("/mapping/visit-orders/dps-id/${mapping.dpsId}")
+          .uri("/mapping/visit-order-balance/dps-id/${mapping.dpsId}")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -223,7 +223,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.delete()
-          .uri("/mapping/visit-orders/dps-id/${mapping.dpsId}")
+          .uri("/mapping/visit-order-balance/dps-id/${mapping.dpsId}")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -232,7 +232,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.delete()
-          .uri("/mapping/visit-orders/dps-id/${mapping.dpsId}")
+          .uri("/mapping/visit-order-balance/dps-id/${mapping.dpsId}")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -244,7 +244,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 204 even when mapping does not exist`() {
         webTestClient.delete()
-          .uri("/mapping/visit-orders/dps-id/DOESNOTEXIST")
+          .uri("/mapping/visit-order-balance/dps-id/DOESNOTEXIST")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_ORDERS")))
           .exchange()
           .expectStatus().isNoContent
@@ -253,19 +253,19 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 204 when mapping does exist and is deleted`() {
         webTestClient.get()
-          .uri("/mapping/visit-orders/dps-id/${mapping.dpsId}")
+          .uri("/mapping/visit-order-balance/dps-id/${mapping.dpsId}")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_ORDERS")))
           .exchange()
           .expectStatus().isOk
 
         webTestClient.delete()
-          .uri("/mapping/visit-orders/dps-id/${mapping.dpsId}")
+          .uri("/mapping/visit-order-balance/dps-id/${mapping.dpsId}")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_ORDERS")))
           .exchange()
           .expectStatus().isNoContent
 
         webTestClient.get()
-          .uri("/mapping/visit-orders/dps-id/${mapping.dpsId}")
+          .uri("/mapping/visit-order-balance/dps-id/${mapping.dpsId}")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_ORDERS")))
           .exchange()
           .expectStatus().isNotFound
@@ -274,10 +274,10 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("POST /mapping/visit-orders")
+  @DisplayName("POST /mapping/visit-order-balance")
   inner class CreateMapping {
-    private lateinit var existingMapping: PrisonerVisitOrderMapping
-    private val mapping = PrisonerVisitOrderMappingDto(
+    private lateinit var existingMapping: VisitOrderBalanceMapping
+    private val mapping = VisitOrderBalanceMappingDto(
       dpsId = "e52d7268-6e10-41a8-a0b9-2319b32520d6",
       nomisPrisonNumber = "A1234BC",
       label = "2023-01-01T12:45:12",
@@ -287,7 +287,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
     @BeforeEach
     fun setUp() = runTest {
       existingMapping = repository.save(
-        PrisonerVisitOrderMapping(
+        VisitOrderBalanceMapping(
           dpsId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisPrisonNumber = "A1234KT",
           label = "2023-01-01T12:45:12",
@@ -306,7 +306,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.post()
-          .uri("/mapping/visit-orders")
+          .uri("/mapping/visit-order-balance")
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -316,7 +316,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.post()
-          .uri("/mapping/visit-orders")
+          .uri("/mapping/visit-order-balance")
           .headers(setAuthorisation(roles = listOf()))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
@@ -327,7 +327,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.post()
-          .uri("/mapping/visit-orders")
+          .uri("/mapping/visit-order-balance")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
@@ -341,7 +341,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 201 when mapping created`() = runTest {
         webTestClient.post()
-          .uri("/mapping/visit-orders")
+          .uri("/mapping/visit-order-balance")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_ORDERS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
@@ -365,7 +365,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 400 when mapping type is invalid`() {
         webTestClient.post()
-          .uri("/mapping/visit-orders")
+          .uri("/mapping/visit-order-balance")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_ORDERS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -387,7 +387,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 400 when DPS id is missing`() {
         webTestClient.post()
-          .uri("/mapping/visit-orders")
+          .uri("/mapping/visit-order-balance")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_ORDERS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -407,7 +407,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 400 when NOMIS id is missing`() {
         webTestClient.post()
-          .uri("/mapping/visit-orders")
+          .uri("/mapping/visit-order-balance")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_ORDERS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -428,12 +428,12 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 409 if nomis id already exists`() {
         val dpsId = UUID.randomUUID().toString()
         val duplicateResponse = webTestClient.post()
-          .uri("/mapping/visit-orders")
+          .uri("/mapping/visit-order-balance")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_ORDERS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              PrisonerVisitOrderMappingDto(
+              VisitOrderBalanceMappingDto(
                 dpsId = dpsId,
                 nomisPrisonNumber = existingMapping.nomisPrisonNumber,
 
@@ -461,12 +461,12 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 409 if dps id already exist`() {
         val duplicateResponse = webTestClient.post()
-          .uri("/mapping/visit-orders")
+          .uri("/mapping/visit-order-balance")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_ORDERS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              PrisonerVisitOrderMappingDto(
+              VisitOrderBalanceMappingDto(
                 dpsId = existingMapping.dpsId,
                 nomisPrisonNumber = existingMapping.nomisPrisonNumber,
               ),
@@ -493,15 +493,15 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("DELETE /mapping/visit-orders")
+  @DisplayName("DELETE /mapping/visit-order-balance")
   inner class DeleteAllMappings {
-    private lateinit var existingMapping1: PrisonerVisitOrderMapping
-    private lateinit var existingMapping2: PrisonerVisitOrderMapping
+    private lateinit var existingMapping1: VisitOrderBalanceMapping
+    private lateinit var existingMapping2: VisitOrderBalanceMapping
 
     @BeforeEach
     fun setUp() = runTest {
       existingMapping1 = repository.save(
-        PrisonerVisitOrderMapping(
+        VisitOrderBalanceMapping(
           dpsId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisPrisonNumber = "A1234KT",
           label = "2023-01-01T12:45:12",
@@ -509,7 +509,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
         ),
       )
       existingMapping2 = repository.save(
-        PrisonerVisitOrderMapping(
+        VisitOrderBalanceMapping(
           dpsId = "4433eb7d-2fa0-4055-99d9-633fefa53288",
           nomisPrisonNumber = "A1234BC",
           mappingType = NOMIS_CREATED,
@@ -527,7 +527,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.delete()
-          .uri("/mapping/visit-orders")
+          .uri("/mapping/visit-order-balance")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -535,7 +535,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.delete()
-          .uri("/mapping/visit-orders")
+          .uri("/mapping/visit-order-balance")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -544,7 +544,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.delete()
-          .uri("/mapping/visit-orders")
+          .uri("/mapping/visit-order-balance")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -567,7 +567,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
         ).isNotNull
 
         webTestClient.delete()
-          .uri("/mapping/visit-orders")
+          .uri("/mapping/visit-order-balance")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_ORDERS")))
           .exchange()
           .expectStatus().isNoContent
@@ -586,7 +586,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("GET /mapping/visit-orders/migration-id/{migrationId}")
+  @DisplayName("GET /mapping/visit-order-balance/migration-id/{migrationId}")
   @Nested
   inner class GetMappingByMigrationId {
 
@@ -599,14 +599,14 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
     inner class Security {
       @Test
       fun `access not authorised when no authority`() {
-        webTestClient.get().uri("/mapping/visit-orders/migration-id/2022-01-01T00:00:00")
+        webTestClient.get().uri("/mapping/visit-order-balance/migration-id/2022-01-01T00:00:00")
           .exchange()
           .expectStatus().isUnauthorized
       }
 
       @Test
       fun `access forbidden when no role`() {
-        webTestClient.get().uri("/mapping/visit-orders/migration-id/2022-01-01T00:00:00")
+        webTestClient.get().uri("/mapping/visit-order-balance/migration-id/2022-01-01T00:00:00")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -614,7 +614,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
 
       @Test
       fun `access forbidden with wrong role`() {
-        webTestClient.get().uri("/mapping/visit-orders/migration-id/2022-01-01T00:00:00")
+        webTestClient.get().uri("/mapping/visit-order-balance/migration-id/2022-01-01T00:00:00")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -625,7 +625,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
     fun `can retrieve all mappings by migration Id`() = runTest {
       (1L..4L).forEach {
         repository.save(
-          PrisonerVisitOrderMapping(
+          VisitOrderBalanceMapping(
             dpsId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
             nomisPrisonNumber = "A123${it}KT",
             label = "2023-01-01T12:45:12",
@@ -635,7 +635,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
       }
 
       repository.save(
-        PrisonerVisitOrderMapping(
+        VisitOrderBalanceMapping(
           dpsId = "edcd118c-91ba-42ea-b5c4-404b453ad58b",
           nomisPrisonNumber = "A4321KT",
           label = "2022-01-01T12:43:12",
@@ -643,7 +643,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
         ),
       )
 
-      webTestClient.get().uri("/mapping/visit-orders/migration-id/2023-01-01T12:45:12")
+      webTestClient.get().uri("/mapping/visit-order-balance/migration-id/2023-01-01T12:45:12")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_ORDERS")))
         .exchange()
         .expectStatus().isOk
@@ -657,7 +657,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
 
     @Test
     fun `200 response even when no mappings are found`() {
-      webTestClient.get().uri("/mapping/visit-orders/migration-id/2044-01-01")
+      webTestClient.get().uri("/mapping/visit-order-balance/migration-id/2044-01-01")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_ORDERS")))
         .exchange()
         .expectStatus().isOk
@@ -670,7 +670,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
     fun `can request a different page size`() = runTest {
       (1L..6L).forEach {
         repository.save(
-          PrisonerVisitOrderMapping(
+          VisitOrderBalanceMapping(
             dpsId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
             nomisPrisonNumber = "A123${it}KT",
             label = "2023-01-01T12:45:12",
@@ -679,7 +679,7 @@ class PrisonerVisitOrderMappingResourceIntTest : IntegrationTestBase() {
         )
       }
       webTestClient.get().uri {
-        it.path("/mapping/visit-orders/migration-id/2023-01-01T12:45:12")
+        it.path("/mapping/visit-order-balance/migration-id/2023-01-01T12:45:12")
           .queryParam("size", "2")
           .queryParam("sort", "nomisPrisonNumber,asc")
           .build()

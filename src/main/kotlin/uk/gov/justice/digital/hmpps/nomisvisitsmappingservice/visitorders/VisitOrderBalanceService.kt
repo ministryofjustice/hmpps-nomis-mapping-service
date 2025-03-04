@@ -12,30 +12,30 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundEx
 
 @Service
 @Transactional(readOnly = true)
-class VisitOrderService(
-  private val repository: PrisonerVisitOrderMappingRepository,
+class VisitOrderBalanceService(
+  private val repository: VisitOrderBalanceMappingRepository,
 ) {
   suspend fun getMappingByNomisId(nomisPrisonNumber: String) = repository.findOneByNomisPrisonNumber(nomisPrisonNumber = nomisPrisonNumber)
     ?.toDto()
-    ?: throw NotFoundException("No visit order mapping found for nomisPrisonNumber=$nomisPrisonNumber")
+    ?: throw NotFoundException("No visit order balance mapping found for nomisPrisonNumber=$nomisPrisonNumber")
 
   suspend fun getMappingByDpsId(dpsId: String) = repository.findOneByDpsId(dpsId = dpsId)
     ?.toDto()
-    ?: throw NotFoundException("No visit order mapping found for dps Id=$dpsId")
+    ?: throw NotFoundException("No visit order balance mapping found for dps Id=$dpsId")
 
   suspend fun getMappingByDpsIdOrNull(dpsId: String) = repository.findOneByDpsId(dpsId = dpsId)
     ?.toDto()
 
   @Transactional
-  suspend fun createMapping(mapping: PrisonerVisitOrderMappingDto) {
+  suspend fun createMapping(mapping: VisitOrderBalanceMappingDto) {
     repository.save(mapping.fromDto())
   }
 
-  suspend fun getMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<PrisonerVisitOrderMappingDto> = coroutineScope {
+  suspend fun getMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<VisitOrderBalanceMappingDto> = coroutineScope {
     val mappings = async {
       repository.findAllByLabelAndMappingTypeOrderByLabelDesc(
         label = migrationId,
-        mappingType = PrisonerVisitOrderMappingType.MIGRATED,
+        mappingType = VisitOrderBalanceMappingType.MIGRATED,
         pageRequest = pageRequest,
       )
     }
@@ -43,7 +43,7 @@ class VisitOrderService(
     val count = async {
       repository.countAllByLabelAndMappingType(
         migrationId = migrationId,
-        mappingType = PrisonerVisitOrderMappingType.MIGRATED,
+        mappingType = VisitOrderBalanceMappingType.MIGRATED,
       )
     }
     PageImpl(
@@ -54,7 +54,7 @@ class VisitOrderService(
   }
 
   @Transactional
-  suspend fun deletePrisonerVisitOrderMappingByDpsId(dpsId: String) = repository.deleteById(dpsId)
+  suspend fun deleteVisitOrderBalanceMappingByDpsId(dpsId: String) = repository.deleteById(dpsId)
 
   @Transactional
   suspend fun deleteAllMappings() {
@@ -62,14 +62,14 @@ class VisitOrderService(
   }
 }
 
-fun PrisonerVisitOrderMappingDto.fromDto() = PrisonerVisitOrderMapping(
+fun VisitOrderBalanceMappingDto.fromDto() = VisitOrderBalanceMapping(
   dpsId = dpsId,
   nomisPrisonNumber = nomisPrisonNumber,
   label = label,
   mappingType = mappingType,
 )
 
-private fun PrisonerVisitOrderMapping.toDto() = PrisonerVisitOrderMappingDto(
+private fun VisitOrderBalanceMapping.toDto() = VisitOrderBalanceMappingDto(
   dpsId = dpsId,
   nomisPrisonNumber = nomisPrisonNumber,
   label = label,
