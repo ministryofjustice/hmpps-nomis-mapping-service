@@ -5,8 +5,6 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -30,12 +28,8 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RestController
 @Validated
 @PreAuthorize("hasRole('NOMIS_VISIT_ORDERS')")
-@RequestMapping("/mapping/visit-order-balance", produces = [MediaType.APPLICATION_JSON_VALUE])
-class VisitOrderBalanceMappingResource(private val service: VisitOrderBalanceService) {
-  private companion object {
-    val log: Logger = LoggerFactory.getLogger(this::class.java)
-  }
-
+@RequestMapping("/mapping/visit-balance", produces = [MediaType.APPLICATION_JSON_VALUE])
+class VisitBalanceMappingResource(private val service: VisitBalanceService) {
   @PostMapping("")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -45,7 +39,7 @@ class VisitOrderBalanceMappingResource(private val service: VisitOrderBalanceSer
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = VisitOrderBalanceMappingDto::class),
+          schema = Schema(implementation = VisitBalanceMappingDto::class),
         ),
       ],
     ),
@@ -75,7 +69,7 @@ class VisitOrderBalanceMappingResource(private val service: VisitOrderBalanceSer
   )
   suspend fun createMapping(
     @RequestBody @Valid
-    mapping: VisitOrderBalanceMappingDto,
+    mapping: VisitBalanceMappingDto,
   ) = try {
     service.createMapping(mapping)
   } catch (e: DuplicateKeyException) {
@@ -117,7 +111,7 @@ class VisitOrderBalanceMappingResource(private val service: VisitOrderBalanceSer
     @Schema(description = "NOMIS prison number aka offender no.", example = "A1234BC", required = true)
     @PathVariable
     nomisPrisonNumber: String,
-  ): VisitOrderBalanceMappingDto = service.getMappingByNomisId(nomisPrisonNumber = nomisPrisonNumber)
+  ): VisitBalanceMappingDto = service.getMappingByNomisId(nomisPrisonNumber = nomisPrisonNumber)
 
   @GetMapping("/dps-id/{dpsId}")
   @Operation(
@@ -149,7 +143,7 @@ class VisitOrderBalanceMappingResource(private val service: VisitOrderBalanceSer
     @Schema(description = "Dps id", example = "A1234BC", required = true)
     @PathVariable
     dpsId: String,
-  ): VisitOrderBalanceMappingDto = service.getMappingByDpsId(dpsId = dpsId)
+  ): VisitBalanceMappingDto = service.getMappingByDpsId(dpsId = dpsId)
 
   @DeleteMapping("/dps-id/{dpsId}")
   @Operation(
@@ -177,7 +171,7 @@ class VisitOrderBalanceMappingResource(private val service: VisitOrderBalanceSer
     @Schema(description = "Dps id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
     dpsId: String,
-  ) = service.deleteVisitOrderBalanceMappingByDpsId(dpsId = dpsId)
+  ) = service.deleteVisitBalanceMappingByDpsId(dpsId = dpsId)
 
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -227,9 +221,9 @@ class VisitOrderBalanceMappingResource(private val service: VisitOrderBalanceSer
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<VisitOrderBalanceMappingDto> = service.getMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<VisitBalanceMappingDto> = service.getMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
-  private suspend fun getExistingMappingSimilarTo(mapping: VisitOrderBalanceMappingDto) = runCatching {
+  private suspend fun getExistingMappingSimilarTo(mapping: VisitBalanceMappingDto) = runCatching {
     service.getMappingByNomisId(
       nomisPrisonNumber = mapping.nomisPrisonNumber,
     )

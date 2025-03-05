@@ -12,8 +12,8 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundEx
 
 @Service
 @Transactional(readOnly = true)
-class VisitOrderBalanceService(
-  private val repository: VisitOrderBalanceMappingRepository,
+class VisitBalanceService(
+  private val repository: VisitBalanceMappingRepository,
 ) {
   suspend fun getMappingByNomisId(nomisPrisonNumber: String) = repository.findOneByNomisPrisonNumber(nomisPrisonNumber = nomisPrisonNumber)
     ?.toDto()
@@ -27,15 +27,15 @@ class VisitOrderBalanceService(
     ?.toDto()
 
   @Transactional
-  suspend fun createMapping(mapping: VisitOrderBalanceMappingDto) {
+  suspend fun createMapping(mapping: VisitBalanceMappingDto) {
     repository.save(mapping.fromDto())
   }
 
-  suspend fun getMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<VisitOrderBalanceMappingDto> = coroutineScope {
+  suspend fun getMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<VisitBalanceMappingDto> = coroutineScope {
     val mappings = async {
       repository.findAllByLabelAndMappingTypeOrderByLabelDesc(
         label = migrationId,
-        mappingType = VisitOrderBalanceMappingType.MIGRATED,
+        mappingType = VisitBalanceMappingType.MIGRATED,
         pageRequest = pageRequest,
       )
     }
@@ -43,7 +43,7 @@ class VisitOrderBalanceService(
     val count = async {
       repository.countAllByLabelAndMappingType(
         migrationId = migrationId,
-        mappingType = VisitOrderBalanceMappingType.MIGRATED,
+        mappingType = VisitBalanceMappingType.MIGRATED,
       )
     }
     PageImpl(
@@ -54,7 +54,7 @@ class VisitOrderBalanceService(
   }
 
   @Transactional
-  suspend fun deleteVisitOrderBalanceMappingByDpsId(dpsId: String) = repository.deleteById(dpsId)
+  suspend fun deleteVisitBalanceMappingByDpsId(dpsId: String) = repository.deleteById(dpsId)
 
   @Transactional
   suspend fun deleteAllMappings() {
@@ -62,14 +62,14 @@ class VisitOrderBalanceService(
   }
 }
 
-fun VisitOrderBalanceMappingDto.fromDto() = VisitOrderBalanceMapping(
+fun VisitBalanceMappingDto.fromDto() = VisitBalanceMapping(
   dpsId = dpsId,
   nomisPrisonNumber = nomisPrisonNumber,
   label = label,
   mappingType = mappingType,
 )
 
-private fun VisitOrderBalanceMapping.toDto() = VisitOrderBalanceMappingDto(
+private fun VisitBalanceMapping.toDto() = VisitBalanceMappingDto(
   dpsId = dpsId,
   nomisPrisonNumber = nomisPrisonNumber,
   label = label,

@@ -6,7 +6,7 @@ import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 
-class VisitOrderBalanceMapping(
+class VisitBalanceMapping(
   @Id
   val dpsId: String,
 
@@ -17,7 +17,7 @@ class VisitOrderBalanceMapping(
    */
   val label: String? = null,
 
-  val mappingType: VisitOrderBalanceMappingType,
+  val mappingType: VisitBalanceMappingType,
 
   @Transient
   @Value("false")
@@ -29,7 +29,7 @@ class VisitOrderBalanceMapping(
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is VisitOrderBalanceMapping) return false
+    if (other !is VisitBalanceMapping) return false
 
     return dpsId != other.dpsId
   }
@@ -41,7 +41,7 @@ class VisitOrderBalanceMapping(
   override fun getId(): String = dpsId
 }
 
-enum class VisitOrderBalanceMappingType {
+enum class VisitBalanceMappingType {
   MIGRATED,
   NOMIS_CREATED,
   DPS_CREATED,

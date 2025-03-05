@@ -7,7 +7,7 @@ import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Prisoner Visit Order Balance mapping")
-data class VisitOrderBalanceMappingDto(
+data class VisitBalanceMappingDto(
 
   @Schema(description = "NOMIS Prison Number", required = true)
   val nomisPrisonNumber: String,
@@ -20,7 +20,7 @@ data class VisitOrderBalanceMappingDto(
   val label: String? = null,
 
   @Schema(description = "Mapping type", allowableValues = ["MIGRATED", "NOMIS_CREATED", "DPS_CREATED"])
-  val mappingType: VisitOrderBalanceMappingType = VisitOrderBalanceMappingType.DPS_CREATED,
+  val mappingType: VisitBalanceMappingType = VisitBalanceMappingType.DPS_CREATED,
 
   @Schema(description = "Date-time the mapping was created")
   val whenCreated: LocalDateTime? = null,
