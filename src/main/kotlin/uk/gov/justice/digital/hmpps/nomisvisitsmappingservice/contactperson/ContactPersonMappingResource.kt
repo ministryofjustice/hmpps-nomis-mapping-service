@@ -86,6 +86,36 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     )
   }
 
+  @PostMapping("/replace/prisoner/{offenderNo}")
+  @Operation(
+    summary = "Replaces a list of contact related mappings.",
+    description = "Creates a list of contact and contact restrictions mappings and removes the previous supplied set. Used typically for a prisoner merge in NOMIS. Requires ROLE_NOMIS_CONTACTPERSONS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = ContactPersonMappingsDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "200", description = "Mappings replaced"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun replacePrisonerMappings(
+    @RequestBody @Valid
+    mappings: ContactPersonPrisonerMappingsDto,
+    @PathVariable
+    offenderNo: String,
+  ) = service.replaceMappings(mappings).also {
+    log.info("Replaced mappings for offender $offenderNo")
+  }
+
   @GetMapping("/person/nomis-person-id/{nomisPersonId}")
   @Operation(
     summary = "Get person mapping by nomis person Id",
