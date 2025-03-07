@@ -34,6 +34,23 @@ data class ContactPersonMappingsDto(
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "New and old mappings related to a prisoner")
+data class ContactPersonPrisonerMappingsDto(
+  @Schema(description = "Mapping type")
+  val mappingType: ContactPersonMappingType = ContactPersonMappingType.NOMIS_CREATED,
+  @Schema(description = "Date time the mapping was created")
+  val whenCreated: LocalDateTime? = null,
+  @Schema(description = "Person contact mapping")
+  val personContactMapping: List<ContactPersonSimpleMappingIdDto>,
+  @Schema(description = "Person contact restriction mapping")
+  val personContactRestrictionMapping: List<ContactPersonSimpleMappingIdDto>,
+  @Schema(description = "Person contact mappings to remove")
+  val personContactMappingsToRemoveByDpsId: List<String>,
+  @Schema(description = "Person contact restriction mappings to remove")
+  val personContactRestrictionMappingsToRemoveByDpsId: List<String>,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "NOMIS to DPS simple mapping IDs")
 data class ContactPersonSimpleMappingIdDto(
   @Schema(description = "DPS id")
