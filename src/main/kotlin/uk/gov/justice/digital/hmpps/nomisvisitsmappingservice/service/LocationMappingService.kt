@@ -103,7 +103,7 @@ class LocationMappingService(
     ?.let { LocationMappingDto(it) }
     ?: throw NotFoundException("Location with dpsLocationId=$dpsLocationId not found")
 
-  suspend fun getAllMappingsByDpsIds(dpsLocationId: List<String>): Flow<LocationMappingDto> = locationMappingRepository.findAllById(dpsLocationId)
+  suspend fun getAllMappingsByDpsIds(dpsLocationIds: List<String>): Flow<LocationMappingDto> = locationMappingRepository.findAllById(dpsLocationIds)
     .map { LocationMappingDto(it) }
 
   suspend fun getMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<LocationMappingDto> = coroutineScope {
