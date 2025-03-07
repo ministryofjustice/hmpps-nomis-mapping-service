@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service
 import com.microsoft.applicationinsights.TelemetryClient
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
@@ -94,9 +96,15 @@ class LocationMappingService(
     ?.let { LocationMappingDto(it) }
     ?: throw NotFoundException("Location with nomisLocationId=$nomisLocationId not found")
 
+  suspend fun getAllMappingsByNomisIds(nomisLocationIds: List<Long>): Flow<LocationMappingDto> = locationMappingRepository.findAllByNomisLocationIdIn(nomisLocationIds)
+    .map { LocationMappingDto(it) }
+
   suspend fun getMappingByDpsId(dpsLocationId: String): LocationMappingDto = locationMappingRepository.findById(dpsLocationId)
     ?.let { LocationMappingDto(it) }
     ?: throw NotFoundException("Location with dpsLocationId=$dpsLocationId not found")
+
+  suspend fun getAllMappingsByDpsIds(dpsLocationIds: List<String>): Flow<LocationMappingDto> = locationMappingRepository.findAllById(dpsLocationIds)
+    .map { LocationMappingDto(it) }
 
   suspend fun getMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<LocationMappingDto> = coroutineScope {
     val locationMapping = async {
