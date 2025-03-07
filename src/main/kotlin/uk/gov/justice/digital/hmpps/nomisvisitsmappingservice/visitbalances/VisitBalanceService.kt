@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.visitorders
+package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.visitbalances
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
