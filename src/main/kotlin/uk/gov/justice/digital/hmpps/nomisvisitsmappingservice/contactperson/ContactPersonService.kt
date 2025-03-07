@@ -67,6 +67,20 @@ class ContactPersonService(
   }
 
   @Transactional
+  suspend fun replaceMappings(mappings: ContactPersonPrisonerMappingsDto) {
+    with(mappings) {
+      personContactRestrictionMappingRepository.deleteAllById(personContactRestrictionMappingsToRemoveByDpsId)
+      personContactMappingRepository.deleteAllById(personContactMappingsToRemoveByDpsId)
+      personContactMapping.forEach {
+        personContactMappingRepository.save(toMapping(it))
+      }
+      personContactRestrictionMapping.forEach {
+        personContactRestrictionMappingRepository.save(toMapping(it))
+      }
+    }
+  }
+
+  @Transactional
   suspend fun createMapping(mapping: PersonMappingDto) {
     personMappingRepository.save(mapping.toPersonMapping())
   }
@@ -455,4 +469,18 @@ private fun ContactPersonMappingsDto.toMapping(mapping: ContactPersonPhoneMappin
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,
+)
+
+private inline fun <reified T : AbstractContactPersonMapping> ContactPersonPrisonerMappingsDto.toMapping(mapping: ContactPersonSimpleMappingIdDto): T = T::class.java.getDeclaredConstructor(
+  String::class.java,
+  Long::class.java,
+  String::class.java,
+  ContactPersonMappingType::class.java,
+  LocalDateTime::class.java,
+).newInstance(
+  mapping.dpsId,
+  mapping.nomisId,
+  null,
+  this.mappingType,
+  this.whenCreated,
 )
