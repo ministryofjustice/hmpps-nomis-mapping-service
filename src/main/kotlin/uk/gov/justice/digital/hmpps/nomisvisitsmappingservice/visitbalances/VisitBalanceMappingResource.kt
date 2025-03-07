@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.visitorders
+package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.visitbalances
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -27,14 +27,14 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('NOMIS_VISIT_ORDERS')")
+@PreAuthorize("hasRole('NOMIS_VISIT_BALANCE')")
 @RequestMapping("/mapping/visit-balance", produces = [MediaType.APPLICATION_JSON_VALUE])
 class VisitBalanceMappingResource(private val service: VisitBalanceService) {
   @PostMapping("")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a prisoner visit order balance mapping",
-    description = "Creates a prisoner visit order balance mapping. Requires ROLE_NOMIS_VISIT_ORDERS",
+    description = "Creates a prisoner visit order balance mapping. Requires ROLE_NOMIS_VISIT_BALANCE",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -84,7 +84,7 @@ class VisitBalanceMappingResource(private val service: VisitBalanceService) {
   @GetMapping("/nomis-prison-number/{nomisPrisonNumber}")
   @Operation(
     summary = "Get prisoner visit order balance mapping by Nomis prison number",
-    description = "Retrieves the prisoner visit order balance mapping by Nomis prison number (aka offender number). Requires role ROLE_NOMIS_VISIT_ORDERS",
+    description = "Retrieves the prisoner visit order balance mapping by Nomis prison number (aka offender number). Requires role ROLE_NOMIS_VISIT_BALANCE",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -116,7 +116,7 @@ class VisitBalanceMappingResource(private val service: VisitBalanceService) {
   @GetMapping("/dps-id/{dpsId}")
   @Operation(
     summary = "Get visit order balance mapping by Dps id",
-    description = "Retrieves the visit order balance mapping by Dps id. Requires role ROLE_NOMIS_VISIT_ORDERS",
+    description = "Retrieves the visit order balance mapping by Dps id. Requires role ROLE_NOMIS_VISIT_BALANCE",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -148,7 +148,7 @@ class VisitBalanceMappingResource(private val service: VisitBalanceService) {
   @DeleteMapping("/dps-id/{dpsId}")
   @Operation(
     summary = "Deletes Prisoner visit order balance mapping",
-    description = "Deletes Prisoner visit order balance mapping by DPS id. Requires role NOMIS_VISIT_ORDERS",
+    description = "Deletes Prisoner visit order balance mapping by DPS id. Requires role NOMIS_VISIT_BALANCE",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -178,7 +178,7 @@ class VisitBalanceMappingResource(private val service: VisitBalanceService) {
   @Operation(
     summary = "Deletes all prisoner visit order balance mappings",
     description = """Deletes all prisoner visit order balance mappings regardless of source.
-      This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_VISIT_ORDERS""",
+      This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_VISIT_BALANCE""",
     responses = [
       ApiResponse(responseCode = "204", description = "All mappings deleted"),
       ApiResponse(
@@ -198,7 +198,7 @@ class VisitBalanceMappingResource(private val service: VisitBalanceService) {
   @GetMapping("/migration-id/{migrationId}")
   @Operation(
     summary = "Get paged Prisoner visit order balance mappings by migration id",
-    description = "Retrieve all Prisoner visit order balance mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role ROLE_NOMIS_VISIT_ORDERS",
+    description = "Retrieve all Prisoner visit order balance mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role ROLE_NOMIS_VISIT_BALANCE",
     responses = [
       ApiResponse(
         responseCode = "200",
