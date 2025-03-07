@@ -2,14 +2,19 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.api
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.LocationMappingService
@@ -58,6 +63,53 @@ class PublicApiResource(private val locationService: LocationMappingService) {
     .let { NomisDpsLocationMapping(dpsLocationId = it.dpsLocationId, nomisLocationId = it.nomisLocationId) }
 
   @PreAuthorize("hasRole('ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R')")
+  @PostMapping("/locations/nomis")
+  @Tag(name = "NOMIS / DPS Mapping lookup")
+  @Operation(
+    summary = "Retrieves all the DPS location ids from the supplied NOMIS internal location ids",
+    description = "Requires role <b>NOMIS_DPS_MAPPING__LOCATIONS__R</b>",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          array = ArraySchema(schema = Schema(implementation = Long::class)),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "NOMIS to DPS Mapping Information Returned",
+        content = [
+          Content(
+            mediaType = "application/json",
+            array = ArraySchema(schema = Schema(implementation = NomisDpsLocationMapping::class)),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "The request is invalid, see response for details",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden to this endpoint. Requires role NOMIS_DPS_MAPPING__LOCATIONS__R",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getAllLocationMappingsByNomisIds(
+    @RequestBody nomisLocationIds: List<Long>,
+  ): Flow<NomisDpsLocationMapping> = locationService.getAllMappingsByNomisIds(nomisLocationIds)
+    .map { NomisDpsLocationMapping(dpsLocationId = it.dpsLocationId, nomisLocationId = it.nomisLocationId) }
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R')")
   @GetMapping("/locations/dps/{dpsLocationId}")
   @Tag(name = "NOMIS / DPS Mapping lookup")
   @Operation(
@@ -94,6 +146,53 @@ class PublicApiResource(private val locationService: LocationMappingService) {
     dpsLocationId: String,
   ): NomisDpsLocationMapping = locationService.getMappingByDpsId(dpsLocationId)
     .let { NomisDpsLocationMapping(dpsLocationId = it.dpsLocationId, nomisLocationId = it.nomisLocationId) }
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R')")
+  @PostMapping("/locations/dps")
+  @Tag(name = "NOMIS / DPS Mapping lookup")
+  @Operation(
+    summary = "Retrieves all the NOMIS location ids from the supplied DPS location ids",
+    description = "Requires role <b>NOMIS_DPS_MAPPING__LOCATIONS__R</b>",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          array = ArraySchema(schema = Schema(implementation = String::class)),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "DPS to NOMIS Mapping Information Returned",
+        content = [
+          Content(
+            mediaType = "application/json",
+            array = ArraySchema(schema = Schema(implementation = NomisDpsLocationMapping::class)),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "The request is invalid, see response for details",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden to this endpoint. Requires role NOMIS_DPS_MAPPING__LOCATIONS__R",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getAllLocationMappingsByDpsIds(
+    @RequestBody dpsLocationIds: List<String>,
+  ): Flow<NomisDpsLocationMapping> = locationService.getAllMappingsByDpsIds(dpsLocationIds)
+    .map { NomisDpsLocationMapping(dpsLocationId = it.dpsLocationId, nomisLocationId = it.nomisLocationId) }
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
