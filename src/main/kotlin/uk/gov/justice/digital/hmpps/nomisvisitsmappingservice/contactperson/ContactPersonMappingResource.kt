@@ -90,9 +90,6 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @Operation(
     summary = "Replaces a list of contact related mappings.",
     description = "Creates a list of contact and contact restrictions mappings and removes the previous supplied set. Used typically for a prisoner merge in NOMIS. Requires ROLE_NOMIS_CONTACTPERSONS",
-    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = ContactPersonPrisonerMappingsDto::class))],
-    ),
     responses = [
       ApiResponse(responseCode = "200", description = "Mappings replaced"),
       ApiResponse(
