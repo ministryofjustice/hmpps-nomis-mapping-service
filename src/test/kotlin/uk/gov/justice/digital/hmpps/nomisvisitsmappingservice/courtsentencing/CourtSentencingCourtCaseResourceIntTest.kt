@@ -972,7 +972,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
               CourtCaseMigrationMappingDto(
                 offenderNo = EXISTING_OFFENDER_NO,
                 mappings = mapping.mappings,
-                ),
+              ),
             ),
           )
           .exchange()

@@ -80,7 +80,6 @@ class CourtSentencingMappingService(
       ),
       null,
     )
-
   }
 
   @Transactional
@@ -99,54 +98,45 @@ class CourtSentencingMappingService(
     }
   }
 
-  suspend fun getCourtCaseMappingByDpsId(courtCaseId: String): CourtCaseMappingDto =
-    courtCaseMappingRepository.findById(courtCaseId)?.toCourtCaseMappingDto()
-      ?: throw NotFoundException("DPS Court case Id =$courtCaseId")
+  suspend fun getCourtCaseMappingByDpsId(courtCaseId: String): CourtCaseMappingDto = courtCaseMappingRepository.findById(courtCaseId)?.toCourtCaseMappingDto()
+    ?: throw NotFoundException("DPS Court case Id =$courtCaseId")
 
-  suspend fun getCourtCaseMappingByNomisId(courtCaseId: Long): CourtCaseMappingDto =
-    courtCaseMappingRepository.findByNomisCourtCaseId(courtCaseId)?.toCourtCaseMappingDto()
-      ?: throw NotFoundException("Nomis Court case Id =$courtCaseId")
+  suspend fun getCourtCaseMappingByNomisId(courtCaseId: Long): CourtCaseMappingDto = courtCaseMappingRepository.findByNomisCourtCaseId(courtCaseId)?.toCourtCaseMappingDto()
+    ?: throw NotFoundException("Nomis Court case Id =$courtCaseId")
 
-  suspend fun getCourtCaseAllMappingByDpsId(courtCaseId: String): CourtCaseAllMappingDto =
-    courtCaseMappingRepository.findById(courtCaseId)?.toCourtCaseAllMappingDto()
-      ?: throw NotFoundException("DPS Court case Id =$courtCaseId")
+  suspend fun getCourtCaseAllMappingByDpsId(courtCaseId: String): CourtCaseAllMappingDto = courtCaseMappingRepository.findById(courtCaseId)?.toCourtCaseAllMappingDto()
+    ?: throw NotFoundException("DPS Court case Id =$courtCaseId")
 
-  suspend fun getCourtCaseAllMappingByDpsIdOrNull(courtCaseId: String): CourtCaseAllMappingDto? =
-    courtCaseMappingRepository.findByDpsCourtCaseId(courtCaseId)?.toCourtCaseAllMappingDto()
+  suspend fun getCourtCaseAllMappingByDpsIdOrNull(courtCaseId: String): CourtCaseAllMappingDto? = courtCaseMappingRepository.findByDpsCourtCaseId(courtCaseId)?.toCourtCaseAllMappingDto()
 
-  suspend fun getCourtCaseAllMappingByNomisId(courtCaseId: Long): CourtCaseAllMappingDto =
-    courtCaseMappingRepository.findByNomisCourtCaseId(courtCaseId)?.toCourtCaseAllMappingDto()
-      ?: throw NotFoundException("Nomis Court case Id =$courtCaseId")
+  suspend fun getCourtCaseAllMappingByNomisId(courtCaseId: Long): CourtCaseAllMappingDto = courtCaseMappingRepository.findByNomisCourtCaseId(courtCaseId)?.toCourtCaseAllMappingDto()
+    ?: throw NotFoundException("Nomis Court case Id =$courtCaseId")
 
   @Transactional
   suspend fun deleteCourtCaseMappingByDpsId(courtCaseId: String) = courtCaseMappingRepository.deleteById(courtCaseId)
 
   @Transactional
-  suspend fun deleteCourtCaseMappingByNomisId(courtCaseId: Long) =
-    courtCaseMappingRepository.deleteByNomisCourtCaseId(courtCaseId)
+  suspend fun deleteCourtCaseMappingByNomisId(courtCaseId: Long) = courtCaseMappingRepository.deleteByNomisCourtCaseId(courtCaseId)
 
   @Transactional
-  suspend fun createCourtAppearanceMapping(createMappingRequest: CourtAppearanceMappingDto) =
-    with(createMappingRequest) {
-      courtAppearanceMappingRepository.save(createMappingRequest.toCourtAppearanceMapping()).also {
-        telemetryClient.trackEvent(
-          "court-appearance-mapping-created",
-          mapOf(
-            "dpsCourtAppearanceId" to dpsCourtAppearanceId,
-            "nomisCourtAppearanceId" to nomisCourtAppearanceId.toString(),
-          ),
-          null,
-        )
-      }
+  suspend fun createCourtAppearanceMapping(createMappingRequest: CourtAppearanceMappingDto) = with(createMappingRequest) {
+    courtAppearanceMappingRepository.save(createMappingRequest.toCourtAppearanceMapping()).also {
+      telemetryClient.trackEvent(
+        "court-appearance-mapping-created",
+        mapOf(
+          "dpsCourtAppearanceId" to dpsCourtAppearanceId,
+          "nomisCourtAppearanceId" to nomisCourtAppearanceId.toString(),
+        ),
+        null,
+      )
     }
+  }
 
   @Transactional
-  suspend fun deleteCourtAppearanceMappingByDpsId(courtAppearanceId: String) =
-    courtAppearanceMappingRepository.deleteById(courtAppearanceId)
+  suspend fun deleteCourtAppearanceMappingByDpsId(courtAppearanceId: String) = courtAppearanceMappingRepository.deleteById(courtAppearanceId)
 
   @Transactional
-  suspend fun deleteCourtAppearanceMappingByNomisId(courtAppearanceId: Long) =
-    courtAppearanceMappingRepository.deleteByNomisCourtAppearanceId(courtAppearanceId)
+  suspend fun deleteCourtAppearanceMappingByNomisId(courtAppearanceId: Long) = courtAppearanceMappingRepository.deleteByNomisCourtAppearanceId(courtAppearanceId)
 
   @Transactional
   suspend fun createCourtChargeMapping(createMappingRequest: CourtChargeMappingDto) = with(createMappingRequest) {
@@ -169,41 +159,38 @@ class CourtSentencingMappingService(
   }
 
   @Transactional
-  suspend fun createCourtChargeMappings(courtCharges: List<CourtChargeMappingDto>) =
-    courtCharges.forEach { createCourtChargeMapping(it) }
+  suspend fun createCourtChargeMappings(courtCharges: List<CourtChargeMappingDto>) = courtCharges.forEach { createCourtChargeMapping(it) }
 
   @Transactional
-  suspend fun createSentenceAllMapping(createSentenceMappingRequest: SentenceMappingDto) =
-    with(createSentenceMappingRequest) {
-      sentenceMappingRepository.save(createSentenceMappingRequest.toSentenceMapping())
-        .also {
-          telemetryClient.trackEvent(
-            "sentence-mapping-created",
-            mapOf(
-              "dpsSentenceId" to dpsSentenceId,
-              "nomisBookingId" to nomisBookingId.toString(),
-              "nomisSentenceSeq" to nomisSentenceSequence.toString(),
-            ),
-            null,
-          )
-        }
-    }
+  suspend fun createSentenceAllMapping(createSentenceMappingRequest: SentenceMappingDto) = with(createSentenceMappingRequest) {
+    sentenceMappingRepository.save(createSentenceMappingRequest.toSentenceMapping())
+      .also {
+        telemetryClient.trackEvent(
+          "sentence-mapping-created",
+          mapOf(
+            "dpsSentenceId" to dpsSentenceId,
+            "nomisBookingId" to nomisBookingId.toString(),
+            "nomisSentenceSeq" to nomisSentenceSequence.toString(),
+          ),
+          null,
+        )
+      }
+  }
 
   @Transactional
-  suspend fun deleteSentenceMappingByNomisId(bookingId: Long, sentenceSequence: Int) =
-    sentenceMappingRepository.deleteByNomisBookingIdAndNomisSentenceSequence(
-      nomisBookingId = bookingId,
-      nomisSentenceSeq = sentenceSequence,
-    ).also {
-      telemetryClient.trackEvent(
-        "sentence-mapping-deleted",
-        mapOf(
-          "nomisBookingId" to bookingId.toString(),
-          "nomisSentenceSeq" to sentenceSequence.toString(),
-        ),
-        null,
-      )
-    }
+  suspend fun deleteSentenceMappingByNomisId(bookingId: Long, sentenceSequence: Int) = sentenceMappingRepository.deleteByNomisBookingIdAndNomisSentenceSequence(
+    nomisBookingId = bookingId,
+    nomisSentenceSeq = sentenceSequence,
+  ).also {
+    telemetryClient.trackEvent(
+      "sentence-mapping-deleted",
+      mapOf(
+        "nomisBookingId" to bookingId.toString(),
+        "nomisSentenceSeq" to sentenceSequence.toString(),
+      ),
+      null,
+    )
+  }
 
   @Transactional
   suspend fun deleteSentenceMappingByDpsId(sentenceId: String) = sentenceMappingRepository.deleteById(sentenceId).also {
@@ -229,68 +216,58 @@ class CourtSentencingMappingService(
     )
   }
 
-  suspend fun getCourtAppearanceMappingByDpsId(courtAppearanceId: String): CourtAppearanceMappingDto =
-    courtAppearanceMappingRepository.findById(courtAppearanceId)?.toCourtAppearanceMappingDto()
-      ?: throw NotFoundException("DPS Court appearance Id =$courtAppearanceId")
+  suspend fun getCourtAppearanceMappingByDpsId(courtAppearanceId: String): CourtAppearanceMappingDto = courtAppearanceMappingRepository.findById(courtAppearanceId)?.toCourtAppearanceMappingDto()
+    ?: throw NotFoundException("DPS Court appearance Id =$courtAppearanceId")
 
-  suspend fun getCourtAppearanceAllMappingByDpsId(courtAppearanceId: String): CourtAppearanceAllMappingDto =
-    courtAppearanceMappingRepository.findById(courtAppearanceId)?.toCourtAppearanceAllMappingDto()
-      ?: throw NotFoundException("DPS Court appearance Id =$courtAppearanceId")
+  suspend fun getCourtAppearanceAllMappingByDpsId(courtAppearanceId: String): CourtAppearanceAllMappingDto = courtAppearanceMappingRepository.findById(courtAppearanceId)?.toCourtAppearanceAllMappingDto()
+    ?: throw NotFoundException("DPS Court appearance Id =$courtAppearanceId")
 
-  suspend fun getCourtAppearanceMappingByNomisId(courtAppearanceId: Long): CourtAppearanceMappingDto =
-    courtAppearanceMappingRepository.findByNomisCourtAppearanceId(courtAppearanceId)?.toCourtAppearanceMappingDto()
-      ?: throw NotFoundException("Nomis Court appearance Id =$courtAppearanceId")
+  suspend fun getCourtAppearanceMappingByNomisId(courtAppearanceId: Long): CourtAppearanceMappingDto = courtAppearanceMappingRepository.findByNomisCourtAppearanceId(courtAppearanceId)?.toCourtAppearanceMappingDto()
+    ?: throw NotFoundException("Nomis Court appearance Id =$courtAppearanceId")
 
-  suspend fun getCourtAppearanceAllMappingByNomisId(courtAppearanceId: Long): CourtAppearanceAllMappingDto =
-    courtAppearanceMappingRepository.findByNomisCourtAppearanceId(courtAppearanceId)?.toCourtAppearanceAllMappingDto()
-      ?: throw NotFoundException("Nomis Court appearance Id =$courtAppearanceId")
+  suspend fun getCourtAppearanceAllMappingByNomisId(courtAppearanceId: Long): CourtAppearanceAllMappingDto = courtAppearanceMappingRepository.findByNomisCourtAppearanceId(courtAppearanceId)?.toCourtAppearanceAllMappingDto()
+    ?: throw NotFoundException("Nomis Court appearance Id =$courtAppearanceId")
 
-  suspend fun getCourtChargeMappingByDpsId(courtChargeId: String): CourtChargeMappingDto =
-    courtChargeMappingRepository.findById(courtChargeId)?.toCourtChargeMappingDto()
-      ?: throw NotFoundException("DPS Court charge Id =$courtChargeId")
+  suspend fun getCourtChargeMappingByDpsId(courtChargeId: String): CourtChargeMappingDto = courtChargeMappingRepository.findById(courtChargeId)?.toCourtChargeMappingDto()
+    ?: throw NotFoundException("DPS Court charge Id =$courtChargeId")
 
-  suspend fun getCourtChargeMappingByNomisId(courtChargeId: Long): CourtChargeMappingDto =
-    courtChargeMappingRepository.findByNomisCourtChargeId(courtChargeId)?.toCourtChargeMappingDto()
-      ?: throw NotFoundException("NOMIS Court charge Id =$courtChargeId")
+  suspend fun getCourtChargeMappingByNomisId(courtChargeId: Long): CourtChargeMappingDto = courtChargeMappingRepository.findByNomisCourtChargeId(courtChargeId)?.toCourtChargeMappingDto()
+    ?: throw NotFoundException("NOMIS Court charge Id =$courtChargeId")
 
-  suspend fun getSentenceAllMappingByDpsId(dpsSentenceId: String): SentenceMappingDto =
-    sentenceMappingRepository.findById(dpsSentenceId)?.toSentenceAllMappingDto()
-      ?: throw NotFoundException("Sentence mapping not found with dpsSentenceId =$dpsSentenceId")
+  suspend fun getSentenceAllMappingByDpsId(dpsSentenceId: String): SentenceMappingDto = sentenceMappingRepository.findById(dpsSentenceId)?.toSentenceAllMappingDto()
+    ?: throw NotFoundException("Sentence mapping not found with dpsSentenceId =$dpsSentenceId")
 
-  suspend fun getSentenceAllMappingByNomisId(nomisBookingId: Long, nomisSentenceSeq: Int): SentenceMappingDto =
-    sentenceMappingRepository.findByNomisBookingIdAndNomisSentenceSequence(
-      nomisBookingId = nomisBookingId,
-      nomisSentenceSeq = nomisSentenceSeq,
-    )?.toSentenceAllMappingDto()
-      ?: throw NotFoundException("Sentence mapping not found with nomisBookingId =$nomisBookingId, nomisSentenceSeq =$nomisSentenceSeq")
+  suspend fun getSentenceAllMappingByNomisId(nomisBookingId: Long, nomisSentenceSeq: Int): SentenceMappingDto = sentenceMappingRepository.findByNomisBookingIdAndNomisSentenceSequence(
+    nomisBookingId = nomisBookingId,
+    nomisSentenceSeq = nomisSentenceSeq,
+  )?.toSentenceAllMappingDto()
+    ?: throw NotFoundException("Sentence mapping not found with nomisBookingId =$nomisBookingId, nomisSentenceSeq =$nomisSentenceSeq")
 
   @Transactional
-  suspend fun deleteCourtChargeMappingByNomisId(courtChargeId: Long) =
-    courtChargeMappingRepository.deleteByNomisCourtChargeId(courtChargeId)
+  suspend fun deleteCourtChargeMappingByNomisId(courtChargeId: Long) = courtChargeMappingRepository.deleteByNomisCourtChargeId(courtChargeId)
 
-  suspend fun getCourtCaseMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<CourtCaseMappingDto> =
-    coroutineScope {
-      val mappings = async {
-        courtCaseMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
-          label = migrationId,
-          mappingType = CourtCaseMappingType.MIGRATED,
-          pageRequest = pageRequest,
-        )
-      }
-
-      val count = async {
-        courtCaseMappingRepository.countAllByLabelAndMappingType(
-          migrationId = migrationId,
-          mappingType = CourtCaseMappingType.MIGRATED,
-        )
-      }
-
-      PageImpl(
-        mappings.await().toList().map { it.toCourtCaseMappingDto() },
-        pageRequest,
-        count.await(),
+  suspend fun getCourtCaseMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<CourtCaseMappingDto> = coroutineScope {
+    val mappings = async {
+      courtCaseMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+        label = migrationId,
+        mappingType = CourtCaseMappingType.MIGRATED,
+        pageRequest = pageRequest,
       )
     }
+
+    val count = async {
+      courtCaseMappingRepository.countAllByLabelAndMappingType(
+        migrationId = migrationId,
+        mappingType = CourtCaseMappingType.MIGRATED,
+      )
+    }
+
+    PageImpl(
+      mappings.await().toList().map { it.toCourtCaseMappingDto() },
+      pageRequest,
+      count.await(),
+    )
+  }
 }
 
 fun CourtCaseMapping.toCourtCaseMappingDto(): CourtCaseMappingDto = CourtCaseMappingDto(
@@ -326,14 +303,13 @@ fun CourtAppearanceMapping.toCourtAppearanceMappingDto(): CourtAppearanceMapping
 )
 
 // on duplicate the calling service are expecting CourtAppearanceAllMappingDto to be returned, child entities are NOT populated
-fun CourtAppearanceMapping.toCourtAppearanceAllMappingDto(): CourtAppearanceAllMappingDto =
-  CourtAppearanceAllMappingDto(
-    dpsCourtAppearanceId = this.dpsCourtAppearanceId,
-    nomisCourtAppearanceId = this.nomisCourtAppearanceId,
-    label = this.label,
-    mappingType = this.mappingType,
-    whenCreated = this.whenCreated,
-  )
+fun CourtAppearanceMapping.toCourtAppearanceAllMappingDto(): CourtAppearanceAllMappingDto = CourtAppearanceAllMappingDto(
+  dpsCourtAppearanceId = this.dpsCourtAppearanceId,
+  nomisCourtAppearanceId = this.nomisCourtAppearanceId,
+  label = this.label,
+  mappingType = this.mappingType,
+  whenCreated = this.whenCreated,
+)
 
 fun CourtAppearanceMappingDto.toCourtAppearanceMapping(): CourtAppearanceMapping = CourtAppearanceMapping(
   dpsCourtAppearanceId = this.dpsCourtAppearanceId,
