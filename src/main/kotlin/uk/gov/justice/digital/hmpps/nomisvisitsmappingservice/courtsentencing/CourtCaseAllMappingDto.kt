@@ -21,6 +21,9 @@ data class CourtCaseAllMappingDto(
   @Schema(description = "Court Charge mappings")
   val courtCharges: List<CourtChargeMappingDto> = emptyList(),
 
+  @Schema(description = "Sentence mappings")
+  val sentences: List<SentenceMappingDto> = emptyList(),
+
   @Schema(description = "Label (a timestamp for migrated ids)")
   @field:Size(max = 20)
   val label: String? = null,

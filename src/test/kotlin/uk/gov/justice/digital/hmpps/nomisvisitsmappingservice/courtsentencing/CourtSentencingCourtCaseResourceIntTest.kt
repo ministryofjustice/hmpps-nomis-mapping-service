@@ -19,16 +19,30 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.Integr
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
+private const val OFFENDER_NO = "AA123456"
+private const val EXISTING_OFFENDER_NO = "BB123456"
 private const val NOMIS_COURT_APPEARANCE_1_ID = 54321L
 private const val NOMIS_COURT_APPEARANCE_2_ID = 65432L
+private const val NOMIS_COURT_APPEARANCE_3_ID = 7654L
+private const val NOMIS_COURT_APPEARANCE_4_ID = 8765L
 private const val NOMIS_COURT_CHARGE_1_ID = 32121L
 private const val NOMIS_COURT_CHARGE_2_ID = 87676L
+private const val NOMIS_COURT_CHARGE_3_ID = 99676L
+private const val NOMIS_SENTENCE_SEQ = 1
+private const val NOMIS_BOOKING_ID = 32456L
+private const val DPS_SENTENCE_ID = "dpss1"
+private const val DPS_SENTENCE_ID_2 = "dpss2"
 private const val DPS_COURT_APPEARANCE_1_ID = "dpsca1"
 private const val DPS_COURT_APPEARANCE_2_ID = "dpsca2"
+private const val DPS_COURT_APPEARANCE_3_ID = "dpsca3"
+private const val DPS_COURT_APPEARANCE_4_ID = "dpsca4"
 private const val DPS_COURT_CHARGE_1_ID = "dpscha1"
 private const val DPS_COURT_CHARGE_2_ID = "dpscha2"
+private const val DPS_COURT_CHARGE_3_ID = "dpscha3"
 private const val NOMIS_COURT_CASE_ID = 54321L
-private const val DPS_COURT_CASE_ID = "dps123"
+private const val NOMIS_COURT_CASE_2_ID = 65431L
+private const val DPS_COURT_CASE_ID = "dps444"
+private const val DPS_COURT_CASE_2_ID = "dps123"
 private const val EXISTING_DPS_COURT_CASE_ID = "DPS321"
 private const val EXISTING_NOMIS_COURT_CASE_ID = 98765L
 private const val EXISTING_NOMIS_COURT_APPEARANCE_ID = 98733L
@@ -38,10 +52,16 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
   private lateinit var repository: CourtCaseMappingRepository
 
   @Autowired
+  private lateinit var prisonerCourtCaseRepository: CourtCasePrisonerMappingRepository
+
+  @Autowired
   private lateinit var courtAppearanceRepository: CourtAppearanceMappingRepository
 
   @Autowired
   private lateinit var courtChargeRepository: CourtChargeMappingRepository
+
+  @Autowired
+  private lateinit var sentenceRepository: SentenceMappingRepository
 
   @Nested
   @DisplayName("GET /mapping/court-sentencing/court-cases/dps-court-case-id/{courtCaseId}")
@@ -580,6 +600,394 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
             .containsEntry("nomisCourtCaseId", NOMIS_COURT_CASE_ID.toInt())
           assertThat(this.moreInfo.duplicate)
             .containsEntry("nomisCourtCaseId", NOMIS_COURT_CASE_ID.toInt())
+        }
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("POST /mapping/court-sentencing/offender/{offenderNo}court-cases")
+  inner class CreateMigrationMapping {
+    private lateinit var existingMapping: CourtCaseMapping
+    private val mapping = CourtCaseMigrationMappingDto(
+      offenderNo = OFFENDER_NO,
+      mappings = listOf(
+        CourtCaseAllMappingDto(
+          dpsCourtCaseId = DPS_COURT_CASE_ID,
+          nomisCourtCaseId = NOMIS_COURT_APPEARANCE_1_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtCaseMappingType.MIGRATED,
+          courtAppearances = listOf(
+            CourtAppearanceMappingDto(
+              dpsCourtAppearanceId = DPS_COURT_APPEARANCE_1_ID,
+              nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_1_ID,
+              label = "2023-01-01T12:45:12",
+              mappingType = CourtAppearanceMappingType.MIGRATED,
+            ),
+            CourtAppearanceMappingDto(
+              dpsCourtAppearanceId = DPS_COURT_APPEARANCE_2_ID,
+              nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_2_ID,
+              label = "2023-01-01T12:45:12",
+              mappingType = CourtAppearanceMappingType.MIGRATED,
+            ),
+          ),
+          courtCharges = listOf(
+            CourtChargeMappingDto(
+              dpsCourtChargeId = DPS_COURT_CHARGE_1_ID,
+              nomisCourtChargeId = NOMIS_COURT_CHARGE_1_ID,
+              label = "2023-01-01T12:45:12",
+              mappingType = CourtChargeMappingType.MIGRATED,
+            ),
+            CourtChargeMappingDto(
+              dpsCourtChargeId = DPS_COURT_CHARGE_2_ID,
+              nomisCourtChargeId = NOMIS_COURT_CHARGE_2_ID,
+              label = "2023-01-01T12:45:12",
+              mappingType = CourtChargeMappingType.MIGRATED,
+            ),
+          ),
+          sentences = listOf(
+            SentenceMappingDto(
+              dpsSentenceId = DPS_SENTENCE_ID,
+              nomisSentenceSequence = NOMIS_SENTENCE_SEQ,
+              nomisBookingId = NOMIS_BOOKING_ID,
+              label = "2023-01-01T12:45:12",
+              mappingType = SentenceMappingType.MIGRATED,
+            ),
+            SentenceMappingDto(
+              dpsSentenceId = DPS_SENTENCE_ID_2,
+              nomisSentenceSequence = NOMIS_SENTENCE_SEQ + 1,
+              nomisBookingId = NOMIS_BOOKING_ID,
+              label = "2023-01-01T12:45:12",
+              mappingType = SentenceMappingType.MIGRATED,
+            ),
+          ),
+        ),
+        CourtCaseAllMappingDto(
+          dpsCourtCaseId = DPS_COURT_CASE_2_ID,
+          nomisCourtCaseId = NOMIS_COURT_CASE_2_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtCaseMappingType.MIGRATED,
+          courtAppearances = listOf(
+            CourtAppearanceMappingDto(
+              dpsCourtAppearanceId = DPS_COURT_APPEARANCE_3_ID,
+              nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_3_ID,
+              label = "2023-01-01T12:45:12",
+              mappingType = CourtAppearanceMappingType.MIGRATED,
+            ),
+            CourtAppearanceMappingDto(
+              dpsCourtAppearanceId = DPS_COURT_APPEARANCE_4_ID,
+              nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_4_ID,
+              label = "2023-01-01T12:45:12",
+              mappingType = CourtAppearanceMappingType.MIGRATED,
+            ),
+          ),
+          courtCharges = listOf(
+            CourtChargeMappingDto(
+              dpsCourtChargeId = DPS_COURT_CHARGE_3_ID,
+              nomisCourtChargeId = NOMIS_COURT_CHARGE_3_ID,
+              label = "2023-01-01T12:45:12",
+              mappingType = CourtChargeMappingType.MIGRATED,
+            ),
+          ),
+        ),
+      ),
+    )
+
+    @BeforeEach
+    fun setUp() = runTest {
+      existingMapping = repository.save(
+        CourtCaseMapping(
+          dpsCourtCaseId = EXISTING_DPS_COURT_CASE_ID,
+          nomisCourtCaseId = EXISTING_NOMIS_COURT_CASE_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtCaseMappingType.MIGRATED,
+        ),
+      )
+      courtAppearanceRepository.save(
+        CourtAppearanceMapping(
+          nomisCourtAppearanceId = EXISTING_NOMIS_COURT_APPEARANCE_ID,
+          dpsCourtAppearanceId = "dps123",
+          mappingType = CourtAppearanceMappingType.NOMIS_CREATED,
+        ),
+      )
+      prisonerCourtCaseRepository.save(
+        CourtCasePrisonerMapping(
+          offenderNo = EXISTING_OFFENDER_NO,
+          mappingType = CourtCaseMappingType.MIGRATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      repository.deleteAll()
+      courtAppearanceRepository.deleteAll()
+      courtChargeRepository.deleteAll()
+      prisonerCourtCaseRepository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/prisoner/$OFFENDER_NO/court-cases")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/prisoner/$OFFENDER_NO/court-cases")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/prisoner/$OFFENDER_NO/court-cases")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `returns 201 when mappings for prisoner created`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/prisoner/$OFFENDER_NO/court-cases")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+
+        val createdCourtCase1 =
+          repository.findById(
+            id = mapping.mappings[0].dpsCourtCaseId,
+          )!!
+
+        val createdCourtCase2 =
+          repository.findById(
+            id = mapping.mappings[1].dpsCourtCaseId,
+          )!!
+
+        val createdSentenceMapping =
+          sentenceRepository.findById(
+            id = DPS_SENTENCE_ID,
+          )!!
+
+        val createdCourtAppearance1Mapping =
+          courtAppearanceRepository.findById(
+            id = DPS_COURT_APPEARANCE_1_ID,
+          )!!
+
+        val createdCourtAppearance2Mapping =
+          courtAppearanceRepository.findById(
+            id = DPS_COURT_APPEARANCE_2_ID,
+          )!!
+
+        val createdCourtCharge1Mapping =
+          courtChargeRepository.findById(
+            id = DPS_COURT_CHARGE_1_ID,
+          )!!
+
+        val createdCourtCharge2Mapping =
+          courtChargeRepository.findById(
+            id = DPS_COURT_CHARGE_2_ID,
+          )!!
+
+        assertThat(createdCourtCase1.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        assertThat(createdCourtCase1.nomisCourtCaseId).isEqualTo(mapping.mappings[0].nomisCourtCaseId)
+        assertThat(createdCourtCase1.dpsCourtCaseId).isEqualTo(mapping.mappings[0].dpsCourtCaseId)
+        assertThat(createdCourtCase1.mappingType).isEqualTo(mapping.mappings[0].mappingType)
+        assertThat(createdCourtCase1.label).isEqualTo(mapping.mappings[0].label)
+        assertThat(createdCourtAppearance1Mapping.whenCreated).isCloseTo(
+          LocalDateTime.now(),
+          within(10, ChronoUnit.SECONDS),
+        )
+        assertThat(createdCourtCase2.nomisCourtCaseId).isEqualTo(mapping.mappings[1].nomisCourtCaseId)
+        assertThat(createdCourtCase2.dpsCourtCaseId).isEqualTo(mapping.mappings[1].dpsCourtCaseId)
+
+        assertThat(createdCourtAppearance1Mapping.nomisCourtAppearanceId).isEqualTo(NOMIS_COURT_APPEARANCE_1_ID)
+        assertThat(createdCourtAppearance1Mapping.dpsCourtAppearanceId).isEqualTo(DPS_COURT_APPEARANCE_1_ID)
+        assertThat(createdCourtAppearance1Mapping.mappingType).isEqualTo(CourtAppearanceMappingType.DPS_CREATED)
+        assertThat(createdCourtAppearance1Mapping.label).isEqualTo(mapping.mappings[0].courtAppearances[0].label)
+        assertThat(createdCourtAppearance1Mapping.whenCreated).isCloseTo(
+          LocalDateTime.now(),
+          within(10, ChronoUnit.SECONDS),
+        )
+        assertThat(createdCourtAppearance2Mapping.nomisCourtAppearanceId).isEqualTo(NOMIS_COURT_APPEARANCE_2_ID)
+        assertThat(createdCourtAppearance2Mapping.dpsCourtAppearanceId).isEqualTo(DPS_COURT_APPEARANCE_2_ID)
+        assertThat(createdCourtAppearance2Mapping.mappingType).isEqualTo(CourtAppearanceMappingType.DPS_CREATED)
+        assertThat(createdCourtAppearance2Mapping.label).isEqualTo(mapping.mappings[0].courtAppearances[1].label)
+        assertThat(createdCourtCharge1Mapping.nomisCourtChargeId).isEqualTo(NOMIS_COURT_CHARGE_1_ID)
+        assertThat(createdCourtCharge1Mapping.dpsCourtChargeId).isEqualTo(DPS_COURT_CHARGE_1_ID)
+        assertThat(createdCourtCharge1Mapping.mappingType).isEqualTo(CourtChargeMappingType.DPS_CREATED)
+        assertThat(createdCourtCharge1Mapping.label).isEqualTo(mapping.mappings[0].courtCharges[0].label)
+        assertThat(createdCourtCharge2Mapping.whenCreated).isCloseTo(
+          LocalDateTime.now(),
+          within(10, ChronoUnit.SECONDS),
+        )
+        assertThat(createdCourtCharge2Mapping.nomisCourtChargeId).isEqualTo(NOMIS_COURT_CHARGE_2_ID)
+        assertThat(createdCourtCharge2Mapping.dpsCourtChargeId).isEqualTo(DPS_COURT_CHARGE_2_ID)
+        assertThat(createdCourtCharge2Mapping.mappingType).isEqualTo(CourtChargeMappingType.DPS_CREATED)
+        assertThat(createdCourtCharge2Mapping.label).isEqualTo(mapping.mappings[0].courtCharges[1].label)
+
+        assertThat(createdSentenceMapping.nomisSentenceSequence).isEqualTo(NOMIS_SENTENCE_SEQ)
+        assertThat(createdSentenceMapping.nomisBookingId).isEqualTo(NOMIS_BOOKING_ID)
+        assertThat(createdSentenceMapping.dpsSentenceId).isEqualTo(DPS_SENTENCE_ID)
+        assertThat(createdSentenceMapping.mappingType).isEqualTo(SentenceMappingType.DPS_CREATED)
+        assertThat(createdSentenceMapping.label).isEqualTo(mapping.mappings[0].sentences[0].label)
+
+        // the prisoner tracking table should have an entry for this offender
+        assertThat(prisonerCourtCaseRepository.findById(OFFENDER_NO)).isNotNull
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `returns 400 when mapping type is invalid`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/prisoner/$OFFENDER_NO/court-cases")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              //language=JSON
+              """
+                {
+                  "nomisCourtCaseId": 54321,
+                  "dpsCourtCaseId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
+                  "mappingType": "INVALID_TYPE"
+                }
+              """.trimIndent(),
+            ),
+          )
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+
+      @Test
+      fun `returns 400 when DPS id is missing`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/prisoner/${OFFENDER_NO}/court-cases")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              //language=JSON
+              """
+                {
+                "offenderNo": "A1234A",
+                "mappings": [{
+                  "nomisCourtCaseId": 54321
+                }]
+                }
+              """.trimIndent(),
+            ),
+          )
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+
+      @Test
+      fun `returns 400 when Offender no is missing`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/prisoner/${OFFENDER_NO}/court-cases")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              //language=JSON
+              """
+                {
+                "mappings": [{
+                  "nomisCourtCaseId": 54321,
+                  "dpsCourtCaseId": "dfs"
+                }]
+                }
+              """.trimIndent(),
+            ),
+          )
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+
+      @Test
+      fun `returns 409 if court case already exists`() {
+        val duplicateResponse = webTestClient.post()
+          .uri("/mapping/court-sentencing/prisoner/${OFFENDER_NO}/court-cases")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CourtCaseMigrationMappingDto(
+                offenderNo = OFFENDER_NO,
+                mappings = listOf(
+                  CourtCaseAllMappingDto(
+                    nomisCourtCaseId = existingMapping.nomisCourtCaseId,
+                    dpsCourtCaseId = "DPS888",
+                  ),
+                ),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isEqualTo(409)
+          .expectBody(
+            object :
+              ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
+          )
+          .returnResult().responseBody
+
+        with(duplicateResponse!!) {
+          assertThat(this.moreInfo.existing)
+            .containsEntry("offenderNo", OFFENDER_NO)
+          assertThat(this.moreInfo.duplicate)
+            .containsEntry("offenderNo", OFFENDER_NO)
+        }
+      }
+
+      @Test
+      fun `returns 409 if offender already migrated`() {
+        val duplicateResponse = webTestClient.post()
+          .uri("/mapping/court-sentencing/prisoner/${OFFENDER_NO}/court-cases")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CourtCaseMigrationMappingDto(
+                offenderNo = EXISTING_OFFENDER_NO,
+                mappings = mapping.mappings,
+                ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isEqualTo(409)
+          .expectBody(
+            object :
+              ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
+          )
+          .returnResult().responseBody
+
+        with(duplicateResponse!!) {
+          assertThat(this.moreInfo.existing)
+            .containsEntry("offenderNo", EXISTING_OFFENDER_NO)
+          assertThat(this.moreInfo.duplicate)
+            .containsEntry("offenderNo", EXISTING_OFFENDER_NO)
         }
       }
     }
