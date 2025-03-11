@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundEx
 @Transactional(readOnly = true)
 class CourtSentencingMappingService(
   private val courtCaseMappingRepository: CourtCaseMappingRepository,
-  private val courtCasePrisonerMappingRepository: CourtCasePrisonerMappingRepository,
+  private val courtCasePrisonerMappingRepository: CourtCasePrisonerMigrationRepository,
   private val courtAppearanceMappingRepository: CourtAppearanceMappingRepository,
   private val courtChargeMappingRepository: CourtChargeMappingRepository,
   private val sentenceMappingRepository: SentenceMappingRepository,
@@ -83,13 +83,13 @@ class CourtSentencingMappingService(
   }
 
   @Transactional
-  suspend fun createMigrationMapping(createMappingRequest: CourtCaseMigrationMappingDto) {
+  suspend fun createMigrationMapping(offenderNo: String, createMappingRequest: CourtCaseMigrationMappingDto) {
     createMappingRequest.mappings.map { courtCaseMappingRequest ->
       createMapping(courtCaseMappingRequest)
     }.also {
       courtCasePrisonerMappingRepository.save(
-        CourtCasePrisonerMapping(
-          offenderNo = createMappingRequest.offenderNo,
+        CourtCasePrisonerMigration(
+          offenderNo = offenderNo,
           count = createMappingRequest.mappings.size,
           mappingType = createMappingRequest.mappingType,
           label = createMappingRequest.label,

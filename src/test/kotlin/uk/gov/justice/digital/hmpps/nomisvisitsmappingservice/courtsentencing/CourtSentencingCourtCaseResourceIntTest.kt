@@ -52,7 +52,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
   private lateinit var repository: CourtCaseMappingRepository
 
   @Autowired
-  private lateinit var prisonerCourtCaseRepository: CourtCasePrisonerMappingRepository
+  private lateinit var prisonerCourtCaseRepository: CourtCasePrisonerMigrationRepository
 
   @Autowired
   private lateinit var courtAppearanceRepository: CourtAppearanceMappingRepository
@@ -82,7 +82,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
 
     @AfterEach
     fun tearDown() = runTest {
-      repository.deleteAll()
+      clearDown()
     }
 
     @Nested
@@ -165,7 +165,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
 
     @AfterEach
     fun tearDown() = runTest {
-      repository.deleteAll()
+      clearDown()
     }
 
     @Nested
@@ -289,9 +289,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
 
     @AfterEach
     fun tearDown() = runTest {
-      repository.deleteAll()
-      courtAppearanceRepository.deleteAll()
-      courtChargeRepository.deleteAll()
+      clearDown()
     }
 
     @Nested
@@ -605,12 +603,19 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
     }
   }
 
+  private suspend fun clearDown() {
+    repository.deleteAll()
+    courtAppearanceRepository.deleteAll()
+    courtChargeRepository.deleteAll()
+    sentenceRepository.deleteAll()
+    prisonerCourtCaseRepository.deleteAll()
+  }
+
   @Nested
   @DisplayName("POST /mapping/court-sentencing/offender/{offenderNo}court-cases")
   inner class CreateMigrationMapping {
     private lateinit var existingMapping: CourtCaseMapping
     private val mapping = CourtCaseMigrationMappingDto(
-      offenderNo = OFFENDER_NO,
       mappings = listOf(
         CourtCaseAllMappingDto(
           dpsCourtCaseId = DPS_COURT_CASE_ID,
@@ -711,7 +716,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
         ),
       )
       prisonerCourtCaseRepository.save(
-        CourtCasePrisonerMapping(
+        CourtCasePrisonerMigration(
           offenderNo = EXISTING_OFFENDER_NO,
           mappingType = CourtCaseMappingType.MIGRATED,
         ),
@@ -720,10 +725,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
 
     @AfterEach
     fun tearDown() = runTest {
-      repository.deleteAll()
-      courtAppearanceRepository.deleteAll()
-      courtChargeRepository.deleteAll()
-      prisonerCourtCaseRepository.deleteAll()
+      clearDown()
     }
 
     @Nested
@@ -822,7 +824,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
 
         assertThat(createdCourtAppearance1Mapping.nomisCourtAppearanceId).isEqualTo(NOMIS_COURT_APPEARANCE_1_ID)
         assertThat(createdCourtAppearance1Mapping.dpsCourtAppearanceId).isEqualTo(DPS_COURT_APPEARANCE_1_ID)
-        assertThat(createdCourtAppearance1Mapping.mappingType).isEqualTo(CourtAppearanceMappingType.DPS_CREATED)
+        assertThat(createdCourtAppearance1Mapping.mappingType).isEqualTo(CourtAppearanceMappingType.MIGRATED)
         assertThat(createdCourtAppearance1Mapping.label).isEqualTo(mapping.mappings[0].courtAppearances[0].label)
         assertThat(createdCourtAppearance1Mapping.whenCreated).isCloseTo(
           LocalDateTime.now(),
@@ -830,11 +832,11 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
         )
         assertThat(createdCourtAppearance2Mapping.nomisCourtAppearanceId).isEqualTo(NOMIS_COURT_APPEARANCE_2_ID)
         assertThat(createdCourtAppearance2Mapping.dpsCourtAppearanceId).isEqualTo(DPS_COURT_APPEARANCE_2_ID)
-        assertThat(createdCourtAppearance2Mapping.mappingType).isEqualTo(CourtAppearanceMappingType.DPS_CREATED)
+        assertThat(createdCourtAppearance2Mapping.mappingType).isEqualTo(CourtAppearanceMappingType.MIGRATED)
         assertThat(createdCourtAppearance2Mapping.label).isEqualTo(mapping.mappings[0].courtAppearances[1].label)
         assertThat(createdCourtCharge1Mapping.nomisCourtChargeId).isEqualTo(NOMIS_COURT_CHARGE_1_ID)
         assertThat(createdCourtCharge1Mapping.dpsCourtChargeId).isEqualTo(DPS_COURT_CHARGE_1_ID)
-        assertThat(createdCourtCharge1Mapping.mappingType).isEqualTo(CourtChargeMappingType.DPS_CREATED)
+        assertThat(createdCourtCharge1Mapping.mappingType).isEqualTo(CourtChargeMappingType.MIGRATED)
         assertThat(createdCourtCharge1Mapping.label).isEqualTo(mapping.mappings[0].courtCharges[0].label)
         assertThat(createdCourtCharge2Mapping.whenCreated).isCloseTo(
           LocalDateTime.now(),
@@ -842,13 +844,13 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
         )
         assertThat(createdCourtCharge2Mapping.nomisCourtChargeId).isEqualTo(NOMIS_COURT_CHARGE_2_ID)
         assertThat(createdCourtCharge2Mapping.dpsCourtChargeId).isEqualTo(DPS_COURT_CHARGE_2_ID)
-        assertThat(createdCourtCharge2Mapping.mappingType).isEqualTo(CourtChargeMappingType.DPS_CREATED)
+        assertThat(createdCourtCharge2Mapping.mappingType).isEqualTo(CourtChargeMappingType.MIGRATED)
         assertThat(createdCourtCharge2Mapping.label).isEqualTo(mapping.mappings[0].courtCharges[1].label)
 
         assertThat(createdSentenceMapping.nomisSentenceSequence).isEqualTo(NOMIS_SENTENCE_SEQ)
         assertThat(createdSentenceMapping.nomisBookingId).isEqualTo(NOMIS_BOOKING_ID)
         assertThat(createdSentenceMapping.dpsSentenceId).isEqualTo(DPS_SENTENCE_ID)
-        assertThat(createdSentenceMapping.mappingType).isEqualTo(SentenceMappingType.DPS_CREATED)
+        assertThat(createdSentenceMapping.mappingType).isEqualTo(SentenceMappingType.MIGRATED)
         assertThat(createdSentenceMapping.label).isEqualTo(mapping.mappings[0].sentences[0].label)
 
         // the prisoner tracking table should have an entry for this offender
@@ -904,38 +906,14 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
       }
 
       @Test
-      fun `returns 400 when Offender no is missing`() {
+      fun `returns 409 if court case already exists`() {
         webTestClient.post()
           .uri("/mapping/court-sentencing/prisoner/${OFFENDER_NO}/court-cases")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              //language=JSON
-              """
-                {
-                "mappings": [{
-                  "nomisCourtCaseId": 54321,
-                  "dpsCourtCaseId": "dfs"
-                }]
-                }
-              """.trimIndent(),
-            ),
-          )
-          .exchange()
-          .expectStatus().isBadRequest
-      }
-
-      @Test
-      fun `returns 409 if court case already exists`() {
-        val duplicateResponse = webTestClient.post()
-          .uri("/mapping/court-sentencing/prisoner/${OFFENDER_NO}/court-cases")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(
-            BodyInserters.fromValue(
               CourtCaseMigrationMappingDto(
-                offenderNo = OFFENDER_NO,
                 mappings = listOf(
                   CourtCaseAllMappingDto(
                     nomisCourtCaseId = existingMapping.nomisCourtCaseId,
@@ -952,25 +930,17 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
               ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
           )
           .returnResult().responseBody
-
-        with(duplicateResponse!!) {
-          assertThat(this.moreInfo.existing)
-            .containsEntry("offenderNo", OFFENDER_NO)
-          assertThat(this.moreInfo.duplicate)
-            .containsEntry("offenderNo", OFFENDER_NO)
-        }
       }
 
       @Test
       fun `returns 409 if offender already migrated`() {
-        val duplicateResponse = webTestClient.post()
-          .uri("/mapping/court-sentencing/prisoner/${OFFENDER_NO}/court-cases")
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/prisoner/${EXISTING_OFFENDER_NO}/court-cases")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
               CourtCaseMigrationMappingDto(
-                offenderNo = EXISTING_OFFENDER_NO,
                 mappings = mapping.mappings,
               ),
             ),
@@ -982,13 +952,6 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
               ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
           )
           .returnResult().responseBody
-
-        with(duplicateResponse!!) {
-          assertThat(this.moreInfo.existing)
-            .containsEntry("offenderNo", EXISTING_OFFENDER_NO)
-          assertThat(this.moreInfo.duplicate)
-            .containsEntry("offenderNo", EXISTING_OFFENDER_NO)
-        }
       }
     }
   }
@@ -1012,7 +975,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
 
     @AfterEach
     fun tearDown() = runTest {
-      repository.deleteAll()
+      clearDown()
     }
 
     @Nested
@@ -1097,7 +1060,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
 
     @AfterEach
     fun tearDown() = runTest {
-      repository.deleteAll()
+      clearDown()
     }
 
     @Nested
@@ -1170,7 +1133,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
 
     @AfterEach
     internal fun deleteData() = runBlocking {
-      repository.deleteAll()
+      clearDown()
     }
 
     @Nested

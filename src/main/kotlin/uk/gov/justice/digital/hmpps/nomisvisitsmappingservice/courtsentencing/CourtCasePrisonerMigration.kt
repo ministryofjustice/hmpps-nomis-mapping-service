@@ -6,7 +6,7 @@ import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 
-data class CourtCasePrisonerMapping(
+data class CourtCasePrisonerMigration(
 
   @Id
   val offenderNo: String,
@@ -14,7 +14,7 @@ data class CourtCasePrisonerMapping(
   val count: Int = 0,
 
   /**
-   * ISO timestamp of batch job if a migration
+   * ISO timestamp of migration batch job
    */
   val label: String? = null,
 
@@ -30,7 +30,7 @@ data class CourtCasePrisonerMapping(
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is CourtCasePrisonerMapping) return false
+    if (other !is CourtCasePrisonerMigration) return false
 
     if (offenderNo != other.offenderNo) return false
 

@@ -1,4 +1,4 @@
-create table court_case_prisoner_mapping
+create table court_case_prisoner_migration
 (
     offender_no  varchar(10)              not null PRIMARY KEY,
     count        bigint                   not null,
@@ -6,4 +6,4 @@ create table court_case_prisoner_mapping
     label        varchar(20),
     mapping_type varchar(20)              not null
 );
-create index court_case_prisoner_mapping_label_index on court_case_prisoner_mapping (label);
+create index court_case_prisoner_migration_label_index on court_case_prisoner_migration (label);

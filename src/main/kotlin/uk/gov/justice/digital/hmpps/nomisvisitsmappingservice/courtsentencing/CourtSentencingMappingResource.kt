@@ -195,14 +195,16 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     ],
   )
   suspend fun createMigrationMapping(
+    @PathVariable
+    offenderNo: String,
     @RequestBody @Valid
     mapping: CourtCaseMigrationMappingDto,
   ) = try {
-    mappingService.createMigrationMapping(mapping)
+    mappingService.createMigrationMapping(offenderNo, mapping)
   } catch (e: DuplicateKeyException) {
-    log.error("Duplicate court sentencing migration mapping detected for offender ${mapping.offenderNo}: $mapping ", e)
+    log.error("Duplicate court sentencing migration mapping detected for offender $offenderNo: $mapping ", e)
     throw DuplicateMappingException(
-      messageIn = "Migration Court Case mapping or child mapping already exists for Offender ${mapping.offenderNo}",
+      messageIn = "Migration Court Case mapping or child mapping already exists for Offender $offenderNo",
       duplicate = mapping,
       existing = mapping,
       cause = e,

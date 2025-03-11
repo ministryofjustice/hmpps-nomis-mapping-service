@@ -6,8 +6,8 @@ import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface CourtCasePrisonerMappingRepository : CoroutineCrudRepository<CourtCasePrisonerMapping, String> {
-  suspend fun findAllByLabelAndMappingTypeOrderByLabelDesc(label: String, mappingType: CourtCaseMappingType, pageRequest: Pageable): Flow<CourtCasePrisonerMapping>
+interface CourtCasePrisonerMigrationRepository : CoroutineCrudRepository<CourtCasePrisonerMigration, String> {
+  suspend fun findAllByLabelAndMappingTypeOrderByLabelDesc(label: String, mappingType: CourtCaseMappingType, pageRequest: Pageable): Flow<CourtCasePrisonerMigration>
 
   suspend fun countAllByLabelAndMappingType(migrationId: String, mappingType: CourtCaseMappingType): Long
 }

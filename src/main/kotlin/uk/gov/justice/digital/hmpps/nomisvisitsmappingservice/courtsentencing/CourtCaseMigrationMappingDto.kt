@@ -10,14 +10,11 @@ data class CourtCaseMigrationMappingDto(
   @Schema(description = "Mappings")
   val mappings: List<CourtCaseAllMappingDto> = emptyList(),
 
-  @Schema(description = "The prisoner number for the set of mappings. Just used for migration progress tracking")
-  val offenderNo: String,
-
   @Schema(description = "Label (a timestamp for migrated ids)")
   val label: String? = null,
 
   @Schema(description = "Mapping type")
-  val mappingType: CourtCaseMappingType = CourtCaseMappingType.DPS_CREATED,
+  val mappingType: CourtCaseMappingType = CourtCaseMappingType.MIGRATED,
 
   @Schema(description = "Date time the mapping was created")
   val whenCreated: LocalDateTime? = null,
