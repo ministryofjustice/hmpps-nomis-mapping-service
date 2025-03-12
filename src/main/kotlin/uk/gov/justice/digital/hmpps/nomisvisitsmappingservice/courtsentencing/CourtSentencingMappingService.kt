@@ -112,6 +112,12 @@ class CourtSentencingMappingService(
   suspend fun getCourtCaseAllMappingByNomisId(courtCaseId: Long): CourtCaseAllMappingDto = courtCaseMappingRepository.findByNomisCourtCaseId(courtCaseId)?.toCourtCaseAllMappingDto()
     ?: throw NotFoundException("Nomis Court case Id =$courtCaseId")
 
+  suspend fun getCourtCaseMigrationSummaryForOffender(offenderNo: String): CourtCasePrisonerMigrationDto = courtCasePrisonerMappingRepository.findById(offenderNo)?.toCourtCasePrisonerMigrationDto()
+    ?: throw NotFoundException("Court sentencing offender migration summary not found. offenderNo=$offenderNo")
+
+  @Transactional
+  suspend fun deleteCourtCaseMigrationSummaryForOffender(offenderNo: String) = courtCasePrisonerMappingRepository.deleteById(offenderNo)
+
   @Transactional
   suspend fun deleteCourtCaseMappingByDpsId(courtCaseId: String) = courtCaseMappingRepository.deleteById(courtCaseId)
 
@@ -331,6 +337,13 @@ fun CourtChargeMapping.toCourtChargeMappingDto(): CourtChargeMappingDto = CourtC
   label = this.label,
   mappingType = this.mappingType,
   whenCreated = this.whenCreated,
+)
+
+fun CourtCasePrisonerMigration.toCourtCasePrisonerMigrationDto(): CourtCasePrisonerMigrationDto = CourtCasePrisonerMigrationDto(
+  offenderNo = this.offenderNo,
+  mappingsCount = this.count,
+  whenCreated = this.whenCreated,
+  migrationId = this.label,
 )
 
 fun CourtChargeMappingDto.toCourtChargeMapping(): CourtChargeMapping = CourtChargeMapping(

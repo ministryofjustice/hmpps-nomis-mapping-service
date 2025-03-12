@@ -230,6 +230,169 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("GET /mapping/court-sentencing/prisoner/{offenderNo}/migration-summary")
+  inner class GetMigrationSummaryByOffenderNo {
+    lateinit var courtCaseMapping: CourtCasePrisonerMigration
+
+    @BeforeEach
+    fun setUp() = runTest {
+      courtCaseMapping = prisonerCourtCaseRepository.save(
+        CourtCasePrisonerMigration(
+          offenderNo = OFFENDER_NO,
+          label = "2023-01-01T12:45:12",
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      clearDown()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/prisoner/$OFFENDER_NO/migration-summary")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/prisoner/$OFFENDER_NO/migration-summary")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/prisoner/$OFFENDER_NO/migration-summary")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 404 when mapping does not exist`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/prisoner/123/migration-summary")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNotFound
+          .expectBody()
+          .jsonPath("developerMessage").isEqualTo("Court sentencing offender migration summary not found. offenderNo=123")
+      }
+
+      @Test
+      fun `will return 200 when mapping does exist`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/prisoner/$OFFENDER_NO/migration-summary")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("offenderNo").isEqualTo(OFFENDER_NO)
+          .jsonPath("mappingsCount").isEqualTo(0)
+          .jsonPath("migrationId").isEqualTo(courtCaseMapping.label!!)
+          .jsonPath("whenCreated").value<String> {
+            assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+          }
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("DELETE /mapping/court-sentencing/prisoner/{offenderNo}/migration-summary")
+  inner class DeleteMigrationSummaryByOffenderNo {
+    lateinit var courtCaseMapping: CourtCasePrisonerMigration
+
+    @BeforeEach
+    fun setUp() = runTest {
+      courtCaseMapping = prisonerCourtCaseRepository.save(
+        CourtCasePrisonerMigration(
+          offenderNo = OFFENDER_NO,
+          label = "2023-01-01T12:45:12",
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      clearDown()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/prisoner/$OFFENDER_NO/migration-summary")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/prisoner/$OFFENDER_NO/migration-summary")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/prisoner/$OFFENDER_NO/migration-summary")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 204 even when mapping does not exist`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/prisoner/NOPE/migration-summary")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNoContent
+      }
+
+      @Test
+      fun `will return 204 when mapping does exist and is deleted`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/prisoner/$OFFENDER_NO/migration-summary")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isOk
+
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/prisoner/$OFFENDER_NO/migration-summary")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/prisoner/$OFFENDER_NO/migration-summary")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("POST /mapping/court-sentencing/court-cases")
   inner class CreateMapping {
     private lateinit var existingMapping: CourtCaseMapping

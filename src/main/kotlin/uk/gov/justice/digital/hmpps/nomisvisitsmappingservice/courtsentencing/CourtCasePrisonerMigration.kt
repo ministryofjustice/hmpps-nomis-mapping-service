@@ -18,7 +18,7 @@ data class CourtCasePrisonerMigration(
    */
   val label: String? = null,
 
-  val mappingType: CourtCaseMappingType,
+  val mappingType: CourtCaseMappingType = CourtCaseMappingType.MIGRATED,
 
   @Transient
   @Value("false")
