@@ -86,3 +86,5 @@ azure:
       enabled: false
 
 casenotes.average-case-notes-per-prisoner: 134
+
+springdoc.swagger-ui.version: 5.20.0
