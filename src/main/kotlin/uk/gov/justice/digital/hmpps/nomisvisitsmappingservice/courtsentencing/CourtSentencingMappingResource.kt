@@ -214,7 +214,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   @GetMapping("/prisoner/{offenderNo}/migration-summary")
   @Operation(
     summary = "Get court sentencing migration summary for offender",
-    description = "Retrieves the migration summary for and offender using the Nomis Prison Number (Offender number). The presence of this record indicated that the offender's court sentencing data has been migrated. Requires role ROLE_NOMIS_CORE_PERSON",
+    description = "Retrieves the migration summary for and offender using the Nomis Prison Number (Offender number). The presence of this record indicated that the offender's court sentencing data has been migrated. Requires role NOMIS_COURT_SENTENCING",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -246,7 +246,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   @DeleteMapping("/prisoner/{offenderNo}/migration-summary")
   @Operation(
     summary = "delete court sentencing migration summary for offender",
-    description = "Deletes the migration summary for and offender using the Nomis Prison Number (Offender number). The presence of this record indicated that the offender's court sentencing data has been migrated. Requires role ROLE_NOMIS_CORE_PERSON",
+    description = "Deletes the migration summary for and offender using the Nomis Prison Number (Offender number). The presence of this record indicated that the offender's court sentencing data has been migrated. Requires role NOMIS_COURT_SENTENCING",
     responses = [
       ApiResponse(
         responseCode = "204",
