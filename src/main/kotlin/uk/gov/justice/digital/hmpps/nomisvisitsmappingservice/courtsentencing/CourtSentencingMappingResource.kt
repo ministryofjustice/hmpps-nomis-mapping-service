@@ -157,6 +157,60 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     )
   }
 
+  @PostMapping("/prisoner/{offenderNo}/court-cases")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates new court case hierarchical mappings for an offender",
+    description = "Creates mappings between nomis Court Case ID and DPS Court Case ID for an offender. Also maps child entities: Court appearances and charges. Requires ROLE_NOMIS_COURT_SENTENCING",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = CourtCaseMigrationMappingDto::class),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mappings created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createMigrationMapping(
+    @PathVariable
+    offenderNo: String,
+    @RequestBody @Valid
+    mapping: CourtCaseMigrationMappingDto,
+  ) = try {
+    mappingService.createMigrationMapping(offenderNo, mapping)
+  } catch (e: DuplicateKeyException) {
+    log.error("Duplicate court sentencing migration mapping detected for offender $offenderNo: $mapping ", e)
+    throw DuplicateMappingException(
+      messageIn = "Migration Court Case mapping or child mapping already exists for Offender $offenderNo",
+      duplicate = mapping,
+      existing = mapping,
+      cause = e,
+    )
+  }
+
   @DeleteMapping("/court-cases/dps-court-case-id/{dpsCourtCaseId}")
   @Operation(
     summary = "Deletes court case mapping",

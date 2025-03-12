@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundEx
 @Transactional(readOnly = true)
 class CourtSentencingMappingService(
   private val courtCaseMappingRepository: CourtCaseMappingRepository,
+  private val courtCasePrisonerMappingRepository: CourtCasePrisonerMigrationRepository,
   private val courtAppearanceMappingRepository: CourtAppearanceMappingRepository,
   private val courtChargeMappingRepository: CourtChargeMappingRepository,
   private val sentenceMappingRepository: SentenceMappingRepository,
@@ -27,39 +28,74 @@ class CourtSentencingMappingService(
 
   @Transactional
   suspend fun createMapping(createMappingRequest: CourtCaseAllMappingDto) = with(createMappingRequest) {
-    courtCaseMappingRepository.save(createMappingRequest.toCourtCaseMapping())
-      .also {
-        createMappingRequest.courtAppearances.forEach {
-          try {
-            createCourtAppearanceMapping(it)
-          } catch (e: Exception) {
-            log.info(
-              "Failed to create court appearance mapping for dpsCourtAppearanceId=${it.dpsCourtAppearanceId}, nomisCourtAppearanceId=${it.nomisCourtAppearanceId}, dpsCourtCaseId=${createMappingRequest.dpsCourtCaseId} and nomisCourtCaseId=${createMappingRequest.nomisCourtCaseId}",
-              e,
-            )
-            throw e
-          }
-        }
-        createMappingRequest.courtCharges.forEach {
-          try {
-            createCourtChargeMapping(it)
-          } catch (e: Exception) {
-            log.info(
-              "Failed to create court charge mapping for dpsCourtChargeId=${it.dpsCourtChargeId}, nomisCourtAppearanceId=${it.nomisCourtChargeId}, dpsCourtCaseId=${createMappingRequest.dpsCourtCaseId} and nomisCourtCaseId=${createMappingRequest.nomisCourtCaseId}",
-              e,
-            )
-            throw e
-          }
-        }
-        telemetryClient.trackEvent(
-          "court-case-mapping-created",
-          mapOf(
-            "dpsCourtCaseId" to dpsCourtCaseId,
-            "nomisCourtCaseId" to nomisCourtCaseId.toString(),
-          ),
-          null,
+    try {
+      courtCaseMappingRepository.save(
+        createMappingRequest.toCourtCaseMapping(),
+      )
+    } catch (e: Exception) {
+      log.info(
+        "Failed to create court case mapping for dpsCourtCaseId=${createMappingRequest.dpsCourtCaseId} and nomisCourtCaseId=${createMappingRequest.nomisCourtCaseId}",
+        e,
+      )
+      throw e
+    }
+    createMappingRequest.courtAppearances.forEach {
+      try {
+        createCourtAppearanceMapping(it)
+      } catch (e: Exception) {
+        log.info(
+          "Failed to create court appearance mapping for dpsCourtAppearanceId=${it.dpsCourtAppearanceId}, nomisCourtAppearanceId=${it.nomisCourtAppearanceId}, dpsCourtCaseId=${createMappingRequest.dpsCourtCaseId} and nomisCourtCaseId=${createMappingRequest.nomisCourtCaseId}",
+          e,
         )
+        throw e
       }
+    }
+    createMappingRequest.courtCharges.forEach {
+      try {
+        createCourtChargeMapping(it)
+      } catch (e: Exception) {
+        log.info(
+          "Failed to create court charge mapping for dpsCourtChargeId=${it.dpsCourtChargeId}, nomisCourtAppearanceId=${it.nomisCourtChargeId}, dpsCourtCaseId=${createMappingRequest.dpsCourtCaseId} and nomisCourtCaseId=${createMappingRequest.nomisCourtCaseId}",
+          e,
+        )
+        throw e
+      }
+    }
+    createMappingRequest.sentences.forEach {
+      try {
+        createSentenceAllMapping(it)
+      } catch (e: Exception) {
+        log.info(
+          "Failed to create sentence mapping for dpsSentenceId=${it.dpsSentenceId}, nomisSentenceSeq=${it.nomisSentenceSequence}, nomisBooking = ${it.nomisBookingId}, dpsCourtCaseId=${createMappingRequest.dpsCourtCaseId} and nomisCourtCaseId=${createMappingRequest.nomisCourtCaseId}",
+          e,
+        )
+        throw e
+      }
+    }
+    telemetryClient.trackEvent(
+      "court-case-mapping-created",
+      mapOf(
+        "dpsCourtCaseId" to dpsCourtCaseId,
+        "nomisCourtCaseId" to nomisCourtCaseId.toString(),
+      ),
+      null,
+    )
+  }
+
+  @Transactional
+  suspend fun createMigrationMapping(offenderNo: String, createMappingRequest: CourtCaseMigrationMappingDto) {
+    createMappingRequest.mappings.map { courtCaseMappingRequest ->
+      createMapping(courtCaseMappingRequest)
+    }.also {
+      courtCasePrisonerMappingRepository.save(
+        CourtCasePrisonerMigration(
+          offenderNo = offenderNo,
+          count = createMappingRequest.mappings.size,
+          mappingType = createMappingRequest.mappingType,
+          label = createMappingRequest.label,
+        ),
+      )
+    }
   }
 
   suspend fun getCourtCaseMappingByDpsId(courtCaseId: String): CourtCaseMappingDto = courtCaseMappingRepository.findById(courtCaseId)?.toCourtCaseMappingDto()
