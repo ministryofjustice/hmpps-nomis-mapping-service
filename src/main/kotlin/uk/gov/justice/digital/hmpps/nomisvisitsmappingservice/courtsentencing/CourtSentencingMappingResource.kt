@@ -160,8 +160,8 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   @PostMapping("/prisoner/{offenderNo}/court-cases")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
-    summary = "Creates new court case hierarchical mappings for an offender",
-    description = "Creates mappings between nomis Court Case ID and DPS Court Case ID for an offender. Also maps child entities: Court appearances and charges. Requires ROLE_NOMIS_COURT_SENTENCING",
+    summary = "Creates new court case hierarchical mappings for an offender during migration.",
+    description = "Creates mappings between nomis Court Case ID and DPS Court Case ID for an offender. Only used by migration. Also maps child entities: Court appearances and charges. Requires ROLE_NOMIS_COURT_SENTENCING",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -210,6 +210,66 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
       cause = e,
     )
   }
+
+  @GetMapping("/prisoner/{offenderNo}/migration-summary")
+  @Operation(
+    summary = "Get court sentencing migration summary for offender",
+    description = "Retrieves the migration summary for and offender using the Nomis Prison Number (Offender number). The presence of this record indicated that the offender's court sentencing data has been migrated. Requires role ROLE_NOMIS_CORE_PERSON",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Offender migration summary returned",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "No record exists for the offender",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getCourtSentencingMigrationData(
+    @Schema(description = "NOMIS prison Number aka offender no.", example = "A1234BC", required = true)
+    @PathVariable
+    offenderNo: String,
+  ): CourtCasePrisonerMigrationDto = mappingService.getCourtCaseMigrationSummaryForOffender(offenderNo)
+
+  @DeleteMapping("/prisoner/{offenderNo}/migration-summary")
+  @Operation(
+    summary = "delete court sentencing migration summary for offender",
+    description = "Deletes the migration summary for and offender using the Nomis Prison Number (Offender number). The presence of this record indicated that the offender's court sentencing data has been migrated. Requires role ROLE_NOMIS_CORE_PERSON",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Offender migration summary deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  suspend fun deleteCourtSentencingMigrationData(
+    @Schema(description = "NOMIS prison Number aka offender no.", example = "A1234BC", required = true)
+    @PathVariable
+    offenderNo: String,
+  ) = mappingService.deleteCourtCaseMigrationSummaryForOffender(offenderNo)
 
   @DeleteMapping("/court-cases/dps-court-case-id/{dpsCourtCaseId}")
   @Operation(
