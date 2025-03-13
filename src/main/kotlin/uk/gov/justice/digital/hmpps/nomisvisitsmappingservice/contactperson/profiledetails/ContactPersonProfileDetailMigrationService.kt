@@ -1,6 +1,12 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.contactperson.profiledetails
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitSingle
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.data.r2dbc.core.insert
 import org.springframework.data.r2dbc.core.update
@@ -56,4 +62,23 @@ class ContactPersonProfileDetailMigrationService(
     )
     .awaitSingle()
     .let { find()!! }
+
+  suspend fun getMappings(
+    pageRequest: Pageable,
+    migrationId: String,
+  ): Page<ContactPersonProfileDetailMigrationMapping> = coroutineScope {
+    val migrationMappings = async {
+      repository.findAllByLabelOrderByNomisPrisonerNumberAsc(label = migrationId, pageRequest)
+    }
+
+    val count = async {
+      repository.countAllByLabel(migrationId)
+    }
+
+    PageImpl(
+      migrationMappings.await().toList(),
+      pageRequest,
+      count.await(),
+    )
+  }
 }
