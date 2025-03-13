@@ -1,14 +1,17 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.contactperson
 
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.contactperson.profiledetails.ContactPersonProfileDetailMigrationMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.contactperson.profiledetails.ContactPersonProfileDetailMigrationMappingRepository
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.contactperson.profiledetails.ContactPersonProfileDetailsMigrationMappingRequest
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
@@ -21,6 +24,7 @@ class ContactPersonProfileDetailsMigrationMappingIntTest(
 ) : IntegrationTestBase() {
 
   @Nested
+  @DisplayName("PUT /mapping/contact-person/profile-details/migration")
   inner class CreateMigrationMapping {
     @BeforeEach
     fun tearDown() = runTest {
@@ -144,5 +148,136 @@ class ContactPersonProfileDetailsMigrationMappingIntTest(
       domesticStatusDpsIds,
       numberOfChildrenDpsIds,
     )
+  }
+
+  @DisplayName("GET /mapping/contact-person/profile-details/migration/migration-id/{migrationId}")
+  @Nested
+  inner class GetMappingByMigrationId {
+    @BeforeEach
+    fun deleteData() = runBlocking {
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access forbidden when no authority`() {
+        webTestClient.get().uri("/mapping/contact-person/profile-details/migration/migration-id/2022-01-01T00:00:00")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get().uri("/mapping/contact-person/profile-details/migration/migration-id/2022-01-01T00:00:00")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get().uri("/mapping/contact-person/profile-details/migration/migration-id/2022-01-01T00:00:00")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `should return only the migration requested`() {
+        saveMapping("A1234BC")
+        saveMapping("B2345CD")
+        saveMapping("C3456DE", label = "wrong-migration")
+
+        webTestClient.get().uri("/mapping/contact-person/profile-details/migration/migration-id/some_migration_id")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("totalElements").isEqualTo(2)
+          .jsonPath("content.size()").isEqualTo(2)
+          .jsonPath("content[0].nomisPrisonerNumber").isEqualTo("A1234BC")
+          .jsonPath("content[0].domesticStatusDpsIds").isEqualTo("1,2")
+          .jsonPath("content[0].numberOfChildrenDpsIds").isEqualTo("3,4")
+          .jsonPath("content[0].whenCreated").isNotEmpty
+          .jsonPath("content[1].nomisPrisonerNumber").isEqualTo("B2345CD")
+          .jsonPath("content[1].domesticStatusDpsIds").isEqualTo("1,2")
+          .jsonPath("content[1].numberOfChildrenDpsIds").isEqualTo("3,4")
+          .jsonPath("content[1].whenCreated").isNotEmpty
+      }
+
+      @Test
+      fun `should return an empty list`() {
+        saveMapping(label = "wrong-migration")
+
+        webTestClient.get().uri("/mapping/contact-person/profile-details/migration/migration-id/some_migration_id")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("totalElements").isEqualTo(0)
+          .jsonPath("content.size()").isEqualTo(0)
+      }
+
+      @Test
+      fun `should return mappings in pages`() {
+        val pageSize = 3
+        (1..(pageSize + 1)).forEach { saveMapping(it, "some_migration_id") }
+
+        webTestClient.get().uri {
+          it.path("/mapping/contact-person/profile-details/migration/migration-id/some_migration_id")
+            .queryParam("size", "$pageSize")
+            .queryParam("page", "0")
+            .build()
+        }
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("totalElements").isEqualTo(4)
+          .jsonPath("numberOfElements").isEqualTo(pageSize)
+          .jsonPath("number").isEqualTo(0)
+          .jsonPath("totalPages").isEqualTo(2)
+          .jsonPath("size").isEqualTo(pageSize)
+          .jsonPath("content.size()").isEqualTo(pageSize)
+          .jsonPath("content[0].nomisPrisonerNumber").isEqualTo("A0001BC")
+          .jsonPath("content[1].nomisPrisonerNumber").isEqualTo("A0002BC")
+          .jsonPath("content[2].nomisPrisonerNumber").isEqualTo("A0003BC")
+
+        webTestClient.get().uri {
+          it.path("/mapping/contact-person/profile-details/migration/migration-id/some_migration_id")
+            .queryParam("size", "$pageSize")
+            .queryParam("page", "1")
+            .build()
+        }
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("totalElements").isEqualTo(4)
+          .jsonPath("numberOfElements").isEqualTo(1)
+          .jsonPath("number").isEqualTo(1)
+          .jsonPath("totalPages").isEqualTo(2)
+          .jsonPath("size").isEqualTo(pageSize)
+          .jsonPath("content.size()").isEqualTo(1)
+          .jsonPath("content[0].nomisPrisonerNumber").isEqualTo("A0004BC")
+      }
+    }
+
+    private fun saveMapping(offset: Int, label: String = "some_migration_id") = saveMapping("A${offset.toString().padStart(4, '0')}BC", label, "[$offset]", "[$offset]")
+
+    private fun saveMapping(
+      nomisPrisonerNumber: String = "A1234BC",
+      label: String = "some_migration_id",
+      domesticStatusDpsIds: String = "1,2",
+      numberOfChildrenDpsIds: String = "3,4",
+    ) = runTest {
+      repository.save(
+        ContactPersonProfileDetailMigrationMapping(nomisPrisonerNumber, label, domesticStatusDpsIds, numberOfChildrenDpsIds),
+      )
+    }
   }
 }
