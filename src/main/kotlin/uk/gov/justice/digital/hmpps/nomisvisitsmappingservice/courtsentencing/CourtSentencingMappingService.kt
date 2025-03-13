@@ -83,14 +83,60 @@ class CourtSentencingMappingService(
   }
 
   @Transactional
+  suspend fun createAllMappingsForOffender(createMappingRequest: CourtCaseMigrationMappingDto) = with(createMappingRequest) {
+    createMappingRequest.courtCases.map { courtCaseMappingRequest ->
+      try {
+        createCourtCaseMapping(courtCaseMappingRequest)
+      } catch (e: Exception) {
+        log.info(
+          "Failed to create court case mapping for dpsCourtCaseId=${courtCaseMappingRequest.dpsCourtCaseId} and nomisCourtCaseId=${courtCaseMappingRequest.nomisCourtCaseId}",
+          e,
+        )
+        throw e
+      }
+    }
+    createMappingRequest.courtAppearances.forEach {
+      try {
+        createCourtAppearanceMapping(it)
+      } catch (e: Exception) {
+        log.info(
+          "Failed to create court appearance mapping for dpsCourtAppearanceId=${it.dpsCourtAppearanceId}, nomisCourtAppearanceId=${it.nomisCourtAppearanceId}",
+          e,
+        )
+        throw e
+      }
+    }
+    createMappingRequest.courtCharges.forEach {
+      try {
+        createCourtChargeMapping(it)
+      } catch (e: Exception) {
+        log.info(
+          "Failed to create court charge mapping for dpsCourtChargeId=${it.dpsCourtChargeId}, nomisCourtAppearanceId=${it.nomisCourtChargeId}",
+          e,
+        )
+        throw e
+      }
+    }
+    createMappingRequest.sentences.forEach {
+      try {
+        createSentenceAllMapping(it)
+      } catch (e: Exception) {
+        log.info(
+          "Failed to create sentence mapping for dpsSentenceId=${it.dpsSentenceId}, nomisSentenceSeq=${it.nomisSentenceSequence}, nomisBooking = ${it.nomisBookingId}",
+          e,
+        )
+        throw e
+      }
+    }
+  }
+
+  @Transactional
   suspend fun createMigrationMapping(offenderNo: String, createMappingRequest: CourtCaseMigrationMappingDto) {
-    createMappingRequest.mappings.map { courtCaseMappingRequest ->
-      createMapping(courtCaseMappingRequest)
-    }.also {
+    createAllMappingsForOffender(createMappingRequest).also {
       courtCasePrisonerMappingRepository.save(
         CourtCasePrisonerMigration(
           offenderNo = offenderNo,
-          count = createMappingRequest.mappings.size,
+          count = createMappingRequest.courtCases.size,
           mappingType = createMappingRequest.mappingType,
           label = createMappingRequest.label,
         ),
@@ -112,7 +158,7 @@ class CourtSentencingMappingService(
   suspend fun getCourtCaseAllMappingByNomisId(courtCaseId: Long): CourtCaseAllMappingDto = courtCaseMappingRepository.findByNomisCourtCaseId(courtCaseId)?.toCourtCaseAllMappingDto()
     ?: throw NotFoundException("Nomis Court case Id =$courtCaseId")
 
-  suspend fun getCourtCaseMigrationSummaryForOffender(offenderNo: String): CourtCasePrisonerMigrationDto = courtCasePrisonerMappingRepository.findById(offenderNo)?.toCourtCasePrisonerMigrationDto()
+  suspend fun getCourtCaseMigrationSummaryForOffender(offenderNo: String): CourtSentencingMigrationSummary = courtCasePrisonerMappingRepository.findById(offenderNo)?.toCourtSentencingMigrationSummary()
     ?: throw NotFoundException("Court sentencing offender migration summary not found. offenderNo=$offenderNo")
 
   @Transactional
@@ -132,6 +178,20 @@ class CourtSentencingMappingService(
         mapOf(
           "dpsCourtAppearanceId" to dpsCourtAppearanceId,
           "nomisCourtAppearanceId" to nomisCourtAppearanceId.toString(),
+        ),
+        null,
+      )
+    }
+  }
+
+  @Transactional
+  suspend fun createCourtCaseMapping(createMappingRequest: CourtCaseMappingDto) = with(createMappingRequest) {
+    courtCaseMappingRepository.save(createMappingRequest.toCourtCaseMapping()).also {
+      telemetryClient.trackEvent(
+        "court-case-mapping-created",
+        mapOf(
+          "dpsCourtCaseId" to dpsCourtCaseId,
+          "nomisCourtCaseId" to nomisCourtCaseId.toString(),
         ),
         null,
       )
@@ -252,24 +312,25 @@ class CourtSentencingMappingService(
   @Transactional
   suspend fun deleteCourtChargeMappingByNomisId(courtChargeId: Long) = courtChargeMappingRepository.deleteByNomisCourtChargeId(courtChargeId)
 
-  suspend fun getCourtCaseMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<CourtCaseMappingDto> = coroutineScope {
-    val mappings = async {
-      courtCaseMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+  suspend fun getCourtCaseMappingsByMigrationId(
+    pageRequest: Pageable,
+    migrationId: String,
+  ): Page<CourtSentencingMigrationSummary> = coroutineScope {
+    val migrationOffenders = async {
+      courtCasePrisonerMappingRepository.findAllByLabel(
         label = migrationId,
-        mappingType = CourtCaseMappingType.MIGRATED,
         pageRequest = pageRequest,
       )
     }
 
     val count = async {
-      courtCaseMappingRepository.countAllByLabelAndMappingType(
-        migrationId = migrationId,
-        mappingType = CourtCaseMappingType.MIGRATED,
+      courtCasePrisonerMappingRepository.countAllByLabel(
+        label = migrationId,
       )
     }
 
     PageImpl(
-      mappings.await().toList().map { it.toCourtCaseMappingDto() },
+      migrationOffenders.await().toList().map { it.toCourtSentencingMigrationSummary() },
       pageRequest,
       count.await(),
     )
@@ -285,6 +346,13 @@ fun CourtCaseMapping.toCourtCaseMappingDto(): CourtCaseMappingDto = CourtCaseMap
 )
 
 fun CourtCaseAllMappingDto.toCourtCaseMapping(): CourtCaseMapping = CourtCaseMapping(
+  dpsCourtCaseId = this.dpsCourtCaseId,
+  nomisCourtCaseId = this.nomisCourtCaseId,
+  label = this.label,
+  mappingType = mappingType ?: CourtCaseMappingType.DPS_CREATED,
+)
+
+fun CourtCaseMappingDto.toCourtCaseMapping(): CourtCaseMapping = CourtCaseMapping(
   dpsCourtCaseId = this.dpsCourtCaseId,
   nomisCourtCaseId = this.nomisCourtCaseId,
   label = this.label,
@@ -339,7 +407,7 @@ fun CourtChargeMapping.toCourtChargeMappingDto(): CourtChargeMappingDto = CourtC
   whenCreated = this.whenCreated,
 )
 
-fun CourtCasePrisonerMigration.toCourtCasePrisonerMigrationDto(): CourtCasePrisonerMigrationDto = CourtCasePrisonerMigrationDto(
+fun CourtCasePrisonerMigration.toCourtSentencingMigrationSummary(): CourtSentencingMigrationSummary = CourtSentencingMigrationSummary(
   offenderNo = this.offenderNo,
   mappingsCount = this.count,
   whenCreated = this.whenCreated,

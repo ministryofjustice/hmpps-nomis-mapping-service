@@ -214,7 +214,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   @GetMapping("/prisoner/{offenderNo}/migration-summary")
   @Operation(
     summary = "Get court sentencing migration summary for offender",
-    description = "Retrieves the migration summary for and offender using the Nomis Prison Number (Offender number). The presence of this record indicated that the offender's court sentencing data has been migrated. Requires role ROLE_NOMIS_CORE_PERSON",
+    description = "Retrieves the migration summary for and offender using the Nomis Prison Number (Offender number). The presence of this record indicated that the offender's court sentencing data has been migrated. Requires ROLE_NOMIS_COURT_SENTENCING",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -241,12 +241,12 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     @Schema(description = "NOMIS prison Number aka offender no.", example = "A1234BC", required = true)
     @PathVariable
     offenderNo: String,
-  ): CourtCasePrisonerMigrationDto = mappingService.getCourtCaseMigrationSummaryForOffender(offenderNo)
+  ): CourtSentencingMigrationSummary = mappingService.getCourtCaseMigrationSummaryForOffender(offenderNo)
 
   @DeleteMapping("/prisoner/{offenderNo}/migration-summary")
   @Operation(
     summary = "delete court sentencing migration summary for offender",
-    description = "Deletes the migration summary for and offender using the Nomis Prison Number (Offender number). The presence of this record indicated that the offender's court sentencing data has been migrated. Requires role ROLE_NOMIS_CORE_PERSON",
+    description = "Deletes the migration summary for and offender using the Nomis Prison Number (Offender number). The presence of this record indicated that the offender's court sentencing data has been migrated. Requires ROLE_NOMIS_COURT_SENTENCING",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -327,9 +327,9 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     nomisCourtCaseId: Long,
   ) = mappingService.deleteCourtCaseMappingByNomisId(courtCaseId = nomisCourtCaseId)
 
-  @GetMapping("/court-cases/migration-id/{migrationId}")
+  @GetMapping("/prisoner/migration-id/{migrationId}")
   @Operation(
-    summary = "Get paged mappings by migration id",
+    summary = "Get paged offender migration summary by migration id",
     description = "Retrieve all mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged.",
     responses = [
       ApiResponse(
@@ -353,7 +353,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<CourtCaseMappingDto> = mappingService.getCourtCaseMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<CourtSentencingMigrationSummary> = mappingService.getCourtCaseMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   @GetMapping("/court-appearances/dps-court-appearance-id/{courtAppearanceId}")
   @Operation(

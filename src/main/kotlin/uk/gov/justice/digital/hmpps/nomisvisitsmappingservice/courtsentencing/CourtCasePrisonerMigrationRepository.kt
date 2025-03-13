@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface CourtCasePrisonerMigrationRepository : CoroutineCrudRepository<CourtCasePrisonerMigration, String> {
-  suspend fun findAllByLabelAndMappingTypeOrderByLabelDesc(label: String, mappingType: CourtCaseMappingType, pageRequest: Pageable): Flow<CourtCasePrisonerMigration>
+  suspend fun findAllByLabel(label: String, pageRequest: Pageable): Flow<CourtCasePrisonerMigration>
 
-  suspend fun countAllByLabelAndMappingType(migrationId: String, mappingType: CourtCaseMappingType): Long
+  suspend fun countAllByLabel(label: String): Long
 }
