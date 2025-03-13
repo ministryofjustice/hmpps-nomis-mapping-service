@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.contactperson.ContactPersonMappingsDto
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
@@ -33,7 +32,7 @@ class ContactPersonProfileDetailsMigrationResource(
     summary = "Creates or updates a contact person profile details migration mapping for a migration",
     description = "Creates updates a contact person profile details migration mapping for a migration between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = ContactPersonMappingsDto::class))],
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = ContactPersonProfileDetailsMigrationMappingRequest::class))],
     ),
     responses = [
       ApiResponse(responseCode = "200", description = "Mappings created or updated"),
