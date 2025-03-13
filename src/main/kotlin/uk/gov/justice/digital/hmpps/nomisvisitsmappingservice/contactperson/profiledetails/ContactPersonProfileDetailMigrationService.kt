@@ -20,46 +20,30 @@ class ContactPersonProfileDetailMigrationService(
 
   @Transactional
   suspend fun upsert(
-    nomisPrisonerNumber: String,
-    label: String,
-    domesticStatusDpsIds: String,
-    numberOfChildrenDpsIds: String,
-  ) = find(nomisPrisonerNumber, label)
-    ?.let { update(nomisPrisonerNumber, label, domesticStatusDpsIds, numberOfChildrenDpsIds) }
-    ?: insert(nomisPrisonerNumber, label, domesticStatusDpsIds, numberOfChildrenDpsIds)
+    mappingRequest: ContactPersonProfileDetailsMigrationMappingRequest,
+  ): ContactPersonProfileDetailMigrationMapping = mappingRequest.find()
+    ?.let { mappingRequest.update() }
+    ?: mappingRequest.insert()
 
-  suspend fun find(
-    nomisPrisonerNumber: String,
-    label: String,
-  ) = repository.findByNomisPrisonerNumberAndLabel(nomisPrisonerNumber, label)
+  private suspend fun ContactPersonProfileDetailsMigrationMappingRequest.find() = repository.findByNomisPrisonerNumberAndLabel(prisonerNumber, migrationId)
 
-  suspend fun insert(
-    nomisPrisonerNumber: String,
-    label: String,
-    domesticStatusDpsIds: String,
-    numberOfChildrenDpsIds: String,
-  ) = template.insert<ContactPersonProfileDetailMigrationMapping>()
+  private suspend fun ContactPersonProfileDetailsMigrationMappingRequest.insert() = template.insert<ContactPersonProfileDetailMigrationMapping>()
     .using(
       ContactPersonProfileDetailMigrationMapping(
-        nomisPrisonerNumber = nomisPrisonerNumber,
-        label = label,
-        domesticStatusDpsIds = domesticStatusDpsIds,
-        numberOfChildrenDpsIds = numberOfChildrenDpsIds,
+        prisonerNumber,
+        migrationId,
+        domesticStatusDpsIds,
+        numberOfChildrenDpsIds,
       ),
     )
     .awaitSingle()
 
-  suspend fun update(
-    nomisPrisonerNumber: String,
-    label: String,
-    domesticStatusDpsIds: String,
-    numberOfChildrenDpsIds: String,
-  ) = template.update<ContactPersonProfileDetailMigrationMapping>()
+  private suspend fun ContactPersonProfileDetailsMigrationMappingRequest.update() = template.update<ContactPersonProfileDetailMigrationMapping>()
     .inTable("contact_person_profile_detail_migration_mapping")
     .matching(
       query(
-        where("nomis_prisoner_number").`is`(nomisPrisonerNumber)
-          .and(where("label").`is`(label)),
+        where("nomis_prisoner_number").`is`(prisonerNumber)
+          .and(where("label").`is`(migrationId)),
       ),
     )
     .apply(
@@ -71,5 +55,5 @@ class ContactPersonProfileDetailMigrationService(
       ),
     )
     .awaitSingle()
-    .let { find(nomisPrisonerNumber, label) }
+    .let { find()!! }
 }
