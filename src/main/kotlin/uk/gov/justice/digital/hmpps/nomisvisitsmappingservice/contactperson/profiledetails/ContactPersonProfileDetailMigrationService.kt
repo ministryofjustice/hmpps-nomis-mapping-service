@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.contactperson.profiledetails
 
 import kotlinx.coroutines.reactive.awaitSingle
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.data.r2dbc.core.insert
 import org.springframework.data.r2dbc.core.update
-import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.data.relational.core.query.Criteria.where
 import org.springframework.data.relational.core.query.Query.query
 import org.springframework.data.relational.core.query.Update.from

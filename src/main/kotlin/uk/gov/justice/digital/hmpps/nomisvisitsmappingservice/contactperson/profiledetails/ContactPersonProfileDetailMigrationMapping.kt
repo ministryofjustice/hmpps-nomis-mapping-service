@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.contactperson.pro
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.annotation.CreatedDate
-import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
