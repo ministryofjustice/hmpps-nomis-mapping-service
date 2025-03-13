@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Record of Offender Court case migration")
-data class CourtCasePrisonerMigrationDto(
+data class CourtSentencingMigrationSummary(
 
   @Schema(description = "The prisoner number for the set of mappings")
   val offenderNo: String,

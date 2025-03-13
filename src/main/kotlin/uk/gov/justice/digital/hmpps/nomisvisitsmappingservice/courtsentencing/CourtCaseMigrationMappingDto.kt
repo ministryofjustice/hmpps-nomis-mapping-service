@@ -8,7 +8,16 @@ import java.time.LocalDateTime
 @Schema(description = "Court cases mapping including child entity mapping")
 data class CourtCaseMigrationMappingDto(
   @Schema(description = "Mappings")
-  val mappings: List<CourtCaseAllMappingDto> = emptyList(),
+  val courtCases: List<CourtCaseMappingDto> = emptyList(),
+
+  @Schema(description = "Court Appearance mappings")
+  val courtAppearances: List<CourtAppearanceMappingDto> = emptyList(),
+
+  @Schema(description = "Court Charge mappings")
+  val courtCharges: List<CourtChargeMappingDto> = emptyList(),
+
+  @Schema(description = "Sentence mappings")
+  val sentences: List<SentenceMappingDto> = emptyList(),
 
   @Schema(description = "Label (a timestamp for migrated ids)")
   val label: String? = null,
