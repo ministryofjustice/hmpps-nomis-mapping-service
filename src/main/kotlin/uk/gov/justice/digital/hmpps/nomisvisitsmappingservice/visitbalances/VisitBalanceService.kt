@@ -15,9 +15,9 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundEx
 class VisitBalanceService(
   private val repository: VisitBalanceMappingRepository,
 ) {
-  suspend fun getMappingByNomisId(nomisPrisonNumber: String) = repository.findOneByNomisPrisonNumber(nomisPrisonNumber = nomisPrisonNumber)
+  suspend fun getMappingByNomisId(nomisVisitBalanceId: Long) = repository.findOneByNomisVisitBalanceId(nomisVisitBalanceId)
     ?.toDto()
-    ?: throw NotFoundException("No visit order balance mapping found for nomisPrisonNumber=$nomisPrisonNumber")
+    ?: throw NotFoundException("No visit order balance mapping found for nomisVisitBalanceId=$nomisVisitBalanceId")
 
   suspend fun getMappingByDpsId(dpsId: String) = repository.findOneByDpsId(dpsId = dpsId)
     ?.toDto()
@@ -64,14 +64,14 @@ class VisitBalanceService(
 
 fun VisitBalanceMappingDto.fromDto() = VisitBalanceMapping(
   dpsId = dpsId,
-  nomisPrisonNumber = nomisPrisonNumber,
+  nomisVisitBalanceId = nomisVisitBalanceId,
   label = label,
   mappingType = mappingType,
 )
 
 private fun VisitBalanceMapping.toDto() = VisitBalanceMappingDto(
   dpsId = dpsId,
-  nomisPrisonNumber = nomisPrisonNumber,
+  nomisVisitBalanceId = nomisVisitBalanceId,
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,

@@ -10,7 +10,7 @@ class VisitBalanceMapping(
   @Id
   val dpsId: String,
 
-  val nomisPrisonNumber: String,
+  val nomisVisitBalanceId: Long,
 
   /**
    * ISO timestamp of batch job if a migration

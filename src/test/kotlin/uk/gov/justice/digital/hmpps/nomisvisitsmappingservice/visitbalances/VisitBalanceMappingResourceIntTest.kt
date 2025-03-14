@@ -27,7 +27,7 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
   private lateinit var repository: VisitBalanceMappingRepository
 
   @Nested
-  @DisplayName("GET /mapping/visit-balance/nomis-prison-number/{nomisPrisonNumber}")
+  @DisplayName("GET /mapping/visit-balance/nomis-id/{nomisVisitBalanceId}")
   inner class GetMappingByNomisId {
     lateinit var mapping: VisitBalanceMapping
 
@@ -35,8 +35,8 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
     fun setUp() = runTest {
       mapping = repository.save(
         VisitBalanceMapping(
-          dpsId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
-          nomisPrisonNumber = "A1234KT",
+          dpsId = "A1234KT",
+          nomisVisitBalanceId = 12345,
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -53,7 +53,7 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.get()
-          .uri("/mapping/visit-balance/nomis-prison-number/${mapping.nomisPrisonNumber}")
+          .uri("/mapping/visit-balance/nomis-id/${mapping.nomisVisitBalanceId}")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -61,7 +61,7 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.get()
-          .uri("/mapping/visit-balance/nomis-prison-number/${mapping.nomisPrisonNumber}")
+          .uri("/mapping/visit-balance/nomis-id/${mapping.nomisVisitBalanceId}")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -70,7 +70,7 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/mapping/visit-balance/nomis-prison-number/${mapping.nomisPrisonNumber}")
+          .uri("/mapping/visit-balance/nomis-id/${mapping.nomisVisitBalanceId}")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -82,7 +82,7 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 404 when mapping does not exist`() {
         webTestClient.get()
-          .uri("/mapping/visit-balance/nomis-prison-number/9999")
+          .uri("/mapping/visit-balance/nomis-id/9999")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
           .exchange()
           .expectStatus().isNotFound
@@ -91,14 +91,14 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 200 when mapping does exist`() {
         webTestClient.get()
-          .uri("/mapping/visit-balance/nomis-prison-number/${mapping.nomisPrisonNumber}")
+          .uri("/mapping/visit-balance/nomis-id/${mapping.nomisVisitBalanceId}")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
           .jsonPath("dpsId").isEqualTo(mapping.dpsId)
           .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
-          .jsonPath("nomisPrisonNumber").isEqualTo(mapping.nomisPrisonNumber)
+          .jsonPath("nomisVisitBalanceId").isEqualTo(mapping.nomisVisitBalanceId)
           .jsonPath("label").isEqualTo(mapping.label!!)
           .jsonPath("whenCreated").value<String> {
             assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
@@ -116,8 +116,8 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
     fun setUp() = runTest {
       mapping = repository.save(
         VisitBalanceMapping(
-          dpsId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
-          nomisPrisonNumber = "A1234KT",
+          dpsId = "A1234KT",
+          nomisVisitBalanceId = 12345,
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -178,7 +178,7 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isOk
           .expectBody()
           .jsonPath("dpsId").isEqualTo(mapping.dpsId)
-          .jsonPath("nomisPrisonNumber").isEqualTo(mapping.nomisPrisonNumber)
+          .jsonPath("nomisVisitBalanceId").isEqualTo(mapping.nomisVisitBalanceId)
           .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
           .jsonPath("label").isEqualTo(mapping.label!!)
           .jsonPath("whenCreated").value<String> {
@@ -197,8 +197,8 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
     fun setUp() = runTest {
       mapping = repository.save(
         VisitBalanceMapping(
-          dpsId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
-          nomisPrisonNumber = "A1234KT",
+          dpsId = "A1234KT",
+          nomisVisitBalanceId = 12345,
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -278,8 +278,8 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
   inner class CreateMapping {
     private lateinit var existingMapping: VisitBalanceMapping
     private val mapping = VisitBalanceMappingDto(
-      dpsId = "e52d7268-6e10-41a8-a0b9-2319b32520d6",
-      nomisPrisonNumber = "A1234BC",
+      dpsId = "A1234KU",
+      nomisVisitBalanceId = 12346,
       label = "2023-01-01T12:45:12",
       mappingType = MIGRATED,
     )
@@ -288,8 +288,8 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
     fun setUp() = runTest {
       existingMapping = repository.save(
         VisitBalanceMapping(
-          dpsId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
-          nomisPrisonNumber = "A1234KT",
+          dpsId = "A1234KT",
+          nomisVisitBalanceId = 12345,
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
@@ -349,8 +349,8 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isCreated
 
         val createdMapping =
-          repository.findOneByNomisPrisonNumber(
-            nomisPrisonNumber = mapping.nomisPrisonNumber,
+          repository.findOneByNomisVisitBalanceId(
+            nomisVisitBalanceId = mapping.nomisVisitBalanceId,
           )!!
 
         assertThat(createdMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
@@ -373,7 +373,7 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "nomisPrisonNumber": "A1234BC",
+                  "nomisVisitBalanceId": "A1234BC",
                   "dpsId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
                   "mappingType": "INVALID_TYPE"
                 }
@@ -395,7 +395,7 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "nomisPrisonNumber": "A1234BC"
+                  "nomisVisitBalanceId": "A1234BC"
                 }
               """.trimIndent(),
             ),
@@ -435,8 +435,7 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
             BodyInserters.fromValue(
               VisitBalanceMappingDto(
                 dpsId = dpsId,
-                nomisPrisonNumber = existingMapping.nomisPrisonNumber,
-
+                nomisVisitBalanceId = existingMapping.nomisVisitBalanceId,
               ),
             ),
           )
@@ -450,10 +449,10 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
 
         with(duplicateResponse!!) {
           assertThat(this.moreInfo.existing)
-            .containsEntry("nomisPrisonNumber", existingMapping.nomisPrisonNumber)
+            .containsEntry("nomisVisitBalanceId", existingMapping.nomisVisitBalanceId.toInt())
             .containsEntry("dpsId", existingMapping.dpsId)
           assertThat(this.moreInfo.duplicate)
-            .containsEntry("nomisPrisonNumber", existingMapping.nomisPrisonNumber)
+            .containsEntry("nomisVisitBalanceId", existingMapping.nomisVisitBalanceId.toInt())
             .containsEntry("dpsId", dpsId)
         }
       }
@@ -468,7 +467,7 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
             BodyInserters.fromValue(
               VisitBalanceMappingDto(
                 dpsId = existingMapping.dpsId,
-                nomisPrisonNumber = existingMapping.nomisPrisonNumber,
+                nomisVisitBalanceId = existingMapping.nomisVisitBalanceId,
               ),
             ),
           )
@@ -482,10 +481,10 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
 
         with(duplicateResponse!!) {
           assertThat(this.moreInfo.existing)
-            .containsEntry("nomisPrisonNumber", existingMapping.nomisPrisonNumber)
+            .containsEntry("nomisVisitBalanceId", existingMapping.nomisVisitBalanceId.toInt())
             .containsEntry("dpsId", existingMapping.dpsId)
           assertThat(this.moreInfo.duplicate)
-            .containsEntry("nomisPrisonNumber", existingMapping.nomisPrisonNumber)
+            .containsEntry("nomisVisitBalanceId", existingMapping.nomisVisitBalanceId.toInt())
             .containsEntry("dpsId", existingMapping.dpsId)
         }
       }
@@ -502,16 +501,16 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
     fun setUp() = runTest {
       existingMapping1 = repository.save(
         VisitBalanceMapping(
-          dpsId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
-          nomisPrisonNumber = "A1234KT",
+          dpsId = "A1234KU",
+          nomisVisitBalanceId = 12345,
           label = "2023-01-01T12:45:12",
           mappingType = MIGRATED,
         ),
       )
       existingMapping2 = repository.save(
         VisitBalanceMapping(
-          dpsId = "4433eb7d-2fa0-4055-99d9-633fefa53288",
-          nomisPrisonNumber = "A1234BC",
+          dpsId = "A1234KT",
+          nomisVisitBalanceId = 12346,
           mappingType = NOMIS_CREATED,
         ),
       )
@@ -556,13 +555,13 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 204 when all mappings are deleted`() = runTest {
         assertThat(
-          repository.findOneByNomisPrisonNumber(
-            nomisPrisonNumber = existingMapping1.nomisPrisonNumber,
+          repository.findOneByNomisVisitBalanceId(
+            nomisVisitBalanceId = existingMapping1.nomisVisitBalanceId,
           ),
         ).isNotNull
         assertThat(
-          repository.findOneByNomisPrisonNumber(
-            nomisPrisonNumber = existingMapping2.nomisPrisonNumber,
+          repository.findOneByNomisVisitBalanceId(
+            nomisVisitBalanceId = existingMapping2.nomisVisitBalanceId,
           ),
         ).isNotNull
 
@@ -573,13 +572,13 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isNoContent
 
         assertThat(
-          repository.findOneByNomisPrisonNumber(
-            nomisPrisonNumber = existingMapping1.nomisPrisonNumber,
+          repository.findOneByNomisVisitBalanceId(
+            nomisVisitBalanceId = existingMapping1.nomisVisitBalanceId,
           ),
         ).isNull()
         assertThat(
-          repository.findOneByNomisPrisonNumber(
-            nomisPrisonNumber = existingMapping2.nomisPrisonNumber,
+          repository.findOneByNomisVisitBalanceId(
+            nomisVisitBalanceId = existingMapping2.nomisVisitBalanceId,
           ),
         ).isNull()
       }
@@ -626,8 +625,8 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
       (1L..4L).forEach {
         repository.save(
           VisitBalanceMapping(
-            dpsId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
-            nomisPrisonNumber = "A123${it}KT",
+            dpsId = "A123${it}KT",
+            nomisVisitBalanceId = 1000 + it,
             label = "2023-01-01T12:45:12",
             mappingType = MIGRATED,
           ),
@@ -636,8 +635,8 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
 
       repository.save(
         VisitBalanceMapping(
-          dpsId = "edcd118c-91ba-42ea-b5c4-404b453ad58b",
-          nomisPrisonNumber = "A4321KT",
+          dpsId = "A4321KT",
+          nomisVisitBalanceId = 12345,
           label = "2022-01-01T12:43:12",
           mappingType = MIGRATED,
         ),
@@ -649,8 +648,8 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
         .expectBody()
         .jsonPath("totalElements").isEqualTo(4)
-        .jsonPath("$.content..nomisPrisonNumber").value(
-          Matchers.contains("A1231KT", "A1232KT", "A1233KT", "A1234KT"),
+        .jsonPath("$.content..nomisVisitBalanceId").value(
+          Matchers.contains(1001, 1002, 1003, 1004),
         )
         .jsonPath("$.content[0].whenCreated").isNotEmpty
     }
@@ -671,8 +670,8 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
       (1L..6L).forEach {
         repository.save(
           VisitBalanceMapping(
-            dpsId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
-            nomisPrisonNumber = "A123${it}KT",
+            dpsId = "A123${it}KT",
+            nomisVisitBalanceId = 1000 + it,
             label = "2023-01-01T12:45:12",
             mappingType = MIGRATED,
           ),
@@ -681,7 +680,7 @@ class VisitBalanceMappingResourceIntTest : IntegrationTestBase() {
       webTestClient.get().uri {
         it.path("/mapping/visit-balance/migration-id/2023-01-01T12:45:12")
           .queryParam("size", "2")
-          .queryParam("sort", "nomisPrisonNumber,asc")
+          .queryParam("sort", "nomisVisitBalanceId,asc")
           .build()
       }
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
