@@ -33,8 +33,8 @@ class VisitBalanceMappingResource(private val service: VisitBalanceService) {
   @PostMapping("")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
-    summary = "Creates a prisoner visit order balance mapping",
-    description = "Creates a prisoner visit order balance mapping. Requires ROLE_NOMIS_VISIT_BALANCE",
+    summary = "Creates a prisoner visit balance mapping",
+    description = "Creates a prisoner visit balance mapping. Requires ROLE_NOMIS_VISIT_BALANCE",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -81,10 +81,10 @@ class VisitBalanceMappingResource(private val service: VisitBalanceService) {
     )
   }
 
-  @GetMapping("/nomis-prison-number/{nomisPrisonNumber}")
+  @GetMapping("/nomis-id/{nomisVisitBalanceId}")
   @Operation(
-    summary = "Get prisoner visit order balance mapping by Nomis prison number",
-    description = "Retrieves the prisoner visit order balance mapping by Nomis prison number (aka offender number). Requires role ROLE_NOMIS_VISIT_BALANCE",
+    summary = "Get prisoner visit balance mapping by Nomis visit balance id",
+    description = "Retrieves the prisoner visit balance mapping by Nomis visit balance id. Requires role ROLE_NOMIS_VISIT_BALANCE",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -108,19 +108,19 @@ class VisitBalanceMappingResource(private val service: VisitBalanceService) {
     ],
   )
   suspend fun getMappingByNomisId(
-    @Schema(description = "NOMIS prison number aka offender no.", example = "A1234BC", required = true)
+    @Schema(description = "NOMIS visit balance id.", example = "1", required = true)
     @PathVariable
-    nomisPrisonNumber: String,
-  ): VisitBalanceMappingDto = service.getMappingByNomisId(nomisPrisonNumber = nomisPrisonNumber)
+    nomisVisitBalanceId: Long,
+  ): VisitBalanceMappingDto = service.getMappingByNomisId(nomisVisitBalanceId = nomisVisitBalanceId)
 
   @GetMapping("/dps-id/{dpsId}")
   @Operation(
-    summary = "Get visit order balance mapping by Dps id",
-    description = "Retrieves the visit order balance mapping by Dps id. Requires role ROLE_NOMIS_VISIT_BALANCE",
+    summary = "Get visit balance mapping by DPS id",
+    description = "Retrieves the visit balance mapping by DPS id. Requires role ROLE_NOMIS_VISIT_BALANCE",
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Visit order balance mapping data",
+        description = "Visit balance mapping data",
       ),
       ApiResponse(
         responseCode = "401",
@@ -140,15 +140,15 @@ class VisitBalanceMappingResource(private val service: VisitBalanceService) {
     ],
   )
   suspend fun getMappingByDpsId(
-    @Schema(description = "Dps id", example = "A1234BC", required = true)
+    @Schema(description = "DPS id", example = "A1234BC", required = true)
     @PathVariable
     dpsId: String,
   ): VisitBalanceMappingDto = service.getMappingByDpsId(dpsId = dpsId)
 
   @DeleteMapping("/dps-id/{dpsId}")
   @Operation(
-    summary = "Deletes Prisoner visit order balance mapping",
-    description = "Deletes Prisoner visit order balance mapping by DPS id. Requires role NOMIS_VISIT_BALANCE",
+    summary = "Deletes Prisoner visit balance mapping",
+    description = "Deletes Prisoner visit balance mapping by DPS id. Requires role NOMIS_VISIT_BALANCE",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -168,7 +168,7 @@ class VisitBalanceMappingResource(private val service: VisitBalanceService) {
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
   suspend fun deleteMappingByDpsId(
-    @Schema(description = "Dps id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
+    @Schema(description = "DPS id", example = "A1234BC", required = true)
     @PathVariable
     dpsId: String,
   ) = service.deleteVisitBalanceMappingByDpsId(dpsId = dpsId)
@@ -225,7 +225,7 @@ class VisitBalanceMappingResource(private val service: VisitBalanceService) {
 
   private suspend fun getExistingMappingSimilarTo(mapping: VisitBalanceMappingDto) = runCatching {
     service.getMappingByNomisId(
-      nomisPrisonNumber = mapping.nomisPrisonNumber,
+      nomisVisitBalanceId = mapping.nomisVisitBalanceId,
     )
   }.getOrElse {
     service.getMappingByDpsIdOrNull(

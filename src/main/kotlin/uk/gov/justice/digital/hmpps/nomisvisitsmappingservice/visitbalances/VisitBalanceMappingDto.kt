@@ -9,8 +9,8 @@ import java.time.LocalDateTime
 @Schema(description = "Prisoner Visit Order Balance mapping")
 data class VisitBalanceMappingDto(
 
-  @Schema(description = "NOMIS Prison Number", required = true)
-  val nomisPrisonNumber: String,
+  @Schema(description = "NOMIS Visit Balance (offender booking) ID", required = true)
+  val nomisVisitBalanceId: Long,
 
   @Schema(description = "DPS representation of the offender", required = true)
   val dpsId: String,
