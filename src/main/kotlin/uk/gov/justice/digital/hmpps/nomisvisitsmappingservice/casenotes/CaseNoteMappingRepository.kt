@@ -29,10 +29,6 @@ interface CaseNoteMappingRepository : CoroutineCrudRepository<CaseNoteMapping, L
   suspend fun deleteByDpsCaseNoteId(dpsCaseNoteId: UUID)
 
   @Modifying
-  suspend fun deleteAllByOffenderNo(offenderNo: String)
-  suspend fun findAllByOffenderNoOrderByNomisBookingIdAscNomisCaseNoteIdAsc(offenderNo: String): List<CaseNoteMapping>
-
-  @Modifying
   @Query("UPDATE CASE_NOTE_MAPPING SET offender_no = :toOffenderNo WHERE offender_no = :fromOffenderNo")
   suspend fun updateOffenderNo(fromOffenderNo: String, toOffenderNo: String): Int
 
