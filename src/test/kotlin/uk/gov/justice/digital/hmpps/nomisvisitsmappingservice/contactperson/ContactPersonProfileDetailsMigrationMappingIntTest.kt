@@ -13,7 +13,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.contactperson.profiledetails.ContactPersonProfileDetailMigrationMapping
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.contactperson.profiledetails.ContactPersonProfileDetailMigrationMappingRepository
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.contactperson.profiledetails.ContactPersonProfileDetailsMigrationMappingRequest
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.contactperson.profiledetails.ContactPersonProfileDetailsMigrationMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -74,8 +74,8 @@ class ContactPersonProfileDetailsMigrationMappingIntTest(
         val migrationId = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS).toString()
         webTestClient.upsertMapping("A1234BC", migrationId, "1,2,3", "4,5,6")
           .expectBody()
-          .jsonPath("$.nomisPrisonerNumber").isEqualTo("A1234BC")
-          .jsonPath("$.label").isEqualTo(migrationId)
+          .jsonPath("$.prisonerNumber").isEqualTo("A1234BC")
+          .jsonPath("$.migrationId").isEqualTo(migrationId)
           .jsonPath("$.domesticStatusDpsIds").isEqualTo("1,2,3")
           .jsonPath("$.numberOfChildrenDpsIds").isEqualTo("4,5,6")
 
@@ -142,7 +142,7 @@ class ContactPersonProfileDetailsMigrationMappingIntTest(
       migrationId: String = "2025-03-01T12:45:12",
       domesticStatusDpsIds: String = "1, 2, 3",
       numberOfChildrenDpsIds: String = "4, 5, 6",
-    ) = ContactPersonProfileDetailsMigrationMappingRequest(
+    ) = ContactPersonProfileDetailsMigrationMappingDto(
       prisonerNumber,
       migrationId,
       domesticStatusDpsIds,
@@ -199,11 +199,11 @@ class ContactPersonProfileDetailsMigrationMappingIntTest(
           .expectBody()
           .jsonPath("totalElements").isEqualTo(2)
           .jsonPath("content.size()").isEqualTo(2)
-          .jsonPath("content[0].nomisPrisonerNumber").isEqualTo("A1234BC")
+          .jsonPath("content[0].prisonerNumber").isEqualTo("A1234BC")
           .jsonPath("content[0].domesticStatusDpsIds").isEqualTo("1,2")
           .jsonPath("content[0].numberOfChildrenDpsIds").isEqualTo("3,4")
           .jsonPath("content[0].whenCreated").isNotEmpty
-          .jsonPath("content[1].nomisPrisonerNumber").isEqualTo("B2345CD")
+          .jsonPath("content[1].prisonerNumber").isEqualTo("B2345CD")
           .jsonPath("content[1].domesticStatusDpsIds").isEqualTo("1,2")
           .jsonPath("content[1].numberOfChildrenDpsIds").isEqualTo("3,4")
           .jsonPath("content[1].whenCreated").isNotEmpty
@@ -243,9 +243,9 @@ class ContactPersonProfileDetailsMigrationMappingIntTest(
           .jsonPath("totalPages").isEqualTo(2)
           .jsonPath("size").isEqualTo(pageSize)
           .jsonPath("content.size()").isEqualTo(pageSize)
-          .jsonPath("content[0].nomisPrisonerNumber").isEqualTo("A0001BC")
-          .jsonPath("content[1].nomisPrisonerNumber").isEqualTo("A0002BC")
-          .jsonPath("content[2].nomisPrisonerNumber").isEqualTo("A0003BC")
+          .jsonPath("content[0].prisonerNumber").isEqualTo("A0001BC")
+          .jsonPath("content[1].prisonerNumber").isEqualTo("A0002BC")
+          .jsonPath("content[2].prisonerNumber").isEqualTo("A0003BC")
 
         webTestClient.get().uri {
           it.path("/mapping/contact-person/profile-details/migration/migration-id/some_migration_id")
@@ -263,7 +263,7 @@ class ContactPersonProfileDetailsMigrationMappingIntTest(
           .jsonPath("totalPages").isEqualTo(2)
           .jsonPath("size").isEqualTo(pageSize)
           .jsonPath("content.size()").isEqualTo(1)
-          .jsonPath("content[0].nomisPrisonerNumber").isEqualTo("A0004BC")
+          .jsonPath("content[0].prisonerNumber").isEqualTo("A0004BC")
       }
     }
 
