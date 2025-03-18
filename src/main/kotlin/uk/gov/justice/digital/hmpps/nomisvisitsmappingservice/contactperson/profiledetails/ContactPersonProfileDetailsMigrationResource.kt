@@ -32,7 +32,7 @@ class ContactPersonProfileDetailsMigrationResource(
     summary = "Creates or updates a contact person profile details migration mapping for a migration",
     description = "Creates updates a contact person profile details migration mapping for a migration between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = ContactPersonProfileDetailsMigrationMappingRequest::class))],
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = ContactPersonProfileDetailsMigrationMappingDto::class))],
     ),
     responses = [
       ApiResponse(responseCode = "200", description = "Mappings created or updated"),
@@ -51,7 +51,7 @@ class ContactPersonProfileDetailsMigrationResource(
   suspend fun createMappings(
     @Schema(description = "Migration request details")
     @RequestBody
-    @Valid mappingRequest: ContactPersonProfileDetailsMigrationMappingRequest,
+    @Valid mappingRequest: ContactPersonProfileDetailsMigrationMappingDto,
   ) = service.upsert(mappingRequest)
 
   @GetMapping("/migration/migration-id/{migrationId}")
@@ -80,5 +80,5 @@ class ContactPersonProfileDetailsMigrationResource(
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<ContactPersonProfileDetailMigrationMapping> = service.getMappings(pageRequest = pageRequest, migrationId = migrationId)
+  ): Page<ContactPersonProfileDetailsMigrationMappingDto> = service.getMappings(pageRequest = pageRequest, migrationId = migrationId)
 }

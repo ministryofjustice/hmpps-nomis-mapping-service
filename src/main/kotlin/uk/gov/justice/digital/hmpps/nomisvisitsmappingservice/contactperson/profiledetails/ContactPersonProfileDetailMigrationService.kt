@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.contactperson.pro
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.data.domain.Page
@@ -26,14 +27,17 @@ class ContactPersonProfileDetailMigrationService(
 
   @Transactional
   suspend fun upsert(
-    mappingRequest: ContactPersonProfileDetailsMigrationMappingRequest,
-  ): ContactPersonProfileDetailMigrationMapping = mappingRequest.find()
-    ?.let { mappingRequest.update() }
-    ?: mappingRequest.insert()
+    mappingRequest: ContactPersonProfileDetailsMigrationMappingDto,
+  ): ContactPersonProfileDetailsMigrationMappingDto = (
+    mappingRequest.find()
+      ?.let { mappingRequest.update() }
+      ?: mappingRequest.insert()
+    )
+    .toDto()
 
-  private suspend fun ContactPersonProfileDetailsMigrationMappingRequest.find() = repository.findByNomisPrisonerNumberAndLabel(prisonerNumber, migrationId)
+  private suspend fun ContactPersonProfileDetailsMigrationMappingDto.find() = repository.findByNomisPrisonerNumberAndLabel(prisonerNumber, migrationId)
 
-  private suspend fun ContactPersonProfileDetailsMigrationMappingRequest.insert() = template.insert<ContactPersonProfileDetailMigrationMapping>()
+  private suspend fun ContactPersonProfileDetailsMigrationMappingDto.insert() = template.insert<ContactPersonProfileDetailMigrationMapping>()
     .using(
       ContactPersonProfileDetailMigrationMapping(
         prisonerNumber,
@@ -44,7 +48,7 @@ class ContactPersonProfileDetailMigrationService(
     )
     .awaitSingle()
 
-  private suspend fun ContactPersonProfileDetailsMigrationMappingRequest.update() = template.update<ContactPersonProfileDetailMigrationMapping>()
+  private suspend fun ContactPersonProfileDetailsMigrationMappingDto.update() = template.update<ContactPersonProfileDetailMigrationMapping>()
     .inTable("contact_person_profile_detail_migration_mapping")
     .matching(
       query(
@@ -66,7 +70,7 @@ class ContactPersonProfileDetailMigrationService(
   suspend fun getMappings(
     pageRequest: Pageable,
     migrationId: String,
-  ): Page<ContactPersonProfileDetailMigrationMapping> = coroutineScope {
+  ): Page<ContactPersonProfileDetailsMigrationMappingDto> = coroutineScope {
     val migrationMappings = async {
       repository.findAllByLabelOrderByNomisPrisonerNumberAsc(label = migrationId, pageRequest)
     }
@@ -76,9 +80,17 @@ class ContactPersonProfileDetailMigrationService(
     }
 
     PageImpl(
-      migrationMappings.await().toList(),
+      migrationMappings.await().map { it.toDto() }.toList(),
       pageRequest,
       count.await(),
     )
   }
 }
+
+fun ContactPersonProfileDetailMigrationMapping.toDto() = ContactPersonProfileDetailsMigrationMappingDto(
+  nomisPrisonerNumber,
+  label,
+  domesticStatusDpsIds,
+  numberOfChildrenDpsIds,
+  whenCreated,
+)
