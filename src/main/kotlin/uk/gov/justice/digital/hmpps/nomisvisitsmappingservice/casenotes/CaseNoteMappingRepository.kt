@@ -12,12 +12,6 @@ interface CaseNoteMappingRepository : CoroutineCrudRepository<CaseNoteMapping, L
   suspend fun findByNomisCaseNoteIdIn(nomisCaseNoteIds: List<Long>): List<CaseNoteMapping>
   suspend fun findFirstByMappingTypeOrderByWhenCreatedDesc(mappingType: CaseNoteMappingType): CaseNoteMapping?
 
-  @Query(
-    """select count(distinct m.OFFENDER_NO) from CASE_NOTE_MAPPING m 
-    where m.LABEL = :label and m.MAPPING_TYPE = :mappingType""",
-  )
-  suspend fun countDistinctPrisoners(label: String, mappingType: CaseNoteMappingType): Long
-
   // plain distinct count: 814264 in 3m30s
 
   // plain count(*) 108976723 takes 38s
@@ -28,8 +22,6 @@ interface CaseNoteMappingRepository : CoroutineCrudRepository<CaseNoteMapping, L
   @Modifying
   suspend fun deleteByDpsCaseNoteId(dpsCaseNoteId: UUID)
 
-  @Modifying
-  suspend fun deleteAllByOffenderNo(offenderNo: String)
   suspend fun findAllByOffenderNoOrderByNomisBookingIdAscNomisCaseNoteIdAsc(offenderNo: String): List<CaseNoteMapping>
 
   @Modifying

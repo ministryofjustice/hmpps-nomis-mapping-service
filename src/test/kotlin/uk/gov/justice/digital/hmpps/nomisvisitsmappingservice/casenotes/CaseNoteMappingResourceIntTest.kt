@@ -499,27 +499,29 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
       offenderNo = "A1234KT",
       mappingType = CaseNoteMappingType.DPS_CREATED,
     )
-    private val prisonerMappings = PrisonerCaseNoteMappingsDto(
-      label = "2023-01-01T12:45:12",
-      mappingType = CaseNoteMappingType.MIGRATED,
-      mappings = listOf(
-        CaseNoteMappingIdDto(
-          dpsCaseNoteId = dpsId3,
-          nomisBookingId = 54321L,
-          nomisCaseNoteId = 3L,
-        ),
-        CaseNoteMappingIdDto(
-          dpsCaseNoteId = dpsId4,
-          nomisBookingId = 54321L,
-          nomisCaseNoteId = 4L,
-        ),
+    private val prisonerMappings = listOf(
+      CaseNoteMappingDto(
+        dpsCaseNoteId = dpsId3,
+        nomisCaseNoteId = 3L,
+        offenderNo = "A1234KT",
+        nomisBookingId = 54321L,
+        label = "2023-01-01T12:45:12",
+        mappingType = CaseNoteMappingType.MIGRATED,
+      ),
+      CaseNoteMappingDto(
+        dpsCaseNoteId = dpsId4,
+        nomisCaseNoteId = 4L,
+        offenderNo = "A1234KT",
+        nomisBookingId = 54321L,
+        label = "2023-01-01T12:45:12",
+        mappingType = CaseNoteMappingType.MIGRATED,
       ),
     )
 
     @BeforeEach
     fun setUp() = runTest {
       webTestClient.post()
-        .uri("/mapping/casenotes/A1234KT/all")
+        .uri("/mapping/casenotes/batch")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CASENOTES")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(prisonerMappings))

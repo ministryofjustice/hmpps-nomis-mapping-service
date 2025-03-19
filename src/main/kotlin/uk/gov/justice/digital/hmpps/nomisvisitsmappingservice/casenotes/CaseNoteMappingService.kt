@@ -71,23 +71,6 @@ class CaseNoteMappingService(
     repository.saveAll(mappings.map { it.fromDto() }).collect()
   }
 
-  @Transactional
-  suspend fun createMappings(offenderNo: String, prisonerMapping: PrisonerCaseNoteMappingsDto) {
-    repository.deleteAllByOffenderNo(offenderNo)
-    repository.saveAll(
-      prisonerMapping.mappings.map {
-        CaseNoteMapping(
-          dpsCaseNoteId = UUID.fromString(it.dpsCaseNoteId),
-          nomisCaseNoteId = it.nomisCaseNoteId,
-          nomisBookingId = it.nomisBookingId,
-          offenderNo = offenderNo,
-          label = prisonerMapping.label,
-          mappingType = prisonerMapping.mappingType,
-        )
-      },
-    ).collect()
-  }
-
   suspend fun getMappingByNomisId(nomisCaseNoteId: Long): CaseNoteMappingDto = repository.findById(nomisCaseNoteId)
     ?.let { CaseNoteMappingDto(it) }
     ?: throw NotFoundException("CaseNote with nomisCaseNoteId=$nomisCaseNoteId not found")
