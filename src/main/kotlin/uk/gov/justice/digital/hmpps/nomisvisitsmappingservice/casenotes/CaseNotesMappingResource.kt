@@ -132,6 +132,97 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     throw e
   }
 
+  @PostMapping("{offenderNo}/all")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates a set of new case note mappings for a prisoner",
+    description = "Creates a mapping between all the nomis case note ids and dps case note ids. Requires ROLE_NOMIS_CASENOTES",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(mediaType = "application/json", schema = Schema(implementation = PrisonerCaseNoteMappingsDto::class)),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createMappingsForPrisoner(
+    @Schema(description = "NOMIS offender no", example = "A1234KT", required = true)
+    @PathVariable
+    offenderNo: String,
+    @RequestBody @Valid
+    prisonerMapping: PrisonerCaseNoteMappingsDto,
+  ) = try {
+    mappingService.createMappings(offenderNo, prisonerMapping)
+  } catch (e: DuplicateKeyException) {
+    val duplicateMapping = getMappingIdThatIsDuplicate(prisonerMapping.mappings)
+    if (duplicateMapping != null) {
+      throw DuplicateMappingException(
+        messageIn = "CaseNote mapping already exists",
+        duplicate = duplicateMapping.let {
+          CaseNoteMappingDto(
+            dpsCaseNoteId = it.dpsCaseNoteId,
+            nomisCaseNoteId = it.nomisCaseNoteId,
+            nomisBookingId = it.nomisBookingId,
+            offenderNo = offenderNo,
+            label = prisonerMapping.label,
+            mappingType = prisonerMapping.mappingType,
+          )
+        },
+        existing = getExistingMappingSimilarTo(duplicateMapping),
+        cause = e,
+      )
+    }
+    throw e
+  }
+
+  @GetMapping("{offenderNo}/all")
+  @Operation(
+    summary = "Gets all case note mappings for a prisoner",
+    description = "Gets all the mapping between nomis case note ids and dps case note id related to specific prisoner created either via migration or synchronisation. Requires ROLE_NOMIS_ALERTS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mappings for prisoner",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getMappingsForPrisoner(
+    @Schema(description = "NOMIS offender no", example = "A1234KT", required = true)
+    @PathVariable
+    offenderNo: String,
+  ): AllPrisonerCaseNoteMappingsDto = mappingService.getMappings(offenderNo)
+
   @GetMapping("/nomis-casenote-id/{caseNoteId}")
   @Operation(
     summary = "get mapping",
@@ -367,10 +458,21 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     newOffenderNo: String,
   ): List<CaseNoteMappingDto> = mappingService.updateMappingsByBookingId(bookingId, newOffenderNo)
 
+  private suspend fun getExistingMappingSimilarTo(mapping: CaseNoteMappingIdDto) = runCatching {
+    mappingService.getMappingByNomisId(mapping.nomisCaseNoteId)
+  }.getOrElse {
+    mappingService.getMappingsByDpsId(mapping.dpsCaseNoteId).first()
+  }
+
   private suspend fun getExistingMappingSimilarTo(mapping: CaseNoteMappingDto) = runCatching {
     mappingService.getMappingByNomisId(nomisCaseNoteId = mapping.nomisCaseNoteId)
   }.getOrElse {
     mappingService.getMappingsByDpsId(dpsCaseNoteId = mapping.dpsCaseNoteId).first()
+  }
+
+  private suspend fun getMappingIdThatIsDuplicate(mappings: List<CaseNoteMappingIdDto>): CaseNoteMappingIdDto? = mappings.find {
+    // look for each mapping until I find one (i.e. that is there is no exception thrown)
+    kotlin.runCatching { getExistingMappingSimilarTo(it) }.map { true }.getOrElse { false }
   }
 
   private suspend fun getMappingThatIsDuplicate(mappings: List<CaseNoteMappingDto>): CaseNoteMappingDto? = mappings.find {
