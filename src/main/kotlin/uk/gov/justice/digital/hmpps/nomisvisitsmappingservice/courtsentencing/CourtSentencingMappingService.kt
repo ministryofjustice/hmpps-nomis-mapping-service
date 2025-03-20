@@ -83,9 +83,10 @@ class CourtSentencingMappingService(
   }
 
   @Transactional
-  suspend fun createAllMappingsForOffender(createMappingRequest: CourtCaseMigrationMappingDto) = with(createMappingRequest) {
+  suspend fun createAllMappingsForOffenderIdempotent(createMappingRequest: CourtCaseMigrationMappingDto) = with(createMappingRequest) {
     createMappingRequest.courtCases.map { courtCaseMappingRequest ->
       try {
+        deleteCourtCaseMappingByNomisId(courtCaseMappingRequest.nomisCourtCaseId)
         createCourtCaseMapping(courtCaseMappingRequest)
       } catch (e: Exception) {
         log.info(
@@ -97,6 +98,7 @@ class CourtSentencingMappingService(
     }
     createMappingRequest.courtAppearances.forEach {
       try {
+        deleteCourtAppearanceMappingByNomisId(it.nomisCourtAppearanceId)
         createCourtAppearanceMapping(it)
       } catch (e: Exception) {
         log.info(
@@ -108,10 +110,11 @@ class CourtSentencingMappingService(
     }
     createMappingRequest.courtCharges.forEach {
       try {
+        deleteCourtChargeMappingByNomisId(it.nomisCourtChargeId)
         createCourtChargeMapping(it)
       } catch (e: Exception) {
         log.info(
-          "Failed to create court charge mapping for dpsCourtChargeId=${it.dpsCourtChargeId}, nomisCourtAppearanceId=${it.nomisCourtChargeId}",
+          "Failed to create court charge mapping for dpsCourtChargeId=${it.dpsCourtChargeId}, nomisCourtChargeId=${it.nomisCourtChargeId}",
           e,
         )
         throw e
@@ -119,6 +122,7 @@ class CourtSentencingMappingService(
     }
     createMappingRequest.sentences.forEach {
       try {
+        deleteSentenceMappingByNomisId(it.nomisBookingId, it.nomisSentenceSequence)
         createSentenceAllMapping(it)
       } catch (e: Exception) {
         log.info(
@@ -132,7 +136,8 @@ class CourtSentencingMappingService(
 
   @Transactional
   suspend fun createMigrationMapping(offenderNo: String, createMappingRequest: CourtCaseMigrationMappingDto) {
-    createAllMappingsForOffender(createMappingRequest).also {
+    createAllMappingsForOffenderIdempotent(createMappingRequest).also {
+      courtCasePrisonerMappingRepository.deleteById(offenderNo)
       courtCasePrisonerMappingRepository.save(
         CourtCasePrisonerMigration(
           offenderNo = offenderNo,

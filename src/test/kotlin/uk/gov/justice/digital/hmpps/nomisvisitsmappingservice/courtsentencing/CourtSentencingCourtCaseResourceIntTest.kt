@@ -46,6 +46,7 @@ private const val DPS_COURT_CASE_2_ID = "dps123"
 private const val EXISTING_DPS_COURT_CASE_ID = "DPS321"
 private const val EXISTING_NOMIS_COURT_CASE_ID = 98765L
 private const val EXISTING_NOMIS_COURT_APPEARANCE_ID = 98733L
+private const val EXISTING_NOMIS_SENTENCE_SEQ = 4
 
 class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
   @Autowired
@@ -871,6 +872,14 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
           mappingType = CourtAppearanceMappingType.NOMIS_CREATED,
         ),
       )
+      sentenceRepository.save(
+        SentenceMapping(
+          dpsSentenceId = "dps321",
+          nomisSentenceSequence = EXISTING_NOMIS_SENTENCE_SEQ,
+          nomisBookingId = NOMIS_BOOKING_ID,
+          mappingType = SentenceMappingType.NOMIS_CREATED,
+        ),
+      )
       prisonerCourtCaseRepository.save(
         CourtCasePrisonerMigration(
           offenderNo = EXISTING_OFFENDER_NO,
@@ -1062,7 +1071,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
       }
 
       @Test
-      fun `returns 409 if court case already exists`() {
+      fun `if court case already exists, will recreate mappings`() {
         webTestClient.post()
           .uri("/mapping/court-sentencing/prisoner/${OFFENDER_NO}/court-cases")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
@@ -1080,16 +1089,11 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
             ),
           )
           .exchange()
-          .expectStatus().isEqualTo(409)
-          .expectBody(
-            object :
-              ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
-          )
-          .returnResult().responseBody
+          .expectStatus().isEqualTo(201)
       }
 
       @Test
-      fun `returns 409 if offender already migrated`() {
+      fun `if offender already migrated, will recreate mappings`() {
         webTestClient.post()
           .uri("/mapping/court-sentencing/prisoner/${EXISTING_OFFENDER_NO}/court-cases")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
@@ -1102,13 +1106,55 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
             ),
           )
           .exchange()
-          .expectStatus().isEqualTo(409)
-          .expectBody(
-            object :
-              ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
-          )
-          .returnResult().responseBody
+          .expectStatus().isEqualTo(201)
       }
+
+      @Test
+      fun `if court appearance already migrated, will recreate mappings`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/prisoner/${OFFENDER_NO}/court-cases")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CourtCaseMigrationMappingDto(
+                courtCases = mapping.courtCases,
+                courtAppearances = listOf(
+                  CourtAppearanceMappingDto(
+                    dpsCourtAppearanceId = "1234",
+                    nomisCourtAppearanceId = EXISTING_NOMIS_COURT_APPEARANCE_ID,
+                  ),
+                ),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isEqualTo(201)
+      }
+    }
+
+    @Test
+    fun `if sentence already migrated, will recreate mappings`() {
+      webTestClient.post()
+        .uri("/mapping/court-sentencing/prisoner/${OFFENDER_NO}/court-cases")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            CourtCaseMigrationMappingDto(
+              courtCases = mapping.courtCases,
+              sentences = listOf(
+                SentenceMappingDto(
+                  dpsSentenceId = "1234",
+                  nomisSentenceSequence = EXISTING_NOMIS_SENTENCE_SEQ,
+                  nomisBookingId = NOMIS_BOOKING_ID,
+                ),
+              ),
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isEqualTo(201)
     }
   }
 
