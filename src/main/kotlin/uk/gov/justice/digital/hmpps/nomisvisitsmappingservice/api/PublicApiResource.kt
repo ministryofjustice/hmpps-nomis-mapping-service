@@ -17,12 +17,13 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.courtsentencing.CourtSentencingMappingService
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.LocationMappingService
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @RequestMapping("/api", produces = [MediaType.APPLICATION_JSON_VALUE])
-class PublicApiResource(private val locationService: LocationMappingService) {
+class PublicApiResource(private val locationService: LocationMappingService, private val sentenceService: CourtSentencingMappingService) {
 
   @PreAuthorize("hasRole('ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R')")
   @GetMapping("/locations/nomis/{nomisLocationId}")
@@ -193,6 +194,56 @@ class PublicApiResource(private val locationService: LocationMappingService) {
     @RequestBody dpsLocationIds: List<String>,
   ): Flow<NomisDpsLocationMapping> = locationService.getAllMappingsByDpsIds(dpsLocationIds)
     .map { NomisDpsLocationMapping(dpsLocationId = it.dpsLocationId, nomisLocationId = it.nomisLocationId) }
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_DPS_MAPPING__SENTENCE__R')")
+  @GetMapping("/sentence/nomis/booking-id/{nomisBookingId}/sentence-sequence/{nomisSentenceSequence}")
+  @Tag(name = "NOMIS / DPS Mapping lookup")
+  @Operation(
+    summary = "Retrieves the DPS Sentence id from the NOMIS booking and sentence sequence",
+    description = "Requires role <b>NOMIS_DPS_MAPPING__SENTENCE__R</b>",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "NOMIS to DPS Mapping Information Returned",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = NomisDpsSentenceMapping::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden to this endpoint. Requires role NOMIS_DPS_MAPPING__SENTENCE__R",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Sentence id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getSentenceMappingByNomisId(
+    @Schema(description = "NOMIS booking id", required = true, example = "123456")
+    @PathVariable
+    nomisBookingId: Long,
+    @Schema(description = "NOMIS sentence sequence", required = true, example = "4")
+    @PathVariable
+    nomisSentenceSequence: Int,
+  ): NomisDpsSentenceMapping = sentenceService.getSentenceAllMappingByNomisId(
+    nomisBookingId = nomisBookingId,
+    nomisSentenceSeq = nomisSentenceSequence,
+  )
+    .let {
+      NomisDpsSentenceMapping(
+        nomisBookingId = it.nomisBookingId,
+        nomisSentenceSequence = it.nomisSentenceSequence,
+        dpsSentenceId = it.dpsSentenceId,
+      )
+    }
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -204,4 +255,16 @@ data class NomisDpsLocationMapping(
 
   @Schema(description = "Internal Location id in NOMIS", example = "2318905")
   val nomisLocationId: Long,
+)
+
+@Schema(description = "NOMIS DPS Sentence mapping")
+data class NomisDpsSentenceMapping(
+  @Schema(description = "NOMIS booking id", required = true, example = "123456")
+  val nomisBookingId: Long,
+
+  @Schema(description = "NOMIS sentence sequence", required = true, example = "4")
+  val nomisSentenceSequence: Int,
+
+  @Schema(description = "DPS sentence id", example = "f4499772-2e43-4951-861d-04ad86df43fc\"")
+  val dpsSentenceId: String,
 )
