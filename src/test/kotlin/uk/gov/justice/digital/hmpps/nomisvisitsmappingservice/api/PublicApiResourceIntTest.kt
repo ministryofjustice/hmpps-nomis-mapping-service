@@ -348,36 +348,36 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
 
   @Nested
   inner class Sentences {
-    val nomisBookingId = 123456L
-    val nomisSentenceSequence = 1
-    val dpsSentenceId = "12345678-1234-1234-1234-123456789012"
-
-    @BeforeEach
-    fun setUp(): Unit = runBlocking {
-      sentenceRepository.save(
-        SentenceMapping(
-          dpsSentenceId = dpsSentenceId,
-          nomisBookingId = nomisBookingId,
-          nomisSentenceSequence = nomisSentenceSequence,
-          mappingType = SentenceMappingType.NOMIS_CREATED,
-        ),
-      )
-    }
-
     @AfterEach
     internal fun deleteData() = runBlocking {
       sentenceRepository.deleteAll()
     }
 
-    @DisplayName("GET /api/sentence/nomis/booking-id/{nomisBookingId}/sentence-sequence/{nomisSentenceSequence}")
+    @DisplayName("GET /api/sentences/nomis/booking-id/{nomisBookingId}/sentence-sequence/{nomisSentenceSequence}")
     @Nested
     inner class GetByNomisSentenceMapping {
+      val nomisBookingId = 123456L
+      val nomisSentenceSequence = 1
+      val dpsSentenceId = "12345678-1234-1234-1234-123456789012"
+
+      @BeforeEach
+      fun setUp(): Unit = runBlocking {
+        sentenceRepository.save(
+          SentenceMapping(
+            dpsSentenceId = dpsSentenceId,
+            nomisBookingId = nomisBookingId,
+            nomisSentenceSequence = nomisSentenceSequence,
+            mappingType = SentenceMappingType.NOMIS_CREATED,
+          ),
+        )
+      }
+
       @Nested
       inner class Security {
         @Test
         fun `access unauthorised when no authority`() {
           webTestClient.get()
-            .uri("/api/sentence/nomis/booking-id/$nomisBookingId/sentence-sequence/$nomisSentenceSequence")
+            .uri("/api/sentences/nomis/booking-id/$nomisBookingId/sentence-sequence/$nomisSentenceSequence")
             .exchange()
             .expectStatus().isUnauthorized
         }
@@ -385,7 +385,7 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
         @Test
         fun `access forbidden with no roles`() {
           webTestClient.get()
-            .uri("/api/sentence/nomis/booking-id/$nomisBookingId/sentence-sequence/$nomisSentenceSequence")
+            .uri("/api/sentences/nomis/booking-id/$nomisBookingId/sentence-sequence/$nomisSentenceSequence")
             .headers(setAuthorisation(roles = listOf()))
             .exchange()
             .expectStatus().isForbidden
@@ -394,7 +394,7 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
         @Test
         fun `access forbidden with wrong role`() {
           webTestClient.get()
-            .uri("/api/sentence/nomis/booking-id/$nomisBookingId/sentence-sequence/$nomisSentenceSequence")
+            .uri("/api/sentences/nomis/booking-id/$nomisBookingId/sentence-sequence/$nomisSentenceSequence")
             .headers(setAuthorisation(roles = listOf("NOMIS_DPS_MAPPING__LOCATIONS__R")))
             .exchange()
             .expectStatus().isForbidden
@@ -406,14 +406,14 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
         @Test
         fun `returns DPS and NOMIS ids`() {
           webTestClient.get()
-            .uri("/api/sentence/nomis/booking-id/$nomisBookingId/sentence-sequence/$nomisSentenceSequence")
+            .uri("/api/sentences/nomis/booking-id/$nomisBookingId/sentence-sequence/$nomisSentenceSequence")
             .headers(setAuthorisation(roles = listOf("NOMIS_DPS_MAPPING__SENTENCE__R")))
             .exchange()
             .expectStatus().isOk
             .expectBody()
             .jsonPath("dpsSentenceId").isEqualTo(dpsSentenceId)
-            .jsonPath("nomisBookingId").isEqualTo(nomisBookingId)
-            .jsonPath("nomisSentenceSequence").isEqualTo(nomisSentenceSequence)
+            .jsonPath("nomisSentenceId.nomisBookingId").isEqualTo(nomisBookingId)
+            .jsonPath("nomisSentenceId.nomisSentenceSequence").isEqualTo(nomisSentenceSequence)
         }
       }
 
@@ -422,10 +422,124 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
         @Test
         fun `returns 404 when not found`() {
           webTestClient.get()
-            .uri("/api/sentence/nomis/booking-id/9999/sentence-sequence/999")
+            .uri("/api/sentences/nomis/booking-id/9999/sentence-sequence/999")
             .headers(setAuthorisation(roles = listOf("NOMIS_DPS_MAPPING__SENTENCE__R")))
             .exchange()
             .expectStatus().isNotFound
+        }
+      }
+    }
+
+    @DisplayName("POST /api/sentences/nomis")
+    @Nested
+    inner class GetByNomisSentenceMappings {
+      val nomisBookingId1 = 123456L
+      val nomisSentenceSequence1 = 1
+      val dpsSentenceId1 = "12345678-1234-1234-1234-123456789012"
+      val nomisBookingId2 = 234567L
+      val nomisSentenceSequence2 = 2
+      val dpsSentenceId2 = "32145678-3214-3214-3214-321456789012"
+
+      val request = listOf(
+        NomisSentenceId(
+          nomisBookingId = nomisBookingId1,
+          nomisSentenceSequence = nomisSentenceSequence1,
+        ),
+        NomisSentenceId(
+          nomisBookingId = nomisBookingId2,
+          nomisSentenceSequence = nomisSentenceSequence2,
+        ),
+      )
+
+      @BeforeEach
+      fun setUp(): Unit = runBlocking {
+        sentenceRepository.save(
+          SentenceMapping(
+            dpsSentenceId = dpsSentenceId1,
+            nomisBookingId = nomisBookingId1,
+            nomisSentenceSequence = nomisSentenceSequence1,
+            mappingType = SentenceMappingType.NOMIS_CREATED,
+          ),
+        )
+        sentenceRepository.save(
+          SentenceMapping(
+            dpsSentenceId = dpsSentenceId2,
+            nomisBookingId = nomisBookingId2,
+            nomisSentenceSequence = nomisSentenceSequence2,
+            mappingType = SentenceMappingType.NOMIS_CREATED,
+          ),
+        )
+      }
+
+      @Nested
+      inner class Security {
+        @Test
+        fun `access unauthorised when no authority`() {
+          webTestClient.post()
+            .uri("/api/sentences/nomis")
+            .bodyValue(request)
+            .exchange()
+            .expectStatus().isUnauthorized
+        }
+
+        @Test
+        fun `access forbidden with no roles`() {
+          webTestClient.post()
+            .uri("/api/sentences/nomis")
+            .bodyValue(request)
+            .headers(setAuthorisation(roles = listOf()))
+            .exchange()
+            .expectStatus().isForbidden
+        }
+
+        @Test
+        fun `access forbidden with wrong role`() {
+          webTestClient.post()
+            .uri("/api/sentences/nomis")
+            .bodyValue(request)
+            .headers(setAuthorisation(roles = listOf("NOMIS_DPS_MAPPING__LOCATIONS__R")))
+            .exchange()
+            .expectStatus().isForbidden
+        }
+      }
+
+      @Nested
+      inner class HappyPath {
+        @Test
+        fun `returns DPS and NOMIS ids`() {
+          webTestClient.post()
+            .uri("/api/sentences/nomis")
+            .bodyValue(request)
+            .headers(setAuthorisation(roles = listOf("NOMIS_DPS_MAPPING__SENTENCE__R")))
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("[0].dpsSentenceId").isEqualTo(dpsSentenceId1)
+            .jsonPath("[0].nomisSentenceId.nomisBookingId").isEqualTo(nomisBookingId1)
+            .jsonPath("[0].nomisSentenceId.nomisSentenceSequence").isEqualTo(nomisSentenceSequence1)
+            .jsonPath("[1].dpsSentenceId").isEqualTo(dpsSentenceId2)
+            .jsonPath("[1].nomisSentenceId.nomisBookingId").isEqualTo(nomisBookingId2)
+            .jsonPath("[1].nomisSentenceId.nomisSentenceSequence").isEqualTo(nomisSentenceSequence2)
+        }
+      }
+
+      @Nested
+      inner class Validation {
+        @Test
+        fun `returns 200 when one or more items not found but does return the successfully found items`() {
+          webTestClient.post()
+            .uri("/api/sentences/nomis")
+            .bodyValue(
+              request + NomisSentenceId(
+                nomisBookingId = 99999,
+                nomisSentenceSequence = 9,
+              ),
+            )
+            .headers(setAuthorisation(roles = listOf("NOMIS_DPS_MAPPING__SENTENCE__R")))
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("size()").isEqualTo(2)
         }
       }
     }

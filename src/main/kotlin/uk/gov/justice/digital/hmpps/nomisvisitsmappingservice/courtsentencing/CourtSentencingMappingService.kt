@@ -3,6 +3,10 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.courtsentencing
 import com.microsoft.applicationinsights.TelemetryClient
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
@@ -10,6 +14,7 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.api.NomisSentenceId
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
 
 @Service
@@ -313,6 +318,13 @@ class CourtSentencingMappingService(
     nomisSentenceSeq = nomisSentenceSeq,
   )?.toSentenceAllMappingDto()
     ?: throw NotFoundException("Sentence mapping not found with nomisBookingId =$nomisBookingId, nomisSentenceSeq =$nomisSentenceSeq")
+
+  suspend fun getSentencesByNomisIds(nomisSentenceIds: List<NomisSentenceId>): Flow<SentenceMapping> = nomisSentenceIds.asFlow().map {
+    sentenceMappingRepository.findByNomisBookingIdAndNomisSentenceSequence(
+      nomisBookingId = it.nomisBookingId,
+      nomisSentenceSeq = it.nomisSentenceSequence,
+    )
+  }.filterNotNull()
 
   @Transactional
   suspend fun deleteCourtChargeMappingByNomisId(courtChargeId: Long) = courtChargeMappingRepository.deleteByNomisCourtChargeId(courtChargeId)
