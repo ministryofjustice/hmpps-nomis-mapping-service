@@ -1441,4 +1441,107 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
         .jsonPath("size").isEqualTo(2)
     }
   }
+
+  @Nested
+  @DisplayName("DELETE /mapping/court-sentencing/all")
+  inner class DeleteAllMappings {
+    @BeforeEach
+    fun setUp() = runTest {
+      repository.save(
+        CourtCaseMapping(
+          dpsCourtCaseId = DPS_COURT_CASE_ID,
+          nomisCourtCaseId = NOMIS_COURT_CASE_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtCaseMappingType.MIGRATED,
+        ),
+      )
+      prisonerCourtCaseRepository.save(
+        CourtCasePrisonerMigration(
+          offenderNo = OFFENDER_NO,
+          label = "2023-01-01T12:45:12",
+        ),
+      )
+      courtAppearanceRepository.save(
+        CourtAppearanceMapping(
+          nomisCourtAppearanceId = EXISTING_NOMIS_COURT_APPEARANCE_ID,
+          dpsCourtAppearanceId = "dps123",
+          mappingType = CourtAppearanceMappingType.NOMIS_CREATED,
+        ),
+      )
+
+      courtChargeRepository.save(
+        CourtChargeMapping(
+          dpsCourtChargeId = "122",
+          nomisCourtChargeId = 123,
+          mappingType = CourtChargeMappingType.MIGRATED,
+        ),
+      )
+      sentenceRepository.save(
+        SentenceMapping(
+          dpsSentenceId = "dps321",
+          nomisSentenceSequence = EXISTING_NOMIS_SENTENCE_SEQ,
+          nomisBookingId = NOMIS_BOOKING_ID,
+          mappingType = SentenceMappingType.NOMIS_CREATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      clearDown()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/all")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/all")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 204 and delete all mappings`() = runTest {
+        assertThat(repository.count()).isEqualTo(1)
+        assertThat(prisonerCourtCaseRepository.count()).isEqualTo(1)
+        assertThat(courtAppearanceRepository.count()).isEqualTo(1)
+        assertThat(courtChargeRepository.count()).isEqualTo(1)
+        assertThat(sentenceRepository.count()).isEqualTo(1)
+
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        assertThat(repository.count()).isEqualTo(0)
+        assertThat(prisonerCourtCaseRepository.count()).isEqualTo(0)
+        assertThat(courtAppearanceRepository.count()).isEqualTo(0)
+        assertThat(courtChargeRepository.count()).isEqualTo(0)
+        assertThat(sentenceRepository.count()).isEqualTo(0)
+      }
+    }
+  }
 }

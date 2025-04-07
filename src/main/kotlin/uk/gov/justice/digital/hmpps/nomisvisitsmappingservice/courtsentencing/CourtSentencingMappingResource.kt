@@ -897,6 +897,30 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     sentenceSequence: Int,
   ) = mappingService.deleteSentenceMappingByNomisId(bookingId = bookingId, sentenceSequence = sentenceSequence)
 
+  @DeleteMapping("/all")
+  @Operation(
+    summary = "delete all mappings",
+    description = "Deletes all mappings, typically used before repeating a migration. Requires ROLE_NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "All mappings deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  suspend fun deleteAllMappings() = mappingService.deleteAllMappings()
+
   private suspend fun getExistingMappingSimilarTo(mapping: CourtCaseAllMappingDto) = runCatching {
     mappingService.getCourtCaseAllMappingByNomisId(
       courtCaseId = mapping.nomisCourtCaseId,
