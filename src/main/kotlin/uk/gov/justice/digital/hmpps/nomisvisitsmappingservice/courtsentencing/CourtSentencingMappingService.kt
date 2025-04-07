@@ -352,6 +352,15 @@ class CourtSentencingMappingService(
       count.await(),
     )
   }
+
+  @Transactional
+  suspend fun deleteAllMappings() {
+    courtCaseMappingRepository.deleteAll()
+    courtCasePrisonerMappingRepository.deleteAll()
+    courtAppearanceMappingRepository.deleteAll()
+    courtChargeMappingRepository.deleteAll()
+    sentenceMappingRepository.deleteAll()
+  }
 }
 
 fun CourtCaseMapping.toCourtCaseMappingDto(): CourtCaseMappingDto = CourtCaseMappingDto(
