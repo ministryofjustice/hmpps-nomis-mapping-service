@@ -113,6 +113,33 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     log.info("Replaced mappings for offender $offenderNo")
   }
 
+  @PostMapping("/replace/person/{personId}")
+  @Operation(
+    summary = "Replaces a list of person related mappings.",
+    description = "Creates a list of person mappings and removes the previous supplied set. Used typically for a person repair in NOMIS. Requires ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(responseCode = "200", description = "Mappings replaced"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun replacePersonMappings(
+    @RequestBody @Valid
+    mappings: ContactPersonMappingsDto,
+    @PathVariable
+    personId: Long,
+  ) = service.replaceMappings(mappings).also {
+    log.info("Replaced mappings for person $personId")
+  }
+
   @GetMapping("/person/nomis-person-id/{nomisPersonId}")
   @Operation(
     summary = "Get person mapping by nomis person Id",

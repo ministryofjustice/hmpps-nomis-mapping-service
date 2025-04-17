@@ -591,7 +591,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
 
   @Nested
   @DisplayName("POST /mapping/contact-person/replace/prisoner/{offenderNo}")
-  inner class ReplaceMappings {
+  inner class ReplaceMappingsPrisoner {
 
     @Nested
     inner class Security {
@@ -765,6 +765,242 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
         assertThat(personContactMappingRepository.existsById(oldDpsContactId1)).isFalse
         assertThat(personContactMappingRepository.existsById(oldDpsContactId2)).isFalse
         assertThat(personContactRestrictionMappingRepository.existsById(oldDpsContactRestrictionId)).isFalse
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("POST /mapping/contact-person/replace/person/{personId}")
+  inner class ReplaceMappingsPerson {
+
+    @Nested
+    inner class Security {
+      val mappings = ContactPersonMappingsDto(
+        mappingType = ContactPersonMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+        personContactMapping = emptyList(),
+        personContactRestrictionMapping = emptyList(),
+        label = null,
+        personMapping = ContactPersonSimpleMappingIdDto(dpsId = "0", nomisId = 0),
+        personAddressMapping = emptyList(),
+        personPhoneMapping = emptyList(),
+        personEmailMapping = emptyList(),
+        personEmploymentMapping = emptyList(),
+        personIdentifierMapping = emptyList(),
+        personRestrictionMapping = emptyList(),
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/replace/person/12345")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mappings))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/replace/person/12345")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mappings))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/replace/person/12345")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mappings))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mappings = ContactPersonMappingsDto(
+        mappingType = ContactPersonMappingType.NOMIS_CREATED,
+        whenCreated = LocalDateTime.now(),
+        personMapping = ContactPersonSimpleMappingIdDto(dpsId = "2", nomisId = 2),
+        personContactMapping = listOf(
+          ContactPersonSimpleMappingIdDto(dpsId = "2", nomisId = 2),
+        ),
+        personContactRestrictionMapping = listOf(
+          ContactPersonSimpleMappingIdDto(dpsId = "2", nomisId = 2),
+        ),
+        personAddressMapping = listOf(
+          ContactPersonSimpleMappingIdDto(dpsId = "2", nomisId = 2),
+        ),
+        personPhoneMapping = listOf(
+          ContactPersonPhoneMappingIdDto(dpsId = "2", nomisId = 2, dpsPhoneType = DpsPersonPhoneType.PERSON),
+        ),
+        personEmailMapping = listOf(
+          ContactPersonSimpleMappingIdDto(dpsId = "2", nomisId = 2),
+        ),
+        personEmploymentMapping = listOf(
+          ContactPersonSequenceMappingIdDto(dpsId = "2", nomisPersonId = 2, nomisSequenceNumber = 2),
+        ),
+        personIdentifierMapping = listOf(
+          ContactPersonSequenceMappingIdDto(dpsId = "2", nomisPersonId = 2, nomisSequenceNumber = 2),
+        ),
+        personRestrictionMapping = listOf(
+          ContactPersonSimpleMappingIdDto(dpsId = "2", nomisId = 2),
+        ),
+      )
+
+      @BeforeEach
+      fun setUp() = runTest {
+        personMappingRepository.save(
+          PersonMapping(
+            dpsId = "1",
+            nomisId = 2,
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
+        personPhoneMappingRepository.save(
+          PersonPhoneMapping(
+            dpsId = "1",
+            nomisId = 2,
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+            dpsPhoneType = DpsPersonPhoneType.PERSON,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
+        personAddressMappingRepository.save(
+          PersonAddressMapping(
+            dpsId = "1",
+            nomisId = 2,
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
+        personEmailMappingRepository.save(
+          PersonEmailMapping(
+            dpsId = "1",
+            nomisId = 2,
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
+        personRestrictionMappingRepository.save(
+          PersonRestrictionMapping(
+            dpsId = "1",
+            nomisId = 2,
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
+        personIdentifierMappingRepository.save(
+          PersonIdentifierMapping(
+            dpsId = "1",
+            nomisPersonId = 2,
+            nomisSequenceNumber = 2,
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
+        personEmploymentMappingRepository.save(
+          PersonEmploymentMapping(
+            dpsId = "1",
+            nomisPersonId = 2,
+            nomisSequenceNumber = 2,
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
+        personContactRestrictionMappingRepository.save(
+          PersonContactRestrictionMapping(
+            dpsId = "1",
+            nomisId = 2,
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
+        personContactMappingRepository.save(
+          PersonContactMapping(
+            dpsId = "1",
+            nomisId = 2,
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
+      }
+
+      @Test
+      fun `returns 200 when are mappings replaced`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/contact-person/replace/person/12345")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mappings))
+          .exchange()
+          .expectStatus().isOk
+      }
+
+      @Test
+      fun `will persist the new contact mappings`() = runTest {
+        assertThat(personMappingRepository.findOneByNomisId(2)!!.dpsId).isEqualTo("1")
+        assertThat(personMappingRepository.findOneByDpsId("1")).isNotNull
+        assertThat(personAddressMappingRepository.findOneByNomisId(2)!!.dpsId).isEqualTo("1")
+        assertThat(personAddressMappingRepository.findOneByDpsId("1")).isNotNull
+        assertThat(personPhoneMappingRepository.findOneByNomisId(2)!!.dpsId).isEqualTo("1")
+        assertThat(personPhoneMappingRepository.findOneByDpsIdAndDpsPhoneType("1", DpsPersonPhoneType.PERSON)).isNotNull
+        assertThat(personEmailMappingRepository.findOneByNomisId(2)!!.dpsId).isEqualTo("1")
+        assertThat(personEmailMappingRepository.findOneByDpsId("1")).isNotNull
+        assertThat(personEmploymentMappingRepository.findOneByNomisPersonIdAndNomisSequenceNumber(2, 2)!!.dpsId).isEqualTo("1")
+        assertThat(personEmploymentMappingRepository.findOneByDpsId("1")).isNotNull
+        assertThat(personIdentifierMappingRepository.findOneByNomisPersonIdAndNomisSequenceNumber(2, 2)!!.dpsId).isEqualTo("1")
+        assertThat(personIdentifierMappingRepository.findOneByDpsId("1")).isNotNull
+        assertThat(personRestrictionMappingRepository.findOneByNomisId(2)!!.dpsId).isEqualTo("1")
+        assertThat(personRestrictionMappingRepository.findOneByDpsId("1")).isNotNull
+        assertThat(personContactMappingRepository.findOneByNomisId(2)!!.dpsId).isEqualTo("1")
+        assertThat(personContactMappingRepository.findOneByDpsId("1")).isNotNull
+        assertThat(personContactRestrictionMappingRepository.findOneByNomisId(2)!!.dpsId).isEqualTo("1")
+        assertThat(personContactRestrictionMappingRepository.findOneByDpsId("1")).isNotNull
+
+        webTestClient.post()
+          .uri("/mapping/contact-person/replace/person/12345")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mappings))
+          .exchange()
+          .expectStatus().isOk
+
+        assertThat(personMappingRepository.findOneByNomisId(2)!!.dpsId).isEqualTo("2")
+        assertThat(personMappingRepository.findOneByDpsId("1")).isNull()
+        assertThat(personAddressMappingRepository.findOneByNomisId(2)!!.dpsId).isEqualTo("2")
+        assertThat(personAddressMappingRepository.findOneByDpsId("1")).isNull()
+        assertThat(personPhoneMappingRepository.findOneByNomisId(2)!!.dpsId).isEqualTo("2")
+        assertThat(personPhoneMappingRepository.findOneByDpsIdAndDpsPhoneType("1", DpsPersonPhoneType.PERSON)).isNull()
+        assertThat(personEmailMappingRepository.findOneByNomisId(2)!!.dpsId).isEqualTo("2")
+        assertThat(personEmailMappingRepository.findOneByDpsId("1")).isNull()
+        assertThat(personEmploymentMappingRepository.findOneByNomisPersonIdAndNomisSequenceNumber(2, 2)!!.dpsId).isEqualTo("2")
+        assertThat(personEmploymentMappingRepository.findOneByDpsId("1")).isNull()
+        assertThat(personIdentifierMappingRepository.findOneByNomisPersonIdAndNomisSequenceNumber(2, 2)!!.dpsId).isEqualTo("2")
+        assertThat(personIdentifierMappingRepository.findOneByDpsId("1")).isNull()
+        assertThat(personRestrictionMappingRepository.findOneByNomisId(2)!!.dpsId).isEqualTo("2")
+        assertThat(personRestrictionMappingRepository.findOneByDpsId("1")).isNull()
+        assertThat(personContactMappingRepository.findOneByNomisId(2)!!.dpsId).isEqualTo("2")
+        assertThat(personContactMappingRepository.findOneByDpsId("1")).isNull()
+        assertThat(personContactRestrictionMappingRepository.findOneByNomisId(2)!!.dpsId).isEqualTo("2")
+        assertThat(personContactRestrictionMappingRepository.findOneByDpsId("1")).isNull()
       }
     }
   }
