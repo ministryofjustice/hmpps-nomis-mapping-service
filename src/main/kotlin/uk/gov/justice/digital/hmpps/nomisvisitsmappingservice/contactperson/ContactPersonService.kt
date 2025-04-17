@@ -67,6 +67,46 @@ class ContactPersonService(
   }
 
   @Transactional
+  suspend fun replaceMappings(mappings: ContactPersonMappingsDto) {
+    with(mappings) {
+      personMappingRepository.deleteByNomisId(nomisId = personMapping.nomisId)
+      personMappingRepository.save(toPersonMapping())
+      personAddressMapping.forEach {
+        personAddressMappingRepository.deleteByNomisId(nomisId = it.nomisId)
+        personAddressMappingRepository.save(toMapping(it))
+      }
+      personPhoneMapping.forEach {
+        personPhoneMappingRepository.deleteByNomisId(nomisId = it.nomisId)
+        personPhoneMappingRepository.save(toMapping(it))
+      }
+      personEmailMapping.forEach {
+        personEmailMappingRepository.deleteByNomisId(nomisId = it.nomisId)
+        personEmailMappingRepository.save(toMapping(it))
+      }
+      personEmploymentMapping.forEach {
+        personEmploymentMappingRepository.deleteByNomisPersonIdAndNomisSequenceNumber(nomisPersonId = it.nomisPersonId, nomisSequenceNumber = it.nomisSequenceNumber)
+        personEmploymentMappingRepository.save(toMapping(it))
+      }
+      personIdentifierMapping.forEach {
+        personIdentifierMappingRepository.deleteByNomisPersonIdAndNomisSequenceNumber(nomisPersonId = it.nomisPersonId, nomisSequenceNumber = it.nomisSequenceNumber)
+        personIdentifierMappingRepository.save(toMapping(it))
+      }
+      personRestrictionMapping.forEach {
+        personRestrictionMappingRepository.deleteByNomisId(nomisId = it.nomisId)
+        personRestrictionMappingRepository.save(toMapping(it))
+      }
+      personContactMapping.forEach {
+        personContactMappingRepository.deleteByNomisId(nomisId = it.nomisId)
+        personContactMappingRepository.save(toMapping(it))
+      }
+      personContactRestrictionMapping.forEach {
+        personContactRestrictionMappingRepository.deleteByNomisId(nomisId = it.nomisId)
+        personContactRestrictionMappingRepository.save(toMapping(it))
+      }
+    }
+  }
+
+  @Transactional
   suspend fun replaceMappings(mappings: ContactPersonPrisonerMappingsDto) {
     with(mappings) {
       personContactRestrictionMappingRepository.deleteAllById(personContactRestrictionMappingsToRemoveByDpsId)
