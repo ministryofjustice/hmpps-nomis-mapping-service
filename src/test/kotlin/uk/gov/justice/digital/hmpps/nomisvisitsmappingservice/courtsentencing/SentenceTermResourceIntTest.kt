@@ -28,7 +28,7 @@ class SentenceTermResourceIntTest : IntegrationTestBase() {
   private lateinit var repository: SentenceTermMappingRepository
 
   @Nested
-  @DisplayName("GET /mapping/court-sentencing/sentence-terms/dps-sentence-id/{dpsSentenceId}")
+  @DisplayName("GET /mapping/court-sentencing/sentence-terms/dps-term-id/{dpsTermId}")
   inner class GetMappingByDpsId {
     lateinit var sentenceTermMapping: SentenceTermMapping
 
@@ -347,7 +347,7 @@ class SentenceTermResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 400 when mapping type is invalid`() {
         webTestClient.post()
-          .uri("/mapping/court-sentencing/sentences")
+          .uri("/mapping/court-sentencing/sentence-terms")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -357,6 +357,7 @@ class SentenceTermResourceIntTest : IntegrationTestBase() {
                 {
                   "nomisBookingId": $NOMIS_BOOKING_ID,
                   "nomisSentenceSequence": $NOMIS_SENTENCE_SEQUENCE,
+                  "nomisTermSequence": $NOMIS_TERM_SEQUENCE,
                   "dpsSentenceId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
                   "mappingType": "INVALID_TYPE"
                 }
@@ -374,7 +375,7 @@ class SentenceTermResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 400 when DPS id is missing`() {
         webTestClient.post()
-          .uri("/mapping/court-sentencing/sentences")
+          .uri("/mapping/court-sentencing/sentence-terms")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -383,6 +384,7 @@ class SentenceTermResourceIntTest : IntegrationTestBase() {
               """
                 {
                   "nomisSentenceSequence": 1,
+                  "nomisTermSequence": 1,
                   "nomisBookingId": 54321
                 }
               """.trimIndent(),
@@ -392,14 +394,14 @@ class SentenceTermResourceIntTest : IntegrationTestBase() {
           .expectStatus().isBadRequest
           .expectBody()
           .jsonPath("userMessage").value<String> {
-            Assertions.assertThat(it).contains("missing (therefore NULL) value for creator parameter dpsSentenceId")
+            Assertions.assertThat(it).contains("missing (therefore NULL) value for creator parameter dpsTermId")
           }
       }
 
       @Test
       fun `returns 400 when NOMIS id is missing`() {
         webTestClient.post()
-          .uri("/mapping/court-sentencing/sentences")
+          .uri("/mapping/court-sentencing/sentence-terms")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -407,7 +409,7 @@ class SentenceTermResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "dpsSentenceId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
+                  "dpsTermId": "e52d7268-6e10-41a8-a0b9-2319b32520d6"
                 }
               """.trimIndent(),
             ),
