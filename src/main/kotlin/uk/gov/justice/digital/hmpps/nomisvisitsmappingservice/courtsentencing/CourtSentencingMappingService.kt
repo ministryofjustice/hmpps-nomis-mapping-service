@@ -25,6 +25,7 @@ class CourtSentencingMappingService(
   private val courtAppearanceMappingRepository: CourtAppearanceMappingRepository,
   private val courtChargeMappingRepository: CourtChargeMappingRepository,
   private val sentenceMappingRepository: SentenceMappingRepository,
+  private val sentenceTermMappingRepository: SentenceTermMappingRepository,
   private val telemetryClient: TelemetryClient,
 ) {
   private companion object {
@@ -254,6 +255,22 @@ class CourtSentencingMappingService(
   }
 
   @Transactional
+  suspend fun createSentenceTermMapping(createSentenceTermMappingRequest: SentenceTermMappingDto) = with(createSentenceTermMappingRequest) {
+    sentenceTermMappingRepository.save(this.toSentenceTermMapping())
+      .also {
+        telemetryClient.trackEvent(
+          "sentence-term-mapping-created",
+          mapOf(
+            "dpsTermId" to dpsTermId,
+            "nomisBookingId" to nomisBookingId.toString(),
+            "nomisSentenceSeq" to nomisSentenceSequence.toString(),
+          ),
+          null,
+        )
+      }
+  }
+
+  @Transactional
   suspend fun deleteSentenceMappingByNomisId(bookingId: Long, sentenceSequence: Int) = sentenceMappingRepository.deleteByNomisBookingIdAndNomisSentenceSequence(
     nomisBookingId = bookingId,
     nomisSentenceSeq = sentenceSequence,
@@ -269,11 +286,39 @@ class CourtSentencingMappingService(
   }
 
   @Transactional
+  suspend fun deleteSentenceTermMappingByNomisId(bookingId: Long, sentenceSequence: Int, termSequence: Int) = sentenceTermMappingRepository.deleteByNomisBookingIdAndNomisSentenceSequenceAndNomisTermSequence(
+    nomisBookingId = bookingId,
+    nomisSentenceSeq = sentenceSequence,
+    nomisTermSeq = termSequence,
+  ).also {
+    telemetryClient.trackEvent(
+      "sentence-term-mapping-deleted",
+      mapOf(
+        "nomisBookingId" to bookingId.toString(),
+        "nomisSentenceSeq" to sentenceSequence.toString(),
+        "nomisTermSeq" to termSequence.toString(),
+      ),
+      null,
+    )
+  }
+
+  @Transactional
   suspend fun deleteSentenceMappingByDpsId(sentenceId: String) = sentenceMappingRepository.deleteById(sentenceId).also {
     telemetryClient.trackEvent(
       "sentence-mapping-deleted",
       mapOf(
         "dpsSentenceId" to sentenceId,
+      ),
+      null,
+    )
+  }
+
+  @Transactional
+  suspend fun deleteSentenceTermMappingByDpsId(termId: String) = sentenceTermMappingRepository.deleteById(termId).also {
+    telemetryClient.trackEvent(
+      "sentence-term-mapping-deleted",
+      mapOf(
+        "dpsTermId" to termId,
       ),
       null,
     )
@@ -313,6 +358,9 @@ class CourtSentencingMappingService(
   suspend fun getSentenceAllMappingByDpsId(dpsSentenceId: String): SentenceMappingDto = sentenceMappingRepository.findById(dpsSentenceId)?.toSentenceAllMappingDto()
     ?: throw NotFoundException("Sentence mapping not found with dpsSentenceId =$dpsSentenceId")
 
+  suspend fun getSentenceTermMappingByDpsId(dpsTermId: String): SentenceTermMappingDto = sentenceTermMappingRepository.findById(dpsTermId)?.toSentenceTermMappingDto()
+    ?: throw NotFoundException("Sentence term mapping not found with dpsTermId =$dpsTermId")
+
   suspend fun getSentenceAllMappingByNomisId(nomisBookingId: Long, nomisSentenceSeq: Int): SentenceMappingDto = sentenceMappingRepository.findByNomisBookingIdAndNomisSentenceSequence(
     nomisBookingId = nomisBookingId,
     nomisSentenceSeq = nomisSentenceSeq,
@@ -325,6 +373,13 @@ class CourtSentencingMappingService(
       nomisSentenceSeq = it.nomisSentenceSequence,
     )
   }.filterNotNull()
+
+  suspend fun getSentenceTermMappingByNomisId(nomisBookingId: Long, nomisSentenceSeq: Int, nomisTermSeq: Int): SentenceTermMappingDto = sentenceTermMappingRepository.findByNomisBookingIdAndNomisSentenceSequenceAndNomisTermSequence(
+    nomisBookingId = nomisBookingId,
+    nomisSentenceSeq = nomisSentenceSeq,
+    nomisTermSeq = nomisTermSeq,
+  )?.toSentenceTermMappingDto()
+    ?: throw NotFoundException("Sentence term mapping not found with nomisBookingId =$nomisBookingId, nomisSentenceSeq =$nomisSentenceSeq, nomisTermSeq =$nomisTermSeq")
 
   @Transactional
   suspend fun deleteCourtChargeMappingByNomisId(courtChargeId: Long) = courtChargeMappingRepository.deleteByNomisCourtChargeId(courtChargeId)
@@ -462,4 +517,23 @@ fun SentenceMappingDto.toSentenceMapping(): SentenceMapping = SentenceMapping(
   nomisBookingId = this.nomisBookingId,
   label = this.label,
   mappingType = mappingType ?: SentenceMappingType.DPS_CREATED,
+)
+
+fun SentenceTermMapping.toSentenceTermMappingDto(): SentenceTermMappingDto = SentenceTermMappingDto(
+  dpsTermId = this.dpsTermId,
+  nomisSentenceSequence = this.nomisSentenceSequence,
+  nomisTermSequence = this.nomisTermSequence,
+  nomisBookingId = this.nomisBookingId,
+  label = this.label,
+  mappingType = this.mappingType,
+  whenCreated = this.whenCreated,
+)
+
+fun SentenceTermMappingDto.toSentenceTermMapping(): SentenceTermMapping = SentenceTermMapping(
+  dpsTermId = this.dpsTermId,
+  nomisSentenceSequence = this.nomisSentenceSequence,
+  nomisTermSequence = this.nomisTermSequence,
+  nomisBookingId = this.nomisBookingId,
+  label = this.label,
+  mappingType = mappingType ?: SentenceTermMappingType.DPS_CREATED,
 )
