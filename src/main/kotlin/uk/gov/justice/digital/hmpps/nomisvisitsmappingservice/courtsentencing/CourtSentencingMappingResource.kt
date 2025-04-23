@@ -754,7 +754,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   @GetMapping("/sentences/nomis-booking-id/{bookingId}/nomis-sentence-sequence/{sentenceSequence}")
   @Operation(
     summary = "get sentence mapping",
-    description = "Retrieves a mapping by DPS id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Retrieves a mapping by nomis id. Requires role NOMIS_COURT_SENTENCING",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -921,6 +921,191 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   @ResponseStatus(HttpStatus.NO_CONTENT)
   suspend fun deleteAllMappings() = mappingService.deleteAllMappings()
 
+  @GetMapping("/sentence-terms/dps-term-id/{termId}")
+  @Operation(
+    summary = "get sentence term mapping",
+    description = "Retrieves a mapping by DPS id. Requires role NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = SentenceTermMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getSentenceTermMappingByDpsId(
+    @Schema(description = "DPS sentence term id", example = "D123", required = true)
+    @PathVariable
+    termId: String,
+  ): SentenceTermMappingDto = mappingService.getSentenceTermMappingByDpsId(
+    dpsTermId = termId,
+  )
+
+  @GetMapping("/sentence-terms/nomis-booking-id/{bookingId}/nomis-sentence-sequence/{sentenceSequence}/nomis-term-sequence/{termSequence}")
+  @Operation(
+    summary = "get sentence term mapping",
+    description = "Retrieves a mapping by nomis id. Requires role NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = SentenceTermMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getSentenceTermMappingByNomisId(
+    @Schema(description = "NOMIS booking id", example = "123432", required = true)
+    @PathVariable
+    bookingId: Long,
+    @Schema(description = "NOMIS sentence sequence", example = "1", required = true)
+    @PathVariable
+    sentenceSequence: Int,
+    @Schema(description = "NOMIS sentence sequence", example = "1", required = true)
+    @PathVariable
+    termSequence: Int,
+  ): SentenceTermMappingDto = mappingService.getSentenceTermMappingByNomisId(
+    nomisTermSeq = termSequence,
+    nomisSentenceSeq = sentenceSequence,
+    nomisBookingId = bookingId,
+  )
+
+  @PostMapping("/sentence-terms")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates a new sentence term mapping",
+    description = "Creates a mapping between nomis sentence term (booking id, term seq and sentence seq) and DPS term (period length) ID. Requires ROLE_NOMIS_COURT_SENTENCING",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = SentenceTermMappingDto::class),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createSentenceTermMapping(
+    @RequestBody @Valid
+    mapping: SentenceTermMappingDto,
+  ) = try {
+    mappingService.createSentenceTermMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Sentence term mapping already exists",
+      duplicate = mapping,
+      existing = getExistingSentenceTermMappingSimilarTo(mapping),
+      cause = e,
+    )
+  }
+
+  @DeleteMapping("/sentence-terms/dps-term-id/{dpsTermId}")
+  @Operation(
+    summary = "Deletes a sentence term mapping",
+    description = "Deletes a sentence term mapping by DPS id. Requires role NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Mapping Deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  suspend fun deleteSentenceTermMappingByDpsId(
+    @Schema(description = "DPS sentence term id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
+    @PathVariable
+    dpsTermId: String,
+  ) = mappingService.deleteSentenceTermMappingByDpsId(termId = dpsTermId)
+
+  @DeleteMapping("/sentence-terms/nomis-booking-id/{bookingId}/nomis-sentence-sequence/{sentenceSequence}/nomis-term-sequence/{termSequence}")
+  @Operation(
+    summary = "Deletes a sentence term mapping",
+    description = "Deletes a sentence term mapping by NOMIS id. Requires role NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Mapping Deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  suspend fun deleteSentenceTermMappingByNomisId(
+    @Schema(description = "NOMIS booking id", example = "123432", required = true)
+    @PathVariable
+    bookingId: Long,
+    @Schema(description = "NOMIS sentence sequence", example = "1", required = true)
+    @PathVariable
+    sentenceSequence: Int,
+    @Schema(description = "NOMIS term sequence", example = "1", required = true)
+    @PathVariable
+    termSequence: Int,
+  ) = mappingService.deleteSentenceTermMappingByNomisId(bookingId = bookingId, sentenceSequence = sentenceSequence, termSequence = termSequence)
+
   private suspend fun getExistingMappingSimilarTo(mapping: CourtCaseAllMappingDto) = runCatching {
     mappingService.getCourtCaseAllMappingByNomisId(
       courtCaseId = mapping.nomisCourtCaseId,
@@ -959,6 +1144,18 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   }.getOrElse {
     mappingService.getSentenceAllMappingByDpsId(
       dpsSentenceId = mapping.dpsSentenceId,
+    )
+  }
+
+  private suspend fun getExistingSentenceTermMappingSimilarTo(mapping: SentenceTermMappingDto) = runCatching {
+    mappingService.getSentenceTermMappingByNomisId(
+      nomisBookingId = mapping.nomisBookingId,
+      nomisSentenceSeq = mapping.nomisSentenceSequence,
+      nomisTermSeq = mapping.nomisTermSequence,
+    )
+  }.getOrElse {
+    mappingService.getSentenceTermMappingByDpsId(
+      dpsTermId = mapping.dpsTermId,
     )
   }
 }
