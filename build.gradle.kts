@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "8.0.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "8.1.0"
   kotlin("plugin.spring") version "2.1.20"
   kotlin("plugin.jpa") version "2.1.20"
   idea
@@ -12,12 +12,12 @@ configurations {
 }
 
 dependencies {
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.4.2")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.4.3")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
 
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.10.1")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.10.2")
 
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
   runtimeOnly("org.postgresql:r2dbc-postgresql:1.0.7.RELEASE")
@@ -28,23 +28,23 @@ dependencies {
 
   developmentOnly("org.springframework.boot:spring-boot-devtools")
 
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.4.2")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.4.3")
   testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.26") {
     exclude(group = "io.swagger.core.v3")
   }
-  testImplementation("io.swagger.core.v3:swagger-core-jakarta:2.2.29")
+  testImplementation("io.swagger.core.v3:swagger-core-jakarta:2.2.30")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.testcontainers:postgresql:1.20.6")
+  testImplementation("org.testcontainers:postgresql:1.21.0")
   testImplementation("io.projectreactor:reactor-test")
-  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
 }
 
 kotlin {
   jvmToolchain(21)
   compilerOptions {
-    freeCompilerArgs.add("-Xwhen-guards")
+    freeCompilerArgs.addAll("-Xjvm-default=all", "-Xwhen-guards")
   }
 }
 
