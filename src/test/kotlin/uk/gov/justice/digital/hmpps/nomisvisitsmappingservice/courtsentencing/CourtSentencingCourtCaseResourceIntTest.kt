@@ -777,6 +777,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
     courtAppearanceRepository.deleteAll()
     courtChargeRepository.deleteAll()
     sentenceRepository.deleteAll()
+    sentenceTermRepository.deleteAll()
     prisonerCourtCaseRepository.deleteAll()
   }
 
