@@ -3254,7 +3254,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("GET /mapping/corporate/web/dps-internetaddress-id/{webId}")
+  @DisplayName("GET /mapping/corporate/web/dps-internet-address-id/{webId}")
   inner class GetWebByDpsId {
     private val dpsWebId = "12345"
     private lateinit var corporateWebMapping: CorporateWebMapping
@@ -3277,7 +3277,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.get()
-          .uri("/mapping/corporate/web/dps-internetaddress-id/{webId}", dpsWebId)
+          .uri("/mapping/corporate/web/dps-internet-address-id/{webId}", dpsWebId)
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -3285,7 +3285,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.get()
-          .uri("/mapping/corporate/web/dps-internetaddress-id/{webId}", dpsWebId)
+          .uri("/mapping/corporate/web/dps-internet-address-id/{webId}", dpsWebId)
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -3294,7 +3294,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/mapping/corporate/web/dps-internetaddress-id/{webId}", dpsWebId)
+          .uri("/mapping/corporate/web/dps-internet-address-id/{webId}", dpsWebId)
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -3306,7 +3306,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `404 when mapping not found`() {
         webTestClient.get()
-          .uri("/mapping/corporate/web/dps-internetaddress-id/{webId}", 99999)
+          .uri("/mapping/corporate/web/dps-internet-address-id/{webId}", 99999)
           .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .exchange()
           .expectStatus().isNotFound
@@ -3318,7 +3318,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return the mapping data`() {
         webTestClient.get()
-          .uri("/mapping/corporate/web/dps-internetaddress-id/{webId}", dpsWebId)
+          .uri("/mapping/corporate/web/dps-internet-address-id/{webId}", dpsWebId)
           .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
           .exchange()
           .expectStatus().isOk
