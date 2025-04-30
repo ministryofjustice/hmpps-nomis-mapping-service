@@ -431,6 +431,7 @@ class CourtSentencingMappingService(
     courtAppearanceMappingRepository.deleteAll()
     courtChargeMappingRepository.deleteAll()
     sentenceMappingRepository.deleteAll()
+    sentenceTermMappingRepository.deleteAll()
   }
 }
 
