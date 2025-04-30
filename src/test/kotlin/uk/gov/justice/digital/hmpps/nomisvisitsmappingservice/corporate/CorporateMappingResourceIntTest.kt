@@ -2405,76 +2405,154 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("DELETE /mapping/corporate/phone/nomis-phone-id/{phoneId}")
-  inner class DeletePhoneByNomisId {
-    private val nomisPhoneId = 12345L
-    private lateinit var corporatePhoneMapping: CorporatePhoneMapping
+  inner class DeletePhone {
+    @Nested
+    @DisplayName("DELETE /mapping/corporate/phone/dps-phone-id/{phoneId}")
+    inner class DeletePhoneByDpsId {
+      private val dpsPhoneId = "12345"
+      private lateinit var corporatePhoneMapping: CorporatePhoneMapping
 
-    @BeforeEach
-    fun setUp() = runTest {
-      corporatePhoneMapping = corporatePhoneMappingRepository.save(
-        CorporatePhoneMapping(
-          dpsId = "12345",
-          nomisId = nomisPhoneId,
-          label = "2023-01-01T12:45:12",
-          mappingType = CorporateMappingType.MIGRATED,
-          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
-        ),
-      )
+      @BeforeEach
+      fun setUp() = runTest {
+        corporatePhoneMapping = corporatePhoneMappingRepository.save(
+          CorporatePhoneMapping(
+            dpsId = dpsPhoneId,
+            nomisId = 12345,
+            label = "2023-01-01T12:45:12",
+            mappingType = CorporateMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
+      }
+
+      @Nested
+      inner class Security {
+        @Test
+        fun `access not authorised when no authority`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/phone/dps-phone-id/{phoneId}", dpsPhoneId)
+            .exchange()
+            .expectStatus().isUnauthorized
+        }
+
+        @Test
+        fun `access forbidden when no role`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/phone/dps-phone-id/{phoneId}", dpsPhoneId)
+            .headers(setAuthorisation(roles = listOf()))
+            .exchange()
+            .expectStatus().isForbidden
+        }
+
+        @Test
+        fun `access forbidden with wrong role`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/phone/dps-phone-id/{phoneId}", dpsPhoneId)
+            .headers(setAuthorisation(roles = listOf("BANANAS")))
+            .exchange()
+            .expectStatus().isForbidden
+        }
+      }
+
+      @Nested
+      inner class Validation {
+        @Test
+        fun `204 when mapping not found`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/phone/nomis-phone-id/{phoneId}", 99999)
+            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .exchange()
+            .expectStatus().isNoContent
+        }
+      }
+
+      @Nested
+      inner class HappyPath {
+        @Test
+        fun `will return the mapping data`() = runTest {
+          assertThat(corporatePhoneMappingRepository.findOneByDpsId(dpsPhoneId)).isNotNull
+          webTestClient.delete()
+            .uri("/mapping/corporate/phone/dps-phone-id/{phoneId}", dpsPhoneId)
+            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .exchange()
+            .expectStatus().isNoContent
+          assertThat(corporatePhoneMappingRepository.findOneByDpsId(dpsPhoneId)).isNull()
+        }
+      }
     }
 
     @Nested
-    inner class Security {
-      @Test
-      fun `access not authorised when no authority`() {
-        webTestClient.delete()
-          .uri("/mapping/corporate/phone/nomis-phone-id/{phoneId}", nomisPhoneId)
-          .exchange()
-          .expectStatus().isUnauthorized
+    @DisplayName("DELETE /mapping/corporate/phone/nomis-phone-id/{phoneId}")
+    inner class DeletePhoneByNomisId {
+      private val nomisPhoneId = 12345L
+      private lateinit var corporatePhoneMapping: CorporatePhoneMapping
+
+      @BeforeEach
+      fun setUp() = runTest {
+        corporatePhoneMapping = corporatePhoneMappingRepository.save(
+          CorporatePhoneMapping(
+            dpsId = "12345",
+            nomisId = nomisPhoneId,
+            label = "2023-01-01T12:45:12",
+            mappingType = CorporateMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
       }
 
-      @Test
-      fun `access forbidden when no role`() {
-        webTestClient.delete()
-          .uri("/mapping/corporate/phone/nomis-phone-id/{phoneId}", nomisPhoneId)
-          .headers(setAuthorisation(roles = listOf()))
-          .exchange()
-          .expectStatus().isForbidden
+      @Nested
+      inner class Security {
+        @Test
+        fun `access not authorised when no authority`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/phone/nomis-phone-id/{phoneId}", nomisPhoneId)
+            .exchange()
+            .expectStatus().isUnauthorized
+        }
+
+        @Test
+        fun `access forbidden when no role`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/phone/nomis-phone-id/{phoneId}", nomisPhoneId)
+            .headers(setAuthorisation(roles = listOf()))
+            .exchange()
+            .expectStatus().isForbidden
+        }
+
+        @Test
+        fun `access forbidden with wrong role`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/phone/nomis-phone-id/{phoneId}", nomisPhoneId)
+            .headers(setAuthorisation(roles = listOf("BANANAS")))
+            .exchange()
+            .expectStatus().isForbidden
+        }
       }
 
-      @Test
-      fun `access forbidden with wrong role`() {
-        webTestClient.delete()
-          .uri("/mapping/corporate/phone/nomis-phone-id/{phoneId}", nomisPhoneId)
-          .headers(setAuthorisation(roles = listOf("BANANAS")))
-          .exchange()
-          .expectStatus().isForbidden
+      @Nested
+      inner class Validation {
+        @Test
+        fun `204 when mapping not found`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/phone/nomis-phone-id/{phoneId}", 99999)
+            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .exchange()
+            .expectStatus().isNoContent
+        }
       }
-    }
 
-    @Nested
-    inner class Validation {
-      @Test
-      fun `204 when mapping not found`() {
-        webTestClient.delete()
-          .uri("/mapping/corporate/phone/nomis-phone-id/{phoneId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
-          .exchange()
-          .expectStatus().isNoContent
-      }
-    }
-
-    @Nested
-    inner class HappyPath {
-      @Test
-      fun `will return the mapping data`() = runTest {
-        assertThat(corporatePhoneMappingRepository.findOneByNomisId(nomisPhoneId)).isNotNull
-        webTestClient.delete()
-          .uri("/mapping/corporate/phone/nomis-phone-id/{phoneId}", nomisPhoneId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
-          .exchange()
-          .expectStatus().isNoContent
-        assertThat(corporatePhoneMappingRepository.findOneByNomisId(nomisPhoneId)).isNull()
+      @Nested
+      inner class HappyPath {
+        @Test
+        fun `will return the mapping data`() = runTest {
+          assertThat(corporatePhoneMappingRepository.findOneByNomisId(nomisPhoneId)).isNotNull
+          webTestClient.delete()
+            .uri("/mapping/corporate/phone/nomis-phone-id/{phoneId}", nomisPhoneId)
+            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .exchange()
+            .expectStatus().isNoContent
+          assertThat(corporatePhoneMappingRepository.findOneByNomisId(nomisPhoneId)).isNull()
+        }
       }
     }
   }

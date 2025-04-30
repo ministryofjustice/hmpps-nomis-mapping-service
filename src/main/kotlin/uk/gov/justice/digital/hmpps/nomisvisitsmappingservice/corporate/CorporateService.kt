@@ -166,6 +166,9 @@ class CorporateService(
     ?: throw NotFoundException("No phone mapping found for dpsId=$dpsId")
 
   @Transactional
+  suspend fun deletePhoneMappingByDpsId(dpsId: String) = corporatePhoneMappingRepository.deleteByDpsId(dpsId = dpsId)
+
+  @Transactional
   suspend fun deletePhoneMappingByNomisId(nomisId: Long) = corporatePhoneMappingRepository.deleteByNomisId(nomisId = nomisId)
 
   @Transactional
