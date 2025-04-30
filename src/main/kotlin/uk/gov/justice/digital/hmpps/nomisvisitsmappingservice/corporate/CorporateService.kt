@@ -186,6 +186,9 @@ class CorporateService(
   suspend fun deleteEmailMappingByNomisId(nomisId: Long) = corporateEmailMappingRepository.deleteByNomisId(nomisId = nomisId)
 
   @Transactional
+  suspend fun deleteEmailMappingByDpsId(dpsId: Long) = corporateEmailMappingRepository.deleteByDpsId(dpsId = dpsId)
+
+  @Transactional
   suspend fun createWebMapping(mapping: OrganisationsMappingDto) {
     corporateWebMappingRepository.save(mapping.toMapping())
   }

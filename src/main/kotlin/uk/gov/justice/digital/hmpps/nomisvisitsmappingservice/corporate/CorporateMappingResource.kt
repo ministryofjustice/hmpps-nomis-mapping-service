@@ -913,6 +913,34 @@ class CorporateMappingResource(private val service: CorporateService) {
     dpsEmailId: String,
   ): OrganisationsMappingDto = service.getEmailMappingByDpsId(dpsId = dpsEmailId)
 
+  @DeleteMapping("/email/dps-internet-address-id/{dpsEmailId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete email mapping by dps email Id",
+    description = "Deletes the email mapping by DPS Email Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Deletes Email mapping data or it doesn't exist",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteEmailMappingByDpsId(
+    @Schema(description = "DPS email id", example = "12345", required = true)
+    @PathVariable
+    dpsEmailId: Long,
+  ) = service.deleteEmailMappingByDpsId(dpsId = dpsEmailId)
+
   @DeleteMapping("/email/nomis-internet-address-id/{nomisEmailId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
@@ -922,9 +950,6 @@ class CorporateMappingResource(private val service: CorporateService) {
       ApiResponse(
         responseCode = "204",
         description = "Deletes Email mapping data or it doesn't exist",
-        content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class)),
-        ],
       ),
       ApiResponse(
         responseCode = "401",
