@@ -112,6 +112,9 @@ class CorporateService(
   suspend fun deleteCorporateMappingByNomisId(nomisId: Long) = corporateMappingRepository.deleteByNomisId(nomisId = nomisId)
 
   @Transactional
+  suspend fun deleteCorporateMappingByDpsId(dpsId: Long) = corporateMappingRepository.deleteByDpsId(dpsId = dpsId)
+
+  @Transactional
   suspend fun createAddressMapping(mapping: OrganisationsMappingDto) {
     corporateAddressMappingRepository.save(mapping.toMapping())
   }

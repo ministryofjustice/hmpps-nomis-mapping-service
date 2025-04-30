@@ -277,6 +277,34 @@ class CorporateMappingResource(private val service: CorporateService) {
     dpsOrganisationId: String,
   ): OrganisationsMappingDto = service.getCorporateMappingByDpsId(dpsId = dpsOrganisationId)
 
+  @DeleteMapping("/organisation/dps-organisation-id/{dpsOrganisationId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes corporate mapping by dps organisation Id",
+    description = "Deletes the corporate mapping by DPS Organisation Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Deletes Corporate mapping data or it doesn't exist",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteCorporateMappingByDpsId(
+    @Schema(description = "DPS organisation id", example = "12345", required = true)
+    @PathVariable
+    dpsOrganisationId: Long,
+  ) = service.deleteCorporateMappingByDpsId(dpsId = dpsOrganisationId)
+
   @DeleteMapping("/organisation/nomis-corporate-id/{nomisCorporateId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
