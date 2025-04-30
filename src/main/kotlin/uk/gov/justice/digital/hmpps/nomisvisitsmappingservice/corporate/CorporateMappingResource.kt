@@ -1079,7 +1079,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     nomisWebId: Long,
   ): OrganisationsMappingDto = service.getWebMappingByNomisId(nomisId = nomisWebId)
 
-  @GetMapping("/web/dps-web-address-id/{dpsWebId}")
+  @GetMapping("/web/dps-internet-address-id/{dpsWebId}")
   @Operation(
     summary = "Get web mapping by dps web address Id",
     description = "Retrieves the  mapping by DPS Web Address Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
@@ -1113,6 +1113,34 @@ class CorporateMappingResource(private val service: CorporateService) {
     @PathVariable
     dpsWebId: String,
   ): OrganisationsMappingDto = service.getWebMappingByDpsId(dpsId = dpsWebId)
+
+  @DeleteMapping("/web/dps-internet-address-id/{dpsWebId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete web mapping by dps web Id",
+    description = "Deletes the web mapping by DPS Web Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Delete Web mapping data or does not exist",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteWebMappingByDpsId(
+    @Schema(description = "DPS web address id", example = "12345", required = true)
+    @PathVariable
+    dpsWebId: String,
+  ) = service.deleteWebMappingByDpsId(dpsId = dpsWebId)
 
   @DeleteMapping("/web/nomis-internet-address-id/{nomisWebId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
