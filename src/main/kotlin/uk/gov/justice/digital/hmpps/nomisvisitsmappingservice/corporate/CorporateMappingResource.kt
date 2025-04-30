@@ -646,7 +646,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     ],
   )
   suspend fun deleteAddressPhoneMappingByDpsId(
-    @Schema(description = "NOMIS phone id", example = "12345", required = true)
+    @Schema(description = "DPS phone id", example = "12345", required = true)
     @PathVariable
     dpsPhoneId: String,
   ) = service.deleteAddressPhoneMappingByDpsId(dpsId = dpsPhoneId)
