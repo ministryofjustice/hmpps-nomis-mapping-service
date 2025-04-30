@@ -302,7 +302,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   suspend fun deleteCorporateMappingByDpsId(
     @Schema(description = "DPS organisation id", example = "12345", required = true)
     @PathVariable
-    dpsOrganisationId: Long,
+    dpsOrganisationId: String,
   ) = service.deleteCorporateMappingByDpsId(dpsId = dpsOrganisationId)
 
   @DeleteMapping("/organisation/nomis-corporate-id/{nomisCorporateId}")
@@ -475,7 +475,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   suspend fun deleteAddressMappingByDpsId(
     @Schema(description = "DPS address id", example = "12345", required = true)
     @PathVariable
-    dpsAddressId: Long,
+    dpsAddressId: String,
   ) = service.deleteAddressMappingByDpsId(dpsId = dpsAddressId)
 
   @DeleteMapping("/address/nomis-address-id/{nomisAddressId}")
@@ -938,7 +938,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   suspend fun deleteEmailMappingByDpsId(
     @Schema(description = "DPS email id", example = "12345", required = true)
     @PathVariable
-    dpsEmailId: Long,
+    dpsEmailId: String,
   ) = service.deleteEmailMappingByDpsId(dpsId = dpsEmailId)
 
   @DeleteMapping("/email/nomis-internet-address-id/{nomisEmailId}")
