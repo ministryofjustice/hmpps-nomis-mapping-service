@@ -129,6 +129,9 @@ class CorporateService(
     ?: throw NotFoundException("No address mapping found for dpsId=$dpsId")
 
   @Transactional
+  suspend fun deleteAddressMappingByDpsId(dpsId: Long) = corporateAddressMappingRepository.deleteByDpsId(dpsId = dpsId)
+
+  @Transactional
   suspend fun deleteAddressMappingByNomisId(nomisId: Long) = corporateAddressMappingRepository.deleteByNomisId(nomisId = nomisId)
 
   @Transactional
