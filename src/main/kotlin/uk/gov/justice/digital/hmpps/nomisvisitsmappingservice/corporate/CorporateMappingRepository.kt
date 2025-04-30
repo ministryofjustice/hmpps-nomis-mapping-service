@@ -13,5 +13,5 @@ interface CorporateMappingRepository : CoroutineCrudRepository<CorporateMapping,
   suspend fun countAllByLabelAndMappingType(migrationId: String, mappingType: CorporateMappingType): Long
   suspend fun findAllBy(pageRequest: Pageable): Flow<CorporateMapping>
   suspend fun deleteByNomisId(nomisId: Long)
-  suspend fun deleteByDpsId(dpsId: Long)
+  suspend fun deleteByDpsId(dpsId: String)
 }

@@ -1160,81 +1160,81 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
         }
       }
     }
-  }
-
-  @Nested
-  @DisplayName("DELETE /mapping/corporate/organisation/nomis-corporate-id/{corporateId}")
-  inner class DeleteCorporateByNomisId {
-    private val nomisCorporateId = 12345L
-    private lateinit var corporateMapping: CorporateMapping
-
-    @BeforeEach
-    fun setUp() = runTest {
-      corporateMapping = corporateMappingRepository.save(
-        CorporateMapping(
-          dpsId = "12345",
-          nomisId = nomisCorporateId,
-          label = "2023-01-01T12:45:12",
-          mappingType = CorporateMappingType.MIGRATED,
-          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
-        ),
-      )
-    }
 
     @Nested
-    inner class Security {
-      @Test
-      fun `access not authorised when no authority`() {
-        webTestClient.delete()
-          .uri("/mapping/corporate/organisation/nomis-corporate-id/{corporateId}", nomisCorporateId)
-          .exchange()
-          .expectStatus().isUnauthorized
+    @DisplayName("DELETE /mapping/corporate/organisation/nomis-corporate-id/{corporateId}")
+    inner class DeleteCorporateByNomisId {
+      private val nomisCorporateId = 12345L
+      private lateinit var corporateMapping: CorporateMapping
+
+      @BeforeEach
+      fun setUp() = runTest {
+        corporateMapping = corporateMappingRepository.save(
+          CorporateMapping(
+            dpsId = "12345",
+            nomisId = nomisCorporateId,
+            label = "2023-01-01T12:45:12",
+            mappingType = CorporateMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
       }
 
-      @Test
-      fun `access forbidden when no role`() {
-        webTestClient.delete()
-          .uri("/mapping/corporate/organisation/nomis-corporate-id/{corporateId}", nomisCorporateId)
-          .headers(setAuthorisation(roles = listOf()))
-          .exchange()
-          .expectStatus().isForbidden
+      @Nested
+      inner class Security {
+        @Test
+        fun `access not authorised when no authority`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/organisation/nomis-corporate-id/{corporateId}", nomisCorporateId)
+            .exchange()
+            .expectStatus().isUnauthorized
+        }
+
+        @Test
+        fun `access forbidden when no role`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/organisation/nomis-corporate-id/{corporateId}", nomisCorporateId)
+            .headers(setAuthorisation(roles = listOf()))
+            .exchange()
+            .expectStatus().isForbidden
+        }
+
+        @Test
+        fun `access forbidden with wrong role`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/organisation/nomis-corporate-id/{corporateId}", nomisCorporateId)
+            .headers(setAuthorisation(roles = listOf("BANANAS")))
+            .exchange()
+            .expectStatus().isForbidden
+        }
       }
 
-      @Test
-      fun `access forbidden with wrong role`() {
-        webTestClient.delete()
-          .uri("/mapping/corporate/organisation/nomis-corporate-id/{corporateId}", nomisCorporateId)
-          .headers(setAuthorisation(roles = listOf("BANANAS")))
-          .exchange()
-          .expectStatus().isForbidden
+      @Nested
+      inner class Validation {
+        @Test
+        fun `204 when mapping not found`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/organisation/nomis-corporate-id/{corporateId}", 99999)
+            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .exchange()
+            .expectStatus().isNoContent
+        }
       }
-    }
 
-    @Nested
-    inner class Validation {
-      @Test
-      fun `204 when mapping not found`() {
-        webTestClient.delete()
-          .uri("/mapping/corporate/organisation/nomis-corporate-id/{corporateId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
-          .exchange()
-          .expectStatus().isNoContent
-      }
-    }
+      @Nested
+      inner class HappyPath {
+        @Test
+        fun `will delete the mapping data`() = runTest {
+          assertThat(corporateMappingRepository.findOneByNomisId(nomisId = nomisCorporateId)).isNotNull()
 
-    @Nested
-    inner class HappyPath {
-      @Test
-      fun `will delete the mapping data`() = runTest {
-        assertThat(corporateMappingRepository.findOneByNomisId(nomisId = nomisCorporateId)).isNotNull()
+          webTestClient.delete()
+            .uri("/mapping/corporate/organisation/nomis-corporate-id/{corporateId}", nomisCorporateId)
+            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .exchange()
+            .expectStatus().isNoContent
 
-        webTestClient.delete()
-          .uri("/mapping/corporate/organisation/nomis-corporate-id/{corporateId}", nomisCorporateId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
-          .exchange()
-          .expectStatus().isNoContent
-
-        assertThat(corporateMappingRepository.findOneByNomisId(nomisId = nomisCorporateId)).isNull()
+          assertThat(corporateMappingRepository.findOneByNomisId(nomisId = nomisCorporateId)).isNull()
+        }
       }
     }
   }
@@ -2791,76 +2791,154 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("DELETE /mapping/corporate/email/nomis-internet-address-id/{emailId}")
-  inner class DeleteEmailByNomisId {
-    private val nomisInternetAddressId = 12345L
-    private lateinit var corporateEmailMapping: CorporateEmailMapping
+  inner class DeleteEmail {
+    @Nested
+    @DisplayName("DELETE /mapping/corporate/email/nomis-internet-address-id/{emailId}")
+    inner class DeleteEmailByDpssId {
+      private val dpsInternetAddressId = "12345"
+      private lateinit var corporateEmailMapping: CorporateEmailMapping
 
-    @BeforeEach
-    fun setUp() = runTest {
-      corporateEmailMapping = corporateEmailMappingRepository.save(
-        CorporateEmailMapping(
-          dpsId = "12345",
-          nomisId = nomisInternetAddressId,
-          label = "2023-01-01T12:45:12",
-          mappingType = CorporateMappingType.MIGRATED,
-          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
-        ),
-      )
+      @BeforeEach
+      fun setUp() = runTest {
+        corporateEmailMapping = corporateEmailMappingRepository.save(
+          CorporateEmailMapping(
+            dpsId = dpsInternetAddressId,
+            nomisId = 12345,
+            label = "2023-01-01T12:45:12",
+            mappingType = CorporateMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
+      }
+
+      @Nested
+      inner class Security {
+        @Test
+        fun `access not authorised when no authority`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/email/dps-internet-address-id/{emailId}", dpsInternetAddressId)
+            .exchange()
+            .expectStatus().isUnauthorized
+        }
+
+        @Test
+        fun `access forbidden when no role`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/email/dps-internet-address-id/{emailId}", dpsInternetAddressId)
+            .headers(setAuthorisation(roles = listOf()))
+            .exchange()
+            .expectStatus().isForbidden
+        }
+
+        @Test
+        fun `access forbidden with wrong role`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/email/dps-internet-address-id/{emailId}", dpsInternetAddressId)
+            .headers(setAuthorisation(roles = listOf("BANANAS")))
+            .exchange()
+            .expectStatus().isForbidden
+        }
+      }
+
+      @Nested
+      inner class Validation {
+        @Test
+        fun `204 when mapping not found`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/email/dps-internet-address-id/{emailId}", 99999)
+            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .exchange()
+            .expectStatus().isNoContent
+        }
+      }
+
+      @Nested
+      inner class HappyPath {
+        @Test
+        fun `will return the mapping data`() = runTest {
+          assertThat(corporateEmailMappingRepository.findOneByDpsId(dpsInternetAddressId)).isNotNull
+          webTestClient.delete()
+            .uri("/mapping/corporate/email/dps-internet-address-id/{emailId}", dpsInternetAddressId)
+            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .exchange()
+            .expectStatus().isNoContent
+          assertThat(corporateEmailMappingRepository.findOneByDpsId(dpsInternetAddressId)).isNull()
+        }
+      }
     }
 
     @Nested
-    inner class Security {
-      @Test
-      fun `access not authorised when no authority`() {
-        webTestClient.delete()
-          .uri("/mapping/corporate/email/nomis-internet-address-id/{emailId}", nomisInternetAddressId)
-          .exchange()
-          .expectStatus().isUnauthorized
+    @DisplayName("DELETE /mapping/corporate/email/nomis-internet-address-id/{emailId}")
+    inner class DeleteEmailByNomisId {
+      private val nomisInternetAddressId = 12345L
+      private lateinit var corporateEmailMapping: CorporateEmailMapping
+
+      @BeforeEach
+      fun setUp() = runTest {
+        corporateEmailMapping = corporateEmailMappingRepository.save(
+          CorporateEmailMapping(
+            dpsId = "12345",
+            nomisId = nomisInternetAddressId,
+            label = "2023-01-01T12:45:12",
+            mappingType = CorporateMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
       }
 
-      @Test
-      fun `access forbidden when no role`() {
-        webTestClient.delete()
-          .uri("/mapping/corporate/email/nomis-internet-address-id/{emailId}", nomisInternetAddressId)
-          .headers(setAuthorisation(roles = listOf()))
-          .exchange()
-          .expectStatus().isForbidden
+      @Nested
+      inner class Security {
+        @Test
+        fun `access not authorised when no authority`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/email/nomis-internet-address-id/{emailId}", nomisInternetAddressId)
+            .exchange()
+            .expectStatus().isUnauthorized
+        }
+
+        @Test
+        fun `access forbidden when no role`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/email/nomis-internet-address-id/{emailId}", nomisInternetAddressId)
+            .headers(setAuthorisation(roles = listOf()))
+            .exchange()
+            .expectStatus().isForbidden
+        }
+
+        @Test
+        fun `access forbidden with wrong role`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/email/nomis-internet-address-id/{emailId}", nomisInternetAddressId)
+            .headers(setAuthorisation(roles = listOf("BANANAS")))
+            .exchange()
+            .expectStatus().isForbidden
+        }
       }
 
-      @Test
-      fun `access forbidden with wrong role`() {
-        webTestClient.delete()
-          .uri("/mapping/corporate/email/nomis-internet-address-id/{emailId}", nomisInternetAddressId)
-          .headers(setAuthorisation(roles = listOf("BANANAS")))
-          .exchange()
-          .expectStatus().isForbidden
+      @Nested
+      inner class Validation {
+        @Test
+        fun `204 when mapping not found`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/email/nomis-internet-address-id/{emailId}", 99999)
+            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .exchange()
+            .expectStatus().isNoContent
+        }
       }
-    }
 
-    @Nested
-    inner class Validation {
-      @Test
-      fun `204 when mapping not found`() {
-        webTestClient.delete()
-          .uri("/mapping/corporate/email/nomis-internet-address-id/{emailId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
-          .exchange()
-          .expectStatus().isNoContent
-      }
-    }
-
-    @Nested
-    inner class HappyPath {
-      @Test
-      fun `will return the mapping data`() = runTest {
-        assertThat(corporateEmailMappingRepository.findOneByNomisId(nomisInternetAddressId)).isNotNull
-        webTestClient.delete()
-          .uri("/mapping/corporate/email/nomis-internet-address-id/{emailId}", nomisInternetAddressId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
-          .exchange()
-          .expectStatus().isNoContent
-        assertThat(corporateEmailMappingRepository.findOneByNomisId(nomisInternetAddressId)).isNull()
+      @Nested
+      inner class HappyPath {
+        @Test
+        fun `will return the mapping data`() = runTest {
+          assertThat(corporateEmailMappingRepository.findOneByNomisId(nomisInternetAddressId)).isNotNull
+          webTestClient.delete()
+            .uri("/mapping/corporate/email/nomis-internet-address-id/{emailId}", nomisInternetAddressId)
+            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .exchange()
+            .expectStatus().isNoContent
+          assertThat(corporateEmailMappingRepository.findOneByNomisId(nomisInternetAddressId)).isNull()
+        }
       }
     }
   }
