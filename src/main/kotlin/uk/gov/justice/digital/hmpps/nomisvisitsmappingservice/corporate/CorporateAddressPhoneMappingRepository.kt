@@ -8,4 +8,5 @@ interface CorporateAddressPhoneMappingRepository : CoroutineCrudRepository<Corpo
   suspend fun findOneByNomisId(nomisId: Long): CorporateAddressPhoneMapping?
   suspend fun findOneByDpsId(dpsId: String): CorporateAddressPhoneMapping?
   suspend fun deleteByNomisId(nomisId: Long)
+  suspend fun deleteByDpsId(dpsId: String)
 }
