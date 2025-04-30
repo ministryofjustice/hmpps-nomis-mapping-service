@@ -1083,7 +1083,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  inner class DeleteCorporate {
+  inner class DeleteCorporateMapping {
     @Nested
     @DisplayName("DELETE /mapping/corporate/organisation/dps-organisation-id/{organisationId}")
     inner class DeleteCorporateByDpsId {
@@ -1551,7 +1551,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  inner class DeleteAddress {
+  inner class DeleteAddressMapping {
     @Nested
     @DisplayName("DELETE /mapping/corporate/address/dps-address-id/{addressId}")
     inner class DeleteAddressByDpsId {
@@ -2019,76 +2019,154 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("DELETE /mapping/corporate/address-phone/nomis-phone-id/{phoneId}")
-  inner class DeleteAddressPhoneByNomisId {
-    private val nomisAddressId = 12345L
-    private lateinit var corporateAddressPhoneMapping: CorporateAddressPhoneMapping
+  inner class DeleteAddressPhoneMapping {
+    @Nested
+    @DisplayName("DELETE /mapping/corporate/address-phone/dps-phone-id/{phoneId}")
+    inner class DeleteAddressPhoneByDpsId {
+      private val dpsAddressId = "12345"
+      private lateinit var corporateAddressPhoneMapping: CorporateAddressPhoneMapping
 
-    @BeforeEach
-    fun setUp() = runTest {
-      corporateAddressPhoneMapping = corporateAddressPhoneMappingRepository.save(
-        CorporateAddressPhoneMapping(
-          dpsId = "12345",
-          nomisId = nomisAddressId,
-          label = "2023-01-01T12:45:12",
-          mappingType = CorporateMappingType.MIGRATED,
-          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
-        ),
-      )
+      @BeforeEach
+      fun setUp() = runTest {
+        corporateAddressPhoneMapping = corporateAddressPhoneMappingRepository.save(
+          CorporateAddressPhoneMapping(
+            dpsId = dpsAddressId,
+            nomisId = 12345,
+            label = "2023-01-01T12:45:12",
+            mappingType = CorporateMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
+      }
+
+      @Nested
+      inner class Security {
+        @Test
+        fun `access not authorised when no authority`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/address-phone/dps-phone-id/{phoneId}", dpsAddressId)
+            .exchange()
+            .expectStatus().isUnauthorized
+        }
+
+        @Test
+        fun `access forbidden when no role`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/address-phone/dps-phone-id/{phoneId}", dpsAddressId)
+            .headers(setAuthorisation(roles = listOf()))
+            .exchange()
+            .expectStatus().isForbidden
+        }
+
+        @Test
+        fun `access forbidden with wrong role`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/address-phone/dps-phone-id/{phoneId}", dpsAddressId)
+            .headers(setAuthorisation(roles = listOf("BANANAS")))
+            .exchange()
+            .expectStatus().isForbidden
+        }
+      }
+
+      @Nested
+      inner class Validation {
+        @Test
+        fun `204 when mapping not found`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/address-phone/dps-phone-id/{phoneId}", 99999)
+            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .exchange()
+            .expectStatus().isNoContent
+        }
+      }
+
+      @Nested
+      inner class HappyPath {
+        @Test
+        fun `will delete the mapping data`() = runTest {
+          assertThat(corporateAddressPhoneMappingRepository.findOneByDpsId(dpsAddressId)).isNotNull()
+          webTestClient.delete()
+            .uri("/mapping/corporate/address-phone/dps-phone-id/{phoneId}", dpsAddressId)
+            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .exchange()
+            .expectStatus().isNoContent
+          assertThat(corporateAddressPhoneMappingRepository.findOneByDpsId(dpsAddressId)).isNull()
+        }
+      }
     }
 
     @Nested
-    inner class Security {
-      @Test
-      fun `access not authorised when no authority`() {
-        webTestClient.delete()
-          .uri("/mapping/corporate/address-phone/nomis-phone-id/{phoneId}", nomisAddressId)
-          .exchange()
-          .expectStatus().isUnauthorized
+    @DisplayName("DELETE /mapping/corporate/address-phone/nomis-phone-id/{phoneId}")
+    inner class DeleteAddressPhoneByNomisId {
+      private val nomisAddressId = 12345L
+      private lateinit var corporateAddressPhoneMapping: CorporateAddressPhoneMapping
+
+      @BeforeEach
+      fun setUp() = runTest {
+        corporateAddressPhoneMapping = corporateAddressPhoneMappingRepository.save(
+          CorporateAddressPhoneMapping(
+            dpsId = "12345",
+            nomisId = nomisAddressId,
+            label = "2023-01-01T12:45:12",
+            mappingType = CorporateMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
       }
 
-      @Test
-      fun `access forbidden when no role`() {
-        webTestClient.delete()
-          .uri("/mapping/corporate/address-phone/nomis-phone-id/{phoneId}", nomisAddressId)
-          .headers(setAuthorisation(roles = listOf()))
-          .exchange()
-          .expectStatus().isForbidden
+      @Nested
+      inner class Security {
+        @Test
+        fun `access not authorised when no authority`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/address-phone/nomis-phone-id/{phoneId}", nomisAddressId)
+            .exchange()
+            .expectStatus().isUnauthorized
+        }
+
+        @Test
+        fun `access forbidden when no role`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/address-phone/nomis-phone-id/{phoneId}", nomisAddressId)
+            .headers(setAuthorisation(roles = listOf()))
+            .exchange()
+            .expectStatus().isForbidden
+        }
+
+        @Test
+        fun `access forbidden with wrong role`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/address-phone/nomis-phone-id/{phoneId}", nomisAddressId)
+            .headers(setAuthorisation(roles = listOf("BANANAS")))
+            .exchange()
+            .expectStatus().isForbidden
+        }
       }
 
-      @Test
-      fun `access forbidden with wrong role`() {
-        webTestClient.delete()
-          .uri("/mapping/corporate/address-phone/nomis-phone-id/{phoneId}", nomisAddressId)
-          .headers(setAuthorisation(roles = listOf("BANANAS")))
-          .exchange()
-          .expectStatus().isForbidden
+      @Nested
+      inner class Validation {
+        @Test
+        fun `204 when mapping not found`() {
+          webTestClient.delete()
+            .uri("/mapping/corporate/address-phone/nomis-phone-id/{phoneId}", 99999)
+            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .exchange()
+            .expectStatus().isNoContent
+        }
       }
-    }
 
-    @Nested
-    inner class Validation {
-      @Test
-      fun `204 when mapping not found`() {
-        webTestClient.delete()
-          .uri("/mapping/corporate/address-phone/nomis-phone-id/{phoneId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
-          .exchange()
-          .expectStatus().isNoContent
-      }
-    }
-
-    @Nested
-    inner class HappyPath {
-      @Test
-      fun `will delete the mapping data`() = runTest {
-        assertThat(corporateAddressPhoneMappingRepository.findOneByNomisId(nomisAddressId)).isNotNull()
-        webTestClient.delete()
-          .uri("/mapping/corporate/address-phone/nomis-phone-id/{phoneId}", nomisAddressId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
-          .exchange()
-          .expectStatus().isNoContent
-        assertThat(corporateAddressPhoneMappingRepository.findOneByNomisId(nomisAddressId)).isNull()
+      @Nested
+      inner class HappyPath {
+        @Test
+        fun `will delete the mapping data`() = runTest {
+          assertThat(corporateAddressPhoneMappingRepository.findOneByNomisId(nomisAddressId)).isNotNull()
+          webTestClient.delete()
+            .uri("/mapping/corporate/address-phone/nomis-phone-id/{phoneId}", nomisAddressId)
+            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .exchange()
+            .expectStatus().isNoContent
+          assertThat(corporateAddressPhoneMappingRepository.findOneByNomisId(nomisAddressId)).isNull()
+        }
       }
     }
   }
@@ -2405,7 +2483,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  inner class DeletePhone {
+  inner class DeletePhoneMapping {
     @Nested
     @DisplayName("DELETE /mapping/corporate/phone/dps-phone-id/{phoneId}")
     inner class DeletePhoneByDpsId {
@@ -2869,7 +2947,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  inner class DeleteEmail {
+  inner class DeleteEmailMapping {
     @Nested
     @DisplayName("DELETE /mapping/corporate/email/nomis-internet-address-id/{emailId}")
     inner class DeleteEmailByDpssId {
@@ -3333,7 +3411,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  inner class DeleteWebAddress {
+  inner class DeleteWebAddressMapping {
     @Nested
     @DisplayName("DELETE /mapping/corporate/web/dps-internet-address-id/{webId}")
     inner class DeleteWebByDpsId {
