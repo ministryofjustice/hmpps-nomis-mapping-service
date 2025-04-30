@@ -19,6 +19,9 @@ data class CourtCaseMigrationMappingDto(
   @Schema(description = "Sentence mappings")
   val sentences: List<SentenceMappingDto> = emptyList(),
 
+  @Schema(description = "Sentence term mappings")
+  val sentenceTerms: List<SentenceTermMappingDto> = emptyList(),
+
   @Schema(description = "Label (a timestamp for migrated ids)")
   val label: String? = null,
 
