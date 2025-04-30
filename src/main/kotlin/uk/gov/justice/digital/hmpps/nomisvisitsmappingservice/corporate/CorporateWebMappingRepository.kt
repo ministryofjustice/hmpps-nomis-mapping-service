@@ -8,4 +8,5 @@ interface CorporateWebMappingRepository : CoroutineCrudRepository<CorporateWebMa
   suspend fun findOneByNomisId(nomisId: Long): CorporateWebMapping?
   suspend fun findOneByDpsId(dpsId: String): CorporateWebMapping?
   suspend fun deleteByNomisId(nomisId: Long)
+  suspend fun deleteByDpsId(dpsId: String)
 }

@@ -206,6 +206,9 @@ class CorporateService(
     ?: throw NotFoundException("No web mapping found for dpsId=$dpsId")
 
   @Transactional
+  suspend fun deleteWebMappingByDpsId(dpsId: String) = corporateWebMappingRepository.deleteByDpsId(dpsId = dpsId)
+
+  @Transactional
   suspend fun deleteWebMappingByNomisId(nomisId: Long) = corporateWebMappingRepository.deleteByNomisId(nomisId = nomisId)
 }
 
