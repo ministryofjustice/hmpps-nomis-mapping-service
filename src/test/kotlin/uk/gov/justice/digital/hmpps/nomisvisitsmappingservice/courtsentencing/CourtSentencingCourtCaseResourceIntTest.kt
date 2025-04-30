@@ -903,6 +903,15 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
           mappingType = SentenceMappingType.NOMIS_CREATED,
         ),
       )
+      sentenceTermRepository.save(
+        SentenceTermMapping(
+          dpsTermId = "dps321",
+          nomisSentenceSequence = EXISTING_NOMIS_SENTENCE_SEQ,
+          nomisTermSequence = EXISTING_NOMIS_SENTENCE_TERM_SEQ,
+          nomisBookingId = NOMIS_BOOKING_ID,
+          mappingType = SentenceTermMappingType.NOMIS_CREATED,
+        ),
+      )
       prisonerCourtCaseRepository.save(
         CourtCasePrisonerMigration(
           offenderNo = EXISTING_OFFENDER_NO,
@@ -1205,7 +1214,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
               sentenceTerms = listOf(
                 SentenceTermMappingDto(
                   dpsTermId = "1234",
-                  nomisSentenceSequence = NOMIS_SENTENCE_SEQ,
+                  nomisSentenceSequence = EXISTING_NOMIS_SENTENCE_SEQ,
                   nomisTermSequence = EXISTING_NOMIS_SENTENCE_TERM_SEQ,
                   nomisBookingId = NOMIS_BOOKING_ID,
                 ),
