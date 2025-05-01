@@ -27,18 +27,19 @@ private const val NOMIS_COURT_APPEARANCE_3_ID = 7654L
 private const val NOMIS_COURT_APPEARANCE_4_ID = 8765L
 private const val NOMIS_COURT_CHARGE_1_ID = 32121L
 private const val NOMIS_COURT_CHARGE_2_ID = 87676L
-private const val NOMIS_COURT_CHARGE_3_ID = 99676L
 private const val NOMIS_SENTENCE_SEQ = 1
+private const val NOMIS_SENTENCE_TERM_SEQ = 2
 private const val NOMIS_BOOKING_ID = 32456L
 private const val DPS_SENTENCE_ID = "dpss1"
 private const val DPS_SENTENCE_ID_2 = "dpss2"
+private const val DPS_TERM_ID = "dpss3"
+private const val DPS_TERM_ID_2 = "dpss4"
 private const val DPS_COURT_APPEARANCE_1_ID = "dpsca1"
 private const val DPS_COURT_APPEARANCE_2_ID = "dpsca2"
 private const val DPS_COURT_APPEARANCE_3_ID = "dpsca3"
 private const val DPS_COURT_APPEARANCE_4_ID = "dpsca4"
 private const val DPS_COURT_CHARGE_1_ID = "dpscha1"
 private const val DPS_COURT_CHARGE_2_ID = "dpscha2"
-private const val DPS_COURT_CHARGE_3_ID = "dpscha3"
 private const val NOMIS_COURT_CASE_ID = 54321L
 private const val NOMIS_COURT_CASE_2_ID = 65431L
 private const val DPS_COURT_CASE_ID = "dps444"
@@ -47,6 +48,7 @@ private const val EXISTING_DPS_COURT_CASE_ID = "DPS321"
 private const val EXISTING_NOMIS_COURT_CASE_ID = 98765L
 private const val EXISTING_NOMIS_COURT_APPEARANCE_ID = 98733L
 private const val EXISTING_NOMIS_SENTENCE_SEQ = 4
+private const val EXISTING_NOMIS_SENTENCE_TERM_SEQ = 5
 
 class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
   @Autowired
@@ -63,6 +65,9 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var sentenceRepository: SentenceMappingRepository
+
+  @Autowired
+  private lateinit var sentenceTermRepository: SentenceTermMappingRepository
 
   @Nested
   @DisplayName("GET /mapping/court-sentencing/court-cases/dps-court-case-id/{courtCaseId}")
@@ -772,6 +777,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
     courtAppearanceRepository.deleteAll()
     courtChargeRepository.deleteAll()
     sentenceRepository.deleteAll()
+    sentenceTermRepository.deleteAll()
     prisonerCourtCaseRepository.deleteAll()
   }
 
@@ -853,6 +859,24 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
           mappingType = SentenceMappingType.MIGRATED,
         ),
       ),
+      sentenceTerms = listOf(
+        SentenceTermMappingDto(
+          dpsTermId = DPS_TERM_ID,
+          nomisSentenceSequence = NOMIS_SENTENCE_SEQ,
+          nomisTermSequence = NOMIS_SENTENCE_TERM_SEQ,
+          nomisBookingId = NOMIS_BOOKING_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = SentenceTermMappingType.MIGRATED,
+        ),
+        SentenceTermMappingDto(
+          dpsTermId = DPS_TERM_ID_2,
+          nomisSentenceSequence = NOMIS_SENTENCE_SEQ,
+          nomisTermSequence = NOMIS_SENTENCE_TERM_SEQ + 1,
+          nomisBookingId = NOMIS_BOOKING_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = SentenceTermMappingType.MIGRATED,
+        ),
+      ),
     )
 
     @BeforeEach
@@ -878,6 +902,15 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
           nomisSentenceSequence = EXISTING_NOMIS_SENTENCE_SEQ,
           nomisBookingId = NOMIS_BOOKING_ID,
           mappingType = SentenceMappingType.NOMIS_CREATED,
+        ),
+      )
+      sentenceTermRepository.save(
+        SentenceTermMapping(
+          dpsTermId = "dps321",
+          nomisSentenceSequence = EXISTING_NOMIS_SENTENCE_SEQ,
+          nomisTermSequence = EXISTING_NOMIS_SENTENCE_TERM_SEQ,
+          nomisBookingId = NOMIS_BOOKING_ID,
+          mappingType = SentenceTermMappingType.NOMIS_CREATED,
         ),
       )
       prisonerCourtCaseRepository.save(
@@ -955,6 +988,11 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
             id = DPS_SENTENCE_ID,
           )!!
 
+        val createdSentenceTermMapping =
+          sentenceTermRepository.findById(
+            id = DPS_TERM_ID,
+          )!!
+
         val createdCourtAppearance1Mapping =
           courtAppearanceRepository.findById(
             id = DPS_COURT_APPEARANCE_1_ID,
@@ -1017,6 +1055,13 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
         assertThat(createdSentenceMapping.dpsSentenceId).isEqualTo(DPS_SENTENCE_ID)
         assertThat(createdSentenceMapping.mappingType).isEqualTo(SentenceMappingType.MIGRATED)
         assertThat(createdSentenceMapping.label).isEqualTo(mapping.sentences[0].label)
+
+        assertThat(createdSentenceTermMapping.nomisSentenceSequence).isEqualTo(NOMIS_SENTENCE_SEQ)
+        assertThat(createdSentenceTermMapping.nomisTermSequence).isEqualTo(NOMIS_SENTENCE_TERM_SEQ)
+        assertThat(createdSentenceTermMapping.nomisBookingId).isEqualTo(NOMIS_BOOKING_ID)
+        assertThat(createdSentenceTermMapping.dpsTermId).isEqualTo(DPS_TERM_ID)
+        assertThat(createdSentenceTermMapping.mappingType).isEqualTo(SentenceTermMappingType.MIGRATED)
+        assertThat(createdSentenceTermMapping.label).isEqualTo(mapping.sentenceTerms[0].label)
 
         // the prisoner tracking table should have an entry for this offender
         assertThat(prisonerCourtCaseRepository.findById(OFFENDER_NO)).isNotNull
@@ -1147,6 +1192,31 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
                 SentenceMappingDto(
                   dpsSentenceId = "1234",
                   nomisSentenceSequence = EXISTING_NOMIS_SENTENCE_SEQ,
+                  nomisBookingId = NOMIS_BOOKING_ID,
+                ),
+              ),
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isEqualTo(201)
+    }
+
+    @Test
+    fun `if sentence term already migrated, will recreate mappings`() {
+      webTestClient.post()
+        .uri("/mapping/court-sentencing/prisoner/${OFFENDER_NO}/court-cases")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            CourtCaseMigrationMappingDto(
+              courtCases = mapping.courtCases,
+              sentenceTerms = listOf(
+                SentenceTermMappingDto(
+                  dpsTermId = "1234",
+                  nomisSentenceSequence = EXISTING_NOMIS_SENTENCE_SEQ,
+                  nomisTermSequence = EXISTING_NOMIS_SENTENCE_TERM_SEQ,
                   nomisBookingId = NOMIS_BOOKING_ID,
                 ),
               ),

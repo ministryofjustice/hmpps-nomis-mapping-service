@@ -138,6 +138,22 @@ class CourtSentencingMappingService(
         throw e
       }
     }
+    createMappingRequest.sentenceTerms.forEach {
+      try {
+        deleteSentenceTermMappingByNomisId(
+          bookingId = it.nomisBookingId,
+          sentenceSequence = it.nomisSentenceSequence,
+          termSequence = it.nomisTermSequence,
+        )
+        createSentenceTermMapping(it)
+      } catch (e: Exception) {
+        log.info(
+          "Failed to create sentence term mapping for dpsTermId=${it.dpsTermId}, nomisSentenceSeq=${it.nomisSentenceSequence}, nomisTermSeq = ${it.nomisTermSequence}, nomisBooking = ${it.nomisBookingId}",
+          e,
+        )
+        throw e
+      }
+    }
   }
 
   @Transactional
@@ -415,6 +431,7 @@ class CourtSentencingMappingService(
     courtAppearanceMappingRepository.deleteAll()
     courtChargeMappingRepository.deleteAll()
     sentenceMappingRepository.deleteAll()
+    sentenceTermMappingRepository.deleteAll()
   }
 }
 
