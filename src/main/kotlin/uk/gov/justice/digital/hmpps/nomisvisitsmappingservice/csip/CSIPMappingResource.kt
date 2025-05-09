@@ -312,6 +312,29 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
     dpsCSIPId: String,
   ) = mappingService.deleteMappingByDPSId(dpsCSIPId)
 
+  @DeleteMapping("/dps-csip-id/{dpsCSIPId}/children")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes all child mappings for a CSIP Report by DPS id",
+    description = "Deletes all child mappings associated with a specific CSIP report mapping by DPS CSIP Report id. Requires role NOMIS_CSIP",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "CSIP child mappings deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteChildMappings(
+    @Schema(description = "DPS CSIP Id", example = "4321", required = true)
+    @PathVariable
+    dpsCSIPId: String,
+  ) = mappingService.deleteChildMappingsByDPSId(dpsCSIPId)
+
   @DeleteMapping("/all")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(

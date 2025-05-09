@@ -769,8 +769,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
                   "nomisCSIPReportId" : 1234,
                   "dpsCSIPReportId"   : "dcd118c-41ba-42ea-b5c4-404b453ad58b",
                   "mappingType"       : "DPS_CREATED"
-                }
-              }""",
+                }""",
               ),
             )
             .exchange()
@@ -1268,6 +1267,180 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
+  @DisplayName("DELETE /mapping/csip/dps-csip-id/{dpsCSIPId}/children")
+  @Nested
+  inner class DeleteChildMappings {
+    private val dpsCSIPId = UUID.randomUUID().toString()
+    private val nomisCSIPId = 22334L
+    private lateinit var mapping: CSIPMapping
+
+    private var dpsCsipPlanId = "0"
+    private var dpsCsipInterviewId = "0"
+    private var dpsCsipReviewId = "0"
+    private var dpsCsipAttendeeId = "0"
+    private var dpsCsipFactorId = "0"
+
+    @BeforeEach
+    fun setUp() = runTest {
+      mapping = repository.save(
+        CSIPMapping(
+          dpsCSIPId = dpsCSIPId,
+          nomisCSIPId = nomisCSIPId,
+          label = "2023-01-01T12:45:12",
+          mappingType = MIGRATED,
+        ),
+      )
+      dpsCsipFactorId = csipFactorRepository.save(
+        CSIPFactorMapping(
+          dpsCSIPFactorId = "c5e56441-04c9-40e1-bd37-553ec1abcaaa",
+          nomisCSIPFactorId = 11111L,
+          dpsCSIPReportId = dpsCSIPId,
+          label = "2023-01-01T12:45:12",
+          mappingType = CSIPChildMappingType.MIGRATED,
+        ),
+      ).dpsCSIPFactorId
+
+      dpsCsipPlanId = csipPlanRepository.save(
+        CSIPPlanMapping(
+          dpsCSIPPlanId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+          nomisCSIPPlanId = 12345L,
+          dpsCSIPReportId = mapping.dpsCSIPId,
+          label = "2023-01-01T12:45:12",
+          mappingType = CSIPChildMappingType.MIGRATED,
+        ),
+      ).dpsCSIPPlanId
+
+      dpsCsipInterviewId = csipInterviewRepository.save(
+        CSIPInterviewMapping(
+          dpsCSIPInterviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+          nomisCSIPInterviewId = 12345L,
+          dpsCSIPReportId = mapping.dpsCSIPId,
+          label = "2023-01-01T12:45:12",
+          mappingType = CSIPChildMappingType.MIGRATED,
+        ),
+      ).dpsCSIPInterviewId
+
+      dpsCsipReviewId = csipReviewRepository.save(
+        CSIPReviewMapping(
+          dpsCSIPReviewId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+          nomisCSIPReviewId = 12345L,
+          dpsCSIPReportId = mapping.dpsCSIPId,
+          label = "2023-01-01T12:45:12",
+          mappingType = CSIPChildMappingType.MIGRATED,
+        ),
+      ).dpsCSIPReviewId
+
+      dpsCsipAttendeeId = csipAttendeeRepository.save(
+        CSIPAttendeeMapping(
+          dpsCSIPAttendeeId = "c5e56441-04c9-40e1-bd37-553ec1abcdef",
+          nomisCSIPAttendeeId = 12345L,
+          dpsCSIPReportId = mapping.dpsCSIPId,
+          label = "2023-01-01T12:45:12",
+          mappingType = CSIPChildMappingType.MIGRATED,
+        ),
+      ).dpsCSIPAttendeeId
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      csipAttendeeRepository.deleteAll()
+      csipFactorRepository.deleteAll()
+      csipInterviewRepository.deleteAll()
+      csipPlanRepository.deleteAll()
+      csipReviewRepository.deleteAll()
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access forbidden when no authority`() {
+        webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/children")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/children")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/children")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Test
+    fun `delete specific mapping success`() {
+      // it is present after creation by csip id
+      webTestClient.get().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/all")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("nomisCSIPReportId").isEqualTo(nomisCSIPId)
+        .jsonPath("dpsCSIPReportId").isEqualTo(dpsCSIPId)
+        .jsonPath("attendeeMappings.size()").isEqualTo(1)
+        .jsonPath("factorMappings.size()").isEqualTo(1)
+        .jsonPath("interviewMappings.size()").isEqualTo(1)
+        .jsonPath("planMappings.size()").isEqualTo(1)
+        .jsonPath("reviewMappings.size()").isEqualTo(1)
+
+      // it is also present after creation by nomis id
+      webTestClient.get().uri("/mapping/csip/nomis-csip-id/${mapping.nomisCSIPId}")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange()
+        .expectStatus().isOk
+
+      // delete children mappings
+      webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/children")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      // still present by dps csip id but children deleted
+      webTestClient.get().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("nomisCSIPReportId").isEqualTo(nomisCSIPId)
+        .jsonPath("dpsCSIPReportId").isEqualTo(dpsCSIPId)
+        .jsonPath("attendeeMappings").doesNotExist()
+        .jsonPath("factorMappings").doesNotExist()
+        .jsonPath("interviewMappings").doesNotExist()
+        .jsonPath("planMappings").doesNotExist()
+        .jsonPath("reviewMappings").doesNotExist()
+
+      // and also still present by nomis csip id
+      webTestClient.get().uri("/mapping/csip/nomis-csip-id/${mapping.nomisCSIPId}")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange()
+        .expectStatus().isOk
+    }
+
+    @Test
+    internal fun `delete is idempotent`() {
+      // delete mapping
+      webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/children")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange()
+        .expectStatus().isNoContent
+      // delete mapping second time still returns success
+      webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/children")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .exchange()
+        .expectStatus().isNoContent
+    }
+  }
+
   @DisplayName("POST /mapping/csip/children/all")
   @Nested
   inner class CreateFullChildCSIPMapping {
@@ -1681,7 +1854,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
   @DisplayName("DELETE /mapping/csip/dps-csip-id/{dpsCSIPId}/all with children set")
   @Nested
-  inner class DeleteChildMappings {
+  inner class DeleteAllWithChildMappings {
     lateinit var mapping: CSIPMapping
     private var dpsCsipPlanId = "0"
     private var dpsCsipPlanId2 = "0"
