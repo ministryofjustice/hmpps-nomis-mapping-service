@@ -661,4 +661,137 @@ class SentenceResourceIntTest : IntegrationTestBase() {
       }
     }
   }
+
+  @Nested
+  @DisplayName("POST /mapping/court-sentencing/sentences/dps-sentence-ids/get-list")
+  inner class GetSentenceMappingsByDpsIds {
+    lateinit var mapping1: SentenceMapping
+    lateinit var mapping2: SentenceMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      mapping1 = repository.save(
+        SentenceMapping(
+          dpsSentenceId = "ce53d679-dec3-4cd2-9bc7-35037c78c4b7",
+          nomisBookingId = NOMIS_BOOKING_ID,
+          nomisSentenceSequence = 1,
+          label = "2023-01-01T12:45:12",
+          mappingType = SentenceMappingType.MIGRATED,
+        ),
+      )
+      mapping2 = repository.save(
+        SentenceMapping(
+          dpsSentenceId = "fd246c2e-146b-47a9-9bda-14c279cd1708",
+          nomisBookingId = NOMIS_BOOKING_ID,
+          nomisSentenceSequence = 2,
+          label = "2023-01-01T12:45:12",
+          mappingType = SentenceMappingType.MIGRATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      repository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/sentences/dps-sentence-ids/get-list")
+          .bodyValue(listOf(mapping1.dpsSentenceId, mapping2.dpsSentenceId))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/sentences/dps-sentence-ids/get-list")
+          .headers(setAuthorisation(roles = listOf()))
+          .bodyValue(listOf(mapping1.dpsSentenceId, mapping2.dpsSentenceId))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/sentences/dps-sentence-ids/get-list")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .bodyValue(listOf(mapping1.dpsSentenceId, mapping2.dpsSentenceId))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return mappings for provided DPS sentence IDs`() {
+        val responseType = object : ParameterizedTypeReference<List<SentenceMappingDto>>() {}
+
+        val response = webTestClient.post()
+          .uri("/mapping/court-sentencing/sentences/dps-sentence-ids/get-list")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .bodyValue(listOf(mapping1.dpsSentenceId, mapping2.dpsSentenceId))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody(responseType)
+          .returnResult()
+          .responseBody
+
+        assertThat(response).hasSize(2)
+
+        val firstMapping = response!!.find { it.dpsSentenceId == mapping1.dpsSentenceId }
+        assertThat(firstMapping).isNotNull
+        assertThat(firstMapping!!.nomisBookingId).isEqualTo(mapping1.nomisBookingId)
+        assertThat(firstMapping.nomisSentenceSequence).isEqualTo(mapping1.nomisSentenceSequence)
+        assertThat(firstMapping.mappingType).isEqualTo(mapping1.mappingType)
+
+        val secondMapping = response.find { it.dpsSentenceId == mapping2.dpsSentenceId }
+        assertThat(secondMapping).isNotNull
+        assertThat(secondMapping!!.nomisBookingId).isEqualTo(mapping2.nomisBookingId)
+        assertThat(secondMapping.nomisSentenceSequence).isEqualTo(mapping2.nomisSentenceSequence)
+        assertThat(secondMapping.mappingType).isEqualTo(mapping2.mappingType)
+      }
+
+      @Test
+      fun `will return empty list when no mappings found`() {
+        val responseType = object : ParameterizedTypeReference<List<SentenceMappingDto>>() {}
+
+        val response = webTestClient.post()
+          .uri("/mapping/court-sentencing/sentences/dps-sentence-ids/get-list")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .bodyValue(listOf("NON_EXISTENT_ID"))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody(responseType)
+          .returnResult()
+          .responseBody
+
+        assertThat(response).isEmpty()
+      }
+
+      @Test
+      fun `will return only found mappings when some IDs don't exist`() {
+        val responseType = object : ParameterizedTypeReference<List<SentenceMappingDto>>() {}
+
+        val response = webTestClient.post()
+          .uri("/mapping/court-sentencing/sentences/dps-sentence-ids/get-list")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .bodyValue(listOf(mapping1.dpsSentenceId, "NON_EXISTENT_ID"))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody(responseType)
+          .returnResult()
+          .responseBody
+
+        assertThat(response).hasSize(1)
+        assertThat(response!![0].dpsSentenceId).isEqualTo(mapping1.dpsSentenceId)
+      }
+    }
+  }
 }
