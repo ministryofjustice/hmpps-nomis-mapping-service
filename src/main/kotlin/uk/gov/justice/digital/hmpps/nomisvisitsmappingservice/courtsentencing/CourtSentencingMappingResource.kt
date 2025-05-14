@@ -1130,7 +1130,7 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
       ),
     ],
   )
-  suspend fun getSentenceMappingsByDpsIds(
+  fun getSentenceMappingsByDpsIds(
     @Schema(description = "List of DPS sentence IDs", example = "[\"ce53d679-dec3-4cd2-9bc7-35037c78c4b7\", \"fd246c2e-146b-47a9-9bda-14c279cd1708\"]", required = true)
     @RequestBody
     dpsSentenceIds: List<String>,
