@@ -382,14 +382,14 @@ class CourtSentencingMappingService(
   )?.toSentenceAllMappingDto()
     ?: throw NotFoundException("Sentence mapping not found with nomisBookingId =$nomisBookingId, nomisSentenceSeq =$nomisSentenceSeq")
 
-  suspend fun getSentencesByNomisIds(nomisSentenceIds: List<NomisSentenceId>): Flow<SentenceMapping> = nomisSentenceIds.asFlow().mapNotNull {
+  fun getSentencesByNomisIds(nomisSentenceIds: List<NomisSentenceId>): Flow<SentenceMapping> = nomisSentenceIds.asFlow().mapNotNull {
     sentenceMappingRepository.findByNomisBookingIdAndNomisSentenceSequence(
       nomisBookingId = it.nomisBookingId,
       nomisSentenceSeq = it.nomisSentenceSequence,
     )
   }
 
-  suspend fun getSentenceMappingsByDpsIds(dpsSentenceIds: List<String>): Flow<SentenceMappingDto> = dpsSentenceIds.asFlow().mapNotNull { dpsSentenceId ->
+  fun getSentenceMappingsByDpsIds(dpsSentenceIds: List<String>): Flow<SentenceMappingDto> = dpsSentenceIds.asFlow().mapNotNull { dpsSentenceId ->
     sentenceMappingRepository.findById(dpsSentenceId)?.toSentenceAllMappingDto()
   }
 
