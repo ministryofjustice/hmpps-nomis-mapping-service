@@ -1,10 +1,12 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.courtsentencing
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
+import kotlinx.coroutines.flow.Flow
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
@@ -1105,6 +1107,36 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     @PathVariable
     termSequence: Int,
   ) = mappingService.deleteSentenceTermMappingByNomisId(bookingId = bookingId, sentenceSequence = sentenceSequence, termSequence = termSequence)
+
+  @PostMapping("/sentences/dps-sentence-ids/get-list")
+  @Operation(
+    summary = "get sentence mappings by DPS sentence IDs",
+    description = "Retrieves mappings for a list of DPS sentence IDs. Any mappings noty found will be missing but the response will still be a 200. Requires role NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "List of associated mappings",
+        content = [
+          Content(
+            mediaType = "application/json",
+            array = ArraySchema(schema = Schema(implementation = SentenceMappingDto::class)),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getSentenceMappingsByDpsIds(
+    @Schema(description = "List of DPS sentence IDs", example = "[\"ce53d679-dec3-4cd2-9bc7-35037c78c4b7\", \"fd246c2e-146b-47a9-9bda-14c279cd1708\"]", required = true)
+    @RequestBody
+    dpsSentenceIds: List<String>,
+  ): Flow<SentenceMappingDto> = mappingService.getSentenceMappingsByDpsIds(
+    dpsSentenceIds = dpsSentenceIds,
+  )
 
   private suspend fun getExistingMappingSimilarTo(mapping: CourtCaseAllMappingDto) = runCatching {
     mappingService.getCourtCaseAllMappingByNomisId(

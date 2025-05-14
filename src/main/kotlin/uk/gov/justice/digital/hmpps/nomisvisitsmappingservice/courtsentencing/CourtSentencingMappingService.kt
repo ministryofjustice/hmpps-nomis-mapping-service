@@ -5,8 +5,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
@@ -383,12 +382,16 @@ class CourtSentencingMappingService(
   )?.toSentenceAllMappingDto()
     ?: throw NotFoundException("Sentence mapping not found with nomisBookingId =$nomisBookingId, nomisSentenceSeq =$nomisSentenceSeq")
 
-  suspend fun getSentencesByNomisIds(nomisSentenceIds: List<NomisSentenceId>): Flow<SentenceMapping> = nomisSentenceIds.asFlow().map {
+  suspend fun getSentencesByNomisIds(nomisSentenceIds: List<NomisSentenceId>): Flow<SentenceMapping> = nomisSentenceIds.asFlow().mapNotNull {
     sentenceMappingRepository.findByNomisBookingIdAndNomisSentenceSequence(
       nomisBookingId = it.nomisBookingId,
       nomisSentenceSeq = it.nomisSentenceSequence,
     )
-  }.filterNotNull()
+  }
+
+  suspend fun getSentenceMappingsByDpsIds(dpsSentenceIds: List<String>): Flow<SentenceMappingDto> = dpsSentenceIds.asFlow().mapNotNull { dpsSentenceId ->
+    sentenceMappingRepository.findById(dpsSentenceId)?.toSentenceAllMappingDto()
+  }
 
   suspend fun getSentenceTermMappingByNomisId(nomisBookingId: Long, nomisSentenceSeq: Int, nomisTermSeq: Int): SentenceTermMappingDto = sentenceTermMappingRepository.findByNomisBookingIdAndNomisSentenceSequenceAndNomisTermSequence(
     nomisBookingId = nomisBookingId,
