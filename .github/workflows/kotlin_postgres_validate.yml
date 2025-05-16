@@ -82,4 +82,3 @@ jobs:
           path: |
             build/test-results
             build/reports/tests
-  validate: null
