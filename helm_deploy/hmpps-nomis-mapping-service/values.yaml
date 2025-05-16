@@ -13,7 +13,7 @@ generic-service:
       memory: 2048Mi
 
   image:
-    repository: quay.io/hmpps/hmpps-nomis-mapping-service
+    repository: ghcr.io/ministryofjustice/hmpps-nomis-mapping-service
     tag: app_version # override at deployment time
     port: 8080
 
@@ -32,7 +32,7 @@ generic-service:
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
 
   namespace_secrets:
-    application-insights:
+    hmpps-nomis-mapping-service-application-insights:
       APPLICATIONINSIGHTS_CONNECTION_STRING: "APPLICATIONINSIGHTS_CONNECTION_STRING"
     dps-rds-instance-output:
       SPRING_FLYWAY_USER: "database_username"
