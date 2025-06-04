@@ -393,6 +393,10 @@ class CourtSentencingMappingService(
     sentenceMappingRepository.findById(dpsSentenceId)?.toSentenceAllMappingDto()
   }
 
+  fun getSentenceMappingsByNomisIds(nomisSentenceIds: List<NomisSentenceId>): Flow<SentenceMappingDto> = getSentencesByNomisIds(nomisSentenceIds).mapNotNull { sentenceMapping ->
+    sentenceMapping.toSentenceAllMappingDto()
+  }
+
   suspend fun getSentenceTermMappingByNomisId(nomisBookingId: Long, nomisSentenceSeq: Int, nomisTermSeq: Int): SentenceTermMappingDto = sentenceTermMappingRepository.findByNomisBookingIdAndNomisSentenceSequenceAndNomisTermSequence(
     nomisBookingId = nomisBookingId,
     nomisSentenceSeq = nomisSentenceSeq,
