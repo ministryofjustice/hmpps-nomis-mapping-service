@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.api.NomisSentenceId
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
@@ -1136,6 +1137,36 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     dpsSentenceIds: List<String>,
   ): Flow<SentenceMappingDto> = mappingService.getSentenceMappingsByDpsIds(
     dpsSentenceIds = dpsSentenceIds,
+  )
+
+  @PostMapping("/sentences/nomis-sentence-ids/get-list")
+  @Operation(
+    summary = "get sentence mappings by NOMIS sentence IDs",
+    description = "Retrieves mappings for a list of NOMIS sentence IDs. Any mappings not found will be missing but the response will still be a 200. Requires role NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "List of associated mappings",
+        content = [
+          Content(
+            mediaType = "application/json",
+            array = ArraySchema(schema = Schema(implementation = SentenceMappingDto::class)),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  fun getSentenceMappingsByNomisIds(
+    @Schema(description = "List of NOMIS sentence IDs", example = "[{\"nomisBookingId\": 12345, \"nomisSentenceSequence\": 1}, {\"nomisBookingId\": 12345, \"nomisSentenceSequence\": 2}]", required = true)
+    @RequestBody
+    nomisSentenceIds: List<NomisSentenceId>,
+  ): Flow<SentenceMappingDto> = mappingService.getSentenceMappingsByNomisIds(
+    nomisSentenceIds = nomisSentenceIds,
   )
 
   private suspend fun getExistingMappingSimilarTo(mapping: CourtCaseAllMappingDto) = runCatching {
