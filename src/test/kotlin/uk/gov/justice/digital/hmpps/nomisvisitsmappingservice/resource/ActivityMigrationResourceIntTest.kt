@@ -59,7 +59,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
 
   private fun createMapping(
     nomisId: Long = NOMIS_ID,
-    activityId: Long = ACTIVITY_ID,
+    activityId: Long? = ACTIVITY_ID,
     activityId2: Long? = ACTIVITY_ID_2,
     label: String = MIGRATION_ID,
   ): ActivityMigrationMappingDto = ActivityMigrationMappingDto(
@@ -71,7 +71,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
 
   private fun postCreateMappingRequest(
     nomisId: Long = NOMIS_ID,
-    activityId: Long = ACTIVITY_ID,
+    activityId: Long? = ACTIVITY_ID,
     activityId2: Long? = ACTIVITY_ID_2,
     label: String = MIGRATION_ID,
   ) = webTestClient.post().uri("/mapping/activities/migration")
@@ -93,7 +93,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
 
   private fun saveMapping(
     nomisId: Long = NOMIS_ID,
-    activityId: Long = ACTIVITY_ID,
+    activityId: Long? = ACTIVITY_ID,
     activityId2: Long? = ACTIVITY_ID_2,
     label: String = MIGRATION_ID,
   ) = runTest {
@@ -164,8 +164,44 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `should save multiple mappings if both activity ids are null`() = runTest {
+      postCreateMappingRequest(activityId = null, activityId2 = null)
+        .expectStatus().isCreated
+      // Create another to show that we can have multiple mappings with null activity_id
+      postCreateMappingRequest(nomisId = NOMIS_ID + 1, activityId = null, activityId2 = null)
+        .expectStatus().isCreated
+
+      val saved = activityMigrationRepository.findById(NOMIS_ID)!!
+      with(saved) {
+        assertThat(activityId).isNull()
+        assertThat(activityId2).isNull()
+        assertThat(label).isEqualTo(MIGRATION_ID)
+      }
+
+      val saved2 = activityMigrationRepository.findById(NOMIS_ID + 1)!!
+      with(saved2) {
+        assertThat(activityId).isNull()
+        assertThat(activityId2).isNull()
+        assertThat(label).isEqualTo(MIGRATION_ID)
+      }
+    }
+
+    @Test
     fun `should return bad request if mapping already exists for different Activity id`() = runTest {
       postCreateMappingRequest()
+        .expectStatus().isCreated
+
+      postCreateMappingRequest(activityId = 1)
+        .expectStatus().isBadRequest
+        .expectBody()
+        .jsonPath("userMessage").value<String> {
+          assertThat(it).contains("Nomis mapping id = $NOMIS_ID already exists")
+        }
+    }
+
+    @Test
+    fun `should return bad request if mapping already exists for null Activity id`() = runTest {
+      postCreateMappingRequest(activityId = null)
         .expectStatus().isCreated
 
       postCreateMappingRequest(activityId = 1)
