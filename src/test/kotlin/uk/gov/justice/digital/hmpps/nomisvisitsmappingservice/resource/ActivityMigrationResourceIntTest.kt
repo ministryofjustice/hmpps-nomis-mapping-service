@@ -164,12 +164,22 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `should create mapping if both activity ids are null`() = runTest {
+    fun `should save multiple mappings if both activity ids are null`() = runTest {
       postCreateMappingRequest(activityId = null, activityId2 = null)
+        .expectStatus().isCreated
+      // Create another to show that we can have multiple mappings with null activity_id
+      postCreateMappingRequest(nomisId = NOMIS_ID + 1, activityId = null, activityId2 = null)
         .expectStatus().isCreated
 
       val saved = activityMigrationRepository.findById(NOMIS_ID)!!
       with(saved) {
+        assertThat(activityId).isNull()
+        assertThat(activityId2).isNull()
+        assertThat(label).isEqualTo(MIGRATION_ID)
+      }
+
+      val saved2 = activityMigrationRepository.findById(NOMIS_ID + 1)!!
+      with(saved2) {
         assertThat(activityId).isNull()
         assertThat(activityId2).isNull()
         assertThat(label).isEqualTo(MIGRATION_ID)

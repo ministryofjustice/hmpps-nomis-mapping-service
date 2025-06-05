@@ -36,11 +36,13 @@ class ActivityMigrationService(
         throw ValidationException("Nomis mapping id = $nomisCourseActivityId already exists")
       }
 
-      activityMigrationMappingRepository.findOneByActivityIdAndActivityId2(
-        activityScheduleId = activityId,
-        activityScheduleId2 = activityId2,
-      )?.run {
-        throw ValidationException("Activity migration mapping with Activity id=$activityId and 2nd Activity Id=$activityId2 already exists")
+      if (activityId != null) {
+        activityMigrationMappingRepository.findOneByActivityIdAndActivityId2(
+          activityScheduleId = activityId,
+          activityScheduleId2 = activityId2,
+        )?.run {
+          throw ValidationException("Activity migration mapping with Activity id=$activityId and 2nd Activity Id=$activityId2 already exists")
+        }
       }
 
       activityMigrationMappingRepository.save(
