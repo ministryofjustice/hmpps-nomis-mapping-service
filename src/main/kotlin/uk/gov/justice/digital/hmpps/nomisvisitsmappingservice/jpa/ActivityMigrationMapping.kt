@@ -12,7 +12,7 @@ data class ActivityMigrationMapping(
   @Id
   val nomisCourseActivityId: Long,
 
-  val activityId: Long,
+  val activityId: Long?,
 
   val activityId2: Long?,
 

@@ -13,8 +13,8 @@ data class ActivityMigrationMappingDto(
   @Schema(description = "NOMIS course activity id", required = true)
   val nomisCourseActivityId: Long,
 
-  @Schema(description = "Activity id", required = true)
-  val activityId: Long,
+  @Schema(description = "Activity id", required = false)
+  val activityId: Long?,
 
   @Schema(description = "2nd Activity id", required = false)
   val activityId2: Long?,
