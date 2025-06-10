@@ -83,7 +83,7 @@ class ActivityMigrationService(
     }
 
     val count = async {
-      activityMigrationMappingRepository.countAllByLabel(migrationId)
+      activityMigrationMappingRepository.countAllByLabel(migrationId, includeIgnored = false)
     }
 
     PageImpl(
@@ -92,4 +92,6 @@ class ActivityMigrationService(
       count.await(),
     )
   }
+
+  suspend fun countMappings(migrationId: String, includeIgnored: Boolean): Long = activityMigrationMappingRepository.countAllByLabel(migrationId, includeIgnored)
 }

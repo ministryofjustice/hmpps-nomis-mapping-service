@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.MediaType
 import org.springframework.test.util.ReflectionTestUtils
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters.fromValue
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.ActivityMigrationMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.ActivityMigrationRepository
@@ -484,6 +485,40 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
         .jsonPath("size").isEqualTo(pageSize)
         .jsonPath("content.size()").isEqualTo(1)
         .jsonPath("content[0].nomisCourseActivityId").isEqualTo(NOMIS_ID + 4)
+    }
+  }
+
+  @DisplayName("GET /mapping/activities/migration-count/migration-id/{migrationId}")
+  @Nested
+  inner class CountMappingsByMigrationId {
+    @Test
+    fun `should not include ignored activities by default`() {
+      saveMapping(nomisId = 1, activityId = 11, label = "some-migration")
+      saveMapping(nomisId = 2, activityId = null, label = "some-migration")
+
+      webTestClient.get()
+        .uri("/mapping/activities/migration-count/migration-id/some-migration")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody<Long>().isEqualTo(1)
+    }
+
+    @Test
+    fun `should include ignored activities if requested`() {
+      saveMapping(nomisId = 1, activityId = 11, label = "some-migration")
+      saveMapping(nomisId = 2, activityId = null, label = "some-migration")
+
+      webTestClient.get()
+        .uri {
+          it.path("/mapping/activities/migration-count/migration-id/some-migration")
+            .queryParam("includeIgnored", "true")
+            .build()
+        }
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody<Long>().isEqualTo(2)
     }
   }
 }
