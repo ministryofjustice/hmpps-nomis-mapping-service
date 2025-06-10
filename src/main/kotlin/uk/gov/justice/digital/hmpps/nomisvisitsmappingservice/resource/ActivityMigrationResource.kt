@@ -156,4 +156,35 @@ class ActivityMigrationResource(private val mappingService: ActivityMigrationSer
     @PathVariable
     migrationId: String,
   ): Page<ActivityMigrationMappingDto> = mappingService.getMappings(pageRequest = pageRequest, migrationId = migrationId)
+
+  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @GetMapping("/mapping/activities/migration-count/migration-id/{migrationId}")
+  @Operation(
+    summary = "Get number of activities migrated",
+    description = "Gets the number of activities migrated, ignoring those saved but with no corresponding DPS activity that weren't migrated.",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping page returned",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ActivityMigrationMappingDto::class),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getMigratedActivityCount(
+    @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
+    @PathVariable
+    migrationId: String,
+    @Schema(description = "Include ignored activities (those with null activity_id), defaults to true", example = "false", required = false)
+    includeIgnored: Boolean? = false,
+  ): Long = mappingService.countMappings(migrationId, includeIgnored!!)
 }
