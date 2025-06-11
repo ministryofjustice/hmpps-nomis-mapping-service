@@ -462,6 +462,7 @@ class CourtSentencingMappingService(
     courtCaseMappingRepository.deleteAll()
     courtCasePrisonerMappingRepository.deleteAll()
     courtAppearanceMappingRepository.deleteAll()
+    courtAppearanceRecallMappingRepository.deleteAll()
     courtChargeMappingRepository.deleteAll()
     sentenceMappingRepository.deleteAll()
     sentenceTermMappingRepository.deleteAll()
