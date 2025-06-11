@@ -12,7 +12,7 @@ data class CourtAppearanceRecallMappingDto(
   @Schema(description = "NOMIS court appearance id", example = "123456")
   val nomisCourtAppearanceId: Long,
 
-  @Schema(description = "DPS recall id", example = "123456")
+  @Schema(description = "DPS recall id", example = "89442cf5-a22d-4113-b9d8-63daa757c962")
   val dpsRecallId: String,
 
   @Schema(description = "Label (a timestamp for migrated ids)")
