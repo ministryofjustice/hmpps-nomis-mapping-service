@@ -112,9 +112,15 @@ class ContactPersonService(
       personContactRestrictionMappingRepository.deleteAllById(personContactRestrictionMappingsToRemoveByDpsId)
       personContactMappingRepository.deleteAllById(personContactMappingsToRemoveByDpsId)
       personContactMapping.forEach {
+        // mappings can remain when events get out of order so we need to delete them first just in case
+        // TODO - further investigate when this happens
+        personContactMappingRepository.deleteById(it.dpsId)
+        personContactMappingRepository.deleteByNomisId(it.nomisId)
         personContactMappingRepository.save(toMapping(it))
       }
       personContactRestrictionMapping.forEach {
+        personContactRestrictionMappingRepository.deleteById(it.dpsId)
+        personContactRestrictionMappingRepository.deleteByNomisId(it.nomisId)
         personContactRestrictionMappingRepository.save(toMapping(it))
       }
     }
