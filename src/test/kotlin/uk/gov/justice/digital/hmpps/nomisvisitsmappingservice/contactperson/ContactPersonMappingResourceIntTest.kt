@@ -689,6 +689,25 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
             whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
           ),
         )
+        // rouge item that previously was not deleted to due to some other failre
+        personContactMappingRepository.save(
+          PersonContactMapping(
+            dpsId = newDpsContactId1,
+            nomisId = 444,
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
+        personContactMappingRepository.save(
+          PersonContactMapping(
+            dpsId = "2477292942",
+            nomisId = 22234,
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
       }
 
       @Test
