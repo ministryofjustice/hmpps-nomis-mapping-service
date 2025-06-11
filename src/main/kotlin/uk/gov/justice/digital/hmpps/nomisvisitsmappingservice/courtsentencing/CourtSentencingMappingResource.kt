@@ -1169,6 +1169,57 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     nomisSentenceIds = nomisSentenceIds,
   )
 
+  @PostMapping("/court-appearances/recall")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates new court appearance recall mappings",
+    description = "Creates mappings between nomis Court appearance IDs and DPS Recall ID. Requires ROLE_NOMIS_COURT_SENTENCING",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = CourtAppearanceRecallMappingsDto::class),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mappings created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createCourtAppearanceRecallMapping(
+    @RequestBody @Valid
+    mapping: CourtAppearanceRecallMappingsDto,
+  ) = try {
+    mappingService.createCourtAppearanceRecallMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Court Appearance Recall mapping already exists",
+      duplicate = mapping,
+      existing = mapping,
+      cause = e,
+    )
+  }
+
   private suspend fun getExistingMappingSimilarTo(mapping: CourtCaseAllMappingDto) = runCatching {
     mappingService.getCourtCaseAllMappingByNomisId(
       courtCaseId = mapping.nomisCourtCaseId,
