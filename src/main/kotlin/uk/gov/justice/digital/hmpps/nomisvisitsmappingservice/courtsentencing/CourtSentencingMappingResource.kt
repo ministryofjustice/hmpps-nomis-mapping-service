@@ -484,6 +484,35 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     nomisCourtAppearanceId: Long,
   ) = mappingService.deleteCourtAppearanceMappingByNomisId(courtAppearanceId = nomisCourtAppearanceId)
 
+  @GetMapping("/court-appearances/dps-recall-id/{recallId}")
+  @Operation(
+    summary = "get court appearance recall mappings",
+    description = "Retrieves mappings by DPS recall id. Requires role NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getCourtAppearanceRecallMappingsByDpsId(
+    @Schema(description = "DPS recall id", example = "f6ec6d17-a062-4272-9c21-1017b06d556c", required = true)
+    @PathVariable
+    recallId: String,
+  ): List<CourtAppearanceRecallMappingDto> = mappingService.getCourtAppearanceRecallMappingsByDpsId(
+    dpsRecallId = recallId,
+  )
+
   @GetMapping("/court-charges/dps-court-charge-id/{courtChargeId}")
   @Operation(
     summary = "get court charge mapping",
