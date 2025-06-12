@@ -767,6 +767,113 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("DELETE /mapping/court-sentencing/court-appearances/dps-recall-id/{recallId}")
+  inner class DeleteCourtAppearanceRecallMappingByDpsId {
+    private val dpsRecallId = "f6ec6d17-a062-4272-9c21-1017b06d556c"
+    lateinit var courtAppearanceRecallMappings: List<CourtAppearanceRecallMapping>
+
+    @BeforeEach
+    fun setUp() = runTest {
+      courtAppearanceRecallMappings = listOf(
+        courtAppearanceRecallRepository.save(
+          CourtAppearanceRecallMapping(
+            nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_ID,
+            dpsRecallId = dpsRecallId,
+            label = "2023-01-01T12:45:12",
+            mappingType = CourtAppearanceRecallMappingType.MIGRATED,
+          ),
+        ),
+        courtAppearanceRecallRepository.save(
+          CourtAppearanceRecallMapping(
+            nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_2_ID,
+            dpsRecallId = dpsRecallId,
+            label = "2023-01-01T12:45:12",
+            mappingType = CourtAppearanceRecallMappingType.MIGRATED,
+          ),
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      courtAppearanceRecallRepository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 204 even when mappings do not exist`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/non-existent-id")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNoContent
+      }
+
+      @Test
+      fun `will return 204 when mappings exist and are deleted`() {
+        // Verify mappings exist
+        val responseType = object : ParameterizedTypeReference<List<CourtAppearanceRecallMappingDto>>() {}
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody(responseType)
+          .returnResult()
+          .responseBody!!.also {
+          assertThat(it).hasSize(2)
+        }
+
+        // Delete mappings
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        // Verify mappings are deleted
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .json("[]")
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("POST /mapping/court-sentencing/court-appearances/recall")
   inner class CreateCourtAppearanceRecallMapping {
     private val mapping = CourtAppearanceRecallMappingsDto(
