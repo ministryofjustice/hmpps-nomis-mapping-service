@@ -513,6 +513,34 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     dpsRecallId = recallId,
   )
 
+  @DeleteMapping("/court-appearances/dps-recall-id/{recallId}")
+  @Operation(
+    summary = "Deletes court appearance recall mappings",
+    description = "Deletes court appearance recall mappings by DPS recall id. Requires role NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Mappings Deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  suspend fun deleteCourtAppearanceRecallMappingByDpsId(
+    @Schema(description = "DPS recall id", example = "f6ec6d17-a062-4272-9c21-1017b06d556c", required = true)
+    @PathVariable
+    recallId: String,
+  ) = mappingService.deleteCourtAppearanceRecallMappingByDpsId(dpsRecallId = recallId)
+
   @GetMapping("/court-charges/dps-court-charge-id/{courtChargeId}")
   @Operation(
     summary = "get court charge mapping",
