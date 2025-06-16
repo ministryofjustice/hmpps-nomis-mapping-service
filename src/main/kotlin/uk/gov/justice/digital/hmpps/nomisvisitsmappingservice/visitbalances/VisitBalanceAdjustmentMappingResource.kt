@@ -112,8 +112,8 @@ class VisitBalanceAdjustmentMappingResource(private val service: VisitBalanceAdj
 
   @GetMapping("/dps-id/{dpsId}")
   @Operation(
-    summary = "Get a visit balance adjustment mapping by DPS id",
-    description = "Retrieves the visit balance adjustment mapping by DPS id. Requires role ROLE_NOMIS_VISIT_BALANCE",
+    summary = "Get visit balance adjustments mappings by DPS id",
+    description = "Retrieves a list of visit balance adjustment mappings by DPS id. Requires role ROLE_NOMIS_VISIT_BALANCE",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -144,8 +144,8 @@ class VisitBalanceAdjustmentMappingResource(private val service: VisitBalanceAdj
 
   @DeleteMapping("/dps-id/{dpsId}")
   @Operation(
-    summary = "Deletes visit balance adjustment mapping",
-    description = "Deletes a visit balance adjustment mapping by DPS id. Requires role NOMIS_VISIT_BALANCE",
+    summary = "Deletes visit balance adjustment mappings",
+    description = "Deletes visit balance adjustment mappings by DPS id. Multiple rows may be deleted. Requires role NOMIS_VISIT_BALANCE",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -164,11 +164,11 @@ class VisitBalanceAdjustmentMappingResource(private val service: VisitBalanceAdj
     ],
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  suspend fun deleteMappingByDpsId(
+  suspend fun deleteMappingsByDpsId(
     @Schema(description = "DPS id", example = "A1234BC", required = true)
     @PathVariable
     dpsId: String,
-  ) = service.deleteVisitBalanceAdjustmentMappingByDpsId(dpsId = dpsId)
+  ) = service.deleteVisitBalanceAdjustmentMappingsByDpsId(dpsId = dpsId)
 
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)

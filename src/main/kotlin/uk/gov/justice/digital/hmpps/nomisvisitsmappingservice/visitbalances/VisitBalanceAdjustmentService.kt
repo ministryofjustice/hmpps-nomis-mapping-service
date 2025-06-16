@@ -21,7 +21,7 @@ class VisitBalanceAdjustmentService(
   }
 
   @Transactional
-  suspend fun deleteVisitBalanceAdjustmentMappingByDpsId(dpsId: String) = repository.deleteById(dpsId)
+  suspend fun deleteVisitBalanceAdjustmentMappingsByDpsId(dpsId: String) = repository.deleteById(dpsId)
 
   @Transactional
   suspend fun deleteAllMappings() {
