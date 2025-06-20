@@ -86,3 +86,8 @@ azure:
       enabled: false
 
 casenotes.average-case-notes-per-prisoner: 134
+
+visit-balance-adjustment.expiry:
+  days: 28
+  schedule:
+    cron: "0 0 2 * * *"
