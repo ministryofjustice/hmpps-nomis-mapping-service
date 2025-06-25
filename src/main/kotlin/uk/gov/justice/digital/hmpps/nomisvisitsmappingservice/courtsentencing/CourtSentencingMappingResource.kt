@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import kotlinx.coroutines.flow.Flow
 import org.slf4j.Logger
@@ -35,7 +36,9 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @Validated
 @PreAuthorize("hasRole('NOMIS_COURT_SENTENCING')")
 @RequestMapping("/mapping/court-sentencing", produces = [MediaType.APPLICATION_JSON_VALUE])
-class CourtSentencingMappingResource(private val mappingService: CourtSentencingMappingService) {
+class CourtSentencingMappingResource(
+  private val mappingService: CourtSentencingMappingService,
+) {
   private companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
@@ -103,6 +106,52 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
   ): CourtCaseMappingDto = mappingService.getCourtCaseMappingByNomisId(
     courtCaseId = courtCaseId,
   )
+
+  @PreAuthorize("hasRole('NOMIS_COURT_SENTENCING')")
+  @PostMapping("/court-cases/nomis-case-ids/get-list")
+  @Tag(name = "Multiple Court case mappings lookup")
+  @Operation(
+    summary = "Retrieves list of the case mappings using the supplied NOMIS case ids",
+    description = "Requires role <b>NOMIS_COURT_SENTENCING</b>",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          array = ArraySchema(schema = Schema(implementation = Long::class)),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "List of NOMIS to DPS Mappings Information Returned",
+        content = [
+          Content(
+            mediaType = "application/json",
+            array = ArraySchema(schema = Schema(implementation = CourtCaseMappingDto::class)),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "The request is invalid, see response for details",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden to this endpoint. Requires role NOMIS_COURT_SENTENCING",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getCaseMappingByNomisIs(
+    @RequestBody nomisCaseIds: List<Long>,
+  ): Flow<CourtCaseMappingDto> = mappingService.getCourtCaseMappingByNomisIds(nomisCaseIds)
 
   @PostMapping("/court-cases")
   @ResponseStatus(HttpStatus.CREATED)

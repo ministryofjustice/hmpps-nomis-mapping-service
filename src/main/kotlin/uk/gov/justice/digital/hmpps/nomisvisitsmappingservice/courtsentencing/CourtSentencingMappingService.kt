@@ -5,6 +5,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
@@ -176,6 +177,9 @@ class CourtSentencingMappingService(
 
   suspend fun getCourtCaseMappingByNomisId(courtCaseId: Long): CourtCaseMappingDto = courtCaseMappingRepository.findByNomisCourtCaseId(courtCaseId)?.toCourtCaseMappingDto()
     ?: throw NotFoundException("Nomis Court case Id =$courtCaseId")
+
+  suspend fun getCourtCaseMappingByNomisIds(nomisCourtCaseIds: List<Long>): Flow<CourtCaseMappingDto> = courtCaseMappingRepository.findAllByNomisCourtCaseIdIn(nomisCourtCaseIds)
+    .map { it.toCourtCaseMappingDto() }
 
   suspend fun getCourtCaseAllMappingByDpsId(courtCaseId: String): CourtCaseAllMappingDto = courtCaseMappingRepository.findById(courtCaseId)?.toCourtCaseAllMappingDto()
     ?: throw NotFoundException("DPS Court case Id =$courtCaseId")

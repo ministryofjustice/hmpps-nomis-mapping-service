@@ -42,8 +42,10 @@ private const val DPS_COURT_CHARGE_1_ID = "dpscha1"
 private const val DPS_COURT_CHARGE_2_ID = "dpscha2"
 private const val NOMIS_COURT_CASE_ID = 54321L
 private const val NOMIS_COURT_CASE_2_ID = 65431L
+private const val NOMIS_COURT_CASE_3_ID = 87878L
 private const val DPS_COURT_CASE_ID = "dps444"
 private const val DPS_COURT_CASE_2_ID = "dps123"
+private const val DPS_COURT_CASE_3_ID = "dps321"
 private const val EXISTING_DPS_COURT_CASE_ID = "DPS321"
 private const val EXISTING_NOMIS_COURT_CASE_ID = 98765L
 private const val EXISTING_NOMIS_COURT_APPEARANCE_ID = 98733L
@@ -95,8 +97,10 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
     inner class Security {
       @Test
       fun `access not authorised when no authority`() {
-        webTestClient.get()
+        webTestClient.post()
           .uri("/mapping/court-sentencing/court-cases/dps-court-case-id/${courtCaseMapping.dpsCourtCaseId}")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(listOf<Long>(NOMIS_COURT_CASE_ID, NOMIS_COURT_CASE_2_ID)))
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -1611,6 +1615,117 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
         assertThat(courtAppearanceRepository.count()).isEqualTo(0)
         assertThat(courtChargeRepository.count()).isEqualTo(0)
         assertThat(sentenceRepository.count()).isEqualTo(0)
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("POST /mapping/court-sentencing/court-cases/nomis-case-ids/get-list")
+  inner class GetMappingsByListOfNomisIds {
+    lateinit var courtCaseMapping: CourtCaseMapping
+    lateinit var courtCaseMapping2: CourtCaseMapping
+    lateinit var courtCaseMapping3: CourtCaseMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      courtCaseMapping = repository.save(
+        CourtCaseMapping(
+          dpsCourtCaseId = DPS_COURT_CASE_ID,
+          nomisCourtCaseId = NOMIS_COURT_CASE_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtCaseMappingType.MIGRATED,
+        ),
+      )
+      courtCaseMapping2 = repository.save(
+        CourtCaseMapping(
+          dpsCourtCaseId = DPS_COURT_CASE_2_ID,
+          nomisCourtCaseId = NOMIS_COURT_CASE_2_ID,
+          label = "2023-01-01T12:00:12",
+          mappingType = CourtCaseMappingType.MIGRATED,
+        ),
+      )
+      courtCaseMapping3 = repository.save(
+        CourtCaseMapping(
+          dpsCourtCaseId = DPS_COURT_CASE_3_ID,
+          nomisCourtCaseId = NOMIS_COURT_CASE_3_ID,
+          label = "2023-01-01T11:00:12",
+          mappingType = CourtCaseMappingType.MIGRATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      clearDown()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/court-cases/nomis-case-ids/get-list")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(listOf<Long>(NOMIS_COURT_CASE_ID, NOMIS_COURT_CASE_2_ID)))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/court-cases/nomis-case-ids/get-list")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(listOf<Long>(NOMIS_COURT_CASE_ID, NOMIS_COURT_CASE_2_ID)))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/court-cases/nomis-case-ids/get-list")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(listOf<Long>(NOMIS_COURT_CASE_ID, NOMIS_COURT_CASE_2_ID)))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return partial list of not all found`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/court-cases/nomis-case-ids/get-list")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(listOf<Long>(NOMIS_COURT_CASE_ID, 47564756)))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("$.length()").isEqualTo(1)
+          .jsonPath("[0].nomisCourtCaseId").isEqualTo(courtCaseMapping.nomisCourtCaseId)
+          .jsonPath("[0].dpsCourtCaseId").isEqualTo(courtCaseMapping.dpsCourtCaseId)
+      }
+
+      @Test
+      fun `will return 200 when mapping does exist`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/court-cases/nomis-case-ids/get-list")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(listOf<Long>(NOMIS_COURT_CASE_ID, NOMIS_COURT_CASE_2_ID)))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("$.length()").isEqualTo(2)
+          .jsonPath("[0].nomisCourtCaseId").isEqualTo(courtCaseMapping.nomisCourtCaseId)
+          .jsonPath("[0].dpsCourtCaseId").isEqualTo(courtCaseMapping.dpsCourtCaseId)
+          .jsonPath("[1].nomisCourtCaseId").isEqualTo(courtCaseMapping2.nomisCourtCaseId)
+          .jsonPath("[1].dpsCourtCaseId").isEqualTo(courtCaseMapping2.dpsCourtCaseId)
       }
     }
   }

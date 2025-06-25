@@ -324,9 +324,9 @@ data class NomisSentenceId(
 
 @Schema(description = "NOMIS DPS Sentence mapping")
 data class NomisDpsSentenceMapping(
-  @Schema(description = "NOMIS senetence key")
+  @Schema(description = "NOMIS sentence key")
   val nomisSentenceId: NomisSentenceId,
 
-  @Schema(description = "DPS sentence id", example = "f4499772-2e43-4951-861d-04ad86df43fc\"")
+  @Schema(description = "DPS sentence id", example = "f4499772-2e43-4951-861d-04ad86df43fc")
   val dpsSentenceId: String,
 )
