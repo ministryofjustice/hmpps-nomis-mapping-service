@@ -1783,6 +1783,27 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     @PathVariable
     migrationId: String,
   ): Page<PrisonerRestrictionMappingDto> = service.getPrisonerRestrictionMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+
+  @DeleteMapping("/prisoner-restriction")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes all prisoner restriction mappings",
+    description = "Deletes all prisoner restriction mappings regardless of source. This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(responseCode = "204", description = "All prisoner restriction mappings deleted"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteAllPrisonerRestrictionMappings() = service.deleteAllPrisonerRestrictionMappings()
 }
 
 private fun ContactPersonMappingsDto.asPersonMappingDto() = PersonMappingDto(

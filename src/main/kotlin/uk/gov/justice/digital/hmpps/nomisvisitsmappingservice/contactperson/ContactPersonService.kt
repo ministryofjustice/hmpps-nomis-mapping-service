@@ -372,6 +372,9 @@ class ContactPersonService(
 
   @Transactional
   suspend fun deletePrisonerRestrictionMappingByDpsId(dpsId: String) = prisonerRestrictionMappingRepository.deleteByDpsId(dpsId = dpsId)
+
+  @Transactional
+  suspend fun deleteAllPrisonerRestrictionMappings() = prisonerRestrictionMappingRepository.deleteAll()
 }
 
 private fun PersonMapping.toDto() = PersonMappingDto(

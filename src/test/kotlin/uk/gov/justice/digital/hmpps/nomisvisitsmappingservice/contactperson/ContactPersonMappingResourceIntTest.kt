@@ -1454,6 +1454,79 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
+  @DisplayName("DELETE /mapping/contact-person/prisoner-restriction")
+  @Nested
+  inner class DeleteAllPrisonerRestrictionMappings {
+    @BeforeEach
+    fun setUp() = runTest {
+      prisonerRestrictionMappingRepository.save(
+        PrisonerRestrictionMapping(
+          dpsId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+          nomisId = 12345L,
+          offenderNo = "A1234BC",
+          label = null,
+          mappingType = ContactPersonMappingType.DPS_CREATED,
+          whenCreated = LocalDateTime.now(),
+        ),
+      )
+      prisonerRestrictionMappingRepository.save(
+        PrisonerRestrictionMapping(
+          dpsId = "d6b03ded-5bb4-5bb8-9872-52f0d0bf61g8",
+          nomisId = 67890L,
+          offenderNo = "D5678EF",
+          label = null,
+          mappingType = ContactPersonMappingType.DPS_CREATED,
+          whenCreated = LocalDateTime.now(),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/contact-person/prisoner-restriction")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/contact-person/prisoner-restriction")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/contact-person/prisoner-restriction")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `returns 204 when all prisoner restriction mappings are deleted`() = runTest {
+        assertThat(prisonerRestrictionMappingRepository.findAll().count()).isEqualTo(2)
+
+        webTestClient.delete()
+          .uri("/mapping/contact-person/prisoner-restriction")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        assertThat(prisonerRestrictionMappingRepository.findAll().count()).isEqualTo(0)
+      }
+    }
+  }
+
   @DisplayName("GET /mapping/contact-person/prisoner-restriction/migration-id/{migrationId}")
   @Nested
   inner class GetPrisonerRestrictionMappingsByMigrationId {
