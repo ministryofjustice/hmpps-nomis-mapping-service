@@ -27,3 +27,7 @@ spring:
     properties:
       sslMode: DISABLE
       sslRootCert:
+
+visit-balance-adjustment.expiry:
+  schedule:
+    cron: "0 0 8 * * MON-FRI"
