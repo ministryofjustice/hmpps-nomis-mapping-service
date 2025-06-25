@@ -23,6 +23,7 @@ class ContactPersonService(
   private val personRestrictionMappingRepository: PersonRestrictionMappingRepository,
   private val personContactMappingRepository: PersonContactMappingRepository,
   private val personContactRestrictionMappingRepository: PersonContactRestrictionMappingRepository,
+  private val prisonerRestrictionMappingRepository: PrisonerRestrictionMappingRepository,
 ) {
   suspend fun getPersonMappingByNomisId(nomisId: Long) = personMappingRepository.findOneByNomisId(nomisId = nomisId)
     ?.toDto()
@@ -327,6 +328,27 @@ class ContactPersonService(
   suspend fun createMapping(mapping: PersonRestrictionMappingDto) {
     personRestrictionMappingRepository.save(mapping.toPersonRestrictionMapping())
   }
+
+  @Transactional
+  suspend fun createMapping(mapping: PrisonerRestrictionMappingDto) {
+    prisonerRestrictionMappingRepository.save(mapping.toPrisonerRestrictionMapping())
+  }
+
+  suspend fun getPrisonerRestrictionMappingByNomisId(nomisId: Long) = prisonerRestrictionMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
+    ?: throw NotFoundException("No prisoner  restriction mapping found for nomisId=$nomisId")
+
+  suspend fun getPrisonerRestrictionMappingByDpsId(dpsId: String) = prisonerRestrictionMappingRepository.findOneByDpsId(dpsId = dpsId)
+    ?.toDto()
+    ?: throw NotFoundException("No prisoner restriction mapping found for dpsId=$dpsId")
+
+  suspend fun getPrisonerRestrictionMappingByDpsIdOrNull(dpsId: String) = prisonerRestrictionMappingRepository.findOneByDpsId(dpsId = dpsId)?.toDto()
+  suspend fun getPrisonerRestrictionMappingsByOffenderNo(offenderNo: String) = prisonerRestrictionMappingRepository.findAllByOffenderNo(offenderNo = offenderNo).map { it.toDto() }
+
+  @Transactional
+  suspend fun deletePrisonerRestrictionMappingByNomisId(nomisId: Long) = prisonerRestrictionMappingRepository.deleteByNomisId(nomisId = nomisId)
+
+  @Transactional
+  suspend fun deletePrisonerRestrictionMappingByDpsId(dpsId: String) = prisonerRestrictionMappingRepository.deleteByDpsId(dpsId = dpsId)
 }
 
 private fun PersonMapping.toDto() = PersonMappingDto(
@@ -473,6 +495,24 @@ private fun PersonRestrictionMappingDto.toPersonRestrictionMapping() = PersonRes
 private fun PersonRestrictionMapping.toDto() = PersonRestrictionMappingDto(
   nomisId = nomisId,
   dpsId = dpsId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private fun PrisonerRestrictionMappingDto.toPrisonerRestrictionMapping() = PrisonerRestrictionMapping(
+  dpsId = dpsId,
+  nomisId = nomisId,
+  offenderNo = offenderNo,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private fun PrisonerRestrictionMapping.toDto() = PrisonerRestrictionMappingDto(
+  nomisId = nomisId,
+  dpsId = dpsId,
+  offenderNo = offenderNo,
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,

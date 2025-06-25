@@ -44,6 +44,9 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
   private lateinit var personRestrictionMappingRepository: PersonRestrictionMappingRepository
 
   @Autowired
+  private lateinit var prisonerRestrictionMappingRepository: PrisonerRestrictionMappingRepository
+
+  @Autowired
   private lateinit var personContactMappingRepository: PersonContactMappingRepository
 
   @Autowired
@@ -54,6 +57,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
     personContactRestrictionMappingRepository.deleteAll()
     personContactMappingRepository.deleteAll()
     personRestrictionMappingRepository.deleteAll()
+    prisonerRestrictionMappingRepository.deleteAll()
     personIdentifierMappingRepository.deleteAll()
     personEmploymentMappingRepository.deleteAll()
     personEmailMappingRepository.deleteAll()
@@ -5068,6 +5072,165 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
         assertThat(personRestrictionMapping.label).isNull()
         assertThat(personRestrictionMapping.mappingType).isEqualTo(mapping.mappingType)
         assertThat(personRestrictionMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("POST mapping/contact-person/prisoner-restriction")
+  inner class CreatePrisonerRestrictionMapping {
+
+    @Nested
+    inner class Security {
+      val mapping = PrisonerRestrictionMappingDto(
+        dpsId = UUID.randomUUID().toString(),
+        nomisId = 12345L,
+        offenderNo = "A1234BC",
+        label = null,
+        mappingType = ContactPersonMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/prisoner-restriction")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/prisoner-restriction")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/prisoner-restriction")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      private lateinit var existingPrisonerRestrictionMapping: PrisonerRestrictionMapping
+
+      val mapping = PrisonerRestrictionMappingDto(
+        dpsId = UUID.randomUUID().toString(),
+        nomisId = 12345L,
+        offenderNo = "A1234BC",
+        label = null,
+        mappingType = ContactPersonMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+      )
+
+      @BeforeEach
+      fun setUp() = runTest {
+        existingPrisonerRestrictionMapping = prisonerRestrictionMappingRepository.save(
+          PrisonerRestrictionMapping(
+            dpsId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+            nomisId = 12345L,
+            offenderNo = "A1234BC",
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+          ),
+        )
+      }
+
+      @Test
+      fun `will not allow the same prisoner to have duplicate mappings`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/prisoner-restriction")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+      }
+
+      @Test
+      fun `will return details of the existing and duplicate mappings`() {
+        val duplicateResponse = webTestClient.post()
+          .uri("/mapping/contact-person/prisoner-restriction")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+          .expectBody(
+            object :
+              ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
+          )
+          .returnResult().responseBody
+
+        with(duplicateResponse!!) {
+          // since this is an untyped map an int will be assumed for such small numbers
+          assertThat(this.moreInfo.existing)
+            .containsEntry("nomisId", existingPrisonerRestrictionMapping.nomisId.toInt())
+            .containsEntry("dpsId", existingPrisonerRestrictionMapping.dpsId)
+            .containsEntry("mappingType", existingPrisonerRestrictionMapping.mappingType.toString())
+          assertThat(this.moreInfo.duplicate)
+            .containsEntry("nomisId", mapping.nomisId.toInt())
+            .containsEntry("dpsId", mapping.dpsId)
+            .containsEntry("mappingType", mapping.mappingType.toString())
+        }
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = PrisonerRestrictionMappingDto(
+        dpsId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+        nomisId = 12345L,
+        offenderNo = "A1234BC",
+        label = null,
+        mappingType = ContactPersonMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+      )
+
+      @Test
+      fun `returns 201 when mappings created`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/contact-person/prisoner-restriction")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+      }
+
+      @Test
+      fun `will persist the prisoner restriction mapping`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/contact-person/prisoner-restriction")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+
+        val prisonerRestrictionMapping =
+          prisonerRestrictionMappingRepository.findOneByNomisId(mapping.nomisId)!!
+
+        assertThat(prisonerRestrictionMapping.dpsId).isEqualTo(mapping.dpsId)
+        assertThat(prisonerRestrictionMapping.nomisId).isEqualTo(mapping.nomisId)
+        assertThat(prisonerRestrictionMapping.offenderNo).isEqualTo(mapping.offenderNo)
+        assertThat(prisonerRestrictionMapping.label).isNull()
+        assertThat(prisonerRestrictionMapping.mappingType).isEqualTo(mapping.mappingType)
+        assertThat(prisonerRestrictionMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
       }
     }
   }
