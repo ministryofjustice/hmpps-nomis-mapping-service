@@ -1454,6 +1454,123 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
+  @DisplayName("GET /mapping/contact-person/prisoner-restriction/migration-id/{migrationId}")
+  @Nested
+  inner class GetPrisonerRestrictionMappingsByMigrationId {
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get().uri("/mapping/contact-person/prisoner-restriction/migration-id/2022-01-01T00:00:00")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get().uri("/mapping/contact-person/prisoner-restriction/migration-id/2022-01-01T00:00:00")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get().uri("/mapping/contact-person/prisoner-restriction/migration-id/2022-01-01T00:00:00")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+
+      @Test
+      fun `can retrieve all mappings by migration Id`() = runTest {
+        (1L..4L).forEach {
+          prisonerRestrictionMappingRepository.save(
+            PrisonerRestrictionMapping(
+              dpsId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
+              nomisId = it,
+              offenderNo = "A${it}234BC",
+              label = "2023-01-01T12:45:12",
+              mappingType = ContactPersonMappingType.MIGRATED,
+            ),
+          )
+        }
+
+        prisonerRestrictionMappingRepository.save(
+          PrisonerRestrictionMapping(
+            dpsId = "edcd118c-91ba-42ea-b5c4-404b453ad58b",
+            nomisId = 54321L,
+            offenderNo = "Z9876YX",
+            label = "2022-01-01T12:43:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+          ),
+        )
+
+        webTestClient.get().uri("/mapping/contact-person/prisoner-restriction/migration-id/2023-01-01T12:45:12")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("totalElements").isEqualTo(4)
+          .jsonPath("$.content..nomisId").value(
+            Matchers.contains(
+              1,
+              2,
+              3,
+              4,
+            ),
+          )
+          .jsonPath("$.content[0].whenCreated").isNotEmpty
+      }
+
+      @Test
+      fun `200 response even when no mappings are found`() {
+        webTestClient.get().uri("/mapping/contact-person/prisoner-restriction/migration-id/2044-01-01")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("totalElements").isEqualTo(0)
+          .jsonPath("content").isEmpty
+      }
+
+      @Test
+      fun `can request a different page size`() = runTest {
+        (1L..6L).forEach {
+          prisonerRestrictionMappingRepository.save(
+            PrisonerRestrictionMapping(
+              dpsId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
+              nomisId = it,
+              offenderNo = "A${it}234BC",
+              label = "2023-01-01T12:45:12",
+              mappingType = ContactPersonMappingType.MIGRATED,
+            ),
+          )
+        }
+        webTestClient.get().uri {
+          it.path("/mapping/contact-person/prisoner-restriction/migration-id/2023-01-01T12:45:12")
+            .queryParam("size", "2")
+            .queryParam("sort", "nomisId,asc")
+            .build()
+        }
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("totalElements").isEqualTo(6)
+          .jsonPath("numberOfElements").isEqualTo(2)
+          .jsonPath("number").isEqualTo(0)
+          .jsonPath("totalPages").isEqualTo(3)
+          .jsonPath("size").isEqualTo(2)
+      }
+    }
+  }
+
   @DisplayName("GET /mapping/contact-person/person/")
   @Nested
   inner class GetAllPersonMappings {

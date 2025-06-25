@@ -1755,6 +1755,34 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
       dpsId = mapping.dpsId,
     )
   }
+
+  @GetMapping("/prisoner-restriction/migration-id/{migrationId}")
+  @Operation(
+    summary = "Get paged prisoner restriction mappings by migration id",
+    description = "Retrieve all prisoner restriction mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Prisoner restriction mapping page returned",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPrisonerRestrictionMappingsByMigrationId(
+    @PageableDefault pageRequest: Pageable,
+    @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
+    @PathVariable
+    migrationId: String,
+  ): Page<PrisonerRestrictionMappingDto> = service.getPrisonerRestrictionMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 }
 
 private fun ContactPersonMappingsDto.asPersonMappingDto() = PersonMappingDto(
