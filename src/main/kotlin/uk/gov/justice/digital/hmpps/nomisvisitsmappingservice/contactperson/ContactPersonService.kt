@@ -344,11 +344,37 @@ class ContactPersonService(
   suspend fun getPrisonerRestrictionMappingByDpsIdOrNull(dpsId: String) = prisonerRestrictionMappingRepository.findOneByDpsId(dpsId = dpsId)?.toDto()
   suspend fun getPrisonerRestrictionMappingsByOffenderNo(offenderNo: String) = prisonerRestrictionMappingRepository.findAllByOffenderNo(offenderNo = offenderNo).map { it.toDto() }
 
+  suspend fun getPrisonerRestrictionMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<PrisonerRestrictionMappingDto> = coroutineScope {
+    val mappings = async {
+      prisonerRestrictionMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+        label = migrationId,
+        mappingType = ContactPersonMappingType.MIGRATED,
+        pageRequest = pageRequest,
+      )
+    }
+
+    val count = async {
+      prisonerRestrictionMappingRepository.countAllByLabelAndMappingType(
+        migrationId = migrationId,
+        mappingType = ContactPersonMappingType.MIGRATED,
+      )
+    }
+
+    PageImpl(
+      mappings.await().toList().map { it.toDto() },
+      pageRequest,
+      count.await(),
+    )
+  }
+
   @Transactional
   suspend fun deletePrisonerRestrictionMappingByNomisId(nomisId: Long) = prisonerRestrictionMappingRepository.deleteByNomisId(nomisId = nomisId)
 
   @Transactional
   suspend fun deletePrisonerRestrictionMappingByDpsId(dpsId: String) = prisonerRestrictionMappingRepository.deleteByDpsId(dpsId = dpsId)
+
+  @Transactional
+  suspend fun deleteAllPrisonerRestrictionMappings() = prisonerRestrictionMappingRepository.deleteAll()
 }
 
 private fun PersonMapping.toDto() = PersonMappingDto(

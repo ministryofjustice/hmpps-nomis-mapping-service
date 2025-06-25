@@ -1755,6 +1755,55 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
       dpsId = mapping.dpsId,
     )
   }
+
+  @GetMapping("/prisoner-restriction/migration-id/{migrationId}")
+  @Operation(
+    summary = "Get paged prisoner restriction mappings by migration id",
+    description = "Retrieve all prisoner restriction mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Prisoner restriction mapping page returned",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPrisonerRestrictionMappingsByMigrationId(
+    @PageableDefault pageRequest: Pageable,
+    @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
+    @PathVariable
+    migrationId: String,
+  ): Page<PrisonerRestrictionMappingDto> = service.getPrisonerRestrictionMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
+
+  @DeleteMapping("/prisoner-restriction")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes all prisoner restriction mappings",
+    description = "Deletes all prisoner restriction mappings regardless of source. This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(responseCode = "204", description = "All prisoner restriction mappings deleted"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteAllPrisonerRestrictionMappings() = service.deleteAllPrisonerRestrictionMappings()
 }
 
 private fun ContactPersonMappingsDto.asPersonMappingDto() = PersonMappingDto(
