@@ -1756,6 +1756,41 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     )
   }
 
+  @GetMapping("/prisoner-restriction/nomis-prisoner-restriction-id/{nomisPrisonerRestrictionId}")
+  @Operation(
+    summary = "Get prisoner restriction mapping by nomis prisoner restriction Id",
+    description = "Retrieves the prisoner restriction mapping by NOMIS Prisoner Restriction Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Prisoner Restriction mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = PrisonerRestrictionMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPrisonerRestrictionMappingByNomisId(
+    @Schema(description = "NOMIS prisoner restriction id", example = "12345", required = true)
+    @PathVariable
+    nomisPrisonerRestrictionId: Long,
+  ): PrisonerRestrictionMappingDto = service.getPrisonerRestrictionMappingByNomisId(nomisId = nomisPrisonerRestrictionId)
+
   @GetMapping("/prisoner-restriction/migration-id/{migrationId}")
   @Operation(
     summary = "Get paged prisoner restriction mappings by migration id",
