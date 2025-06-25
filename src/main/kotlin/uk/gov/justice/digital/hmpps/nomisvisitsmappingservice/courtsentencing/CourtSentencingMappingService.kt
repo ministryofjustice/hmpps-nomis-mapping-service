@@ -5,8 +5,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
@@ -23,6 +22,7 @@ class CourtSentencingMappingService(
   private val courtCaseMappingRepository: CourtCaseMappingRepository,
   private val courtCasePrisonerMappingRepository: CourtCasePrisonerMigrationRepository,
   private val courtAppearanceMappingRepository: CourtAppearanceMappingRepository,
+  private val courtAppearanceRecallMappingRepository: CourtAppearanceRecallMappingRepository,
   private val courtChargeMappingRepository: CourtChargeMappingRepository,
   private val sentenceMappingRepository: SentenceMappingRepository,
   private val sentenceTermMappingRepository: SentenceTermMappingRepository,
@@ -383,12 +383,20 @@ class CourtSentencingMappingService(
   )?.toSentenceAllMappingDto()
     ?: throw NotFoundException("Sentence mapping not found with nomisBookingId =$nomisBookingId, nomisSentenceSeq =$nomisSentenceSeq")
 
-  suspend fun getSentencesByNomisIds(nomisSentenceIds: List<NomisSentenceId>): Flow<SentenceMapping> = nomisSentenceIds.asFlow().map {
+  fun getSentencesByNomisIds(nomisSentenceIds: List<NomisSentenceId>): Flow<SentenceMapping> = nomisSentenceIds.asFlow().mapNotNull {
     sentenceMappingRepository.findByNomisBookingIdAndNomisSentenceSequence(
       nomisBookingId = it.nomisBookingId,
       nomisSentenceSeq = it.nomisSentenceSequence,
     )
-  }.filterNotNull()
+  }
+
+  fun getSentenceMappingsByDpsIds(dpsSentenceIds: List<String>): Flow<SentenceMappingDto> = dpsSentenceIds.asFlow().mapNotNull { dpsSentenceId ->
+    sentenceMappingRepository.findById(dpsSentenceId)?.toSentenceAllMappingDto()
+  }
+
+  fun getSentenceMappingsByNomisIds(nomisSentenceIds: List<NomisSentenceId>): Flow<SentenceMappingDto> = getSentencesByNomisIds(nomisSentenceIds).mapNotNull { sentenceMapping ->
+    sentenceMapping.toSentenceAllMappingDto()
+  }
 
   suspend fun getSentenceTermMappingByNomisId(nomisBookingId: Long, nomisSentenceSeq: Int, nomisTermSeq: Int): SentenceTermMappingDto = sentenceTermMappingRepository.findByNomisBookingIdAndNomisSentenceSequenceAndNomisTermSequence(
     nomisBookingId = nomisBookingId,
@@ -425,10 +433,36 @@ class CourtSentencingMappingService(
   }
 
   @Transactional
+  suspend fun createCourtAppearanceRecallMapping(createMappingRequest: CourtAppearanceRecallMappingsDto): Unit = with(createMappingRequest) {
+    courtAppearanceRecallMappingRepository.saveAll(this.toCourtAppearanceRecallMappings()).also {
+      telemetryClient.trackEvent(
+        "court-appearance-recall-mapping-created",
+        mapOf(
+          "nomisCourtAppearanceId" to it.toList().map { it.nomisCourtAppearanceId }.joinToString(","),
+          "dpsRecallId" to dpsRecallId,
+          "mappingType" to mappingType.toString(),
+        ),
+        null,
+      )
+    }
+  }
+
+  @Transactional
+  suspend fun deleteCourtAppearanceRecallMappingByDpsId(dpsRecallId: String) = courtAppearanceRecallMappingRepository.deleteAllByDpsRecallId(dpsRecallId)
+
+  @Transactional
+  suspend fun deleteCourtAppearanceRecallMappingByNomisId(courtAppearanceId: Long) = courtAppearanceRecallMappingRepository.deleteByNomisCourtAppearanceId(courtAppearanceId)
+
+  suspend fun getCourtAppearanceRecallMappingsByDpsId(dpsRecallId: String): List<CourtAppearanceRecallMappingDto> = courtAppearanceRecallMappingRepository.findAllByDpsRecallId(dpsRecallId).map { it.toCourtAppearanceRecallMappingDto() }
+  suspend fun getCourtAppearanceRecallMappingByNomisId(courtAppearanceId: Long): CourtAppearanceRecallMappingDto = courtAppearanceRecallMappingRepository.findById(courtAppearanceId)?.toCourtAppearanceRecallMappingDto()
+    ?: throw NotFoundException("Nomis Court appearance Id =$courtAppearanceId")
+
+  @Transactional
   suspend fun deleteAllMappings() {
     courtCaseMappingRepository.deleteAll()
     courtCasePrisonerMappingRepository.deleteAll()
     courtAppearanceMappingRepository.deleteAll()
+    courtAppearanceRecallMappingRepository.deleteAll()
     courtChargeMappingRepository.deleteAll()
     sentenceMappingRepository.deleteAll()
     sentenceTermMappingRepository.deleteAll()
@@ -554,3 +588,25 @@ fun SentenceTermMappingDto.toSentenceTermMapping(): SentenceTermMapping = Senten
   label = this.label,
   mappingType = mappingType ?: SentenceTermMappingType.DPS_CREATED,
 )
+
+fun CourtAppearanceRecallMapping.toCourtAppearanceRecallMappingDto(): CourtAppearanceRecallMappingDto = CourtAppearanceRecallMappingDto(
+  nomisCourtAppearanceId = this.nomisCourtAppearanceId,
+  dpsRecallId = this.dpsRecallId,
+  label = this.label,
+  mappingType = this.mappingType,
+  whenCreated = this.whenCreated,
+)
+
+fun CourtAppearanceRecallMappingDto.toCourtAppearanceRecallMapping(): CourtAppearanceRecallMapping = CourtAppearanceRecallMapping(
+  nomisCourtAppearanceId = this.nomisCourtAppearanceId,
+  dpsRecallId = this.dpsRecallId,
+  label = this.label,
+  mappingType = mappingType ?: CourtAppearanceRecallMappingType.DPS_CREATED,
+)
+fun CourtAppearanceRecallMappingsDto.toCourtAppearanceRecallMappings(): List<CourtAppearanceRecallMapping> = this.nomisCourtAppearanceIds.map {
+  CourtAppearanceRecallMapping(
+    nomisCourtAppearanceId = it,
+    dpsRecallId = this.dpsRecallId,
+    mappingType = mappingType ?: CourtAppearanceRecallMappingType.DPS_CREATED,
+  )
+}

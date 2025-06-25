@@ -1,10 +1,12 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.courtsentencing
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
+import kotlinx.coroutines.flow.Flow
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.api.NomisSentenceId
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
@@ -480,6 +483,63 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     @PathVariable
     nomisCourtAppearanceId: Long,
   ) = mappingService.deleteCourtAppearanceMappingByNomisId(courtAppearanceId = nomisCourtAppearanceId)
+
+  @GetMapping("/court-appearances/dps-recall-id/{recallId}")
+  @Operation(
+    summary = "get court appearance recall mappings",
+    description = "Retrieves mappings by DPS recall id. Requires role NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getCourtAppearanceRecallMappingsByDpsId(
+    @Schema(description = "DPS recall id", example = "f6ec6d17-a062-4272-9c21-1017b06d556c", required = true)
+    @PathVariable
+    recallId: String,
+  ): List<CourtAppearanceRecallMappingDto> = mappingService.getCourtAppearanceRecallMappingsByDpsId(
+    dpsRecallId = recallId,
+  )
+
+  @DeleteMapping("/court-appearances/dps-recall-id/{recallId}")
+  @Operation(
+    summary = "Deletes court appearance recall mappings",
+    description = "Deletes court appearance recall mappings by DPS recall id. Requires role NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Mappings Deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  suspend fun deleteCourtAppearanceRecallMappingByDpsId(
+    @Schema(description = "DPS recall id", example = "f6ec6d17-a062-4272-9c21-1017b06d556c", required = true)
+    @PathVariable
+    recallId: String,
+  ) = mappingService.deleteCourtAppearanceRecallMappingByDpsId(dpsRecallId = recallId)
 
   @GetMapping("/court-charges/dps-court-charge-id/{courtChargeId}")
   @Operation(
@@ -1105,6 +1165,117 @@ class CourtSentencingMappingResource(private val mappingService: CourtSentencing
     @PathVariable
     termSequence: Int,
   ) = mappingService.deleteSentenceTermMappingByNomisId(bookingId = bookingId, sentenceSequence = sentenceSequence, termSequence = termSequence)
+
+  @PostMapping("/sentences/dps-sentence-ids/get-list")
+  @Operation(
+    summary = "get sentence mappings by DPS sentence IDs",
+    description = "Retrieves mappings for a list of DPS sentence IDs. Any mappings noty found will be missing but the response will still be a 200. Requires role NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "List of associated mappings",
+        content = [
+          Content(
+            mediaType = "application/json",
+            array = ArraySchema(schema = Schema(implementation = SentenceMappingDto::class)),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  fun getSentenceMappingsByDpsIds(
+    @Schema(description = "List of DPS sentence IDs", example = "[\"ce53d679-dec3-4cd2-9bc7-35037c78c4b7\", \"fd246c2e-146b-47a9-9bda-14c279cd1708\"]", required = true)
+    @RequestBody
+    dpsSentenceIds: List<String>,
+  ): Flow<SentenceMappingDto> = mappingService.getSentenceMappingsByDpsIds(
+    dpsSentenceIds = dpsSentenceIds,
+  )
+
+  @PostMapping("/sentences/nomis-sentence-ids/get-list")
+  @Operation(
+    summary = "get sentence mappings by NOMIS sentence IDs",
+    description = "Retrieves mappings for a list of NOMIS sentence IDs. Any mappings not found will be missing but the response will still be a 200. Requires role NOMIS_COURT_SENTENCING",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "List of associated mappings",
+        content = [
+          Content(
+            mediaType = "application/json",
+            array = ArraySchema(schema = Schema(implementation = SentenceMappingDto::class)),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  fun getSentenceMappingsByNomisIds(
+    @Schema(description = "List of NOMIS sentence IDs", example = "[{\"nomisBookingId\": 12345, \"nomisSentenceSequence\": 1}, {\"nomisBookingId\": 12345, \"nomisSentenceSequence\": 2}]", required = true)
+    @RequestBody
+    nomisSentenceIds: List<NomisSentenceId>,
+  ): Flow<SentenceMappingDto> = mappingService.getSentenceMappingsByNomisIds(
+    nomisSentenceIds = nomisSentenceIds,
+  )
+
+  @PostMapping("/court-appearances/recall")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates new court appearance recall mappings",
+    description = "Creates mappings between nomis Court appearance IDs and DPS Recall ID. Requires ROLE_NOMIS_COURT_SENTENCING",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = CourtAppearanceRecallMappingsDto::class),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mappings created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createCourtAppearanceRecallMapping(
+    @RequestBody @Valid
+    mapping: CourtAppearanceRecallMappingsDto,
+  ) = try {
+    mappingService.createCourtAppearanceRecallMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    throw DuplicateMappingException(
+      messageIn = "Court Appearance Recall mapping already exists",
+      duplicate = mapping,
+      existing = mapping,
+      cause = e,
+    )
+  }
 
   private suspend fun getExistingMappingSimilarTo(mapping: CourtCaseAllMappingDto) = runCatching {
     mappingService.getCourtCaseAllMappingByNomisId(

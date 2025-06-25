@@ -20,17 +20,18 @@ import java.time.temporal.ChronoUnit
 private const val NOMIS_COURT_APPEARANCE_ID = 4321L
 private const val NOMIS_COURT_APPEARANCE_2_ID = 9876L
 private const val DPS_COURT_APPEARANCE_ID = "DPS123"
+
+@Suppress("JsonStandardCompliance")
 private const val DPS_COURT_APPEARANCE_2_ID = "DPS321"
-private const val NOMIS_COURT_CHARGE_1_ID = 32121L
-private const val NOMIS_COURT_CHARGE_2_ID = 87676L
-private const val DPS_COURT_CHARGE_1_ID = "dpscha1"
-private const val DPS_COURT_CHARGE_2_ID = "dpscha2"
 class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var repository: CourtAppearanceMappingRepository
 
   @Autowired
   private lateinit var courtChargeRepository: CourtChargeMappingRepository
+
+  @Autowired
+  private lateinit var courtAppearanceRecallRepository: CourtAppearanceRecallMappingRepository
 
   @Nested
   @DisplayName("GET /mapping/court-sentencing/court-appearances/dps-court-appearance-id/{courtAppearanceId}")
@@ -651,6 +652,381 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .exchange()
           .expectStatus().isNotFound
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/court-sentencing/court-appearances/dps-recall-id/{recallId}")
+  inner class GetCourtAppearanceRecallMappingsByDpsId {
+    private val dpsRecallId = "f6ec6d17-a062-4272-9c21-1017b06d556c"
+    lateinit var courtAppearanceRecallMappings: List<CourtAppearanceRecallMapping>
+
+    @BeforeEach
+    fun setUp() = runTest {
+      courtAppearanceRecallMappings = listOf(
+        courtAppearanceRecallRepository.save(
+          CourtAppearanceRecallMapping(
+            nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_ID,
+            dpsRecallId = dpsRecallId,
+            label = "2023-01-01T12:45:12",
+            mappingType = CourtAppearanceRecallMappingType.MIGRATED,
+          ),
+        ),
+        courtAppearanceRecallRepository.save(
+          CourtAppearanceRecallMapping(
+            nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_2_ID,
+            dpsRecallId = dpsRecallId,
+            label = "2023-01-01T12:45:12",
+            mappingType = CourtAppearanceRecallMappingType.MIGRATED,
+          ),
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      courtAppearanceRecallRepository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return empty list when no mappings exist`() {
+        // Delete all mappings first
+        runTest {
+          courtAppearanceRecallRepository.deleteAll()
+        }
+
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/DOESNOTEXIST")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .json("[]")
+      }
+
+      @Test
+      fun `will return mappings when they exist`() {
+        val responseType = object : ParameterizedTypeReference<List<CourtAppearanceRecallMappingDto>>() {}
+
+        val response = webTestClient.get()
+          .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody(responseType)
+          .returnResult()
+          .responseBody
+
+        assertThat(response).hasSize(2)
+
+        val firstMapping = response!!.find { it.nomisCourtAppearanceId == NOMIS_COURT_APPEARANCE_ID }!!
+        assertThat(firstMapping.dpsRecallId).isEqualTo(dpsRecallId)
+        assertThat(firstMapping.mappingType!!.name).isEqualTo("MIGRATED")
+        assertThat(firstMapping.label).isEqualTo("2023-01-01T12:45:12")
+        assertThat(LocalDateTime.parse(firstMapping.whenCreated.toString())).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+
+        val secondMapping = response.find { it.nomisCourtAppearanceId == NOMIS_COURT_APPEARANCE_2_ID }!!
+        assertThat(secondMapping.dpsRecallId).isEqualTo(dpsRecallId)
+        assertThat(secondMapping.mappingType!!.name).isEqualTo("MIGRATED")
+        assertThat(secondMapping.label).isEqualTo("2023-01-01T12:45:12")
+        assertThat(LocalDateTime.parse(secondMapping.whenCreated.toString())).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("DELETE /mapping/court-sentencing/court-appearances/dps-recall-id/{recallId}")
+  inner class DeleteCourtAppearanceRecallMappingByDpsId {
+    private val dpsRecallId = "f6ec6d17-a062-4272-9c21-1017b06d556c"
+    lateinit var courtAppearanceRecallMappings: List<CourtAppearanceRecallMapping>
+
+    @BeforeEach
+    fun setUp() = runTest {
+      courtAppearanceRecallMappings = listOf(
+        courtAppearanceRecallRepository.save(
+          CourtAppearanceRecallMapping(
+            nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_ID,
+            dpsRecallId = dpsRecallId,
+            label = "2023-01-01T12:45:12",
+            mappingType = CourtAppearanceRecallMappingType.MIGRATED,
+          ),
+        ),
+        courtAppearanceRecallRepository.save(
+          CourtAppearanceRecallMapping(
+            nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_2_ID,
+            dpsRecallId = dpsRecallId,
+            label = "2023-01-01T12:45:12",
+            mappingType = CourtAppearanceRecallMappingType.MIGRATED,
+          ),
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      courtAppearanceRecallRepository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 204 even when mappings do not exist`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/non-existent-id")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNoContent
+      }
+
+      @Test
+      fun `will return 204 when mappings exist and are deleted`() {
+        // Verify mappings exist
+        val responseType = object : ParameterizedTypeReference<List<CourtAppearanceRecallMappingDto>>() {}
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody(responseType)
+          .returnResult()
+          .responseBody!!.also {
+          assertThat(it).hasSize(2)
+        }
+
+        // Delete mappings
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        // Verify mappings are deleted
+        webTestClient.get()
+          .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .json("[]")
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("POST /mapping/court-sentencing/court-appearances/recall")
+  inner class CreateCourtAppearanceRecallMapping {
+    private val mapping = CourtAppearanceRecallMappingsDto(
+      nomisCourtAppearanceIds = listOf(NOMIS_COURT_APPEARANCE_ID, NOMIS_COURT_APPEARANCE_2_ID),
+      dpsRecallId = "f6ec6d17-a062-4272-9c21-1017b06d556c",
+      label = "2023-01-01T12:45:12",
+      mappingType = CourtAppearanceRecallMappingType.DPS_CREATED,
+    )
+
+    @BeforeEach
+    fun setUp() = runTest {
+      // No setup needed as we're creating new mappings
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      courtAppearanceRecallRepository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/court-appearances/recall")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/court-appearances/recall")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/court-appearances/recall")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `returns 201 when mapping created`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/court-appearances/recall")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+
+        val createdMappings = courtAppearanceRecallRepository.findAllByDpsRecallId(mapping.dpsRecallId)
+        assertThat(createdMappings).hasSize(2)
+
+        val firstMapping = createdMappings.find { it.nomisCourtAppearanceId == NOMIS_COURT_APPEARANCE_ID }!!
+        assertThat(firstMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        assertThat(firstMapping.nomisCourtAppearanceId).isEqualTo(NOMIS_COURT_APPEARANCE_ID)
+        assertThat(firstMapping.dpsRecallId).isEqualTo(mapping.dpsRecallId)
+        assertThat(firstMapping.mappingType).isEqualTo(mapping.mappingType)
+
+        val secondMapping = createdMappings.find { it.nomisCourtAppearanceId == NOMIS_COURT_APPEARANCE_2_ID }!!
+        assertThat(secondMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        assertThat(secondMapping.nomisCourtAppearanceId).isEqualTo(NOMIS_COURT_APPEARANCE_2_ID)
+        assertThat(secondMapping.dpsRecallId).isEqualTo(mapping.dpsRecallId)
+        assertThat(secondMapping.mappingType).isEqualTo(mapping.mappingType)
+      }
+
+      @Test
+      fun `can create with minimal data`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/court-appearances/recall")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              //language=JSON
+              """
+                {
+                  "nomisCourtAppearanceIds": [${NOMIS_COURT_APPEARANCE_ID}],
+                  "dpsRecallId": "f6ec6d17-a062-4272-9c21-1017b06d556c"
+                }
+              """.trimIndent(),
+            ),
+          )
+          .exchange()
+          .expectStatus().isCreated
+
+        val createdMappings = courtAppearanceRecallRepository.findAllByDpsRecallId("f6ec6d17-a062-4272-9c21-1017b06d556c")
+        assertThat(createdMappings).hasSize(1)
+
+        val createdMapping = createdMappings.first()
+        assertThat(createdMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        assertThat(createdMapping.nomisCourtAppearanceId).isEqualTo(NOMIS_COURT_APPEARANCE_ID)
+        assertThat(createdMapping.dpsRecallId).isEqualTo("f6ec6d17-a062-4272-9c21-1017b06d556c")
+        assertThat(createdMapping.mappingType).isEqualTo(CourtAppearanceRecallMappingType.DPS_CREATED)
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `returns 400 when nomisCourtAppearanceIds not provided`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/court-appearances/recall")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              //language=JSON
+              """
+                {
+                  "dpsRecallId": "f6ec6d17-a062-4272-9c21-1017b06d556c"
+                }
+              """.trimIndent(),
+            ),
+          )
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+
+      @Test
+      fun `returns 400 when dpsRecallId not provided`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/court-appearances/recall")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              //language=JSON
+              """
+                {
+                  "nomisCourtAppearanceIds": [${NOMIS_COURT_APPEARANCE_ID}]
+                }
+              """.trimIndent(),
+            ),
+          )
+          .exchange()
+          .expectStatus().isBadRequest
       }
     }
   }

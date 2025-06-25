@@ -289,7 +289,7 @@ class PublicApiResource(private val locationService: LocationMappingService, pri
       ),
     ],
   )
-  suspend fun getSentenceMappingByNomisIs(
+  fun getSentenceMappingByNomisIs(
     @RequestBody nomisSentenceIds: List<NomisSentenceId>,
   ): Flow<NomisDpsSentenceMapping> = sentenceService.getSentencesByNomisIds(nomisSentenceIds)
     .map {

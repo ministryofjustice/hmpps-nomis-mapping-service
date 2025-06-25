@@ -623,7 +623,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     dpsAddressPhoneId: String,
   ): OrganisationsMappingDto = service.getAddressPhoneMappingByDpsId(dpsId = dpsAddressPhoneId)
 
-  @DeleteMapping("/address-phone/dps-phone-id/{dpsPhoneId}")
+  @DeleteMapping("/address-phone/dps-address-phone-id/{dpsPhoneId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes address phone mapping by dps phone Id",
@@ -969,7 +969,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     dpsEmailId: String,
   ): OrganisationsMappingDto = service.getEmailMappingByDpsId(dpsId = dpsEmailId)
 
-  @DeleteMapping("/email/dps-internet-address-id/{dpsEmailId}")
+  @DeleteMapping("/email/dps-email-id/{dpsEmailId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete email mapping by dps email Id",
@@ -1107,7 +1107,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     nomisWebId: Long,
   ): OrganisationsMappingDto = service.getWebMappingByNomisId(nomisId = nomisWebId)
 
-  @GetMapping("/web/dps-internet-address-id/{dpsWebId}")
+  @GetMapping("/web/dps-web-id/{dpsWebId}")
   @Operation(
     summary = "Get web mapping by dps web address Id",
     description = "Retrieves the  mapping by DPS Web Address Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
@@ -1142,7 +1142,7 @@ class CorporateMappingResource(private val service: CorporateService) {
     dpsWebId: String,
   ): OrganisationsMappingDto = service.getWebMappingByDpsId(dpsId = dpsWebId)
 
-  @DeleteMapping("/web/dps-internet-address-id/{dpsWebId}")
+  @DeleteMapping("/web/dps-web-id/{dpsWebId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete web mapping by dps web Id",

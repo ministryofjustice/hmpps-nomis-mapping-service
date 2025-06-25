@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.MediaType
 import org.springframework.test.util.ReflectionTestUtils
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters.fromValue
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.data.ActivityMigrationMappingDto
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.builders.ActivityMigrationRepository
@@ -59,7 +60,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
 
   private fun createMapping(
     nomisId: Long = NOMIS_ID,
-    activityId: Long = ACTIVITY_ID,
+    activityId: Long? = ACTIVITY_ID,
     activityId2: Long? = ACTIVITY_ID_2,
     label: String = MIGRATION_ID,
   ): ActivityMigrationMappingDto = ActivityMigrationMappingDto(
@@ -71,7 +72,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
 
   private fun postCreateMappingRequest(
     nomisId: Long = NOMIS_ID,
-    activityId: Long = ACTIVITY_ID,
+    activityId: Long? = ACTIVITY_ID,
     activityId2: Long? = ACTIVITY_ID_2,
     label: String = MIGRATION_ID,
   ) = webTestClient.post().uri("/mapping/activities/migration")
@@ -93,7 +94,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
 
   private fun saveMapping(
     nomisId: Long = NOMIS_ID,
-    activityId: Long = ACTIVITY_ID,
+    activityId: Long? = ACTIVITY_ID,
     activityId2: Long? = ACTIVITY_ID_2,
     label: String = MIGRATION_ID,
   ) = runTest {
@@ -164,8 +165,44 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `should save multiple mappings if both activity ids are null`() = runTest {
+      postCreateMappingRequest(activityId = null, activityId2 = null)
+        .expectStatus().isCreated
+      // Create another to show that we can have multiple mappings with null activity_id
+      postCreateMappingRequest(nomisId = NOMIS_ID + 1, activityId = null, activityId2 = null)
+        .expectStatus().isCreated
+
+      val saved = activityMigrationRepository.findById(NOMIS_ID)!!
+      with(saved) {
+        assertThat(activityId).isNull()
+        assertThat(activityId2).isNull()
+        assertThat(label).isEqualTo(MIGRATION_ID)
+      }
+
+      val saved2 = activityMigrationRepository.findById(NOMIS_ID + 1)!!
+      with(saved2) {
+        assertThat(activityId).isNull()
+        assertThat(activityId2).isNull()
+        assertThat(label).isEqualTo(MIGRATION_ID)
+      }
+    }
+
+    @Test
     fun `should return bad request if mapping already exists for different Activity id`() = runTest {
       postCreateMappingRequest()
+        .expectStatus().isCreated
+
+      postCreateMappingRequest(activityId = 1)
+        .expectStatus().isBadRequest
+        .expectBody()
+        .jsonPath("userMessage").value<String> {
+          assertThat(it).contains("Nomis mapping id = $NOMIS_ID already exists")
+        }
+    }
+
+    @Test
+    fun `should return bad request if mapping already exists for null Activity id`() = runTest {
+      postCreateMappingRequest(activityId = null)
         .expectStatus().isCreated
 
       postCreateMappingRequest(activityId = 1)
@@ -448,6 +485,40 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
         .jsonPath("size").isEqualTo(pageSize)
         .jsonPath("content.size()").isEqualTo(1)
         .jsonPath("content[0].nomisCourseActivityId").isEqualTo(NOMIS_ID + 4)
+    }
+  }
+
+  @DisplayName("GET /mapping/activities/migration-count/migration-id/{migrationId}")
+  @Nested
+  inner class CountMappingsByMigrationId {
+    @Test
+    fun `should not include ignored activities by default`() {
+      saveMapping(nomisId = 1, activityId = 11, label = "some-migration")
+      saveMapping(nomisId = 2, activityId = null, label = "some-migration")
+
+      webTestClient.get()
+        .uri("/mapping/activities/migration-count/migration-id/some-migration")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody<Long>().isEqualTo(1)
+    }
+
+    @Test
+    fun `should include ignored activities if requested`() {
+      saveMapping(nomisId = 1, activityId = 11, label = "some-migration")
+      saveMapping(nomisId = 2, activityId = null, label = "some-migration")
+
+      webTestClient.get()
+        .uri {
+          it.path("/mapping/activities/migration-count/migration-id/some-migration")
+            .queryParam("includeIgnored", "true")
+            .build()
+        }
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody<Long>().isEqualTo(2)
     }
   }
 }
