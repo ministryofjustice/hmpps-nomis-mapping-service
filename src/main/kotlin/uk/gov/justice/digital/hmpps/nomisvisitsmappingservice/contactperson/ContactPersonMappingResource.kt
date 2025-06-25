@@ -1501,6 +1501,53 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     )
   }
 
+  @PostMapping("/prisoner-restriction")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates prisoner restriction mappings for synchronisation",
+    description = "Creates prisoner restriction mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = PrisonerRestrictionMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createPrisonerRestrictionMapping(
+    @RequestBody @Valid
+    mapping: PrisonerRestrictionMappingDto,
+  ) = try {
+    service.createMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingPrisonerRestrictionMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Prisoner Restriction mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
+
   @GetMapping("/person-restriction/nomis-person-restriction-id/{nomisPersonRestrictionId}")
   @Operation(
     summary = "Get person restriction mapping by nomis person restriction Id",
@@ -1695,6 +1742,16 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     )
   }.getOrElse {
     service.getPersonRestrictionMappingByDpsIdOrNull(
+      dpsId = mapping.dpsId,
+    )
+  }
+
+  private suspend fun getExistingPrisonerRestrictionMappingSimilarTo(mapping: PrisonerRestrictionMappingDto) = runCatching {
+    service.getPrisonerRestrictionMappingByNomisId(
+      nomisId = mapping.nomisId,
+    )
+  }.getOrElse {
+    service.getPrisonerRestrictionMappingByDpsIdOrNull(
       dpsId = mapping.dpsId,
     )
   }
