@@ -27,6 +27,7 @@ spring:
       max-idle-time: 5ms
 
 casenotes.average-case-notes-per-prisoner: 2
+transactions.average-transactions-per-prisoner: 2
 
 logging:
   level:
