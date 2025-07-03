@@ -86,3 +86,4 @@ azure:
       enabled: false
 
 casenotes.average-case-notes-per-prisoner: 134
+transactions.average-transactions-per-prisoner: 850

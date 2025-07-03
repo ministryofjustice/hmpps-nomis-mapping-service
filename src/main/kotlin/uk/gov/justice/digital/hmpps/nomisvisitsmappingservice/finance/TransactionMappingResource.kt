@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.casenotes
+package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.finance
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.ArraySchema
@@ -28,16 +28,16 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('NOMIS_CASENOTES')")
-@RequestMapping("/mapping/casenotes", produces = [MediaType.APPLICATION_JSON_VALUE])
-class CaseNotesMappingResource(private val mappingService: CaseNoteMappingService) {
+@PreAuthorize("hasRole('NOMIS_TRANSACTIONS')")
+@RequestMapping("/mapping/transactions", produces = [MediaType.APPLICATION_JSON_VALUE])
+class TransactionMappingResource(private val mappingService: TransactionMappingService) {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
-    summary = "Creates a new casenote mapping",
-    description = "Creates a mapping between nomis casenote id and dps casenote id. Requires ROLE_NOMIS_CASENOTES",
+    summary = "Creates a new transaction mapping",
+    description = "Creates a mapping between nomis transaction id and dps transaction id. Requires ROLE_NOMIS_TRANSACTIONS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = CaseNoteMappingDto::class))],
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = TransactionMappingDto::class))],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Mapping created"),
@@ -65,12 +65,12 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
   )
   suspend fun createMapping(
     @RequestBody @Valid
-    mapping: CaseNoteMappingDto,
+    mapping: TransactionMappingDto,
   ) = try {
     mappingService.createMapping(mapping)
   } catch (e: DuplicateKeyException) {
     throw DuplicateMappingException(
-      messageIn = "Casenote mapping already exists",
+      messageIn = "TRANSACTION mapping already exists",
       duplicate = mapping,
       existing = getExistingMappingSimilarTo(mapping),
       cause = e,
@@ -80,13 +80,13 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
   @PostMapping("/batch")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
-    summary = "Creates a batch of new casenote mappings",
-    description = "Creates a mapping between a batch of nomis casenote ids and dps casenote id. Requires ROLE_NOMIS_CASENOTES",
+    summary = "Creates a batch of new transaction mappings",
+    description = "Creates a mapping between a batch of nomis transaction ids and dps transaction ids. Requires ROLE_NOMIS_TRANSACTIONS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
           mediaType = "application/json",
-          array = ArraySchema(schema = Schema(implementation = CaseNoteMappingDto::class)),
+          array = ArraySchema(schema = Schema(implementation = TransactionMappingDto::class)),
         ),
       ],
     ),
@@ -116,14 +116,14 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
   )
   suspend fun createMappings(
     @RequestBody @Valid
-    mappings: List<CaseNoteMappingDto>,
+    mappings: List<TransactionMappingDto>,
   ) = try {
     mappingService.createMappings(mappings)
   } catch (e: DuplicateKeyException) {
     val duplicateMapping = getMappingThatIsDuplicate(mappings)
     if (duplicateMapping != null) {
       throw DuplicateMappingException(
-        messageIn = "Casenote mapping already exists",
+        messageIn = "TRANSACTION mapping already exists",
         duplicate = duplicateMapping,
         existing = getExistingMappingSimilarTo(duplicateMapping),
         cause = e,
@@ -134,13 +134,10 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
 
   @GetMapping("{offenderNo}/all")
   @Operation(
-    summary = "Gets all case note mappings for a prisoner",
-    description = "Gets all the mappings between nomis case note ids and dps case note ids related to specific prisoner created either via migration or synchronisation. Requires NOMIS_CASENOTES",
+    summary = "Gets all transaction mappings for a prisoner",
+    description = "Gets all the mappings between nomis transaction ids and dps transaction ids related to specific prisoner created either via migration or synchronisation. Requires ROLE_NOMIS_TRANSACTIONS",
     responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Mappings for prisoner",
-      ),
+      ApiResponse(responseCode = "200", description = "Mappings for prisoner"),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
@@ -157,20 +154,14 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     @Schema(description = "NOMIS offender no", example = "A1234KT", required = true)
     @PathVariable
     offenderNo: String,
-  ): AllPrisonerCaseNoteMappingsDto = mappingService.getMappings(offenderNo)
+  ): AllPrisonerTransactionMappingsDto = mappingService.getMappings(offenderNo)
 
-  @GetMapping("/nomis-casenote-id/{caseNoteId}")
+  @GetMapping("/nomis-transaction-id/{transactionId}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by NOMIS id. Requires role NOMIS_CASENOTES",
+    description = "Retrieves a mapping by NOMIS id. Requires role NOMIS_TRANSACTIONS",
     responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Mapping Information Returned",
-        content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CaseNoteMappingDto::class)),
-        ],
-      ),
+      ApiResponse(responseCode = "200", description = "Mapping Information Returned"),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
@@ -184,20 +175,17 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     ],
   )
   suspend fun getMappingByNomisId(
-    @Schema(description = "NOMIS case note id", example = "23456789", required = true)
+    @Schema(description = "NOMIS transaction id", example = "23456789", required = true)
     @PathVariable
-    caseNoteId: Long,
-  ): CaseNoteMappingDto = mappingService.getMappingByNomisId(caseNoteId)
+    transactionId: Long,
+  ): TransactionMappingDto = mappingService.getMappingByNomisId(transactionId)
 
-  @PostMapping("/nomis-casenote-id")
+  @PostMapping("/nomis-transaction-id")
   @Operation(
     summary = "get mappings by Nomis id",
-    description = "Retrieves multiple mappings by NOMIS case note id. Requires role NOMIS_CASENOTES",
+    description = "Retrieves multiple mappings by NOMIS transaction id. Requires role NOMIS_TRANSACTIONS",
     responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Mapping Information Returned",
-      ),
+      ApiResponse(responseCode = "200", description = "Mapping Information Returned"),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
@@ -211,20 +199,17 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     ],
   )
   suspend fun getMappingsByNomisId(
-    @Schema(description = "NOMIS case note ids", required = true)
+    @Schema(description = "NOMIS transaction ids", required = true)
     @RequestBody
-    caseNoteIds: List<Long>,
-  ): List<CaseNoteMappingDto> = mappingService.getMappingsByNomisId(caseNoteIds)
+    transactionIds: List<Long>,
+  ): List<TransactionMappingDto> = mappingService.getMappingsByNomisId(transactionIds)
 
-  @GetMapping("/dps-casenote-id/{dpsCaseNoteId}/all")
+  @GetMapping("/dps-transaction-id/{dpsTransactionId}")
   @Operation(
-    summary = "get multiple mappings",
-    description = "Retrieves mappings by DPS id. In case of past merges, there could be > 1 nomis id per dps id. Requires role NOMIS_CASENOTES",
+    summary = "Retrieves mapping by DPS id",
+    description = "Requires role NOMIS_TRANSACTIONS",
     responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Mapping Information Returned",
-      ),
+      ApiResponse(responseCode = "200", description = "Mapping Information Returned"),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
@@ -237,25 +222,19 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
       ),
     ],
   )
-  suspend fun getMappingsByDpsId(
-    @Schema(description = "DPS casenote id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
+  suspend fun getMappingByDpsId(
+    @Schema(description = "DPS transaction id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
-    dpsCaseNoteId: String,
-  ): List<CaseNoteMappingDto> = mappingService.getMappingsByDpsId(dpsCaseNoteId)
+    dpsTransactionId: String,
+  ): TransactionMappingDto = mappingService.getMappingByDpsId(dpsTransactionId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_CASENOTES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_TRANSACTIONS')")
   @GetMapping("/migrated/latest")
   @Operation(
     summary = "get the latest mapping for a migration",
-    description = "Requires role NOMIS_CASENOTES",
+    description = "Requires role NOMIS_TRANSACTIONS",
     responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Mapping Information Returned",
-        content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CaseNoteMappingDto::class)),
-        ],
-      ),
+      ApiResponse(responseCode = "200", description = "Mapping Information Returned"),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
@@ -268,17 +247,14 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
       ),
     ],
   )
-  suspend fun getLatestMigratedCaseNoteMapping(): CaseNoteMappingDto = mappingService.getMappingForLatestMigrated()
+  suspend fun getLatestMigratedTransactionMapping(): TransactionMappingDto = mappingService.getMappingForLatestMigrated()
 
   @GetMapping("/migration-id/{migrationId}/count-by-prisoner")
   @Operation(
     summary = "Get count of mappings by migration id grouped by prisoner",
     // description = "Retrieve all mappings of type 'MIGRATED' for the given migration id (identifies a single migration run) grouped by prisoner. Results are paged.",
     responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Mapping page returned",
-      ),
+      ApiResponse(responseCode = "200", description = "Mapping page returned"),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
@@ -298,10 +274,10 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     migrationId: String,
   ): Long = mappingService.getCountByMigrationIdGroupedByPrisoner(pageRequest = pageRequest, migrationId = migrationId)
 
-  @DeleteMapping("/nomis-casenote-id/{nomisCaseNoteId}")
+  @DeleteMapping("/nomis-transaction-id/{nomisTransactionId}")
   @Operation(
     summary = "Deletes mapping",
-    description = "Deletes a mapping by Nomis id. Requires role NOMIS_CASENOTES",
+    description = "Deletes a mapping by Nomis id. Requires role NOMIS_TRANSACTIONS",
     responses = [
       ApiResponse(responseCode = "204", description = "Mapping Deleted"),
       ApiResponse(
@@ -318,15 +294,15 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
   suspend fun deleteMappingByNomisId(
-    @Schema(description = "Nomis casenote id", example = "3344556677", required = true)
+    @Schema(description = "Nomis transaction id", example = "3344556677", required = true)
     @PathVariable
-    nomisCaseNoteId: Long,
-  ) = mappingService.deleteMapping(nomisCaseNoteId)
+    nomisTransactionId: Long,
+  ) = mappingService.deleteMapping(nomisTransactionId)
 
-  @DeleteMapping("/dps-casenote-id/{dpsCaseNoteId}")
+  @DeleteMapping("/dps-transaction-id/{dpsTransactionId}")
   @Operation(
     summary = "Deletes mapping",
-    description = "Deletes mapping by DPS id (there could be more than one nomis id if a merge has taken place). Requires role NOMIS_CASENOTES",
+    description = "Deletes mapping by DPS id. Requires role NOMIS_TRANSACTIONS",
     responses = [
       ApiResponse(responseCode = "204", description = "Mapping Deleted"),
       ApiResponse(
@@ -342,16 +318,16 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     ],
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  suspend fun deleteMappingsByDpsId(
-    @Schema(description = "DPS casenote id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
+  suspend fun deleteMappingByDpsId(
+    @Schema(description = "DPS transaction id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
-    dpsCaseNoteId: String,
-  ) = mappingService.deleteMappings(dpsCaseNoteId)
+    dpsTransactionId: String,
+  ) = mappingService.deleteMapping(dpsTransactionId)
 
   @PutMapping("/merge/from/{oldOffenderNo}/to/{newOffenderNo}")
   @Operation(
     summary = "Replaces all occurrences of the 'from' id with the 'to' id in the mapping table",
-    description = "Used for update after a prisoner number merge. Requires role ROLE_NOMIS_CASENOTES",
+    description = "Used for update after a prisoner number merge. Requires role ROLE_NOMIS_TRANSACTIONS",
     responses = [
       ApiResponse(responseCode = "200", description = "Replacement made, or not present in table"),
       ApiResponse(
@@ -374,8 +350,8 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
 
   @PutMapping("/merge/booking-id/{bookingId}/to/{newOffenderNo}")
   @Operation(
-    summary = "For all case notes with the given booking id in the mapping table, sets the offender no to the given 'to' id",
-    description = "Used for update after a booking has been moved from one offender to another. Returns the affected case notes. Requires role ROLE_NOMIS_CASENOTES",
+    summary = "For all transactions with the given booking id in the mapping table, sets the offender no to the given 'to' id",
+    description = "Used for update after a booking has been moved from one offender to another. Returns the affected transactions. Requires role ROLE_NOMIS_TRANSACTIONS",
     responses = [
       ApiResponse(responseCode = "200", description = "Replacement made, or not present in table"),
       ApiResponse(
@@ -392,16 +368,16 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     @Schema(description = "New prisoner number to use", example = "A3457LZ", required = true)
     @PathVariable
     newOffenderNo: String,
-  ): List<CaseNoteMappingDto> = mappingService.updateMappingsByBookingId(bookingId, newOffenderNo)
+  ): List<TransactionMappingDto> = mappingService.updateMappingsByBookingId(bookingId, newOffenderNo)
 
-  private suspend fun getExistingMappingSimilarTo(mapping: CaseNoteMappingDto) = runCatching {
-    mappingService.getMappingByNomisId(nomisCaseNoteId = mapping.nomisCaseNoteId)
+  private suspend fun getExistingMappingSimilarTo(mapping: TransactionMappingDto) = runCatching {
+    mappingService.getMappingByNomisId(nomisTransactionId = mapping.nomisTransactionId)
   }.getOrElse {
-    mappingService.getMappingsByDpsId(dpsCaseNoteId = mapping.dpsCaseNoteId).first()
+    mappingService.getMappingByDpsId(dpsTransactionId = mapping.dpsTransactionId)
   }
 
-  private suspend fun getMappingThatIsDuplicate(mappings: List<CaseNoteMappingDto>): CaseNoteMappingDto? = mappings.find {
+  private suspend fun getMappingThatIsDuplicate(mappings: List<TransactionMappingDto>): TransactionMappingDto? = mappings.find {
     // look for each mapping until I find one (i.e. that is there is no exception thrown)
-    kotlin.runCatching { getExistingMappingSimilarTo(it) }.map { true }.getOrElse { false }
+    runCatching { getExistingMappingSimilarTo(it) }.map { true }.getOrElse { false }
   }
 }
