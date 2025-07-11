@@ -391,6 +391,12 @@ class ContactPersonService(
       },
     )
   }
+
+  @Transactional
+  suspend fun replacePrisonerRestrictionAfterMergeMappings(retainedOffenderNo: String, removedOffenderNo: String, restrictionMappings: PrisonerRestrictionMappingsDto) = coroutineScope {
+    prisonerRestrictionMappingRepository.deleteAllByOffenderNo(removedOffenderNo)
+    replacePrisonerRestrictionMappings(retainedOffenderNo, restrictionMappings)
+  }
 }
 
 private fun PersonMapping.toDto() = PersonMappingDto(
