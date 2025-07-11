@@ -1866,6 +1866,34 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     @PathVariable
     offenderNo: String,
   ) = service.replacePrisonerRestrictionMappings(offenderNo = offenderNo, restrictionMappings = restrictionMappings)
+
+  @DeleteMapping("/prisoner-restriction/nomis-prisoner-restriction-id/{nomisPrisonerRestrictionId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete prisoner restriction mapping by nomis prisoner restriction Id",
+    description = "Delete the prisoner restriction mapping by NOMIS Prisoner Restriction Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Prisoner Restriction mapping deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deletePrisonerRestrictionMappingByNomisId(
+    @Schema(description = "NOMIS prisoner restriction id", example = "12345", required = true)
+    @PathVariable
+    nomisPrisonerRestrictionId: Long,
+  ) = service.deletePrisonerRestrictionMappingByNomisId(nomisId = nomisPrisonerRestrictionId)
 }
 
 private fun ContactPersonMappingsDto.asPersonMappingDto() = PersonMappingDto(

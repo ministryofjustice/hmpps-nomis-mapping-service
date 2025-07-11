@@ -5191,6 +5191,82 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("DELETE /mapping/contact-person/prisoner-restriction/nomis-prisoner-restriction-id/{nomisPrisonerRestrictionId}")
+  inner class DeletePrisonerRestrictionByNomisId {
+    private val nomisPrisonerRestrictionId = 12345L
+    private lateinit var prisonerRestrictionMapping: PrisonerRestrictionMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      prisonerRestrictionMapping = prisonerRestrictionMappingRepository.save(
+        PrisonerRestrictionMapping(
+          dpsId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
+          nomisId = nomisPrisonerRestrictionId,
+          offenderNo = "A1234BC",
+          label = "2023-01-01T12:45:12",
+          mappingType = ContactPersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/contact-person/prisoner-restriction/nomis-prisoner-restriction-id/{nomisPrisonerRestrictionId}", nomisPrisonerRestrictionId)
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/contact-person/prisoner-restriction/nomis-prisoner-restriction-id/{nomisPrisonerRestrictionId}", nomisPrisonerRestrictionId)
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/contact-person/prisoner-restriction/nomis-prisoner-restriction-id/{nomisPrisonerRestrictionId}", nomisPrisonerRestrictionId)
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `204 when mapping does not exist`() {
+        webTestClient.delete()
+          .uri("/mapping/contact-person/prisoner-restriction/nomis-prisoner-restriction-id/{nomisPrisonerRestrictionId}", 99999)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isNoContent
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will delete the mapping data`() = runTest {
+        assertThat(prisonerRestrictionMappingRepository.findOneByNomisId(nomisPrisonerRestrictionId)).isNotNull
+        webTestClient.delete()
+          .uri("/mapping/contact-person/prisoner-restriction/nomis-prisoner-restriction-id/{nomisPrisonerRestrictionId}", nomisPrisonerRestrictionId)
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isNoContent
+        assertThat(prisonerRestrictionMappingRepository.findOneByNomisId(nomisPrisonerRestrictionId)).isNull()
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("GET /mapping/contact-person/person-restriction/dps-contact-restriction-id/{contactRestrictionId}")
   inner class GetPersonRestrictionByDpsId {
     private val dpsContactRestrictionId = "1234567"
