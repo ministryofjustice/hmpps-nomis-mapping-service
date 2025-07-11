@@ -1839,6 +1839,90 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     ],
   )
   suspend fun deleteAllPrisonerRestrictionMappings() = service.deleteAllPrisonerRestrictionMappings()
+
+  @PostMapping("/replace/prisoner-restrictions/{offenderNo}")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(
+    summary = "Replace prisoner restriction mappings for an offender",
+    description = "Deletes all existing prisoner restriction mappings for the given offender number and creates new mappings from the provided list. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(responseCode = "200", description = "Prisoner restriction mappings replaced successfully"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun replacePrisonerRestrictionMappings(
+    @RequestBody @Valid
+    restrictionMappings: PrisonerRestrictionMappingsDto,
+    @Schema(description = "Prisoner number", example = "A1234BC", required = true)
+    @PathVariable
+    offenderNo: String,
+  ) = service.replacePrisonerRestrictionMappings(offenderNo = offenderNo, restrictionMappings = restrictionMappings)
+
+  @PostMapping("/replace/prisoner-restrictions/{retainedOffenderNo}/replaces/{removedOffenderNo}")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(
+    summary = "Replace prisoner restriction mappings for an offender and removes any for the removed offender",
+    description = "Deletes all existing prisoner restriction mappings for the given retained offender number and removed offender number and creates new mappings from the provided list. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(responseCode = "200", description = "Prisoner restriction mappings replaced successfully"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun replacePrisonerRestrictionAfterMergeMappings(
+    @RequestBody @Valid
+    restrictionMappings: PrisonerRestrictionMappingsDto,
+    @Schema(description = "Prisoner number", example = "A1234BC", required = true)
+    @PathVariable
+    retainedOffenderNo: String,
+    @PathVariable
+    removedOffenderNo: String,
+  ) = service.replacePrisonerRestrictionAfterMergeMappings(retainedOffenderNo = retainedOffenderNo, removedOffenderNo = removedOffenderNo, restrictionMappings = restrictionMappings)
+
+  @DeleteMapping("/prisoner-restriction/nomis-prisoner-restriction-id/{nomisPrisonerRestrictionId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete prisoner restriction mapping by nomis prisoner restriction Id",
+    description = "Delete the prisoner restriction mapping by NOMIS Prisoner Restriction Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Prisoner Restriction mapping deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deletePrisonerRestrictionMappingByNomisId(
+    @Schema(description = "NOMIS prisoner restriction id", example = "12345", required = true)
+    @PathVariable
+    nomisPrisonerRestrictionId: Long,
+  ) = service.deletePrisonerRestrictionMappingByNomisId(nomisId = nomisPrisonerRestrictionId)
 }
 
 private fun ContactPersonMappingsDto.asPersonMappingDto() = PersonMappingDto(
