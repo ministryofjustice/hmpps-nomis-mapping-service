@@ -1896,6 +1896,33 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     removedOffenderNo: String,
   ) = service.replacePrisonerRestrictionAfterMergeMappings(retainedOffenderNo = retainedOffenderNo, removedOffenderNo = removedOffenderNo, restrictionMappings = restrictionMappings)
 
+  @GetMapping("/prisoner-restrictions/prisoners/{offenderNo}")
+  @Operation(
+    summary = "Get all prisoner restriction mappings for a particular offender number",
+    description = "Retrieves all prisoner restriction mappings for the given offender number. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "List of Prisoner Restriction mappings",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPrisonerRestrictionMappingsByOffenderNo(
+    @Schema(description = "Offender number", example = "A1234BC", required = true)
+    @PathVariable
+    offenderNo: String,
+  ): List<PrisonerRestrictionMappingDto> = service.getPrisonerRestrictionMappingsByOffenderNo(offenderNo = offenderNo)
+
   @DeleteMapping("/prisoner-restriction/nomis-prisoner-restriction-id/{nomisPrisonerRestrictionId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(

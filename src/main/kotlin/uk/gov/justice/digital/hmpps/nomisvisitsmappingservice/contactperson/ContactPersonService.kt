@@ -377,7 +377,7 @@ class ContactPersonService(
   suspend fun deleteAllPrisonerRestrictionMappings() = prisonerRestrictionMappingRepository.deleteAll()
 
   @Transactional
-  suspend fun replacePrisonerRestrictionMappings(offenderNo: String, restrictionMappings: PrisonerRestrictionMappingsDto) = coroutineScope {
+  suspend fun replacePrisonerRestrictionMappings(offenderNo: String, restrictionMappings: PrisonerRestrictionMappingsDto) {
     prisonerRestrictionMappingRepository.deleteAllByOffenderNo(offenderNo)
 
     prisonerRestrictionMappingRepository.saveAll(
@@ -389,11 +389,11 @@ class ContactPersonService(
           mappingType = restrictionMappings.mappingType,
         )
       },
-    )
+    ).toList()
   }
 
   @Transactional
-  suspend fun replacePrisonerRestrictionAfterMergeMappings(retainedOffenderNo: String, removedOffenderNo: String, restrictionMappings: PrisonerRestrictionMappingsDto) = coroutineScope {
+  suspend fun replacePrisonerRestrictionAfterMergeMappings(retainedOffenderNo: String, removedOffenderNo: String, restrictionMappings: PrisonerRestrictionMappingsDto) {
     prisonerRestrictionMappingRepository.deleteAllByOffenderNo(removedOffenderNo)
     replacePrisonerRestrictionMappings(retainedOffenderNo, restrictionMappings)
   }
