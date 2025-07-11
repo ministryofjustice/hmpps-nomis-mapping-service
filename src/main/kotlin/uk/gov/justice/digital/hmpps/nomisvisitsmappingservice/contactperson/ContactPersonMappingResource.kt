@@ -1839,6 +1839,33 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     ],
   )
   suspend fun deleteAllPrisonerRestrictionMappings() = service.deleteAllPrisonerRestrictionMappings()
+
+  @PostMapping("/replace/prisoner-restrictions/{offenderNo}")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(
+    summary = "Replace prisoner restriction mappings for an offender",
+    description = "Deletes all existing prisoner restriction mappings for the given offender number and creates new mappings from the provided list. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(responseCode = "200", description = "Prisoner restriction mappings replaced successfully"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun replacePrisonerRestrictionMappings(
+    @RequestBody @Valid
+    restrictionMappings: PrisonerRestrictionMappingsDto,
+    @Schema(description = "Prisoner number", example = "A1234BC", required = true)
+    @PathVariable
+    offenderNo: String,
+  ) = service.replacePrisonerRestrictionMappings(offenderNo = offenderNo, restrictionMappings = restrictionMappings)
 }
 
 private fun ContactPersonMappingsDto.asPersonMappingDto() = PersonMappingDto(

@@ -189,6 +189,17 @@ class PrisonerRestrictionMappingDto(
   whenCreated: LocalDateTime?,
 ) : AbstractContactPersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "New and old mappings related to a prisoner's restrictions")
+data class PrisonerRestrictionMappingsDto(
+  @Schema(description = "Mapping type")
+  val mappingType: ContactPersonMappingType = ContactPersonMappingType.NOMIS_CREATED,
+  @Schema(description = "Date time the mapping was created")
+  val whenCreated: LocalDateTime? = null,
+  @Schema(description = "Restrictions mappings")
+  val mappings: List<ContactPersonSimpleMappingIdDto>,
+)
+
 abstract class AbstractContactPersonMappingDto(
   @Schema(description = "Label (a timestamp for migrated ids)")
   val label: String? = null,

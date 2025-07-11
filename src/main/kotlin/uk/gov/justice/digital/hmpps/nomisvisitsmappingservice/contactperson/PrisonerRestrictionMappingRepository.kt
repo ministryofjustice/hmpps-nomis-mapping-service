@@ -14,4 +14,5 @@ interface PrisonerRestrictionMappingRepository : CoroutineCrudRepository<Prisone
   suspend fun countAllByLabelAndMappingType(migrationId: String, mappingType: ContactPersonMappingType): Long
   suspend fun deleteByNomisId(nomisId: Long)
   suspend fun deleteByDpsId(dpsId: String)
+  suspend fun deleteAllByOffenderNo(offenderNo: String)
 }

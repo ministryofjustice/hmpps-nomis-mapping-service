@@ -1644,6 +1644,163 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
+  @DisplayName("POST /mapping/contact-person/replace/prisoner-restrictions/{offenderNo}")
+  @Nested
+  inner class ReplacePrisonerRestrictionMappings {
+
+    @Nested
+    inner class Security {
+      val mappings = PrisonerRestrictionMappingsDto(
+        mappingType = ContactPersonMappingType.DPS_CREATED,
+        whenCreated = LocalDateTime.now(),
+        mappings = emptyList(),
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/replace/prisoner-restrictions/A1234BC")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mappings))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/replace/prisoner-restrictions/A1234BC")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mappings))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/replace/prisoner-restrictions/A1234BC")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mappings))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      private val oldDpsId1 = "98765"
+      private val oldDpsId2 = "12345"
+      private val newDpsId1 = "32442442"
+      private val newDpsId2 = "28842482"
+      private val offenderNo = "A1234BC"
+
+      val newMappings = PrisonerRestrictionMappingsDto(
+        mappingType = ContactPersonMappingType.NOMIS_CREATED,
+        whenCreated = LocalDateTime.now(),
+        mappings = listOf(
+          ContactPersonSimpleMappingIdDto(dpsId = newDpsId1, nomisId = 111),
+          ContactPersonSimpleMappingIdDto(dpsId = newDpsId2, nomisId = 222),
+        ),
+      )
+
+      @BeforeEach
+      fun setUp() = runTest {
+        prisonerRestrictionMappingRepository.save(
+          PrisonerRestrictionMapping(
+            dpsId = oldDpsId1,
+            nomisId = 123,
+            offenderNo = offenderNo,
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
+        prisonerRestrictionMappingRepository.save(
+          PrisonerRestrictionMapping(
+            dpsId = oldDpsId2,
+            nomisId = 456,
+            offenderNo = offenderNo,
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
+        // A mapping for a different offender that should not be deleted
+        prisonerRestrictionMappingRepository.save(
+          PrisonerRestrictionMapping(
+            dpsId = "different-offender",
+            nomisId = 789,
+            offenderNo = "B5678CD",
+            label = "2023-01-01T12:45:12",
+            mappingType = ContactPersonMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+          ),
+        )
+      }
+
+      @Test
+      fun `returns 200 when mappings are replaced`() {
+        webTestClient.post()
+          .uri("/mapping/contact-person/replace/prisoner-restrictions/$offenderNo")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(newMappings))
+          .exchange()
+          .expectStatus().isOk
+      }
+
+      @Test
+      fun `will delete existing mappings for the offender`() = runTest {
+        // Verify initial state
+        assertThat(prisonerRestrictionMappingRepository.findAllByOffenderNo(offenderNo).size).isEqualTo(2)
+
+        webTestClient.post()
+          .uri("/mapping/contact-person/replace/prisoner-restrictions/$offenderNo")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(newMappings))
+          .exchange()
+          .expectStatus().isOk
+
+        // Verify old mappings are deleted
+        assertThat(prisonerRestrictionMappingRepository.findOneByDpsId(oldDpsId1)).isNull()
+        assertThat(prisonerRestrictionMappingRepository.findOneByDpsId(oldDpsId2)).isNull()
+
+        // Verify mappings for other offenders are not affected
+        assertThat(prisonerRestrictionMappingRepository.findOneByDpsId("different-offender")).isNotNull()
+      }
+
+      @Test
+      fun `will create new mappings for the offender`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/contact-person/replace/prisoner-restrictions/$offenderNo")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(newMappings))
+          .exchange()
+          .expectStatus().isOk
+
+        // Verify new mappings are created
+        val newMapping1 = prisonerRestrictionMappingRepository.findOneByDpsId(newDpsId1)
+        assertThat(newMapping1).isNotNull
+        assertThat(newMapping1!!.nomisId).isEqualTo(111)
+        assertThat(newMapping1.offenderNo).isEqualTo(offenderNo)
+        assertThat(newMapping1.mappingType).isEqualTo(newMappings.mappingType)
+        assertThat(newMapping1.whenCreated).isCloseTo(newMappings.whenCreated, within(10, ChronoUnit.SECONDS))
+
+        val newMapping2 = prisonerRestrictionMappingRepository.findOneByDpsId(newDpsId2)
+        assertThat(newMapping2).isNotNull
+        assertThat(newMapping2!!.nomisId).isEqualTo(222)
+        assertThat(newMapping2.offenderNo).isEqualTo(offenderNo)
+        assertThat(newMapping2.mappingType).isEqualTo(newMappings.mappingType)
+        assertThat(newMapping2.whenCreated).isCloseTo(newMappings.whenCreated, within(10, ChronoUnit.SECONDS))
+      }
+    }
+  }
+
   @DisplayName("GET /mapping/contact-person/person/")
   @Nested
   inner class GetAllPersonMappings {
