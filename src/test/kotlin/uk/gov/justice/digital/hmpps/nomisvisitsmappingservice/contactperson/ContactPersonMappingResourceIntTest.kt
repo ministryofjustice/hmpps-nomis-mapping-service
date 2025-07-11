@@ -5439,6 +5439,94 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("GET /mapping/contact-person/prisoner-restrictions/prisoners/{offenderNo}")
+  inner class GetPrisonerRestrictionMappingsByOffenderNo {
+    private val offenderNo = "A1234BC"
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get().uri("/mapping/contact-person/prisoner-restrictions/prisoners/$offenderNo")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get().uri("/mapping/contact-person/prisoner-restrictions/prisoners/$offenderNo")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get().uri("/mapping/contact-person/prisoner-restrictions/prisoners/$offenderNo")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `can retrieve all mappings by offender number`() = runTest {
+        // Create mappings for the test offender number
+        (1L..3L).forEach {
+          prisonerRestrictionMappingRepository.save(
+            PrisonerRestrictionMapping(
+              dpsId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
+              nomisId = it,
+              offenderNo = offenderNo,
+              label = null,
+              mappingType = ContactPersonMappingType.DPS_CREATED,
+            ),
+          )
+        }
+
+        // Create a mapping for a different offender number
+        prisonerRestrictionMappingRepository.save(
+          PrisonerRestrictionMapping(
+            dpsId = "edcd118c-91ba-42ea-b5c4-404b453ad58b",
+            nomisId = 54321L,
+            offenderNo = "Z9876YX",
+            label = null,
+            mappingType = ContactPersonMappingType.DPS_CREATED,
+          ),
+        )
+
+        webTestClient.get().uri("/mapping/contact-person/prisoner-restrictions/prisoners/$offenderNo")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("$[0].nomisId").isEqualTo(1)
+          .jsonPath("$[1].nomisId").isEqualTo(2)
+          .jsonPath("$[2].nomisId").isEqualTo(3)
+          .jsonPath("$[0].offenderNo").isEqualTo(offenderNo)
+          .jsonPath("$[1].offenderNo").isEqualTo(offenderNo)
+          .jsonPath("$[2].offenderNo").isEqualTo(offenderNo)
+          .jsonPath("$[0].dpsId").isEqualTo("edcd118c-11ba-42ea-b5c4-404b453ad58b")
+          .jsonPath("$[1].dpsId").isEqualTo("edcd118c-21ba-42ea-b5c4-404b453ad58b")
+          .jsonPath("$[2].dpsId").isEqualTo("edcd118c-31ba-42ea-b5c4-404b453ad58b")
+      }
+
+      @Test
+      fun `returns empty list when no mappings found`() {
+        webTestClient.get().uri("/mapping/contact-person/prisoner-restrictions/prisoners/UNKNOWN")
+          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("$").isArray
+          .jsonPath("$.length()").isEqualTo(0)
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("GET /mapping/contact-person/person-restriction/dps-contact-restriction-id/{contactRestrictionId}")
   inner class GetPersonRestrictionByDpsId {
     private val dpsContactRestrictionId = "1234567"
