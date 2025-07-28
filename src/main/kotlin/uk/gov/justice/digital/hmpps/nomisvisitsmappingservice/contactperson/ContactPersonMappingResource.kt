@@ -1791,6 +1791,41 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
     nomisPrisonerRestrictionId: Long,
   ): PrisonerRestrictionMappingDto = service.getPrisonerRestrictionMappingByNomisId(nomisId = nomisPrisonerRestrictionId)
 
+  @GetMapping("/prisoner-restriction/dps-prisoner-restriction-id/{dpsPrisonerRestrictionId}")
+  @Operation(
+    summary = "Get prisoner restriction mapping by dps prisoner restriction Id",
+    description = "Retrieves the prisoner restriction mapping by DPS Prisoner Restriction Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Prisoner Restriction mapping data",
+        content = [
+          Content(mediaType = "application/json", schema = Schema(implementation = PrisonerRestrictionMappingDto::class)),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPrisonerRestrictionMappingByDpsId(
+    @Schema(description = "DPS prisoner restriction id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
+    @PathVariable
+    dpsPrisonerRestrictionId: String,
+  ): PrisonerRestrictionMappingDto = service.getPrisonerRestrictionMappingByDpsId(dpsId = dpsPrisonerRestrictionId)
+
   @GetMapping("/prisoner-restriction/migration-id/{migrationId}")
   @Operation(
     summary = "Get paged prisoner restriction mappings by migration id",
