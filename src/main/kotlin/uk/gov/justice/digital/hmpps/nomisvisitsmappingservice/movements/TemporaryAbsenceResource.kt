@@ -14,14 +14,15 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.corporate.CorporateMappingsDto
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
 @PreAuthorize("hasRole('NOMIS_MOVEMENTS')")
 @RequestMapping("/mapping/temporary-absence", produces = [MediaType.APPLICATION_JSON_VALUE])
-class TemporaryAbsenceResource {
+class TemporaryAbsenceResource(
+  private val service: TemporaryAbsenceService,
+) {
 
   @PostMapping("/migrate")
   @ResponseStatus(HttpStatus.CREATED)
@@ -29,7 +30,7 @@ class TemporaryAbsenceResource {
     summary = "Creates all mappings for prisoner temporary absences which are all migrated at the same time",
     description = "Creates mappings for prisoner temporary absences including movement applications, outside movements, scheduled movements and movements. Requires ROLE_NOMIS_MOVEMENTS",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = CorporateMappingsDto::class))],
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = TemporaryAbsencesPrisonerMappingDto::class))],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Mappings created"),
@@ -57,7 +58,5 @@ class TemporaryAbsenceResource {
   )
   suspend fun createMappings(
     @RequestBody mappings: TemporaryAbsencesPrisonerMappingDto,
-  ) {
-    // TODO("Call service and handle 409 conflict")
-  }
+  ) = service.createMappings(mappings)
 }
