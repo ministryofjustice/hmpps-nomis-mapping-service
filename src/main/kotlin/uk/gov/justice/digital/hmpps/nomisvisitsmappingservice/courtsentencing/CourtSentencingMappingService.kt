@@ -90,7 +90,7 @@ class CourtSentencingMappingService(
   }
 
   @Transactional
-  suspend fun createAllMappingsForOffenderIdempotent(createMappingRequest: CourtCaseMigrationMappingDto) = with(createMappingRequest) {
+  suspend fun replaceAndCreateAllMappings(createMappingRequest: CourtCaseBatchMappingDto) {
     createMappingRequest.courtCases.map { courtCaseMappingRequest ->
       try {
         deleteCourtCaseMappingByNomisId(courtCaseMappingRequest.nomisCourtCaseId)
@@ -139,7 +139,7 @@ class CourtSentencingMappingService(
         throw e
       }
     }
-    createMappingRequest.sentenceTerms.forEach {
+    return createMappingRequest.sentenceTerms.forEach {
       try {
         deleteSentenceTermMappingByNomisId(
           bookingId = it.nomisBookingId,
@@ -158,8 +158,8 @@ class CourtSentencingMappingService(
   }
 
   @Transactional
-  suspend fun createMigrationMapping(offenderNo: String, createMappingRequest: CourtCaseMigrationMappingDto) {
-    createAllMappingsForOffenderIdempotent(createMappingRequest).also {
+  suspend fun createMigrationMapping(offenderNo: String, createMappingRequest: CourtCaseBatchMappingDto) {
+    replaceAndCreateAllMappings(createMappingRequest).also {
       courtCasePrisonerMappingRepository.deleteById(offenderNo)
       courtCasePrisonerMappingRepository.save(
         CourtCasePrisonerMigration(

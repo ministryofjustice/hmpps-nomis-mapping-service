@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Court cases mapping including child entity mapping")
-data class CourtCaseMigrationMappingDto(
+data class CourtCaseBatchMappingDto(
   @Schema(description = "Mappings")
   val courtCases: List<CourtCaseMappingDto> = emptyList(),
 
