@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.movements
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import java.util.UUID
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Mappings for a prisoner's entire temporary absence history")
@@ -33,7 +34,7 @@ data class TemporaryAbsenceApplicationMappingDto(
   @Schema(description = "The NOMIS temporary absence application id")
   val nomisMovementApplicationId: Long,
   @Schema(description = "The DPS temporary absence application id")
-  val dpsMovementApplicationId: Long,
+  val dpsMovementApplicationId: UUID,
   @Schema(description = "Mappings for each outside movement recorded against the application")
   val outsideMovements: List<TemporaryAbsencesOutsideMovementMappingDto>,
   @Schema(description = "All scheduled movement mappings")
@@ -48,7 +49,7 @@ data class TemporaryAbsencesOutsideMovementMappingDto(
   @Schema(description = "The NOMIS outside movement id")
   val nomisMovementApplicationMultiId: Long,
   @Schema(description = "The DPS outside movement id")
-  val dpsOutsideMovementId: Long,
+  val dpsOutsideMovementId: UUID,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -57,14 +58,14 @@ data class ScheduledMovementMappingDto(
   @Schema(description = "The NOMIS scheduled movement id")
   val nomisEventId: Long,
   @Schema(description = "The DPS scheduled movement id")
-  val dpsScheduledMovementId: Long,
+  val dpsScheduledMovementId: UUID,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Mappings for a single external movement")
 data class ExternalMovementMappingDto(
   @Schema(description = "The NOMIS external movement id")
-  val nomisMovementSeq: Long,
+  val nomisMovementSeq: Int,
   @Schema(description = "The DPS external movement id")
-  val dpsExternalMovementId: Long,
+  val dpsExternalMovementId: UUID,
 )
