@@ -8,12 +8,11 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
-import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
@@ -24,7 +23,7 @@ class TemporaryAbsenceResource(
   private val service: TemporaryAbsenceService,
 ) {
 
-  @PostMapping("/migrate")
+  @PutMapping("/migrate")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates all mappings for prisoner temporary absences which are all migrated at the same time",
@@ -43,16 +42,6 @@ class TemporaryAbsenceResource(
         responseCode = "403",
         description = "Access forbidden for this endpoint",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "409",
-        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
-          ),
-        ],
       ),
     ],
   )

@@ -7,4 +7,5 @@ import java.util.*
 @Repository
 interface TemporaryAbsenceScheduleRepository : CoroutineCrudRepository<TemporaryAbsenceScheduleMapping, UUID> {
   suspend fun findByNomisScheduleId(nomisScheduleId: Long): TemporaryAbsenceScheduleMapping?
+  suspend fun deleteByOffenderNo(offenderNo: String)
 }
