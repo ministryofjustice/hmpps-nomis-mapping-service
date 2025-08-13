@@ -209,6 +209,37 @@ class CourtSentencingMappingResource(
     )
   }
 
+  @PutMapping("/court-cases/replace")
+  @Operation(
+    summary = "Replaces all court case hierarchical mappings maintaining the DPS id",
+    description = "Replaces all the mappings between nomis Court Case ID and DPS Court Case ID. Also maps child entities: Court appearances and charges. Where a mapping does not exist for the DPS id it will create one. Requires ROLE_NOMIS_COURT_SENTENCING",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = CourtCaseBatchMappingDto::class),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "200", description = "Mapping created or replaced"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun replaceOrCreateMappingByDpsId(
+    @RequestBody @Valid
+    mapping: CourtCaseBatchMappingDto,
+  ) = mappingService.replaceAndCreateAllMappings(mapping)
+
   @PostMapping("/prisoner/{offenderNo}/court-cases")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -218,7 +249,7 @@ class CourtSentencingMappingResource(
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = CourtCaseMigrationMappingDto::class),
+          schema = Schema(implementation = CourtCaseBatchMappingDto::class),
         ),
       ],
     ),
@@ -250,7 +281,7 @@ class CourtSentencingMappingResource(
     @PathVariable
     offenderNo: String,
     @RequestBody @Valid
-    mapping: CourtCaseMigrationMappingDto,
+    mapping: CourtCaseBatchMappingDto,
   ) = try {
     mappingService.createMigrationMapping(offenderNo, mapping)
   } catch (e: DuplicateKeyException) {

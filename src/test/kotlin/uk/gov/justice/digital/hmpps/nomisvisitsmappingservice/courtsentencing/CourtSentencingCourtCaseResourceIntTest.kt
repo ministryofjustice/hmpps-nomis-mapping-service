@@ -100,7 +100,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
         webTestClient.post()
           .uri("/mapping/court-sentencing/court-cases/dps-court-case-id/${courtCaseMapping.dpsCourtCaseId}")
           .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(listOf<Long>(NOMIS_COURT_CASE_ID, NOMIS_COURT_CASE_2_ID)))
+          .body(BodyInserters.fromValue(listOf(NOMIS_COURT_CASE_ID, NOMIS_COURT_CASE_2_ID)))
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -789,7 +789,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
   @DisplayName("POST /mapping/court-sentencing/offender/{offenderNo}court-cases")
   inner class CreateMigrationMapping {
     private lateinit var existingMapping: CourtCaseMapping
-    private val mapping = CourtCaseMigrationMappingDto(
+    private val mapping = CourtCaseBatchMappingDto(
       courtCases = listOf(
         CourtCaseMappingDto(
           dpsCourtCaseId = DPS_COURT_CASE_ID,
@@ -1127,7 +1127,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CourtCaseMigrationMappingDto(
+              CourtCaseBatchMappingDto(
                 courtCases = listOf(
                   CourtCaseMappingDto(
                     nomisCourtCaseId = existingMapping.nomisCourtCaseId,
@@ -1149,7 +1149,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CourtCaseMigrationMappingDto(
+              CourtCaseBatchMappingDto(
                 courtCases = mapping.courtCases,
               ),
             ),
@@ -1166,7 +1166,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CourtCaseMigrationMappingDto(
+              CourtCaseBatchMappingDto(
                 courtCases = mapping.courtCases,
                 courtAppearances = listOf(
                   CourtAppearanceMappingDto(
@@ -1190,7 +1190,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
-            CourtCaseMigrationMappingDto(
+            CourtCaseBatchMappingDto(
               courtCases = mapping.courtCases,
               sentences = listOf(
                 SentenceMappingDto(
@@ -1214,7 +1214,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
-            CourtCaseMigrationMappingDto(
+            CourtCaseBatchMappingDto(
               courtCases = mapping.courtCases,
               sentenceTerms = listOf(
                 SentenceTermMappingDto(
@@ -1229,6 +1229,433 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
         )
         .exchange()
         .expectStatus().isEqualTo(201)
+    }
+  }
+
+  @Nested
+  @DisplayName("PUT /mapping/court-sentencing/court-cases/replace")
+  inner class ReplaceOrCreateMappingByDpsId {
+    private lateinit var existingMapping: CourtCaseMapping
+    private val mapping = CourtCaseBatchMappingDto(
+      courtCases = listOf(
+        CourtCaseMappingDto(
+          dpsCourtCaseId = DPS_COURT_CASE_ID,
+          nomisCourtCaseId = NOMIS_COURT_APPEARANCE_1_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtCaseMappingType.MIGRATED,
+        ),
+        CourtCaseMappingDto(
+          dpsCourtCaseId = DPS_COURT_CASE_2_ID,
+          nomisCourtCaseId = NOMIS_COURT_CASE_2_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtCaseMappingType.MIGRATED,
+        ),
+      ),
+
+      courtAppearances = listOf(
+        CourtAppearanceMappingDto(
+          dpsCourtAppearanceId = DPS_COURT_APPEARANCE_1_ID,
+          nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_1_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtAppearanceMappingType.MIGRATED,
+        ),
+        CourtAppearanceMappingDto(
+          dpsCourtAppearanceId = DPS_COURT_APPEARANCE_2_ID,
+          nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_2_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtAppearanceMappingType.MIGRATED,
+        ),
+        CourtAppearanceMappingDto(
+          dpsCourtAppearanceId = DPS_COURT_APPEARANCE_3_ID,
+          nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_3_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtAppearanceMappingType.MIGRATED,
+        ),
+        CourtAppearanceMappingDto(
+          dpsCourtAppearanceId = DPS_COURT_APPEARANCE_4_ID,
+          nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_4_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtAppearanceMappingType.MIGRATED,
+        ),
+      ),
+
+      courtCharges = listOf(
+        CourtChargeMappingDto(
+          dpsCourtChargeId = DPS_COURT_CHARGE_1_ID,
+          nomisCourtChargeId = NOMIS_COURT_CHARGE_1_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtChargeMappingType.MIGRATED,
+        ),
+        CourtChargeMappingDto(
+          dpsCourtChargeId = DPS_COURT_CHARGE_2_ID,
+          nomisCourtChargeId = NOMIS_COURT_CHARGE_2_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtChargeMappingType.MIGRATED,
+        ),
+
+      ),
+      sentences = listOf(
+        SentenceMappingDto(
+          dpsSentenceId = DPS_SENTENCE_ID,
+          nomisSentenceSequence = NOMIS_SENTENCE_SEQ,
+          nomisBookingId = NOMIS_BOOKING_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = SentenceMappingType.MIGRATED,
+        ),
+        SentenceMappingDto(
+          dpsSentenceId = DPS_SENTENCE_ID_2,
+          nomisSentenceSequence = NOMIS_SENTENCE_SEQ + 1,
+          nomisBookingId = NOMIS_BOOKING_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = SentenceMappingType.MIGRATED,
+        ),
+      ),
+      sentenceTerms = listOf(
+        SentenceTermMappingDto(
+          dpsTermId = DPS_TERM_ID,
+          nomisSentenceSequence = NOMIS_SENTENCE_SEQ,
+          nomisTermSequence = NOMIS_SENTENCE_TERM_SEQ,
+          nomisBookingId = NOMIS_BOOKING_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = SentenceTermMappingType.MIGRATED,
+        ),
+        SentenceTermMappingDto(
+          dpsTermId = DPS_TERM_ID_2,
+          nomisSentenceSequence = NOMIS_SENTENCE_SEQ,
+          nomisTermSequence = NOMIS_SENTENCE_TERM_SEQ + 1,
+          nomisBookingId = NOMIS_BOOKING_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = SentenceTermMappingType.MIGRATED,
+        ),
+      ),
+    )
+
+    @BeforeEach
+    fun setUp() = runTest {
+      existingMapping = repository.save(
+        CourtCaseMapping(
+          dpsCourtCaseId = EXISTING_DPS_COURT_CASE_ID,
+          nomisCourtCaseId = EXISTING_NOMIS_COURT_CASE_ID,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtCaseMappingType.MIGRATED,
+        ),
+      )
+      courtAppearanceRepository.save(
+        CourtAppearanceMapping(
+          nomisCourtAppearanceId = EXISTING_NOMIS_COURT_APPEARANCE_ID,
+          dpsCourtAppearanceId = "dps123",
+          mappingType = CourtAppearanceMappingType.NOMIS_CREATED,
+        ),
+      )
+      sentenceRepository.save(
+        SentenceMapping(
+          dpsSentenceId = "dps321",
+          nomisSentenceSequence = EXISTING_NOMIS_SENTENCE_SEQ,
+          nomisBookingId = NOMIS_BOOKING_ID,
+          mappingType = SentenceMappingType.NOMIS_CREATED,
+        ),
+      )
+      sentenceTermRepository.save(
+        SentenceTermMapping(
+          dpsTermId = "dps321",
+          nomisSentenceSequence = EXISTING_NOMIS_SENTENCE_SEQ,
+          nomisTermSequence = EXISTING_NOMIS_SENTENCE_TERM_SEQ,
+          nomisBookingId = NOMIS_BOOKING_ID,
+          mappingType = SentenceTermMappingType.NOMIS_CREATED,
+        ),
+      )
+      prisonerCourtCaseRepository.save(
+        CourtCasePrisonerMigration(
+          offenderNo = EXISTING_OFFENDER_NO,
+          mappingType = CourtCaseMappingType.MIGRATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      clearDown()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.put()
+          .uri("/mapping/court-sentencing/court-cases/replace")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.put()
+          .uri("/mapping/court-sentencing/court-cases/replace")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.put()
+          .uri("/mapping/court-sentencing/court-cases/replace")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `returns 200 when batch mappings are replaced`() = runTest {
+        webTestClient.put()
+          .uri("/mapping/court-sentencing/court-cases/replace")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isOk
+
+        val createdCourtCase1 =
+          repository.findById(
+            id = mapping.courtCases[0].dpsCourtCaseId,
+          )!!
+
+        val createdCourtCase2 =
+          repository.findById(
+            id = mapping.courtCases[1].dpsCourtCaseId,
+          )!!
+
+        val createdSentenceMapping =
+          sentenceRepository.findById(
+            id = DPS_SENTENCE_ID,
+          )!!
+
+        val createdSentenceTermMapping =
+          sentenceTermRepository.findById(
+            id = DPS_TERM_ID,
+          )!!
+
+        val createdCourtAppearance1Mapping =
+          courtAppearanceRepository.findById(
+            id = DPS_COURT_APPEARANCE_1_ID,
+          )!!
+
+        val createdCourtAppearance2Mapping =
+          courtAppearanceRepository.findById(
+            id = DPS_COURT_APPEARANCE_2_ID,
+          )!!
+
+        val createdCourtCharge1Mapping =
+          courtChargeRepository.findById(
+            id = DPS_COURT_CHARGE_1_ID,
+          )!!
+
+        val createdCourtCharge2Mapping =
+          courtChargeRepository.findById(
+            id = DPS_COURT_CHARGE_2_ID,
+          )!!
+
+        assertThat(createdCourtCase1.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        assertThat(createdCourtCase1.nomisCourtCaseId).isEqualTo(mapping.courtCases[0].nomisCourtCaseId)
+        assertThat(createdCourtCase1.dpsCourtCaseId).isEqualTo(mapping.courtCases[0].dpsCourtCaseId)
+        assertThat(createdCourtCase1.mappingType).isEqualTo(mapping.courtCases[0].mappingType)
+        assertThat(createdCourtCase1.label).isEqualTo(mapping.courtCases[0].label)
+        assertThat(createdCourtAppearance1Mapping.whenCreated).isCloseTo(
+          LocalDateTime.now(),
+          within(10, ChronoUnit.SECONDS),
+        )
+        assertThat(createdCourtCase2.nomisCourtCaseId).isEqualTo(mapping.courtCases[1].nomisCourtCaseId)
+        assertThat(createdCourtCase2.dpsCourtCaseId).isEqualTo(mapping.courtCases[1].dpsCourtCaseId)
+
+        assertThat(createdCourtAppearance1Mapping.nomisCourtAppearanceId).isEqualTo(NOMIS_COURT_APPEARANCE_1_ID)
+        assertThat(createdCourtAppearance1Mapping.dpsCourtAppearanceId).isEqualTo(DPS_COURT_APPEARANCE_1_ID)
+        assertThat(createdCourtAppearance1Mapping.mappingType).isEqualTo(CourtAppearanceMappingType.MIGRATED)
+        assertThat(createdCourtAppearance1Mapping.label).isEqualTo(mapping.courtAppearances[0].label)
+        assertThat(createdCourtAppearance1Mapping.whenCreated).isCloseTo(
+          LocalDateTime.now(),
+          within(10, ChronoUnit.SECONDS),
+        )
+        assertThat(createdCourtAppearance2Mapping.nomisCourtAppearanceId).isEqualTo(NOMIS_COURT_APPEARANCE_2_ID)
+        assertThat(createdCourtAppearance2Mapping.dpsCourtAppearanceId).isEqualTo(DPS_COURT_APPEARANCE_2_ID)
+        assertThat(createdCourtAppearance2Mapping.mappingType).isEqualTo(CourtAppearanceMappingType.MIGRATED)
+        assertThat(createdCourtAppearance2Mapping.label).isEqualTo(mapping.courtAppearances[1].label)
+        assertThat(createdCourtCharge1Mapping.nomisCourtChargeId).isEqualTo(NOMIS_COURT_CHARGE_1_ID)
+        assertThat(createdCourtCharge1Mapping.dpsCourtChargeId).isEqualTo(DPS_COURT_CHARGE_1_ID)
+        assertThat(createdCourtCharge1Mapping.mappingType).isEqualTo(CourtChargeMappingType.MIGRATED)
+        assertThat(createdCourtCharge1Mapping.label).isEqualTo(mapping.courtCharges[0].label)
+        assertThat(createdCourtCharge2Mapping.whenCreated).isCloseTo(
+          LocalDateTime.now(),
+          within(10, ChronoUnit.SECONDS),
+        )
+        assertThat(createdCourtCharge2Mapping.nomisCourtChargeId).isEqualTo(NOMIS_COURT_CHARGE_2_ID)
+        assertThat(createdCourtCharge2Mapping.dpsCourtChargeId).isEqualTo(DPS_COURT_CHARGE_2_ID)
+        assertThat(createdCourtCharge2Mapping.mappingType).isEqualTo(CourtChargeMappingType.MIGRATED)
+        assertThat(createdCourtCharge2Mapping.label).isEqualTo(mapping.courtCharges[1].label)
+
+        assertThat(createdSentenceMapping.nomisSentenceSequence).isEqualTo(NOMIS_SENTENCE_SEQ)
+        assertThat(createdSentenceMapping.nomisBookingId).isEqualTo(NOMIS_BOOKING_ID)
+        assertThat(createdSentenceMapping.dpsSentenceId).isEqualTo(DPS_SENTENCE_ID)
+        assertThat(createdSentenceMapping.mappingType).isEqualTo(SentenceMappingType.MIGRATED)
+        assertThat(createdSentenceMapping.label).isEqualTo(mapping.sentences[0].label)
+
+        assertThat(createdSentenceTermMapping.nomisSentenceSequence).isEqualTo(NOMIS_SENTENCE_SEQ)
+        assertThat(createdSentenceTermMapping.nomisTermSequence).isEqualTo(NOMIS_SENTENCE_TERM_SEQ)
+        assertThat(createdSentenceTermMapping.nomisBookingId).isEqualTo(NOMIS_BOOKING_ID)
+        assertThat(createdSentenceTermMapping.dpsTermId).isEqualTo(DPS_TERM_ID)
+        assertThat(createdSentenceTermMapping.mappingType).isEqualTo(SentenceTermMappingType.MIGRATED)
+        assertThat(createdSentenceTermMapping.label).isEqualTo(mapping.sentenceTerms[0].label)
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `returns 400 when mapping type is invalid`() {
+        webTestClient.put()
+          .uri("/mapping/court-sentencing/court-cases/replace")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              //language=JSON
+              """
+                {
+                  "nomisCourtCaseId": 54321,
+                  "dpsCourtCaseId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
+                  "mappingType": "INVALID_TYPE"
+                }
+              """.trimIndent(),
+            ),
+          )
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+
+      @Test
+      fun `returns 400 when DPS id is missing`() {
+        webTestClient.put()
+          .uri("/mapping/court-sentencing/court-cases/replace")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              //language=JSON
+              """
+                {
+                "offenderNo": "A1234A",
+                "courtCases": [{
+                  "nomisCourtCaseId": 54321
+                }]
+                }
+              """.trimIndent(),
+            ),
+          )
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+
+      @Test
+      fun `if court case already exists, will replace mappings`() {
+        webTestClient.put()
+          .uri("/mapping/court-sentencing/court-cases/replace")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CourtCaseBatchMappingDto(
+                courtCases = listOf(
+                  CourtCaseMappingDto(
+                    nomisCourtCaseId = existingMapping.nomisCourtCaseId,
+                    dpsCourtCaseId = "DPS888",
+                  ),
+                ),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isEqualTo(200)
+      }
+
+      @Test
+      fun `if court appearance already exists, will replace mappings`() {
+        webTestClient.put()
+          .uri("/mapping/court-sentencing/court-cases/replace")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CourtCaseBatchMappingDto(
+                courtCases = mapping.courtCases,
+                courtAppearances = listOf(
+                  CourtAppearanceMappingDto(
+                    dpsCourtAppearanceId = "1234",
+                    nomisCourtAppearanceId = EXISTING_NOMIS_COURT_APPEARANCE_ID,
+                  ),
+                ),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isEqualTo(200)
+      }
+    }
+
+    @Test
+    fun `if sentence already exists, will replace mappings`() {
+      webTestClient.put()
+        .uri("/mapping/court-sentencing/court-cases/replace")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            CourtCaseBatchMappingDto(
+              courtCases = mapping.courtCases,
+              sentences = listOf(
+                SentenceMappingDto(
+                  dpsSentenceId = "1234",
+                  nomisSentenceSequence = EXISTING_NOMIS_SENTENCE_SEQ,
+                  nomisBookingId = NOMIS_BOOKING_ID,
+                ),
+              ),
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isEqualTo(200)
+    }
+
+    @Test
+    fun `if sentence term already exists, will replace mappings`() {
+      webTestClient.put()
+        .uri("/mapping/court-sentencing/court-cases/replace")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+          BodyInserters.fromValue(
+            CourtCaseBatchMappingDto(
+              courtCases = mapping.courtCases,
+              sentenceTerms = listOf(
+                SentenceTermMappingDto(
+                  dpsTermId = "1234",
+                  nomisSentenceSequence = EXISTING_NOMIS_SENTENCE_SEQ,
+                  nomisTermSequence = EXISTING_NOMIS_SENTENCE_TERM_SEQ,
+                  nomisBookingId = NOMIS_BOOKING_ID,
+                ),
+              ),
+            ),
+          ),
+        )
+        .exchange()
+        .expectStatus().isEqualTo(200)
     }
   }
 
@@ -1666,7 +2093,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
         webTestClient.post()
           .uri("/mapping/court-sentencing/court-cases/nomis-case-ids/get-list")
           .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(listOf<Long>(NOMIS_COURT_CASE_ID, NOMIS_COURT_CASE_2_ID)))
+          .body(BodyInserters.fromValue(listOf(NOMIS_COURT_CASE_ID, NOMIS_COURT_CASE_2_ID)))
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -1677,7 +2104,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
           .uri("/mapping/court-sentencing/court-cases/nomis-case-ids/get-list")
           .headers(setAuthorisation(roles = listOf()))
           .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(listOf<Long>(NOMIS_COURT_CASE_ID, NOMIS_COURT_CASE_2_ID)))
+          .body(BodyInserters.fromValue(listOf(NOMIS_COURT_CASE_ID, NOMIS_COURT_CASE_2_ID)))
           .exchange()
           .expectStatus().isForbidden
       }
@@ -1688,7 +2115,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
           .uri("/mapping/court-sentencing/court-cases/nomis-case-ids/get-list")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(listOf<Long>(NOMIS_COURT_CASE_ID, NOMIS_COURT_CASE_2_ID)))
+          .body(BodyInserters.fromValue(listOf(NOMIS_COURT_CASE_ID, NOMIS_COURT_CASE_2_ID)))
           .exchange()
           .expectStatus().isForbidden
       }
@@ -1702,7 +2129,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
           .uri("/mapping/court-sentencing/court-cases/nomis-case-ids/get-list")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(listOf<Long>(NOMIS_COURT_CASE_ID, 47564756)))
+          .body(BodyInserters.fromValue(listOf(NOMIS_COURT_CASE_ID, 47564756)))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -1717,7 +2144,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
           .uri("/mapping/court-sentencing/court-cases/nomis-case-ids/get-list")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
           .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(listOf<Long>(NOMIS_COURT_CASE_ID, NOMIS_COURT_CASE_2_ID)))
+          .body(BodyInserters.fromValue(listOf(NOMIS_COURT_CASE_ID, NOMIS_COURT_CASE_2_ID)))
           .exchange()
           .expectStatus().isOk
           .expectBody()
