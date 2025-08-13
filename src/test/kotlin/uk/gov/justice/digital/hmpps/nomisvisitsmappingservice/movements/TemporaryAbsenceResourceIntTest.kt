@@ -56,60 +56,12 @@ class TemporaryAbsenceResourceIntTest(
       }
 
       @BeforeEach
-      fun saveMappings() {
-        val mappings = TemporaryAbsencesPrisonerMappingDto(
-          prisonerNumber = NOMIS_OFFENDER_NO,
-          migrationId = MIGRATION_ID,
-          bookings = listOf(
-            TemporaryAbsenceBookingMappingDto(
-              bookingId = NOMIS_BOOKING_ID,
-              applications = listOf(
-                TemporaryAbsenceApplicationMappingDto(
-                  nomisMovementApplicationId = NOMIS_APPLICATION_ID,
-                  dpsMovementApplicationId = DPS_APPLICATION_ID,
-                  outsideMovements = listOf(
-                    TemporaryAbsencesOutsideMovementMappingDto(
-                      nomisMovementApplicationMultiId = NOMIS_APPLICATION_MULTI_ID,
-                      dpsOutsideMovementId = DPS_OUTSIDE_MOVEMENT_ID,
-                    ),
-                  ),
-                  schedules = listOf(
-                    ScheduledMovementMappingDto(
-                      nomisEventId = NOMIS_SCHEDULED_OUT_EVENT_ID,
-                      dpsScheduledMovementId = DPS_SCHEDULED_OUT_ID,
-                    ),
-                    ScheduledMovementMappingDto(
-                      nomisEventId = NOMIS_SCHEDULED_IN_EVENT_ID,
-                      dpsScheduledMovementId = DPS_SCHEDULED_IN_ID,
-                    ),
-                  ),
-                  movements = listOf(
-                    ExternalMovementMappingDto(
-                      nomisMovementSeq = NOMIS_MOVEMENT_OUT_SEQ,
-                      dpsExternalMovementId = DPS_MOVEMENT_OUT_ID,
-                    ),
-                    ExternalMovementMappingDto(
-                      nomisMovementSeq = NOMIS_MOVEMENT_IN_SEQ,
-                      dpsExternalMovementId = DPS_MOVEMENT_IN_ID,
-                    ),
-                  ),
-                ),
-              ),
-              unscheduledMovements = listOf(
-                ExternalMovementMappingDto(
-                  nomisMovementSeq = NOMIS_UNSCHEDULED_MOVEMENT_OUT_SEQ,
-                  dpsExternalMovementId = DPS_UNSCHEDULED_MOVEMENT_OUT_ID,
-                ),
-                ExternalMovementMappingDto(
-                  nomisMovementSeq = NOMIS_UNSCHEDULED_MOVEMENT_IN_SEQ,
-                  dpsExternalMovementId = DPS_UNSCHEDULED_MOVEMENT_IN_ID,
-                ),
-              ),
-            ),
-          ),
-        )
+      fun setUp() {
+        saveMappings()
+      }
 
-        webTestClient.post()
+      fun saveMappings(mappings: TemporaryAbsencesPrisonerMappingDto = mappingsRequest()) {
+        webTestClient.put()
           .uri("/mapping/temporary-absence/migrate")
           .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
           .contentType(MediaType.APPLICATION_JSON)
@@ -117,6 +69,67 @@ class TemporaryAbsenceResourceIntTest(
           .exchange()
           .expectStatus().isCreated
       }
+
+      fun mappingsRequest(
+        dpsApplicationId: UUID = DPS_APPLICATION_ID,
+        dpsOutsideMovementId: UUID = DPS_OUTSIDE_MOVEMENT_ID,
+        dpsScheduledOutId: UUID = DPS_SCHEDULED_OUT_ID,
+        dpsScheduledInId: UUID = DPS_SCHEDULED_IN_ID,
+        dpsMovementOutId: UUID = DPS_MOVEMENT_OUT_ID,
+        dpsMovementInId: UUID = DPS_MOVEMENT_IN_ID,
+        dpsUnscheduledMovementOutId: UUID = DPS_UNSCHEDULED_MOVEMENT_OUT_ID,
+        dpsUnscheduledMovementInId: UUID = DPS_UNSCHEDULED_MOVEMENT_IN_ID,
+      ) = TemporaryAbsencesPrisonerMappingDto(
+        prisonerNumber = NOMIS_OFFENDER_NO,
+        migrationId = MIGRATION_ID,
+        bookings = listOf(
+          TemporaryAbsenceBookingMappingDto(
+            bookingId = NOMIS_BOOKING_ID,
+            applications = listOf(
+              TemporaryAbsenceApplicationMappingDto(
+                nomisMovementApplicationId = NOMIS_APPLICATION_ID,
+                dpsMovementApplicationId = dpsApplicationId,
+                outsideMovements = listOf(
+                  TemporaryAbsencesOutsideMovementMappingDto(
+                    nomisMovementApplicationMultiId = NOMIS_APPLICATION_MULTI_ID,
+                    dpsOutsideMovementId = dpsOutsideMovementId,
+                  ),
+                ),
+                schedules = listOf(
+                  ScheduledMovementMappingDto(
+                    nomisEventId = NOMIS_SCHEDULED_OUT_EVENT_ID,
+                    dpsScheduledMovementId = dpsScheduledOutId,
+                  ),
+                  ScheduledMovementMappingDto(
+                    nomisEventId = NOMIS_SCHEDULED_IN_EVENT_ID,
+                    dpsScheduledMovementId = dpsScheduledInId,
+                  ),
+                ),
+                movements = listOf(
+                  ExternalMovementMappingDto(
+                    nomisMovementSeq = NOMIS_MOVEMENT_OUT_SEQ,
+                    dpsExternalMovementId = dpsMovementOutId,
+                  ),
+                  ExternalMovementMappingDto(
+                    nomisMovementSeq = NOMIS_MOVEMENT_IN_SEQ,
+                    dpsExternalMovementId = dpsMovementInId,
+                  ),
+                ),
+              ),
+            ),
+            unscheduledMovements = listOf(
+              ExternalMovementMappingDto(
+                nomisMovementSeq = NOMIS_UNSCHEDULED_MOVEMENT_OUT_SEQ,
+                dpsExternalMovementId = dpsUnscheduledMovementOutId,
+              ),
+              ExternalMovementMappingDto(
+                nomisMovementSeq = NOMIS_UNSCHEDULED_MOVEMENT_IN_SEQ,
+                dpsExternalMovementId = dpsUnscheduledMovementInId,
+              ),
+            ),
+          ),
+        ),
+      )
 
       @Test
       fun `should save application mappings`() = runTest {
@@ -201,6 +214,42 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(dpsMovementId).isEqualTo(DPS_UNSCHEDULED_MOVEMENT_IN_ID)
         }
       }
+
+      @Test
+      fun `should recreate mappings if they already exist`() = runTest {
+        val dpsApplicationId = UUID.randomUUID()
+        val dpsOutsideMovementId = UUID.randomUUID()
+        val dpsScheduledOutId = UUID.randomUUID()
+        val dpsScheduledInId = UUID.randomUUID()
+        val dpsMovementOutId = UUID.randomUUID()
+        val dpsMovementInId = UUID.randomUUID()
+        val dpsUnscheduledMovementOutId = UUID.randomUUID()
+        val dpsUnscheduledMovementInId = UUID.randomUUID()
+
+        // We call the post mappings endpoint once in the BeforeEach - let's do it again for the same prisoner with different DPS ids
+        saveMappings(
+          mappingsRequest(
+            dpsApplicationId,
+            dpsOutsideMovementId,
+            dpsScheduledOutId,
+            dpsScheduledInId,
+            dpsMovementOutId,
+            dpsMovementInId,
+            dpsUnscheduledMovementOutId,
+            dpsUnscheduledMovementInId,
+          ),
+        )
+
+        // And spot check some of the new DPS ids are saved to the DB
+        assertThat(applicationRepository.findById(DPS_APPLICATION_ID)).isNull()
+        assertThat(applicationRepository.findById(dpsApplicationId)).isNotNull
+        assertThat(scheduleRepository.findById(DPS_SCHEDULED_OUT_ID)).isNull()
+        assertThat(scheduleRepository.findById(dpsScheduledOutId)).isNotNull
+        assertThat(movementRepository.findById(DPS_MOVEMENT_IN_ID)).isNull()
+        assertThat(movementRepository.findById(dpsMovementInId)).isNotNull
+        assertThat(movementRepository.findById(DPS_UNSCHEDULED_MOVEMENT_OUT_ID)).isNull()
+        assertThat(movementRepository.findById(dpsUnscheduledMovementOutId)).isNotNull
+      }
     }
 
     @Nested
@@ -214,7 +263,7 @@ class TemporaryAbsenceResourceIntTest(
 
       @Test
       fun `access not authorised when no authority`() {
-        webTestClient.post()
+        webTestClient.put()
           .uri("/mapping/temporary-absence/migrate")
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
@@ -224,7 +273,7 @@ class TemporaryAbsenceResourceIntTest(
 
       @Test
       fun `access forbidden when no role`() {
-        webTestClient.post()
+        webTestClient.put()
           .uri("/mapping/temporary-absence/migrate")
           .headers(setAuthorisation(roles = listOf()))
           .contentType(MediaType.APPLICATION_JSON)
@@ -235,7 +284,7 @@ class TemporaryAbsenceResourceIntTest(
 
       @Test
       fun `access forbidden with wrong role`() {
-        webTestClient.post()
+        webTestClient.put()
           .uri("/mapping/temporary-absence/migrate")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .contentType(MediaType.APPLICATION_JSON)

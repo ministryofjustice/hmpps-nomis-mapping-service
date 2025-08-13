@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.movements
 
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class TemporaryAbsenceService(
@@ -10,7 +11,12 @@ class TemporaryAbsenceService(
   private val movementRepository: TemporaryAbsenceMovementRepository,
 ) {
 
+  @Transactional
   suspend fun createMappings(mappings: TemporaryAbsencesPrisonerMappingDto) {
+    applicationRepository.deleteByOffenderNo(mappings.prisonerNumber)
+    appMultiRepository.deleteByOffenderNo(mappings.prisonerNumber)
+    scheduleRepository.deleteByOffenderNo(mappings.prisonerNumber)
+    movementRepository.deleteByOffenderNo(mappings.prisonerNumber)
     mappings.bookings.forEach { booking ->
       booking.applications.forEach { application ->
         applicationRepository.save(
@@ -24,6 +30,7 @@ class TemporaryAbsenceService(
           ),
         )
         application.outsideMovements.forEach { outside ->
+          appMultiRepository
           appMultiRepository.save(
             TemporaryAbsenceAppMultiMapping(
               outside.dpsOutsideMovementId,
