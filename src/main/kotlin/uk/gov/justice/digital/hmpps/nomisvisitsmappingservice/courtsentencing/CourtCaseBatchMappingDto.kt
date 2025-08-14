@@ -31,3 +31,39 @@ data class CourtCaseBatchMappingDto(
   @Schema(description = "Date time the mapping was created")
   val whenCreated: LocalDateTime? = null,
 )
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Court cases mapping including child entity mapping for both updating and creating")
+data class CourtCaseBatchUpdateAndCreateMappingDto(
+  @Schema(description = "Mappings that need creating")
+  val mappingsToCreate: CourtCaseBatchMappingDto,
+  @Schema(description = "Mappings that need creating")
+  val mappingsToUpdate: CourtCaseBatchUpdateMappingDto,
+
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Court cases mapping including child entity mapping for both updating the NOMIS ID")
+data class CourtCaseBatchUpdateMappingDto(
+  @Schema(description = "Mappings")
+  val courtCases: List<SimpleCourtSentencingIdPair> = emptyList(),
+
+  @Schema(description = "Court Appearance mappings")
+  val courtAppearances: List<SimpleCourtSentencingIdPair> = emptyList(),
+
+  @Schema(description = "Court Charge mappings")
+  val courtCharges: List<SimpleCourtSentencingIdPair> = emptyList(),
+
+  @Schema(description = "Sentence mappings")
+  val sentences: List<CourtSentenceIdPair> = emptyList(),
+
+  @Schema(description = "Sentence term mappings")
+  val sentenceTerms: List<CourtSentenceTermIdPair> = emptyList(),
+
+)
+
+data class SimpleCourtSentencingIdPair(val fromNomisId: Long, val toNomisId: Long)
+data class SentenceId(val nomisBookingId: Long, val nomisSequence: Int)
+data class CourtSentenceIdPair(val fromNomisId: SentenceId, val toNomisId: SentenceId)
+data class SentenceTermId(val nomisSentenceId: SentenceId, val nomisSequence: Int)
+data class CourtSentenceTermIdPair(val fromNomisId: SentenceTermId, val toNomisId: SentenceTermId)

@@ -240,6 +240,37 @@ class CourtSentencingMappingResource(
     mapping: CourtCaseBatchMappingDto,
   ) = mappingService.replaceAndCreateAllMappings(mapping)
 
+  @PutMapping("/court-cases/update-create")
+  @Operation(
+    summary = "Updates all court case hierarchical mappings maintaining the DPS id and creates additional mappings",
+    description = "Updates all the mappings between nomis Court Case ID and DPS Court Case ID. Also maps child entities: Court appearances and charges. New ones that have been requested to be created will also be created. Requires ROLE_NOMIS_COURT_SENTENCING",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = CourtCaseBatchUpdateAndCreateMappingDto::class),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "200", description = "Mapping created or replaced"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun updateAndCreateMappingByNomisId(
+    @RequestBody @Valid
+    mapping: CourtCaseBatchUpdateAndCreateMappingDto,
+  ) = mappingService.updateAndCreateAllMappings(mapping)
+
   @PostMapping("/prisoner/{offenderNo}/court-cases")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(

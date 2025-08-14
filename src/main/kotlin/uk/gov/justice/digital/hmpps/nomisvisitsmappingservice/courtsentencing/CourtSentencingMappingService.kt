@@ -90,6 +90,12 @@ class CourtSentencingMappingService(
   }
 
   @Transactional
+  suspend fun updateAndCreateAllMappings(request: CourtCaseBatchUpdateAndCreateMappingDto) {
+    replaceAndCreateAllMappings(request.mappingsToCreate)
+    updateAllMappingsByNomisId(request.mappingsToUpdate)
+  }
+
+  @Transactional
   suspend fun replaceAndCreateAllMappings(createMappingRequest: CourtCaseBatchMappingDto) {
     createMappingRequest.courtCases.map { courtCaseMappingRequest ->
       try {
@@ -154,6 +160,36 @@ class CourtSentencingMappingService(
         )
         throw e
       }
+    }
+  }
+
+  @Transactional
+  suspend fun updateAllMappingsByNomisId(updateMappingRequest: CourtCaseBatchUpdateMappingDto) {
+    updateMappingRequest.courtCases.map {
+      courtCaseMappingRepository.save(courtCaseMappingRepository.findByNomisCourtCaseId(it.fromNomisId)!!.copy(nomisCourtCaseId = it.toNomisId))
+    }
+    updateMappingRequest.courtAppearances.forEach {
+      courtAppearanceMappingRepository.save(courtAppearanceMappingRepository.findByNomisCourtAppearanceId(it.fromNomisId)!!.copy(nomisCourtAppearanceId = it.toNomisId))
+    }
+    updateMappingRequest.courtCharges.forEach {
+      courtChargeMappingRepository.save(courtChargeMappingRepository.findByNomisCourtChargeId(it.fromNomisId)!!.copy(nomisCourtChargeId = it.toNomisId))
+    }
+    updateMappingRequest.sentences.forEach {
+      sentenceMappingRepository.save(
+        sentenceMappingRepository.findByNomisBookingIdAndNomisSentenceSequence(
+          nomisBookingId = it.fromNomisId.nomisBookingId,
+          nomisSentenceSeq = it.fromNomisId.nomisSequence,
+        )!!.copy(nomisBookingId = it.toNomisId.nomisBookingId, nomisSentenceSequence = it.toNomisId.nomisSequence),
+      )
+    }
+    return updateMappingRequest.sentenceTerms.forEach {
+      sentenceTermMappingRepository.save(
+        sentenceTermMappingRepository.findByNomisBookingIdAndNomisSentenceSequenceAndNomisTermSequence(
+          nomisBookingId = it.fromNomisId.nomisSentenceId.nomisBookingId,
+          nomisSentenceSeq = it.fromNomisId.nomisSentenceId.nomisSequence,
+          nomisTermSeq = it.fromNomisId.nomisSequence,
+        )!!.copy(nomisSentenceSequence = it.toNomisId.nomisSentenceId.nomisSequence, nomisBookingId = it.toNomisId.nomisSentenceId.nomisBookingId, nomisTermSequence = it.toNomisId.nomisSequence),
+      )
     }
   }
 
