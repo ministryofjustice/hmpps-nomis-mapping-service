@@ -47,5 +47,5 @@ class TemporaryAbsenceResource(
   )
   suspend fun createMappings(
     @RequestBody mappings: TemporaryAbsencesPrisonerMappingDto,
-  ) = service.createMappings(mappings)
+  ) = service.createMigrationMappings(mappings)
 }

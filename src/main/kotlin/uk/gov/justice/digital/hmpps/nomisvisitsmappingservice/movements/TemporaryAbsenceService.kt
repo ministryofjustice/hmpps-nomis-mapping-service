@@ -9,7 +9,16 @@ class TemporaryAbsenceService(
   private val appMultiRepository: TemporaryAbsenceAppMultiRepository,
   private val scheduleRepository: TemporaryAbsenceScheduleRepository,
   private val movementRepository: TemporaryAbsenceMovementRepository,
+  private val migrationRepository: TemporaryAbsenceMigrationRepository,
 ) {
+
+  @Transactional
+  suspend fun createMigrationMappings(mappings: TemporaryAbsencesPrisonerMappingDto) {
+    createMappings(mappings).also {
+      migrationRepository.deleteById(mappings.prisonerNumber)
+      migrationRepository.save(TemporaryAbsenceMigration(mappings.prisonerNumber, mappings.migrationId))
+    }
+  }
 
   @Transactional
   suspend fun createMappings(mappings: TemporaryAbsencesPrisonerMappingDto) {
@@ -30,7 +39,6 @@ class TemporaryAbsenceService(
           ),
         )
         application.outsideMovements.forEach { outside ->
-          appMultiRepository
           appMultiRepository.save(
             TemporaryAbsenceAppMultiMapping(
               outside.dpsOutsideMovementId,
