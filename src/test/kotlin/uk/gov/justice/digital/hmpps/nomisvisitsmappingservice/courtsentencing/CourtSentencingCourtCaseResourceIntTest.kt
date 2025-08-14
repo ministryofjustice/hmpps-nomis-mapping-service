@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestDuplica
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 private const val OFFENDER_NO = "AA123456"
 private const val EXISTING_OFFENDER_NO = "BB123456"
@@ -1656,6 +1657,173 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
         )
         .exchange()
         .expectStatus().isEqualTo(200)
+    }
+  }
+
+  @Nested
+  @DisplayName("PUT /mapping/court-sentencing/court-cases/update-create")
+  inner class UpdateAndCreateMappingByNomisId {
+    @AfterEach
+    fun tearDown() = runTest {
+      clearDown()
+    }
+
+    @Nested
+    inner class Security {
+      val request = CourtCaseBatchUpdateAndCreateMappingDto(
+        mappingsToCreate = CourtCaseBatchMappingDto(),
+        mappingsToUpdate = CourtCaseBatchUpdateMappingDto(),
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.put()
+          .uri("/mapping/court-sentencing/court-cases/update-create")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(request))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.put()
+          .uri("/mapping/court-sentencing/court-cases/update-create")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(request))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.put()
+          .uri("/mapping/court-sentencing/court-cases/update-create")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(request))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      val fromNomisBookingId = 10L
+      val toNomisBookingId = 20L
+      val fromNomisSentenceSequence = 10
+      val toNomisSentenceSequence = 20
+      val fromNomisSequence = 1
+      val toNomisSequence = 2
+      val dpsId = UUID.randomUUID().toString()
+      val newDpsId = UUID.randomUUID().toString()
+      val fromNomisId = 99L
+      val toNomisId = 100L
+
+      @BeforeEach
+      fun setUp() = runTest {
+        repository.save(
+          CourtCaseMapping(
+            dpsCourtCaseId = dpsId,
+            nomisCourtCaseId = fromNomisId,
+            mappingType = CourtCaseMappingType.NOMIS_CREATED,
+          ),
+        )
+        courtAppearanceRepository.save(
+          CourtAppearanceMapping(
+            nomisCourtAppearanceId = fromNomisId,
+            dpsCourtAppearanceId = dpsId,
+            mappingType = CourtAppearanceMappingType.NOMIS_CREATED,
+          ),
+        )
+        courtChargeRepository.save(
+          CourtChargeMapping(
+            nomisCourtChargeId = fromNomisId,
+            dpsCourtChargeId = dpsId,
+            mappingType = CourtChargeMappingType.NOMIS_CREATED,
+          ),
+        )
+        sentenceRepository.save(
+          SentenceMapping(
+            dpsSentenceId = dpsId,
+            nomisSentenceSequence = fromNomisSentenceSequence,
+            nomisBookingId = fromNomisBookingId,
+            mappingType = SentenceMappingType.NOMIS_CREATED,
+          ),
+        )
+        sentenceTermRepository.save(
+          SentenceTermMapping(
+            dpsTermId = dpsId,
+            nomisSentenceSequence = fromNomisSentenceSequence,
+            nomisTermSequence = fromNomisSequence,
+            nomisBookingId = fromNomisBookingId,
+            mappingType = SentenceTermMappingType.NOMIS_CREATED,
+          ),
+        )
+      }
+
+      @Test
+      fun `will update existing mappings`() = runTest {
+        assertThat(repository.findById(dpsId)!!.nomisCourtCaseId).isEqualTo(fromNomisId)
+        assertThat(courtAppearanceRepository.findById(dpsId)!!.nomisCourtAppearanceId).isEqualTo(fromNomisId)
+        assertThat(courtChargeRepository.findById(dpsId)!!.nomisCourtChargeId).isEqualTo(fromNomisId)
+        assertThat(sentenceRepository.findById(dpsId)!!.nomisBookingId).isEqualTo(fromNomisBookingId)
+        assertThat(sentenceRepository.findById(dpsId)!!.nomisSentenceSequence).isEqualTo(fromNomisSentenceSequence)
+        assertThat(sentenceTermRepository.findById(dpsId)!!.nomisBookingId).isEqualTo(fromNomisBookingId)
+        assertThat(sentenceTermRepository.findById(dpsId)!!.nomisSentenceSequence).isEqualTo(fromNomisSentenceSequence)
+        assertThat(sentenceTermRepository.findById(dpsId)!!.nomisTermSequence).isEqualTo(fromNomisSequence)
+
+        webTestClient.put()
+          .uri("/mapping/court-sentencing/court-cases/update-create")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CourtCaseBatchUpdateAndCreateMappingDto(
+                mappingsToCreate = CourtCaseBatchMappingDto(),
+                mappingsToUpdate = CourtCaseBatchUpdateMappingDto(
+                  courtCases = listOf(SimpleCourtSentencingIdPair(fromNomisId, toNomisId)),
+                  courtAppearances = listOf(SimpleCourtSentencingIdPair(fromNomisId, toNomisId)),
+                  courtCharges = listOf(SimpleCourtSentencingIdPair(fromNomisId, toNomisId)),
+                  sentences = listOf(CourtSentenceIdPair(SentenceId(fromNomisBookingId, fromNomisSentenceSequence), SentenceId(toNomisBookingId, toNomisSentenceSequence))),
+                  sentenceTerms = listOf(CourtSentenceTermIdPair(SentenceTermId(SentenceId(fromNomisBookingId, fromNomisSentenceSequence), fromNomisSequence), SentenceTermId(SentenceId(toNomisBookingId, toNomisSentenceSequence), toNomisSequence))),
+                ),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isEqualTo(200)
+
+        assertThat(repository.findById(dpsId)!!.nomisCourtCaseId).isEqualTo(toNomisId)
+        assertThat(courtAppearanceRepository.findById(dpsId)!!.nomisCourtAppearanceId).isEqualTo(toNomisId)
+        assertThat(courtChargeRepository.findById(dpsId)!!.nomisCourtChargeId).isEqualTo(toNomisId)
+        assertThat(sentenceRepository.findById(dpsId)!!.nomisBookingId).isEqualTo(toNomisBookingId)
+        assertThat(sentenceRepository.findById(dpsId)!!.nomisSentenceSequence).isEqualTo(toNomisSentenceSequence)
+        assertThat(sentenceTermRepository.findById(dpsId)!!.nomisBookingId).isEqualTo(toNomisBookingId)
+        assertThat(sentenceTermRepository.findById(dpsId)!!.nomisSentenceSequence).isEqualTo(toNomisSentenceSequence)
+        assertThat(sentenceTermRepository.findById(dpsId)!!.nomisTermSequence).isEqualTo(toNomisSequence)
+      }
+
+      @Test
+      fun `will create any mappings requests`() = runTest {
+        webTestClient.put()
+          .uri("/mapping/court-sentencing/court-cases/update-create")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CourtCaseBatchUpdateAndCreateMappingDto(
+                mappingsToCreate = CourtCaseBatchMappingDto(courtCases = listOf(CourtCaseMappingDto(nomisCourtCaseId = 1123L, dpsCourtCaseId = newDpsId))),
+                mappingsToUpdate = CourtCaseBatchUpdateMappingDto(),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isEqualTo(200)
+
+        assertThat(repository.findById(newDpsId)!!.nomisCourtCaseId).isEqualTo(1123L)
+      }
     }
   }
 
