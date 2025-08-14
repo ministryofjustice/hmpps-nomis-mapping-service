@@ -19,6 +19,7 @@ class TemporaryAbsenceResourceIntTest(
   @Autowired private val appMultiRepository: TemporaryAbsenceAppMultiRepository,
   @Autowired private val scheduleRepository: TemporaryAbsenceScheduleRepository,
   @Autowired private val movementRepository: TemporaryAbsenceMovementRepository,
+  @Autowired private val migrationRepository: TemporaryAbsenceMigrationRepository,
 ) : IntegrationTestBase() {
 
   @Nested
@@ -79,9 +80,10 @@ class TemporaryAbsenceResourceIntTest(
         dpsMovementInId: UUID = DPS_MOVEMENT_IN_ID,
         dpsUnscheduledMovementOutId: UUID = DPS_UNSCHEDULED_MOVEMENT_OUT_ID,
         dpsUnscheduledMovementInId: UUID = DPS_UNSCHEDULED_MOVEMENT_IN_ID,
+        migrationId: String = MIGRATION_ID,
       ) = TemporaryAbsencesPrisonerMappingDto(
         prisonerNumber = NOMIS_OFFENDER_NO,
-        migrationId = MIGRATION_ID,
+        migrationId = migrationId,
         bookings = listOf(
           TemporaryAbsenceBookingMappingDto(
             bookingId = NOMIS_BOOKING_ID,
@@ -130,6 +132,13 @@ class TemporaryAbsenceResourceIntTest(
           ),
         ),
       )
+
+      @Test
+      fun `should save migration mapping`() = runTest {
+        with(migrationRepository.findById(NOMIS_OFFENDER_NO)!!) {
+          assertThat(label).isEqualTo(MIGRATION_ID)
+        }
+      }
 
       @Test
       fun `should save application mappings`() = runTest {
@@ -225,6 +234,7 @@ class TemporaryAbsenceResourceIntTest(
         val dpsMovementInId = UUID.randomUUID()
         val dpsUnscheduledMovementOutId = UUID.randomUUID()
         val dpsUnscheduledMovementInId = UUID.randomUUID()
+        val secondMigration = "second_migration"
 
         // We call the post mappings endpoint once in the BeforeEach - let's do it again for the same prisoner with different DPS ids
         saveMappings(
@@ -237,6 +247,7 @@ class TemporaryAbsenceResourceIntTest(
             dpsMovementInId,
             dpsUnscheduledMovementOutId,
             dpsUnscheduledMovementInId,
+            secondMigration,
           ),
         )
 
@@ -249,6 +260,7 @@ class TemporaryAbsenceResourceIntTest(
         assertThat(movementRepository.findById(dpsMovementInId)).isNotNull
         assertThat(movementRepository.findById(DPS_UNSCHEDULED_MOVEMENT_OUT_ID)).isNull()
         assertThat(movementRepository.findById(dpsUnscheduledMovementOutId)).isNotNull
+        assertThat(migrationRepository.findById(NOMIS_OFFENDER_NO)!!.label).isEqualTo("second_migration")
       }
     }
 
