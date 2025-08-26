@@ -131,4 +131,82 @@ class TemporaryAbsenceResource(
   suspend fun getApplicationSyncMappingByNomisId(
     @PathVariable nomisApplicationId: Long,
   ) = service.getApplicationMappingByNomisId(nomisApplicationId)
+
+  @PostMapping("/outside-movement")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates a mapping for a single temporary absence outside movement",
+    description = "Creates a mapping for a single temporary absence outside movement. Requires ROLE_NOMIS_MOVEMENTS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = TemporaryAbsenceOutsideMovementSyncMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Outside movement mapping created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "The mapping already exists.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun createOutsideMovementSyncMapping(
+    @RequestBody mapping: TemporaryAbsenceOutsideMovementSyncMappingDto,
+  ) = try {
+    service.createOutsideMovementMapping(mapping)
+  } catch (dke: DuplicateKeyException) {
+    val existing = getExistingOutsideMovementMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Temporary absence outside movement mapping already exists",
+      duplicate = mapping,
+      existing = existing,
+      cause = dke,
+    )
+  }
+
+  private suspend fun getExistingOutsideMovementMappingSimilarTo(mapping: TemporaryAbsenceOutsideMovementSyncMappingDto) = runCatching {
+    service.getOutsideMovementMappingByNomisId(mapping.nomisMovementApplicationMultiId)
+  }
+    .getOrElse {
+      service.getOutsideMovementMappingByDpsId(mapping.dpsOutsideMovementId)
+    }
+
+  @GetMapping("/outside-movement/nomis-application-multi-id/{nomisApplicationMultiId}")
+  @Operation(
+    summary = "Gets a mapping for a single temporary absence outside movement by NOMIS ID",
+    description = "Gets a mapping for a single temporary absence outside movement by NOMIS ID. Requires ROLE_NOMIS_MOVEMENTS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = TemporaryAbsenceOutsideMovementSyncMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "200", description = "Outside movement mapping returned"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "The mapping does not exist.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getOutsideMovementSyncMappingByNomisId(
+    @PathVariable nomisApplicationMultiId: Long,
+  ) = service.getOutsideMovementMappingByNomisId(nomisApplicationMultiId)
 }
