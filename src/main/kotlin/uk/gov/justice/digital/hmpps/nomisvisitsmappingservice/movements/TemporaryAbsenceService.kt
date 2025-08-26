@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.movements
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.service.NotFoundException
+import java.util.UUID
 
 @Service
 class TemporaryAbsenceService(
@@ -89,4 +91,30 @@ class TemporaryAbsenceService(
       }
     }
   }
+
+  suspend fun createApplicationMapping(mappingDto: TemporaryAbsenceApplicationSyncMappingDto) = applicationRepository.save(mappingDto.toMapping())
+
+  suspend fun getApplicationMappingByNomisId(nomisApplicationId: Long) = applicationRepository.findByNomisApplicationId(nomisApplicationId)
+    ?.toMappingDto()
+    ?: throw NotFoundException("Mapping for NOMIS application id $nomisApplicationId not found")
+
+  suspend fun getApplicationMappingByDpsId(dpsApplicationId: UUID) = applicationRepository.findById(dpsApplicationId)
+    ?.toMappingDto()
+    ?: throw NotFoundException("Mapping for DPS application id $dpsApplicationId not found")
 }
+
+fun TemporaryAbsenceApplicationSyncMappingDto.toMapping(): TemporaryAbsenceApplicationMapping = TemporaryAbsenceApplicationMapping(
+  dpsMovementApplicationId,
+  nomisMovementApplicationId,
+  prisonerNumber,
+  bookingId,
+  mappingType = mappingType,
+)
+
+fun TemporaryAbsenceApplicationMapping.toMappingDto(): TemporaryAbsenceApplicationSyncMappingDto = TemporaryAbsenceApplicationSyncMappingDto(
+  offenderNo,
+  bookingId,
+  nomisApplicationId,
+  dpsApplicationId,
+  mappingType = mappingType,
+)

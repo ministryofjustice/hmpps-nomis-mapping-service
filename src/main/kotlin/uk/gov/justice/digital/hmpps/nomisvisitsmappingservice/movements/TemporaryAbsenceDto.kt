@@ -29,7 +29,7 @@ data class TemporaryAbsenceBookingMappingDto(
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Mappings for a single temporary absence application")
+@Schema(description = "Mappings for a single temporary absence application and its children")
 data class TemporaryAbsenceApplicationMappingDto(
   @Schema(description = "The NOMIS temporary absence application id")
   val nomisMovementApplicationId: Long,
@@ -44,7 +44,7 @@ data class TemporaryAbsenceApplicationMappingDto(
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Mappings for all outside movements against a single temporary absence application")
+@Schema(description = "Mappings for an outside movement on a temporary absence application")
 data class TemporaryAbsencesOutsideMovementMappingDto(
   @Schema(description = "The NOMIS outside movement id")
   val nomisMovementApplicationMultiId: Long,
@@ -62,7 +62,7 @@ data class ScheduledMovementMappingDto(
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Mappings for a single external movement")
+@Schema(description = "Mapping for a single external movement")
 data class ExternalMovementMappingDto(
   @Schema(description = "The NOMIS external movement id")
   val nomisMovementSeq: Int,
