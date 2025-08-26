@@ -564,4 +564,250 @@ class TemporaryAbsenceResourceIntTest(
       .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
       .exchange()
   }
+
+  @Nested
+  inner class CreateOutsideMovementMapping {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      appMultiRepository.deleteAll()
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = TemporaryAbsenceOutsideMovementSyncMappingDto(
+        "A1234BC",
+        12345L,
+        23456L,
+        UUID.randomUUID(),
+        MovementMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `should create mapping`() = runTest {
+        webTestClient.createOutsideMovementSyncMapping(mapping)
+          .expectStatus().isCreated
+
+        with(appMultiRepository.findByNomisAppMultiId(23456L)!!) {
+          assertThat(offenderNo).isEqualTo("A1234BC")
+          assertThat(bookingId).isEqualTo(12345L)
+          assertThat(dpsAppMultiId).isEqualTo(mapping.dpsOutsideMovementId)
+          assertThat(mappingType).isEqualTo(MovementMappingType.NOMIS_CREATED)
+        }
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      val mapping = TemporaryAbsenceOutsideMovementSyncMappingDto(
+        "A1234BC",
+        12345L,
+        23456L,
+        UUID.randomUUID(),
+        MovementMappingType.NOMIS_CREATED,
+      )
+      val duplicateMappingDps = TemporaryAbsenceOutsideMovementSyncMappingDto(
+        "B2345CD",
+        56789L,
+        34567L,
+        mapping.dpsOutsideMovementId,
+        MovementMappingType.MIGRATED,
+      )
+      val duplicateMappingNomis = TemporaryAbsenceOutsideMovementSyncMappingDto(
+        "C3456DE",
+        9101112L,
+        mapping.nomisMovementApplicationMultiId,
+        UUID.randomUUID(),
+        MovementMappingType.MIGRATED,
+      )
+
+      @Test
+      fun `should reject duplicate DPS ID mapping`() = runTest {
+        webTestClient.createOutsideMovementSyncMapping(mapping)
+          .expectStatus().isCreated
+
+        webTestClient.createOutsideMovementSyncMapping(duplicateMappingDps)
+          .expectStatus().isDuplicateMapping
+          .expectBody(object : ParameterizedTypeReference<TestDuplicateErrorResponse>() {})
+          .returnResult().responseBody!!
+          .apply {
+            assertThat(moreInfo.existing)
+              .containsEntry("prisonerNumber", mapping.prisonerNumber)
+              .containsEntry("bookingId", mapping.bookingId.toInt())
+              .containsEntry("dpsOutsideMovementId", mapping.dpsOutsideMovementId.toString())
+              .containsEntry("nomisMovementApplicationMultiId", mapping.nomisMovementApplicationMultiId.toInt())
+              .containsEntry("mappingType", mapping.mappingType.toString())
+            assertThat(moreInfo.duplicate)
+              .containsEntry("prisonerNumber", duplicateMappingDps.prisonerNumber)
+              .containsEntry("bookingId", duplicateMappingDps.bookingId.toInt())
+              .containsEntry("dpsOutsideMovementId", duplicateMappingDps.dpsOutsideMovementId.toString())
+              .containsEntry("nomisMovementApplicationMultiId", duplicateMappingDps.nomisMovementApplicationMultiId.toInt())
+              .containsEntry("mappingType", duplicateMappingDps.mappingType.toString())
+          }
+      }
+
+      @Test
+      fun `should reject duplicate NOMIS ID mapping`() = runTest {
+        webTestClient.createOutsideMovementSyncMapping(mapping)
+          .expectStatus().isCreated
+
+        webTestClient.createOutsideMovementSyncMapping(duplicateMappingNomis)
+          .expectStatus().isDuplicateMapping
+          .expectBody(object : ParameterizedTypeReference<TestDuplicateErrorResponse>() {})
+          .returnResult().responseBody!!
+          .apply {
+            assertThat(moreInfo.existing)
+              .containsEntry("prisonerNumber", mapping.prisonerNumber)
+              .containsEntry("bookingId", mapping.bookingId.toInt())
+              .containsEntry("dpsOutsideMovementId", mapping.dpsOutsideMovementId.toString())
+              .containsEntry("nomisMovementApplicationMultiId", mapping.nomisMovementApplicationMultiId.toInt())
+              .containsEntry("mappingType", mapping.mappingType.toString())
+            assertThat(moreInfo.duplicate)
+              .containsEntry("prisonerNumber", duplicateMappingNomis.prisonerNumber)
+              .containsEntry("bookingId", duplicateMappingNomis.bookingId.toInt())
+              .containsEntry("dpsOutsideMovementId", duplicateMappingNomis.dpsOutsideMovementId.toString())
+              .containsEntry("nomisMovementApplicationMultiId", duplicateMappingNomis.nomisMovementApplicationMultiId.toInt())
+              .containsEntry("mappingType", duplicateMappingNomis.mappingType.toString())
+          }
+      }
+    }
+
+    @Nested
+    inner class Security {
+      val mapping = TemporaryAbsenceOutsideMovementSyncMappingDto(
+        "A1234BC",
+        12345L,
+        23456L,
+        UUID.randomUUID(),
+        mappingType = MovementMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/temporary-absence/outside-movement")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/temporary-absence/outside-movement")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/temporary-absence/outside-movement")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.createOutsideMovementSyncMapping(mapping: TemporaryAbsenceOutsideMovementSyncMappingDto) = post()
+      .uri("/mapping/temporary-absence/outside-movement")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(BodyInserters.fromValue(mapping))
+      .exchange()
+  }
+
+  @Nested
+  inner class GetNomisOutsideMovementMapping {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      appMultiRepository.deleteAll()
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = TemporaryAbsenceAppMultiMapping(
+        UUID.randomUUID(),
+        23456L,
+        "A1234BC",
+        12345L,
+        mappingType = MovementMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `should get outside movement mapping by NOMIS ID`() = runTest {
+        appMultiRepository.save(mapping)
+
+        webTestClient.getOutsideMovementSyncMapping(mapping.nomisAppMultiId)
+          .expectStatus().isOk
+          .expectBody(object : ParameterizedTypeReference<TemporaryAbsenceOutsideMovementSyncMappingDto>() {})
+          .returnResult().responseBody!!
+          .apply {
+            assertThat(nomisMovementApplicationMultiId).isEqualTo(mapping.nomisAppMultiId)
+            assertThat(dpsOutsideMovementId).isEqualTo(mapping.dpsAppMultiId)
+            assertThat(prisonerNumber).isEqualTo(mapping.offenderNo)
+            assertThat(bookingId).isEqualTo(mapping.bookingId)
+            assertThat(mappingType).isEqualTo(mapping.mappingType)
+          }
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `should return not found when mapping does not exist`() = runTest {
+        webTestClient.getOutsideMovementSyncMapping(12345L)
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class Security {
+      val mapping = TemporaryAbsenceOutsideMovementSyncMappingDto(
+        "A1234BC",
+        12345L,
+        23456L,
+        UUID.randomUUID(),
+        mappingType = MovementMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/temporary-absence/outside-movement/nomis-application-multi-id/12345")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/temporary-absence/outside-movement/nomis-application-multi-id/12345")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/temporary-absence/outside-movement/nomis-application-multi-id/12345")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.getOutsideMovementSyncMapping(nomisApplicationMultiId: Long) = get()
+      .uri("/mapping/temporary-absence/outside-movement/nomis-application-multi-id/$nomisApplicationMultiId")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .exchange()
+  }
 }
