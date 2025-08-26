@@ -322,8 +322,8 @@ class TemporaryAbsenceResourceIntTest(
   @Nested
   inner class CreateApplicationMapping {
 
-    @BeforeEach
-    fun setUp() = runTest {
+    @AfterEach
+    fun tearDown() = runTest {
       applicationRepository.deleteAll()
     }
 
@@ -474,6 +474,94 @@ class TemporaryAbsenceResourceIntTest(
       .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(BodyInserters.fromValue(mapping))
+      .exchange()
+  }
+
+  @Nested
+  inner class GetNomisApplicationMapping {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      applicationRepository.deleteAll()
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = TemporaryAbsenceApplicationMapping(
+        UUID.randomUUID(),
+        23456L,
+        "A1234BC",
+        12345L,
+        mappingType = MovementMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `should get application mapping by NOMIS ID`() = runTest {
+        applicationRepository.save(mapping)
+
+        webTestClient.getApplicationSyncMapping(mapping.nomisApplicationId)
+          .expectStatus().isOk
+          .expectBody(object : ParameterizedTypeReference<TemporaryAbsenceApplicationSyncMappingDto>() {})
+          .returnResult().responseBody!!
+          .apply {
+            assertThat(nomisMovementApplicationId).isEqualTo(mapping.nomisApplicationId)
+            assertThat(dpsMovementApplicationId).isEqualTo(mapping.dpsApplicationId)
+            assertThat(prisonerNumber).isEqualTo(mapping.offenderNo)
+            assertThat(bookingId).isEqualTo(mapping.bookingId)
+            assertThat(mappingType).isEqualTo(mapping.mappingType)
+          }
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `should return not found when mapping does not exist`() = runTest {
+        webTestClient.getApplicationSyncMapping(12345L)
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class Security {
+      val mapping = TemporaryAbsenceApplicationSyncMappingDto(
+        "A1234BC",
+        12345L,
+        23456L,
+        UUID.randomUUID(),
+        mappingType = MovementMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/temporary-absence/application/nomis-application-id/12345")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/temporary-absence/application/nomis-application-id/12345")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/temporary-absence/application/nomis-application-id/12345")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.getApplicationSyncMapping(nomisApplicationId: Long) = get()
+      .uri("/mapping/temporary-absence/application/nomis-application-id/$nomisApplicationId")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
       .exchange()
   }
 }

@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -99,4 +101,34 @@ class TemporaryAbsenceResource(
     .getOrElse {
       service.getApplicationMappingByDpsId(mapping.dpsMovementApplicationId)
     }
+
+  @GetMapping("/application/nomis-application-id/{nomisApplicationId}")
+  @Operation(
+    summary = "Gets a mapping for a single temporary absence application by NOMIS ID",
+    description = "Gets a mapping for a single temporary absence application by NOMIS ID. Requires ROLE_NOMIS_MOVEMENTS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = TemporaryAbsenceApplicationSyncMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "200", description = "Application mapping returned"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "The mapping does not exist.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getApplicationSyncMappingByNomisId(
+    @PathVariable nomisApplicationId: Long,
+  ) = service.getApplicationMappingByNomisId(nomisApplicationId)
 }
