@@ -106,11 +106,21 @@ class TemporaryAbsenceService(
 
   suspend fun getOutsideMovementMappingByNomisId(nomisAppMultiId: Long) = appMultiRepository.findByNomisAppMultiId(nomisAppMultiId)
     ?.toMappingDto()
-    ?: throw NotFoundException("Mapping for NOMIS outside movement id $nomisAppMultiId not found")
+    ?: throw NotFoundException("Mapping for NOMIS application multi id $nomisAppMultiId not found")
 
   suspend fun getOutsideMovementMappingByDpsId(dpsOutsideMovementId: UUID) = appMultiRepository.findById(dpsOutsideMovementId)
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for DPS outside movement id $dpsOutsideMovementId not found")
+
+  suspend fun createScheduledMovementMapping(mappingDto: ScheduledMovementSyncMappingDto) = scheduleRepository.save(mappingDto.toMapping())
+
+  suspend fun getScheduledMovementMappingByNomisId(nomisEventId: Long) = scheduleRepository.findByNomisScheduleId(nomisEventId)
+    ?.toMappingDto()
+    ?: throw NotFoundException("Mapping for NOMIS event id $nomisEventId not found")
+
+  suspend fun getScheduledMovementMappingByDpsId(dpsScheduledMovementId: UUID) = scheduleRepository.findById(dpsScheduledMovementId)
+    ?.toMappingDto()
+    ?: throw NotFoundException("Mapping for DPS scheduled movement id $dpsScheduledMovementId not found")
 }
 
 fun TemporaryAbsenceApplicationSyncMappingDto.toMapping(): TemporaryAbsenceApplicationMapping = TemporaryAbsenceApplicationMapping(
@@ -142,5 +152,21 @@ fun TemporaryAbsenceAppMultiMapping.toMappingDto(): TemporaryAbsenceOutsideMovem
   bookingId,
   nomisAppMultiId,
   dpsAppMultiId,
+  mappingType = mappingType,
+)
+
+fun ScheduledMovementSyncMappingDto.toMapping(): TemporaryAbsenceScheduleMapping = TemporaryAbsenceScheduleMapping(
+  dpsScheduledMovementId,
+  nomisEventId,
+  prisonerNumber,
+  bookingId,
+  mappingType = mappingType,
+)
+
+fun TemporaryAbsenceScheduleMapping.toMappingDto(): ScheduledMovementSyncMappingDto = ScheduledMovementSyncMappingDto(
+  offenderNo,
+  bookingId,
+  nomisScheduleId,
+  dpsScheduleId,
   mappingType = mappingType,
 )

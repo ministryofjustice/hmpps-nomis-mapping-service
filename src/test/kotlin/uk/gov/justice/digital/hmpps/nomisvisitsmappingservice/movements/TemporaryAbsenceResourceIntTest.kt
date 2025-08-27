@@ -4,6 +4,7 @@ import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -27,6 +28,7 @@ class TemporaryAbsenceResourceIntTest(
 ) : IntegrationTestBase() {
 
   @Nested
+  @DisplayName("PUT /mapping/temporary-absence/migrate")
   inner class Migrate {
 
     @Nested
@@ -320,6 +322,7 @@ class TemporaryAbsenceResourceIntTest(
   }
 
   @Nested
+  @DisplayName("POST /mapping/temporary-absence/application")
   inner class CreateApplicationMapping {
 
     @AfterEach
@@ -478,6 +481,7 @@ class TemporaryAbsenceResourceIntTest(
   }
 
   @Nested
+  @DisplayName("GET /mapping/temporary-absence/application/nomis-application-id/{nomisApplicationId}")
   inner class GetNomisApplicationMapping {
 
     @AfterEach
@@ -566,6 +570,7 @@ class TemporaryAbsenceResourceIntTest(
   }
 
   @Nested
+  @DisplayName("POST /mapping/temporary-absence/outside-movement")
   inner class CreateOutsideMovementMapping {
 
     @AfterEach
@@ -724,6 +729,7 @@ class TemporaryAbsenceResourceIntTest(
   }
 
   @Nested
+  @DisplayName("GET /mapping/temporary-absence/outside-movement/nomis-application-multi-id/{nomisApplicationMultiId}")
   inner class GetNomisOutsideMovementMapping {
 
     @AfterEach
@@ -807,6 +813,254 @@ class TemporaryAbsenceResourceIntTest(
 
     private fun WebTestClient.getOutsideMovementSyncMapping(nomisApplicationMultiId: Long) = get()
       .uri("/mapping/temporary-absence/outside-movement/nomis-application-multi-id/$nomisApplicationMultiId")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .exchange()
+  }
+
+  @Nested
+  @DisplayName("POST /mapping/temporary-absence/scheduled-movement")
+  inner class CreateScheduledMovementSyncMapping {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      scheduleRepository.deleteAll()
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = ScheduledMovementSyncMappingDto(
+        "A1234BC",
+        12345L,
+        23456L,
+        UUID.randomUUID(),
+        MovementMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `should create mapping`() = runTest {
+        webTestClient.createScheduledMovementSyncMapping(mapping)
+          .expectStatus().isCreated
+
+        with(scheduleRepository.findByNomisScheduleId(mapping.nomisEventId)!!) {
+          assertThat(offenderNo).isEqualTo("A1234BC")
+          assertThat(bookingId).isEqualTo(12345L)
+          assertThat(dpsScheduleId).isEqualTo(mapping.dpsScheduledMovementId)
+          assertThat(mappingType).isEqualTo(MovementMappingType.NOMIS_CREATED)
+        }
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      val mapping = ScheduledMovementSyncMappingDto(
+        "A1234BC",
+        12345L,
+        23456L,
+        UUID.randomUUID(),
+        MovementMappingType.NOMIS_CREATED,
+      )
+      val duplicateMappingDps = ScheduledMovementSyncMappingDto(
+        "B2345CD",
+        56789L,
+        34567L,
+        mapping.dpsScheduledMovementId,
+        MovementMappingType.MIGRATED,
+      )
+      val duplicateMappingNomis = ScheduledMovementSyncMappingDto(
+        "C3456DE",
+        9101112L,
+        mapping.nomisEventId,
+        UUID.randomUUID(),
+        MovementMappingType.MIGRATED,
+      )
+
+      @Test
+      fun `should reject duplicate DPS ID mapping`() = runTest {
+        webTestClient.createScheduledMovementSyncMapping(mapping)
+          .expectStatus().isCreated
+
+        webTestClient.createScheduledMovementSyncMapping(duplicateMappingDps)
+          .expectStatus().isDuplicateMapping
+          .expectBody(object : ParameterizedTypeReference<TestDuplicateErrorResponse>() {})
+          .returnResult().responseBody!!
+          .apply {
+            assertThat(moreInfo.existing)
+              .containsEntry("prisonerNumber", mapping.prisonerNumber)
+              .containsEntry("bookingId", mapping.bookingId.toInt())
+              .containsEntry("dpsScheduledMovementId", mapping.dpsScheduledMovementId.toString())
+              .containsEntry("nomisEventId", mapping.nomisEventId.toInt())
+              .containsEntry("mappingType", mapping.mappingType.toString())
+            assertThat(moreInfo.duplicate)
+              .containsEntry("prisonerNumber", duplicateMappingDps.prisonerNumber)
+              .containsEntry("bookingId", duplicateMappingDps.bookingId.toInt())
+              .containsEntry("dpsScheduledMovementId", duplicateMappingDps.dpsScheduledMovementId.toString())
+              .containsEntry("nomisEventId", duplicateMappingDps.nomisEventId.toInt())
+              .containsEntry("mappingType", duplicateMappingDps.mappingType.toString())
+          }
+      }
+
+      @Test
+      fun `should reject duplicate NOMIS ID mapping`() = runTest {
+        webTestClient.createScheduledMovementSyncMapping(mapping)
+          .expectStatus().isCreated
+
+        webTestClient.createScheduledMovementSyncMapping(duplicateMappingNomis)
+          .expectStatus().isDuplicateMapping
+          .expectBody(object : ParameterizedTypeReference<TestDuplicateErrorResponse>() {})
+          .returnResult().responseBody!!
+          .apply {
+            assertThat(moreInfo.existing)
+              .containsEntry("prisonerNumber", mapping.prisonerNumber)
+              .containsEntry("bookingId", mapping.bookingId.toInt())
+              .containsEntry("dpsScheduledMovementId", mapping.dpsScheduledMovementId.toString())
+              .containsEntry("nomisEventId", mapping.nomisEventId.toInt())
+              .containsEntry("mappingType", mapping.mappingType.toString())
+            assertThat(moreInfo.duplicate)
+              .containsEntry("prisonerNumber", duplicateMappingNomis.prisonerNumber)
+              .containsEntry("bookingId", duplicateMappingNomis.bookingId.toInt())
+              .containsEntry("dpsScheduledMovementId", duplicateMappingNomis.dpsScheduledMovementId.toString())
+              .containsEntry("nomisEventId", duplicateMappingNomis.nomisEventId.toInt())
+              .containsEntry("mappingType", duplicateMappingNomis.mappingType.toString())
+          }
+      }
+    }
+
+    @Nested
+    inner class Security {
+      val mapping = ScheduledMovementSyncMappingDto(
+        "A1234BC",
+        12345L,
+        23456L,
+        UUID.randomUUID(),
+        mappingType = MovementMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/temporary-absence/scheduled-movement")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/temporary-absence/scheduled-movement")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/temporary-absence/scheduled-movement")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.createScheduledMovementSyncMapping(mapping: ScheduledMovementSyncMappingDto) = post()
+      .uri("/mapping/temporary-absence/scheduled-movement")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(BodyInserters.fromValue(mapping))
+      .exchange()
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/temporary-absence/scheduled-movement/nomis-event-id/{nomisEventId}")
+  inner class GetNomisScheduledMovementSyncMapping {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      scheduleRepository.deleteAll()
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = TemporaryAbsenceScheduleMapping(
+        UUID.randomUUID(),
+        23456L,
+        "A1234BC",
+        12345L,
+        mappingType = MovementMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `should get scheduled temporary absence mapping by NOMIS ID`() = runTest {
+        scheduleRepository.save(mapping)
+
+        webTestClient.getScheduledMovementSyncMapping(mapping.nomisScheduleId)
+          .expectStatus().isOk
+          .expectBody(object : ParameterizedTypeReference<ScheduledMovementSyncMappingDto>() {})
+          .returnResult().responseBody!!
+          .apply {
+            assertThat(nomisEventId).isEqualTo(mapping.nomisScheduleId)
+            assertThat(dpsScheduledMovementId).isEqualTo(mapping.dpsScheduleId)
+            assertThat(prisonerNumber).isEqualTo(mapping.offenderNo)
+            assertThat(bookingId).isEqualTo(mapping.bookingId)
+            assertThat(mappingType).isEqualTo(mapping.mappingType)
+          }
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `should return not found when mapping does not exist`() = runTest {
+        webTestClient.getScheduledMovementSyncMapping(12345L)
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class Security {
+      val mapping = ScheduledMovementSyncMappingDto(
+        "A1234BC",
+        12345L,
+        23456L,
+        UUID.randomUUID(),
+        mappingType = MovementMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/temporary-absence/scheduled-movement/nomis-event-id/12345")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/temporary-absence/scheduled-movement/nomis-event-id/12345")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/temporary-absence/scheduled-movement/nomis-event-id/12345")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.getScheduledMovementSyncMapping(nomisEventId: Long) = get()
+      .uri("/mapping/temporary-absence/scheduled-movement/nomis-event-id/$nomisEventId")
       .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
       .exchange()
   }

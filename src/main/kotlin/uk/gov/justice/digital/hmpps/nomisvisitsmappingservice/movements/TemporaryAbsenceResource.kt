@@ -209,4 +209,82 @@ class TemporaryAbsenceResource(
   suspend fun getOutsideMovementSyncMappingByNomisId(
     @PathVariable nomisApplicationMultiId: Long,
   ) = service.getOutsideMovementMappingByNomisId(nomisApplicationMultiId)
+
+  @PostMapping("/scheduled-movement")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates a mapping for a single scheduled movement",
+    description = "Creates a mapping for a single scheduled movement. Requires ROLE_NOMIS_MOVEMENTS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = ScheduledMovementSyncMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Scheduled movement mapping created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "The mapping already exists.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun createScheduledMovementSyncMapping(
+    @RequestBody mapping: ScheduledMovementSyncMappingDto,
+  ) = try {
+    service.createScheduledMovementMapping(mapping)
+  } catch (dke: DuplicateKeyException) {
+    val existing = getExistingScheduledMovementMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Scheduled movement mapping already exists",
+      duplicate = mapping,
+      existing = existing,
+      cause = dke,
+    )
+  }
+
+  private suspend fun getExistingScheduledMovementMappingSimilarTo(mapping: ScheduledMovementSyncMappingDto) = runCatching {
+    service.getScheduledMovementMappingByNomisId(mapping.nomisEventId)
+  }
+    .getOrElse {
+      service.getScheduledMovementMappingByDpsId(mapping.dpsScheduledMovementId)
+    }
+
+  @GetMapping("/scheduled-movement/nomis-event-id/{nomisEventId}")
+  @Operation(
+    summary = "Gets a mapping for a single scheduled movement by NOMIS event ID",
+    description = "Gets a mapping for a single scheduled movement by NOMIS event ID. Requires ROLE_NOMIS_MOVEMENTS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = ScheduledMovementSyncMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "200", description = "Scheduled movement mapping returned"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "The mapping does not exist.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getScheduledMovementSyncMappingByNomisId(
+    @PathVariable nomisEventId: Long,
+  ) = service.getScheduledMovementMappingByNomisId(nomisEventId)
 }
