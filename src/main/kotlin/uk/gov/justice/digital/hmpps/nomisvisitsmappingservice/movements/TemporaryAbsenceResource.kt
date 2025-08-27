@@ -341,6 +341,32 @@ class TemporaryAbsenceResource(
     @PathVariable nomisEventId: Long,
   ) = service.getScheduledMovementMappingByNomisId(nomisEventId)
 
+  @DeleteMapping("/scheduled-movement/nomis-event-id/{nomisEventId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes a mapping for a single scheduled movement by NOMIS event ID",
+    description = "Deletes a mapping for a single scheduled movement by NOMIS event ID. Requires ROLE_NOMIS_MOVEMENTS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = ScheduledMovementSyncMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "204", description = "Scheduled movement mapping deleted"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteScheduledMovementSyncMappingByNomisId(
+    @PathVariable nomisEventId: Long,
+  ) = service.deleteScheduledMovementMappingByNomisId(nomisEventId)
+
   @PostMapping("/external-movement")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -419,4 +445,31 @@ class TemporaryAbsenceResource(
     @PathVariable bookingId: Long,
     @PathVariable movementSeq: Int,
   ) = service.getExternalMovementMappingByNomisId(bookingId, movementSeq)
+
+  @DeleteMapping("/external-movement/nomis-movement-id/{bookingId}/{movementSeq}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes a mapping for a single temporary absence external movement by NOMIS booking ID and movement sequence",
+    description = "Deletes a mapping for a single temporary absence external movement by NOMIS booking ID and movement sequence. Requires ROLE_NOMIS_MOVEMENTS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = ExternalMovementSyncMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "204", description = "External movement mapping deleted"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteExternalMovementSyncMappingByNomisId(
+    @PathVariable bookingId: Long,
+    @PathVariable movementSeq: Int,
+  ) = service.deleteExternalMovementMappingByNomisId(bookingId, movementSeq)
 }

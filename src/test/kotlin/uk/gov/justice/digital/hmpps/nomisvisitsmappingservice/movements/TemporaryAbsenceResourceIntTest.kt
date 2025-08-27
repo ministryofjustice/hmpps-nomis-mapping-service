@@ -1232,6 +1232,89 @@ class TemporaryAbsenceResourceIntTest(
   }
 
   @Nested
+  @DisplayName("DELETE /mapping/temporary-absence/scheduled-movement/nomis-event-id/{nomisEventId}")
+  inner class DeleteNomisScheduledMovementMapping {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      scheduleRepository.deleteAll()
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping1 = TemporaryAbsenceScheduleMapping(
+        UUID.randomUUID(),
+        23456L,
+        "A1234BC",
+        12345L,
+        mappingType = MovementMappingType.NOMIS_CREATED,
+      )
+      val mapping2 = TemporaryAbsenceScheduleMapping(
+        UUID.randomUUID(),
+        65432L,
+        "A1234BC",
+        12345L,
+        mappingType = MovementMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `should delete scheduled movement mapping by NOMIS ID`() = runTest {
+        scheduleRepository.save(mapping1)
+        scheduleRepository.save(mapping2)
+
+        webTestClient.deleteScheduledMovementSyncMapping(mapping1.nomisScheduleId)
+          .expectStatus().isNoContent
+
+        assertThat(scheduleRepository.findByNomisScheduleId(mapping1.nomisScheduleId)).isNull()
+        assertThat(scheduleRepository.findByNomisScheduleId(mapping2.nomisScheduleId)).isNotNull
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `delete endpoint should be idempotent`() = runTest {
+        webTestClient.deleteScheduledMovementSyncMapping(12345L)
+          .expectStatus().isNoContent
+      }
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/temporary-absence/scheduled-movement/nomis-event-id/12345")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/temporary-absence/scheduled-movement/nomis-event-id/12345")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/temporary-absence/scheduled-movement/nomis-event-id/12345")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.deleteScheduledMovementSyncMapping(nomisEventId: Long) = delete()
+      .uri("/mapping/temporary-absence/scheduled-movement/nomis-event-id/$nomisEventId")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .exchange()
+  }
+
+  @Nested
   @DisplayName("POST /mapping/temporary-absence/external-movement")
   inner class CreateExternalMovementMapping {
 
@@ -1470,5 +1553,88 @@ class TemporaryAbsenceResourceIntTest(
       .uri("/mapping/temporary-absence/external-movement/nomis-movement-id/$bookingId/$movementSeq")
       .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
       .exchange()
+
+    @Nested
+    @DisplayName("DELETE /mapping/temporary-absence/external-movement/nomis-movement-id/{bookingId}/{movementSeq}")
+    inner class DeleteNomisExternalMovementMapping {
+
+      @AfterEach
+      fun tearDown() = runTest {
+        movementRepository.deleteAll()
+      }
+
+      @Nested
+      inner class HappyPath {
+        val mapping1 = TemporaryAbsenceMovementMapping(
+          UUID.randomUUID(),
+          12345L,
+          12,
+          "A1234BC",
+          mappingType = MovementMappingType.NOMIS_CREATED,
+        )
+        val mapping2 = TemporaryAbsenceMovementMapping(
+          UUID.randomUUID(),
+          12345L,
+          13,
+          "A1234BC",
+          mappingType = MovementMappingType.NOMIS_CREATED,
+        )
+
+        @Test
+        fun `should delete external movement mapping by NOMIS booking ID and movement sequence`() = runTest {
+          movementRepository.save(mapping1)
+          movementRepository.save(mapping2)
+
+          webTestClient.deleteExternalMovementSyncMapping(mapping1.nomisBookingId, mapping1.nomisMovementSeq)
+            .expectStatus().isNoContent
+
+          assertThat(movementRepository.findByNomisBookingIdAndNomisMovementSeq(mapping1.nomisBookingId, mapping1.nomisMovementSeq)).isNull()
+          assertThat(movementRepository.findByNomisBookingIdAndNomisMovementSeq(mapping2.nomisBookingId, mapping2.nomisMovementSeq)).isNotNull
+        }
+      }
+
+      @Nested
+      inner class Validation {
+        @Test
+        fun `delete endpoint should be idempotent`() = runTest {
+          webTestClient.deleteExternalMovementSyncMapping(12345L, 12)
+            .expectStatus().isNoContent
+        }
+      }
+
+      @Nested
+      inner class Security {
+        @Test
+        fun `access not authorised when no authority`() {
+          webTestClient.delete()
+            .uri("/mapping/temporary-absence/external-movement/nomis-movement-id/12345/12")
+            .exchange()
+            .expectStatus().isUnauthorized
+        }
+
+        @Test
+        fun `access forbidden when no role`() {
+          webTestClient.delete()
+            .uri("/mapping/temporary-absence/external-movement/nomis-movement-id/12345/12")
+            .headers(setAuthorisation(roles = listOf()))
+            .exchange()
+            .expectStatus().isForbidden
+        }
+
+        @Test
+        fun `access forbidden with wrong role`() {
+          webTestClient.delete()
+            .uri("/mapping/temporary-absence/external-movement/nomis-movement-id/12345/12")
+            .headers(setAuthorisation(roles = listOf("BANANAS")))
+            .exchange()
+            .expectStatus().isForbidden
+        }
+      }
+
+      private fun WebTestClient.deleteExternalMovementSyncMapping(bookingId: Long, movementSeq: Int) = delete()
+        .uri("/mapping/temporary-absence/external-movement/nomis-movement-id/$bookingId/$movementSeq")
+        .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+        .exchange()
+    }
   }
 }
