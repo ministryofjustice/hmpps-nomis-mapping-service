@@ -126,6 +126,8 @@ class TemporaryAbsenceService(
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for DPS scheduled movement id $dpsScheduledMovementId not found")
 
+  suspend fun deleteScheduledMovementMappingByNomisId(nomisEventId: Long) = scheduleRepository.deleteByNomisScheduleId(nomisEventId)
+
   suspend fun createExternalMovementMapping(mappingDto: ExternalMovementSyncMappingDto) = movementRepository.save(mappingDto.toMapping())
 
   suspend fun getExternalMovementMappingByNomisId(bookingId: Long, movementSeq: Int) = movementRepository.findByNomisBookingIdAndNomisMovementSeq(bookingId, movementSeq)
@@ -135,6 +137,8 @@ class TemporaryAbsenceService(
   suspend fun getExternalMovementMappingByDpsId(dpsExternalMovementId: UUID) = movementRepository.findById(dpsExternalMovementId)
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for DPS external movement id $dpsExternalMovementId not found")
+
+  suspend fun deleteExternalMovementMappingByNomisId(bookingId: Long, movementSeq: Int) = movementRepository.deleteByNomisBookingIdAndNomisMovementSeq(bookingId, movementSeq)
 }
 
 fun TemporaryAbsenceApplicationSyncMappingDto.toMapping(): TemporaryAbsenceApplicationMapping = TemporaryAbsenceApplicationMapping(
