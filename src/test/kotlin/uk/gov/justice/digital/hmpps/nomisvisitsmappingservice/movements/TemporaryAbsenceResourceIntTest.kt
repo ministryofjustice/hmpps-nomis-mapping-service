@@ -570,6 +570,89 @@ class TemporaryAbsenceResourceIntTest(
   }
 
   @Nested
+  @DisplayName("DELETE /mapping/temporary-absence/application/nomis-application-id/{nomisApplicationId}")
+  inner class DeleteNomisApplicationMapping {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      applicationRepository.deleteAll()
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping1 = TemporaryAbsenceApplicationMapping(
+        UUID.randomUUID(),
+        23456L,
+        "A1234BC",
+        12345L,
+        mappingType = MovementMappingType.NOMIS_CREATED,
+      )
+      val mapping2 = TemporaryAbsenceApplicationMapping(
+        UUID.randomUUID(),
+        65432L,
+        "A1234BC",
+        12345L,
+        mappingType = MovementMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `should delete application mapping by NOMIS ID`() = runTest {
+        applicationRepository.save(mapping1)
+        applicationRepository.save(mapping2)
+
+        webTestClient.deleteApplicationSyncMapping(mapping1.nomisApplicationId)
+          .expectStatus().isNoContent
+
+        assertThat(applicationRepository.findByNomisApplicationId(mapping1.nomisApplicationId)).isNull()
+        assertThat(applicationRepository.findByNomisApplicationId(mapping2.nomisApplicationId)).isNotNull
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `delete endpoint should be idempotent`() = runTest {
+        webTestClient.deleteApplicationSyncMapping(12345L)
+          .expectStatus().isNoContent
+      }
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/temporary-absence/application/nomis-application-id/12345")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/temporary-absence/application/nomis-application-id/12345")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/temporary-absence/application/nomis-application-id/12345")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.deleteApplicationSyncMapping(nomisApplicationId: Long) = delete()
+      .uri("/mapping/temporary-absence/application/nomis-application-id/$nomisApplicationId")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .exchange()
+  }
+
+  @Nested
   @DisplayName("POST /mapping/temporary-absence/outside-movement")
   inner class CreateOutsideMovementMapping {
 
@@ -812,6 +895,89 @@ class TemporaryAbsenceResourceIntTest(
     }
 
     private fun WebTestClient.getOutsideMovementSyncMapping(nomisApplicationMultiId: Long) = get()
+      .uri("/mapping/temporary-absence/outside-movement/nomis-application-multi-id/$nomisApplicationMultiId")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .exchange()
+  }
+
+  @Nested
+  @DisplayName("DELETE /mapping/temporary-absence/outside-movement/nomis-application-multi-id/{nomisApplicationMultiId}")
+  inner class DeleteNomisOutsideMovementMapping {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      appMultiRepository.deleteAll()
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping1 = TemporaryAbsenceAppMultiMapping(
+        UUID.randomUUID(),
+        23456L,
+        "A1234BC",
+        12345L,
+        mappingType = MovementMappingType.NOMIS_CREATED,
+      )
+      val mapping2 = TemporaryAbsenceAppMultiMapping(
+        UUID.randomUUID(),
+        65432L,
+        "A1234BC",
+        12345L,
+        mappingType = MovementMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `should delete outside movement mapping by NOMIS ID`() = runTest {
+        appMultiRepository.save(mapping1)
+        appMultiRepository.save(mapping2)
+
+        webTestClient.deleteOutsideMovementSyncMapping(mapping1.nomisAppMultiId)
+          .expectStatus().isNoContent
+
+        assertThat(appMultiRepository.findByNomisAppMultiId(mapping1.nomisAppMultiId)).isNull()
+        assertThat(appMultiRepository.findByNomisAppMultiId(mapping2.nomisAppMultiId)).isNotNull
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `delete endpoint should be idempotent`() = runTest {
+        webTestClient.deleteOutsideMovementSyncMapping(12345L)
+          .expectStatus().isNoContent
+      }
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/temporary-absence/outside-movement/nomis-application-multi-id/12345")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/temporary-absence/outside-movement/nomis-application-multi-id/12345")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/temporary-absence/outside-movement/nomis-application-multi-id/12345")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.deleteOutsideMovementSyncMapping(nomisApplicationMultiId: Long) = delete()
       .uri("/mapping/temporary-absence/outside-movement/nomis-application-multi-id/$nomisApplicationMultiId")
       .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
       .exchange()

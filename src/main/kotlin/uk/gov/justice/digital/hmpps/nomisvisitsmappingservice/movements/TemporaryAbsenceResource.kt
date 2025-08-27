@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -132,6 +133,32 @@ class TemporaryAbsenceResource(
     @PathVariable nomisApplicationId: Long,
   ) = service.getApplicationMappingByNomisId(nomisApplicationId)
 
+  @DeleteMapping("/application/nomis-application-id/{nomisApplicationId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes a mapping for a single temporary absence application by NOMIS ID",
+    description = "Deletes a mapping for a single temporary absence application by NOMIS ID. Requires ROLE_NOMIS_MOVEMENTS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = TemporaryAbsenceApplicationSyncMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "204", description = "Application does not exist"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteApplicationSyncMappingByNomisId(
+    @PathVariable nomisApplicationId: Long,
+  ) = service.deleteApplicationMappingByNomisId(nomisApplicationId)
+
   @PostMapping("/outside-movement")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -209,6 +236,32 @@ class TemporaryAbsenceResource(
   suspend fun getOutsideMovementSyncMappingByNomisId(
     @PathVariable nomisApplicationMultiId: Long,
   ) = service.getOutsideMovementMappingByNomisId(nomisApplicationMultiId)
+
+  @DeleteMapping("/outside-movement/nomis-application-multi-id/{nomisApplicationMultiId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes a mapping for a single temporary absence outside movement by NOMIS ID",
+    description = "Deletes a mapping for a single temporary absence outside movement by NOMIS ID. Requires ROLE_NOMIS_MOVEMENTS",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = TemporaryAbsenceOutsideMovementSyncMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "204", description = "Outside movement mapping deleted"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteOutsideMovementSyncMappingByNomisId(
+    @PathVariable nomisApplicationMultiId: Long,
+  ) = service.deleteOutsideMovementMappingByNomisId(nomisApplicationMultiId)
 
   @PostMapping("/scheduled-movement")
   @ResponseStatus(HttpStatus.CREATED)
