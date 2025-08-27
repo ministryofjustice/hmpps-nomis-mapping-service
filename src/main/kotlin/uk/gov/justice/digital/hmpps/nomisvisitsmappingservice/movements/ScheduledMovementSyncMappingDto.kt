@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import java.util.UUID
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Mapping for a single scheduled temporary absence")
+@Schema(description = "Mapping for a single scheduled movement")
 data class ScheduledMovementSyncMappingDto(
   @Schema(description = "The NOMIS offender number", example = "A1234BC")
   val prisonerNumber: String,
