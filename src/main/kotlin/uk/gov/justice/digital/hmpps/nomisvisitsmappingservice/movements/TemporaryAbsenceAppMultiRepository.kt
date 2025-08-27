@@ -7,5 +7,6 @@ import java.util.*
 @Repository
 interface TemporaryAbsenceAppMultiRepository : CoroutineCrudRepository<TemporaryAbsenceAppMultiMapping, UUID> {
   suspend fun findByNomisAppMultiId(nomisAppMultiId: Long): TemporaryAbsenceAppMultiMapping?
+  suspend fun deleteByNomisAppMultiId(nomisAppMultiId: Long)
   suspend fun deleteByOffenderNo(offenderNo: String)
 }
