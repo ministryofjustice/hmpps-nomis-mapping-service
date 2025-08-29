@@ -51,4 +51,7 @@ data class CourtAppearanceRecallMappingsDto(
     defaultValue = "DPS_CREATED",
   )
   val mappingType: CourtAppearanceRecallMappingType? = null,
+
+  @Schema(description = "Mappings that need updating")
+  val mappingsToUpdate: CourtCaseBatchUpdateMappingDto = CourtCaseBatchUpdateMappingDto(),
 )

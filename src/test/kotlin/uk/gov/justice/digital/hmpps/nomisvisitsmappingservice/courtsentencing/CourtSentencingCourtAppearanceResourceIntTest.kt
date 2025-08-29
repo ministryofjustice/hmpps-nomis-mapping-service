@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.helper.TestDuplica
 import uk.gov.justice.digital.hmpps.nomisvisitsmappingservice.integration.IntegrationTestBase
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 private const val NOMIS_COURT_APPEARANCE_ID = 4321L
 private const val NOMIS_COURT_APPEARANCE_2_ID = 9876L
@@ -32,6 +33,9 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var courtAppearanceRecallRepository: CourtAppearanceRecallMappingRepository
+
+  @Autowired
+  private lateinit var courtCaseMappingRepository: CourtCaseMappingRepository
 
   @Nested
   @DisplayName("GET /mapping/court-sentencing/court-appearances/dps-court-appearance-id/{courtAppearanceId}")
@@ -876,20 +880,43 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
   @Nested
   @DisplayName("POST /mapping/court-sentencing/court-appearances/recall")
   inner class CreateCourtAppearanceRecallMapping {
+    val fromNomisId = 99L
+    val toNomisId = 100L
+    val dpsId = UUID.randomUUID().toString()
+
     private val mapping = CourtAppearanceRecallMappingsDto(
       nomisCourtAppearanceIds = listOf(NOMIS_COURT_APPEARANCE_ID, NOMIS_COURT_APPEARANCE_2_ID),
       dpsRecallId = "f6ec6d17-a062-4272-9c21-1017b06d556c",
       label = "2023-01-01T12:45:12",
       mappingType = CourtAppearanceRecallMappingType.DPS_CREATED,
+      mappingsToUpdate = CourtCaseBatchUpdateMappingDto(
+        courtCases = listOf(SimpleCourtSentencingIdPair(fromNomisId, toNomisId)),
+        courtAppearances = listOf(SimpleCourtSentencingIdPair(fromNomisId, toNomisId)),
+      ),
     )
 
     @BeforeEach
     fun setUp() = runTest {
-      // No setup needed as we're creating new mappings
+      courtCaseMappingRepository.save(
+        CourtCaseMapping(
+          dpsCourtCaseId = dpsId,
+          nomisCourtCaseId = fromNomisId,
+          mappingType = CourtCaseMappingType.NOMIS_CREATED,
+        ),
+      )
+      repository.save(
+        CourtAppearanceMapping(
+          nomisCourtAppearanceId = fromNomisId,
+          dpsCourtAppearanceId = dpsId,
+          mappingType = CourtAppearanceMappingType.NOMIS_CREATED,
+        ),
+      )
     }
 
     @AfterEach
     fun tearDown() = runTest {
+      courtCaseMappingRepository.deleteAll()
+      repository.deleteAll()
       courtAppearanceRecallRepository.deleteAll()
     }
 
@@ -954,6 +981,23 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
         assertThat(secondMapping.nomisCourtAppearanceId).isEqualTo(NOMIS_COURT_APPEARANCE_2_ID)
         assertThat(secondMapping.dpsRecallId).isEqualTo(mapping.dpsRecallId)
         assertThat(secondMapping.mappingType).isEqualTo(mapping.mappingType)
+      }
+
+      @Test
+      fun `will also update any of the other supplied mappings`() = runTest {
+        assertThat(repository.findById(dpsId)?.nomisCourtAppearanceId).isEqualTo(fromNomisId)
+        assertThat(courtCaseMappingRepository.findById(dpsId)?.nomisCourtCaseId).isEqualTo(fromNomisId)
+
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/court-appearances/recall")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+
+        assertThat(repository.findById(dpsId)?.nomisCourtAppearanceId).isEqualTo(toNomisId)
+        assertThat(courtCaseMappingRepository.findById(dpsId)?.nomisCourtCaseId).isEqualTo(toNomisId)
       }
 
       @Test
