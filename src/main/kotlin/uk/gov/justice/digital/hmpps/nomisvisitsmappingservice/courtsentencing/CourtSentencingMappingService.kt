@@ -474,6 +474,8 @@ class CourtSentencingMappingService(
 
   @Transactional
   suspend fun createCourtAppearanceRecallMapping(createMappingRequest: CourtAppearanceRecallMappingsDto): Unit = with(createMappingRequest) {
+    updateAllMappingsByNomisId(createMappingRequest.mappingsToUpdate)
+
     courtAppearanceRecallMappingRepository.saveAll(this.toCourtAppearanceRecallMappings()).also {
       telemetryClient.trackEvent(
         "court-appearance-recall-mapping-created",
