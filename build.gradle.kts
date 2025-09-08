@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.0.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.0.1"
   kotlin("plugin.spring") version "2.2.10"
   kotlin("plugin.jpa") version "2.2.10"
   idea
@@ -24,7 +24,7 @@ dependencies {
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
   runtimeOnly("org.postgresql:postgresql:42.7.7")
 
-  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.12")
+  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.13")
 
   developmentOnly("org.springframework.boot:spring-boot-devtools")
 
