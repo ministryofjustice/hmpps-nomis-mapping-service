@@ -22,7 +22,7 @@ class PrisonerBalanceMapping(
     if (this === other) return true
     if (other !is PrisonerBalanceMapping) return false
 
-    return dpsId != other.dpsId
+    return dpsId == other.dpsId
   }
 
   override fun hashCode(): Int = dpsId.hashCode()
