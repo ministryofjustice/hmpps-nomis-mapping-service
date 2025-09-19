@@ -28,7 +28,7 @@ class VisitBalanceAdjustmentMapping(
     if (this === other) return true
     if (other !is VisitBalanceAdjustmentMapping) return false
 
-    return dpsId != other.dpsId
+    return dpsId == other.dpsId
   }
 
   override fun hashCode(): Int = dpsId.hashCode()
