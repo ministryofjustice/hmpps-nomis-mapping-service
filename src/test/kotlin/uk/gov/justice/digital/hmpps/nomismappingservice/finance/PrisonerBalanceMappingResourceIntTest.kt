@@ -647,7 +647,7 @@ class PrisonerBalanceMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isOk
         .expectBody()
-        .jsonPath("totalElements").isEqualTo(4)
+        .jsonPath("page.totalElements").isEqualTo(4)
         .jsonPath("$.content..nomisRootOffenderId").value(
           Matchers.contains(1001, 1002, 1003, 1004),
         )
@@ -661,7 +661,7 @@ class PrisonerBalanceMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isOk
         .expectBody()
-        .jsonPath("totalElements").isEqualTo(0)
+        .jsonPath("page.totalElements").isEqualTo(0)
         .jsonPath("content").isEmpty
     }
 
@@ -687,11 +687,10 @@ class PrisonerBalanceMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isOk
         .expectBody()
-        .jsonPath("totalElements").isEqualTo(6)
-        .jsonPath("numberOfElements").isEqualTo(2)
-        .jsonPath("number").isEqualTo(0)
-        .jsonPath("totalPages").isEqualTo(3)
-        .jsonPath("size").isEqualTo(2)
+        .jsonPath("page.totalElements").isEqualTo(6)
+        .jsonPath("page.number").isEqualTo(0)
+        .jsonPath("page.totalPages").isEqualTo(3)
+        .jsonPath("page.size").isEqualTo(2)
     }
   }
 }
