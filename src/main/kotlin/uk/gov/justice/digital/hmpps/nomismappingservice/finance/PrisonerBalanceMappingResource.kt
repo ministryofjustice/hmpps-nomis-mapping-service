@@ -108,7 +108,7 @@ class PrisonerBalanceMappingResource(private val service: PrisonerBalanceService
     ],
   )
   suspend fun getMappingByNomisId(
-    @Schema(description = "NOMIS prisoner balance id.", example = "1", required = true)
+    @Schema(description = "NOMIS root offender id", example = "123456", required = true)
     @PathVariable
     nomisRootOffenderId: Long,
   ): PrisonerBalanceMappingDto = service.getMappingByNomisId(nomisRootOffenderId = nomisRootOffenderId)
