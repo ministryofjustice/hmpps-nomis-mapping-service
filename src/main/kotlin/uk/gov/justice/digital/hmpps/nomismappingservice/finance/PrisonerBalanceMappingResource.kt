@@ -30,7 +30,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @PreAuthorize("hasRole('NOMIS_MAPPINGS_SYNCHRONISATION_RW')")
 @RequestMapping("/mapping/prisoner-balance", produces = [MediaType.APPLICATION_JSON_VALUE])
 class PrisonerBalanceMappingResource(private val service: PrisonerBalanceService) {
-  @PostMapping("")
+  @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a prisoner account balance mapping",
