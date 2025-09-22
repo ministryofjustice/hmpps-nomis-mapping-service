@@ -3,9 +3,9 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.finance
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PagedModel
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundException
@@ -31,7 +31,7 @@ class PrisonerBalanceService(
     repository.save(mapping.fromDto())
   }
 
-  suspend fun getMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<PrisonerBalanceMappingDto> = coroutineScope {
+  suspend fun getMappingsByMigrationId(pageRequest: Pageable, migrationId: String): PagedModel<PrisonerBalanceMappingDto> = coroutineScope {
     val mappings = async {
       repository.findAllByLabelAndMappingTypeOrderByLabelDesc(
         label = migrationId,
@@ -46,10 +46,12 @@ class PrisonerBalanceService(
         mappingType = PrisonerBalanceMappingType.MIGRATED,
       )
     }
-    PageImpl(
-      mappings.await().toList().map { it.toDto() },
-      pageRequest,
-      count.await(),
+    PagedModel(
+      PageImpl(
+        mappings.await().toList().map { it.toDto() },
+        pageRequest,
+        count.await(),
+      ),
     )
   }
 
