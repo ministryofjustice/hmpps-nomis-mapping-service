@@ -83,8 +83,8 @@ class PrisonBalanceMappingResource(private val service: PrisonBalanceService) {
 
   @GetMapping("/nomis-id/{nomisId}")
   @Operation(
-    summary = "Get prison balance mapping by Nomis rootOffenderId",
-    description = "Retrieves the prison balance mapping by Nomis rootOffenderId. Requires role ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW",
+    summary = "Get prison balance mapping by Nomis ID (Prison ID)",
+    description = "Retrieves the prison balance mapping by Nomis ID. Requires role ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW",
     responses = [
       ApiResponse(
         responseCode = "200",
