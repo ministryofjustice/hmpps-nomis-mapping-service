@@ -87,3 +87,8 @@ azure:
 
 casenotes.average-case-notes-per-prisoner: 134
 transactions.average-transactions-per-prisoner: 850
+
+visit-balance-adjustment.expiry:
+  days: 28
+  schedule:
+    cron: "0 0 2 * * *"
