@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
+import java.util.UUID
 
 @RestController
 @Validated
@@ -107,9 +108,6 @@ class TemporaryAbsenceResource(
   @Operation(
     summary = "Gets a mapping for a single temporary absence application by NOMIS ID",
     description = "Gets a mapping for a single temporary absence application by NOMIS ID. Requires ROLE_NOMIS_MOVEMENTS",
-    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = TemporaryAbsenceApplicationSyncMappingDto::class))],
-    ),
     responses = [
       ApiResponse(responseCode = "200", description = "Application mapping returned"),
       ApiResponse(
@@ -132,6 +130,33 @@ class TemporaryAbsenceResource(
   suspend fun getApplicationSyncMappingByNomisId(
     @PathVariable nomisApplicationId: Long,
   ) = service.getApplicationMappingByNomisId(nomisApplicationId)
+
+  @GetMapping("/application/dps-id/{dpsId}")
+  @Operation(
+    summary = "Gets a mapping for a single temporary absence application by DPS ID",
+    description = "Gets a mapping for a single temporary absence application by DPS ID. Requires ROLE_NOMIS_MOVEMENTS",
+    responses = [
+      ApiResponse(responseCode = "200", description = "Application mapping returned"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "The mapping does not exist.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getApplicationSyncMappingByDpsId(
+    @PathVariable dpsId: UUID,
+  ) = service.getApplicationMappingByDpsId(dpsId)
 
   @DeleteMapping("/application/nomis-application-id/{nomisApplicationId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -211,9 +236,6 @@ class TemporaryAbsenceResource(
   @Operation(
     summary = "Gets a mapping for a single temporary absence outside movement by NOMIS ID",
     description = "Gets a mapping for a single temporary absence outside movement by NOMIS ID. Requires ROLE_NOMIS_MOVEMENTS",
-    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = TemporaryAbsenceOutsideMovementSyncMappingDto::class))],
-    ),
     responses = [
       ApiResponse(responseCode = "200", description = "Outside movement mapping returned"),
       ApiResponse(
@@ -236,6 +258,33 @@ class TemporaryAbsenceResource(
   suspend fun getOutsideMovementSyncMappingByNomisId(
     @PathVariable nomisApplicationMultiId: Long,
   ) = service.getOutsideMovementMappingByNomisId(nomisApplicationMultiId)
+
+  @GetMapping("/outside-movement/dps-id/{dpsId}")
+  @Operation(
+    summary = "Gets a mapping for a single temporary absence outside movement by DPS ID",
+    description = "Gets a mapping for a single temporary absence outside movement by DPS ID. Requires ROLE_NOMIS_MOVEMENTS",
+    responses = [
+      ApiResponse(responseCode = "200", description = "Outside movement mapping returned"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "The mapping does not exist.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getOutsideMovementSyncMappingByDpsId(
+    @PathVariable dpsId: UUID,
+  ) = service.getOutsideMovementMappingByDpsId(dpsId)
 
   @DeleteMapping("/outside-movement/nomis-application-multi-id/{nomisApplicationMultiId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -315,9 +364,6 @@ class TemporaryAbsenceResource(
   @Operation(
     summary = "Gets a mapping for a single scheduled movement by NOMIS event ID",
     description = "Gets a mapping for a single scheduled movement by NOMIS event ID. Requires ROLE_NOMIS_MOVEMENTS",
-    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = ScheduledMovementSyncMappingDto::class))],
-    ),
     responses = [
       ApiResponse(responseCode = "200", description = "Scheduled movement mapping returned"),
       ApiResponse(
@@ -340,6 +386,33 @@ class TemporaryAbsenceResource(
   suspend fun getScheduledMovementSyncMappingByNomisId(
     @PathVariable nomisEventId: Long,
   ) = service.getScheduledMovementMappingByNomisId(nomisEventId)
+
+  @GetMapping("/scheduled-movement/dps-id/{dpsId}")
+  @Operation(
+    summary = "Gets a mapping for a single scheduled movement by DPS event ID",
+    description = "Gets a mapping for a single scheduled movement by DPS event ID. Requires ROLE_NOMIS_MOVEMENTS",
+    responses = [
+      ApiResponse(responseCode = "200", description = "Scheduled movement mapping returned"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "The mapping does not exist.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getScheduledMovementSyncMappingByDpsId(
+    @PathVariable dpsId: UUID,
+  ) = service.getScheduledMovementMappingByDpsId(dpsId)
 
   @DeleteMapping("/scheduled-movement/nomis-event-id/{nomisEventId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -419,9 +492,6 @@ class TemporaryAbsenceResource(
   @Operation(
     summary = "Gets a mapping for a single temporary absence external movement by NOMIS booking ID and movement sequence",
     description = "Gets a mapping for a single temporary absence external movement by NOMIS booking ID and movement sequence. Requires ROLE_NOMIS_MOVEMENTS",
-    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = ExternalMovementSyncMappingDto::class))],
-    ),
     responses = [
       ApiResponse(responseCode = "200", description = "External movement mapping returned"),
       ApiResponse(
@@ -445,6 +515,33 @@ class TemporaryAbsenceResource(
     @PathVariable bookingId: Long,
     @PathVariable movementSeq: Int,
   ) = service.getExternalMovementMappingByNomisId(bookingId, movementSeq)
+
+  @GetMapping("/external-movement/dps-id/{dpsId}")
+  @Operation(
+    summary = "Gets a mapping for a single temporary absence external movement by DPS ID",
+    description = "Gets a mapping for a single temporary absence external movement by DPS ID. Requires ROLE_NOMIS_MOVEMENTS",
+    responses = [
+      ApiResponse(responseCode = "200", description = "External movement mapping returned"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "The mapping does not exist.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getExternalMovementSyncMappingByDpsId(
+    @PathVariable dpsId: UUID,
+  ) = service.getExternalMovementMappingByDpsId(dpsId)
 
   @DeleteMapping("/external-movement/nomis-movement-id/{bookingId}/{movementSeq}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
