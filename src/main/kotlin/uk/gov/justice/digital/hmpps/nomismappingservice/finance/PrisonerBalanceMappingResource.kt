@@ -67,7 +67,7 @@ class PrisonerBalanceMappingResource(private val service: PrisonerBalanceService
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createPrisonerMapping(
     @RequestBody @Valid
     mapping: PrisonerBalanceMappingDto,
   ) = try {
@@ -107,7 +107,7 @@ class PrisonerBalanceMappingResource(private val service: PrisonerBalanceService
       ),
     ],
   )
-  suspend fun getMappingByNomisId(
+  suspend fun getPrisonerMappingByNomisId(
     @Schema(description = "NOMIS root offender id", example = "123456", required = true)
     @PathVariable
     nomisRootOffenderId: Long,
@@ -139,7 +139,7 @@ class PrisonerBalanceMappingResource(private val service: PrisonerBalanceService
       ),
     ],
   )
-  suspend fun getMappingByDpsId(
+  suspend fun getPrisonerMappingByDpsId(
     @Schema(description = "DPS id", example = "A1234BC", required = true)
     @PathVariable
     dpsId: String,
@@ -167,7 +167,7 @@ class PrisonerBalanceMappingResource(private val service: PrisonerBalanceService
     ],
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  suspend fun deleteMappingByDpsId(
+  suspend fun deletePrisonerMappingByDpsId(
     @Schema(description = "DPS id", example = "A1234BC", required = true)
     @PathVariable
     dpsId: String,
@@ -193,7 +193,7 @@ class PrisonerBalanceMappingResource(private val service: PrisonerBalanceService
       ),
     ],
   )
-  suspend fun deleteAllMappings() = service.deleteAllMappings()
+  suspend fun deleteAllPrisonerMappings() = service.deleteAllMappings()
 
   @GetMapping("/migration-id/{migrationId}")
   @Operation(
@@ -216,7 +216,7 @@ class PrisonerBalanceMappingResource(private val service: PrisonerBalanceService
       ),
     ],
   )
-  suspend fun getMappingByMigrationId(
+  suspend fun getPrisonerMappingByMigrationId(
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
