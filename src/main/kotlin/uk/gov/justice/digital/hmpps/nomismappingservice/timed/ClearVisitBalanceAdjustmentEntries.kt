@@ -1,4 +1,5 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.timed
+import com.microsoft.applicationinsights.TelemetryClient
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
@@ -14,12 +15,13 @@ import kotlin.jvm.javaClass
 class ClearVisitBalanceAdjustmentEntries(
   @Value("\${visit-balance-adjustment.expiry.days:28}") val expiryDays: Long,
   private val service: ClearVisitBalanceAdjustmentService,
-
+  private val telemetryClient: TelemetryClient,
 ) {
   @Scheduled(cron = "\${visit-balance-adjustment.expiry.schedule.cron}")
   suspend fun removeOldVisitBalanceAdjustment() {
     try {
       service.clearExpiredEntries(expiryDays)
+      telemetryClient.trackEvent("Cleared visit balance adjustment entries for last $expiryDays days")
     } catch (e: Exception) {
       // have to catch the exception here otherwise scheduling will stop
       log.error("Caught exception {} during removal of old visit balance adjustment entries", e.javaClass.simpleName, e)
