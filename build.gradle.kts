@@ -25,6 +25,7 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql:42.7.8")
 
   implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.13")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:6.10.0")
 
   developmentOnly("org.springframework.boot:spring-boot-devtools")
 
