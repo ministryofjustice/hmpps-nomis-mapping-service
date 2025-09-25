@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.timed
 import com.microsoft.applicationinsights.TelemetryClient
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
@@ -17,6 +18,11 @@ class ClearVisitBalanceAdjustmentEntries(
   private val service: ClearVisitBalanceAdjustmentService,
   private val telemetryClient: TelemetryClient,
 ) {
+  @SchedulerLock(
+    name = "Clear expired visit adjustment mappings",
+    lockAtLeastFor = "PT1M",
+    lockAtMostFor = "PT5M",
+  )
   @Scheduled(cron = "\${visit-balance-adjustment.expiry.schedule.cron}")
   suspend fun removeOldVisitBalanceAdjustment() {
     try {
