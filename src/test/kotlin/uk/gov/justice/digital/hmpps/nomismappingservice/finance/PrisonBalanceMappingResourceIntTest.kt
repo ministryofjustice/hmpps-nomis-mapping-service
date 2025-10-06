@@ -82,7 +82,7 @@ class PrisonBalanceMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 404 when mapping does not exist`() {
         webTestClient.get()
           .uri("/mapping/prison-balance/nomis-id/9999")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -91,7 +91,7 @@ class PrisonBalanceMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 200 when mapping does exist`() {
         webTestClient.get()
           .uri("/mapping/prison-balance/nomis-id/${mapping.nomisId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -163,7 +163,7 @@ class PrisonBalanceMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 404 when mapping does not exist`() {
         webTestClient.get()
           .uri("/mapping/prison-balance/dps-id/DOESNOTEXIST")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -172,7 +172,7 @@ class PrisonBalanceMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 200 when mapping does exist`() {
         webTestClient.get()
           .uri("/mapping/prison-balance/dps-id/${mapping.dpsId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -244,7 +244,7 @@ class PrisonBalanceMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 204 even when mapping does not exist`() {
         webTestClient.delete()
           .uri("/mapping/prison-balance/dps-id/DOESNOTEXIST")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -253,19 +253,19 @@ class PrisonBalanceMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 204 when mapping does exist and is deleted`() {
         webTestClient.get()
           .uri("/mapping/prison-balance/dps-id/${mapping.dpsId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
 
         webTestClient.delete()
           .uri("/mapping/prison-balance/dps-id/${mapping.dpsId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
         webTestClient.get()
           .uri("/mapping/prison-balance/dps-id/${mapping.dpsId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -341,7 +341,7 @@ class PrisonBalanceMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mapping created`() = runTest {
         webTestClient.post()
           .uri("/mapping/prison-balance")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -365,7 +365,7 @@ class PrisonBalanceMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when mapping type is invalid`() {
         webTestClient.post()
           .uri("/mapping/prison-balance")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -387,7 +387,7 @@ class PrisonBalanceMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when DPS id is missing`() {
         webTestClient.post()
           .uri("/mapping/prison-balance")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -407,7 +407,7 @@ class PrisonBalanceMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when NOMIS id is missing`() {
         webTestClient.post()
           .uri("/mapping/prison-balance")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -428,7 +428,7 @@ class PrisonBalanceMappingResourceIntTest : IntegrationTestBase() {
         val dpsId = "LEI"
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/prison-balance")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -460,7 +460,7 @@ class PrisonBalanceMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 409 if dps id already exist`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/prison-balance")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -566,7 +566,7 @@ class PrisonBalanceMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.delete()
           .uri("/mapping/prison-balance")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
@@ -642,7 +642,7 @@ class PrisonBalanceMappingResourceIntTest : IntegrationTestBase() {
       )
 
       webTestClient.get().uri("/mapping/prison-balance/migration-id/2023-01-01T12:45:12")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -656,7 +656,7 @@ class PrisonBalanceMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `200 response even when no mappings are found`() {
       webTestClient.get().uri("/mapping/prison-balance/migration-id/2044-01-01")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -682,7 +682,7 @@ class PrisonBalanceMappingResourceIntTest : IntegrationTestBase() {
           .queryParam("sort", "nomisId,asc")
           .build()
       }
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
