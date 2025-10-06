@@ -28,14 +28,14 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('NOMIS_TRANSACTIONS')")
+@PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/transactions", produces = [MediaType.APPLICATION_JSON_VALUE])
 class TransactionMappingResource(private val mappingService: TransactionMappingService) {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new transaction mapping",
-    description = "Creates a mapping between nomis transaction id and dps transaction id. Requires ROLE_NOMIS_TRANSACTIONS",
+    description = "Creates a mapping between nomis transaction id and dps transaction id. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = TransactionMappingDto::class))],
     ),
@@ -81,7 +81,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a batch of new transaction mappings",
-    description = "Creates a mapping between a batch of nomis transaction ids and dps transaction ids. Requires ROLE_NOMIS_TRANSACTIONS",
+    description = "Creates a mapping between a batch of nomis transaction ids and dps transaction ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -135,7 +135,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
   @GetMapping("{offenderNo}/all")
   @Operation(
     summary = "Gets all transaction mappings for a prisoner",
-    description = "Gets all the mappings between nomis transaction ids and dps transaction ids related to specific prisoner created either via migration or synchronisation. Requires ROLE_NOMIS_TRANSACTIONS",
+    description = "Gets all the mappings between nomis transaction ids and dps transaction ids related to specific prisoner created either via migration or synchronisation. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Mappings for prisoner"),
       ApiResponse(
@@ -159,7 +159,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
   @GetMapping("/nomis-transaction-id/{transactionId}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by NOMIS id. Requires role NOMIS_TRANSACTIONS",
+    description = "Retrieves a mapping by NOMIS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Mapping Information Returned"),
       ApiResponse(
@@ -183,7 +183,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
   @PostMapping("/nomis-transaction-id")
   @Operation(
     summary = "get mappings by Nomis id",
-    description = "Retrieves multiple mappings by NOMIS transaction id. Requires role NOMIS_TRANSACTIONS",
+    description = "Retrieves multiple mappings by NOMIS transaction id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Mapping Information Returned"),
       ApiResponse(
@@ -207,7 +207,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
   @GetMapping("/dps-transaction-id/{dpsTransactionId}")
   @Operation(
     summary = "Retrieves mapping by DPS id",
-    description = "Requires role NOMIS_TRANSACTIONS",
+    description = "Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Mapping Information Returned"),
       ApiResponse(
@@ -228,11 +228,10 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
     dpsTransactionId: String,
   ): TransactionMappingDto = mappingService.getMappingByDpsId(dpsTransactionId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_TRANSACTIONS')")
   @GetMapping("/migrated/latest")
   @Operation(
     summary = "get the latest mapping for a migration",
-    description = "Requires role NOMIS_TRANSACTIONS",
+    description = "Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Mapping Information Returned"),
       ApiResponse(
@@ -277,7 +276,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
   @DeleteMapping("/nomis-transaction-id/{nomisTransactionId}")
   @Operation(
     summary = "Deletes mapping",
-    description = "Deletes a mapping by Nomis id. Requires role NOMIS_TRANSACTIONS",
+    description = "Deletes a mapping by Nomis id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "204", description = "Mapping Deleted"),
       ApiResponse(
@@ -302,7 +301,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
   @DeleteMapping("/dps-transaction-id/{dpsTransactionId}")
   @Operation(
     summary = "Deletes mapping",
-    description = "Deletes mapping by DPS id. Requires role NOMIS_TRANSACTIONS",
+    description = "Deletes mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "204", description = "Mapping Deleted"),
       ApiResponse(
@@ -327,7 +326,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
   @PutMapping("/merge/from/{oldOffenderNo}/to/{newOffenderNo}")
   @Operation(
     summary = "Replaces all occurrences of the 'from' id with the 'to' id in the mapping table",
-    description = "Used for update after a prisoner number merge. Requires role ROLE_NOMIS_TRANSACTIONS",
+    description = "Used for update after a prisoner number merge. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Replacement made, or not present in table"),
       ApiResponse(
@@ -351,7 +350,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
   @PutMapping("/merge/booking-id/{bookingId}/to/{newOffenderNo}")
   @Operation(
     summary = "For all transactions with the given booking id in the mapping table, sets the offender no to the given 'to' id",
-    description = "Used for update after a booking has been moved from one offender to another. Returns the affected transactions. Requires role ROLE_NOMIS_TRANSACTIONS",
+    description = "Used for update after a booking has been moved from one offender to another. Returns the affected transactions. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Replacement made, or not present in table"),
       ApiResponse(

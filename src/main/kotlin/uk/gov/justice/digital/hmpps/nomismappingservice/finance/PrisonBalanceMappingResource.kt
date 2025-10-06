@@ -27,14 +27,14 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('NOMIS_MAPPINGS_SYNCHRONISATION_RW')")
+@PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/prison-balance", produces = [MediaType.APPLICATION_JSON_VALUE])
 class PrisonBalanceMappingResource(private val service: PrisonBalanceService) {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a prison account balance mapping",
-    description = "Creates a prison account balance mapping. Requires ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW",
+    description = "Creates a prison account balance mapping. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -84,7 +84,7 @@ class PrisonBalanceMappingResource(private val service: PrisonBalanceService) {
   @GetMapping("/nomis-id/{nomisId}")
   @Operation(
     summary = "Get prison balance mapping by Nomis ID (Prison ID)",
-    description = "Retrieves the prison balance mapping by Nomis ID. Requires role ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW",
+    description = "Retrieves the prison balance mapping by Nomis ID. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -116,7 +116,7 @@ class PrisonBalanceMappingResource(private val service: PrisonBalanceService) {
   @GetMapping("/dps-id/{dpsId}")
   @Operation(
     summary = "Get prison balance mapping by DPS id",
-    description = "Retrieves the prison balance mapping by DPS id. Requires role ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW",
+    description = "Retrieves the prison balance mapping by DPS id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -148,7 +148,7 @@ class PrisonBalanceMappingResource(private val service: PrisonBalanceService) {
   @DeleteMapping("/dps-id/{dpsId}")
   @Operation(
     summary = "Deletes a Prison balance mapping",
-    description = "Deletes a Prison balance mapping by DPS id. Requires role NOMIS_MAPPINGS_SYNCHRONISATION_RW",
+    description = "Deletes a Prison balance mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -178,7 +178,7 @@ class PrisonBalanceMappingResource(private val service: PrisonBalanceService) {
   @Operation(
     summary = "Deletes all prison balance mappings",
     description = """Deletes all prison balance mappings regardless of source.
-      This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW""",
+      This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
     responses = [
       ApiResponse(responseCode = "204", description = "All mappings deleted"),
       ApiResponse(
@@ -198,7 +198,7 @@ class PrisonBalanceMappingResource(private val service: PrisonBalanceService) {
   @GetMapping("/migration-id/{migrationId}")
   @Operation(
     summary = "Get paged Prison balance mappings by migration id",
-    description = "Retrieve all Prison balance mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role ROLE_NOMIS_MAPPINGS_SYNCHRONISATION_RW",
+    description = "Retrieve all Prison balance mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
