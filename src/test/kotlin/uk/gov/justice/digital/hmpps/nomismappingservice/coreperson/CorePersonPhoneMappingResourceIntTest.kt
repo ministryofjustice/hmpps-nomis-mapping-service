@@ -88,7 +88,7 @@ class CorePersonPhoneMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/core-person/phone/nomis-phone-id/{nomisPhoneId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -100,7 +100,7 @@ class CorePersonPhoneMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/core-person/phone/nomis-phone-id/{nomisPhoneId}", nomisPhoneId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -179,7 +179,7 @@ class CorePersonPhoneMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/core-person/phone/cpr-phone-id/{cprPhoneId}", "99999")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -188,7 +188,7 @@ class CorePersonPhoneMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found even when address phone with same ID exists`() {
         webTestClient.get()
           .uri("/mapping/core-person/phone/cpr-core-address-phone-id/{cprCoreAddressPhoneId}", cprPhoneId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -200,7 +200,7 @@ class CorePersonPhoneMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/core-person/phone/cpr-phone-id/{cprPhoneId}", cprPhoneId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()

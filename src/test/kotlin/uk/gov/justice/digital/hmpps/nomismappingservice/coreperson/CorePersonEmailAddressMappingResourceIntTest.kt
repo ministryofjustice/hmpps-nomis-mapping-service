@@ -87,7 +87,7 @@ class CorePersonEmailAddressMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/core-person/email/nomis-email-address-id/{nomisEmailAddressId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -99,7 +99,7 @@ class CorePersonEmailAddressMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/core-person/email/nomis-email-address-id/{nomisEmailAddressId}", nomisEmailAddressId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -176,7 +176,7 @@ class CorePersonEmailAddressMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/core-person/email/cpr-email-address-id/{cprEmailAddressId}", "99999")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -188,7 +188,7 @@ class CorePersonEmailAddressMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/core-person/email/cpr-email-address-id/{cprEmailAddressId}", cprEmailAddressId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()

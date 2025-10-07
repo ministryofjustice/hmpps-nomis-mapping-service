@@ -81,7 +81,7 @@ class VisitBalanceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 404 when mapping does not exist`() {
         webTestClient.get()
           .uri("/mapping/visit-balance-adjustment/nomis-id/9999")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -90,7 +90,7 @@ class VisitBalanceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 200 when mapping does exist`() {
         webTestClient.get()
           .uri("/mapping/visit-balance-adjustment/nomis-id/${mapping.nomisId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -162,7 +162,7 @@ class VisitBalanceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       fun `will return empty list when mapping does not exist`() {
         webTestClient.get()
           .uri("/mapping/visit-balance-adjustment/dps-id/DOESNOTEXIST")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -173,7 +173,7 @@ class VisitBalanceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 200 when mapping does exist`() {
         webTestClient.get()
           .uri("/mapping/visit-balance-adjustment/dps-id/${mapping.dpsId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -245,7 +245,7 @@ class VisitBalanceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 204 even when mapping does not exist`() {
         webTestClient.delete()
           .uri("/mapping/visit-balance-adjustment/dps-id/DOESNOTEXIST")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -254,7 +254,7 @@ class VisitBalanceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 204 when mapping does exist and is deleted`() {
         webTestClient.get()
           .uri("/mapping/visit-balance-adjustment/dps-id/${mapping.dpsId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -262,13 +262,13 @@ class VisitBalanceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.delete()
           .uri("/mapping/visit-balance-adjustment/dps-id/${mapping.dpsId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
         webTestClient.get()
           .uri("/mapping/visit-balance-adjustment/dps-id/${mapping.dpsId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -290,7 +290,7 @@ class VisitBalanceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.get()
           .uri("/mapping/visit-balance-adjustment/dps-id/${mapping.dpsId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -298,13 +298,13 @@ class VisitBalanceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.delete()
           .uri("/mapping/visit-balance-adjustment/dps-id/${mapping.dpsId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
         webTestClient.get()
           .uri("/mapping/visit-balance-adjustment/dps-id/${mapping.dpsId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -382,7 +382,7 @@ class VisitBalanceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mapping created`() = runTest {
         webTestClient.post()
           .uri("/mapping/visit-balance-adjustment")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -406,7 +406,7 @@ class VisitBalanceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when mapping type is invalid`() {
         webTestClient.post()
           .uri("/mapping/visit-balance-adjustment")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -428,7 +428,7 @@ class VisitBalanceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when DPS id is missing`() {
         webTestClient.post()
           .uri("/mapping/visit-balance-adjustment")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -448,7 +448,7 @@ class VisitBalanceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when NOMIS id is missing`() {
         webTestClient.post()
           .uri("/mapping/visit-balance-adjustment")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -469,7 +469,7 @@ class VisitBalanceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         val dpsId = UUID.randomUUID().toString()
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/visit-balance-adjustment")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -502,7 +502,7 @@ class VisitBalanceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
         val nomisVisitBalanceAdjustmentId = -1L
         webTestClient.post()
           .uri("/mapping/visit-balance-adjustment")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -594,7 +594,7 @@ class VisitBalanceAdjustmentMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.delete()
           .uri("/mapping/visit-balance-adjustment")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISIT_BALANCE")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
