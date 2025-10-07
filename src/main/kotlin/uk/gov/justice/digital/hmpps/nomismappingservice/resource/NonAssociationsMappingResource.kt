@@ -33,14 +33,14 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RestController
 @Validated
 @RequestMapping("/mapping/non-associations", produces = [MediaType.APPLICATION_JSON_VALUE])
-@PreAuthorize("hasRole('ROLE_NOMIS_NON_ASSOCIATIONS')")
+@PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 class NonAssociationsMappingResource(private val mappingService: NonAssociationMappingService) {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new Non-association mapping",
-    description = "Creates a mapping between a Nomis non-association and non-association instance id. Requires role NOMIS_NON_ASSOCIATIONS",
+    description = "Creates a mapping between a Nomis non-association and non-association instance id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -89,7 +89,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
   @GetMapping("/first-offender-no/{firstOffenderNo}/second-offender-no/{secondOffenderNo}/type-sequence/{typeSequence}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by firstOffenderNo, secondOffenderNo and Nomis type sequence. Requires role NOMIS_NON_ASSOCIATIONS",
+    description = "Retrieves a mapping by firstOffenderNo, secondOffenderNo and Nomis type sequence. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -125,7 +125,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
   @GetMapping("/non-association-id/{nonAssociationId}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by Non-Association Id. Requires role NOMIS_NON_ASSOCIATIONS",
+    description = "Retrieves a mapping by Non-Association Id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -185,7 +185,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
   @GetMapping("/migrated/latest")
   @Operation(
     summary = "get the latest mapping for a migration",
-    description = "Requires role NOMIS_NON_ASSOCIATIONS",
+    description = "Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -215,7 +215,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a specific non-association mapping by nonAssociationId",
-    description = "Deletes the non-association from the mapping table. Requires role NOMIS_NON_ASSOCIATIONS",
+    description = "Deletes the non-association from the mapping table. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -238,7 +238,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes non-association mappings.",
-    description = "Deletes all rows from the non-associations mapping table. Requires role NOMIS_NON_ASSOCIATIONS",
+    description = "Deletes all rows from the non-associations mapping table. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -263,7 +263,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
   @PutMapping("/merge/from/{oldOffenderNo}/to/{newOffenderNo}")
   @Operation(
     summary = "Replaces all occurrences of the 'from' id with the 'to' id in the mapping table",
-    description = "Used for update after a prisoner number merge. Requires role NOMIS_NON_ASSOCIATIONS",
+    description = "Used for update after a prisoner number merge. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Replacement made, or not present in table"),
       ApiResponse(
@@ -290,7 +290,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
   @PutMapping("/update-list/from/{oldOffenderNo}/to/{newOffenderNo}")
   @Operation(
     summary = "Updates mappings in list",
-    description = "Updates mappings for a given list of non-association pairs. Requires role NOMIS_NON_ASSOCIATIONS",
+    description = "Updates mappings for a given list of non-association pairs. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Mappings updated"),
       ApiResponse(

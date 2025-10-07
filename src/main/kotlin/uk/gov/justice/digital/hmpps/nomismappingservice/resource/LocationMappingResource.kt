@@ -34,12 +34,12 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RequestMapping("/", produces = [MediaType.APPLICATION_JSON_VALUE])
 class LocationMappingResource(private val mappingService: LocationMappingService) {
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_LOCATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PostMapping("/mapping/locations")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new Location mapping",
-    description = "Creates a mapping between a Nomis location id and a DPS location id. Requires role NOMIS_LOCATIONS",
+    description = "Creates a mapping between a Nomis location id and a DPS location id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -85,11 +85,11 @@ class LocationMappingResource(private val mappingService: LocationMappingService
     )
   }
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_LOCATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/locations/nomis/{nomisLocationId}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by Nomis location id. Requires role NOMIS_LOCATIONS",
+    description = "Retrieves a mapping by Nomis location id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -116,11 +116,11 @@ class LocationMappingResource(private val mappingService: LocationMappingService
     nomisLocationId: Long,
   ): LocationMappingDto = mappingService.getMappingByNomisId(nomisLocationId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_LOCATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/locations/dps/{dpsLocationId}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by DPS Location Id. Requires role NOMIS_LOCATIONS",
+    description = "Retrieves a mapping by DPS Location Id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -147,7 +147,7 @@ class LocationMappingResource(private val mappingService: LocationMappingService
     dpsLocationId: String,
   ): LocationMappingDto = mappingService.getMappingByDpsId(dpsLocationId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_LOCATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/locations/migration-id/{migrationId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
@@ -178,11 +178,11 @@ class LocationMappingResource(private val mappingService: LocationMappingService
     migrationId: String,
   ): Page<LocationMappingDto> = mappingService.getMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_LOCATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/locations/migrated/latest")
   @Operation(
     summary = "get the latest mapping for a migration",
-    description = "Requires role NOMIS_LOCATIONS",
+    description = "Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -208,12 +208,12 @@ class LocationMappingResource(private val mappingService: LocationMappingService
   )
   suspend fun getLatestMigratedMapping(): LocationMappingDto = mappingService.getMappingForLatestMigrated()
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_LOCATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @DeleteMapping("/mapping/locations/dps/{locationId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a specific location mapping by DPS location id",
-    description = "Deletes the location from the mapping table. Requires role NOMIS_LOCATIONS",
+    description = "Deletes the location from the mapping table. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -232,12 +232,12 @@ class LocationMappingResource(private val mappingService: LocationMappingService
     locationId: String,
   ) = mappingService.deleteMapping(locationId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_LOCATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @DeleteMapping("/mapping/locations/nomis/{locationId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a specific location mapping by Nomis location id",
-    description = "Deletes the location from the mapping table. Requires role NOMIS_LOCATIONS",
+    description = "Deletes the location from the mapping table. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -256,12 +256,12 @@ class LocationMappingResource(private val mappingService: LocationMappingService
     locationId: Long,
   ) = mappingService.deleteMapping(locationId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_LOCATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @DeleteMapping("/mapping/locations")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes location mappings.",
-    description = "Deletes all rows from the locations mapping table. Requires role NOMIS_LOCATIONS",
+    description = "Deletes all rows from the locations mapping table. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",

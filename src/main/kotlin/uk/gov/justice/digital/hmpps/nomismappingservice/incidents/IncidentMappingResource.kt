@@ -29,7 +29,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('ROLE_NOMIS_INCIDENTS')")
+@PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/incidents", produces = [MediaType.APPLICATION_JSON_VALUE])
 class IncidentMappingResource(private val mappingService: IncidentMappingService) {
 
@@ -37,7 +37,7 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new Incident Report mapping",
-    description = "Creates a mapping between a Nomis incident report id and DPS Incident report id. Requires role NOMIS_INCIDENTS",
+    description = "Creates a mapping between a Nomis incident report id and DPS Incident report id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -81,7 +81,7 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
   @GetMapping("/nomis-incident-id/{nomisIncidentId}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by nomisIncidentId. Requires role NOMIS_INCIDENTS",
+    description = "Retrieves a mapping by nomisIncidentId. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -111,7 +111,7 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
   @GetMapping("/dps-incident-id/{dpsIncidentId}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by DPS Incident Id. Requires role NOMIS_INCIDENTS",
+    description = "Retrieves a mapping by DPS Incident Id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -141,7 +141,7 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
   @GetMapping("/nomis-incident-id")
   @Operation(
     summary = "get a list of mappings for Nomis Incident id",
-    description = "Retrieves matching mappings for a list of NOMIS Incident ids. Requires role NOMIS_INCIDENTS",
+    description = "Retrieves matching mappings for a list of NOMIS Incident ids. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -167,7 +167,7 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a specific incident mapping by DPS incident id",
-    description = "Deletes the incident from the mapping table. Requires role NOMIS_INCIDENTS",
+    description = "Deletes the incident from the mapping table. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -190,7 +190,7 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes incident mappings.",
-    description = "Deletes all rows from the incidents mapping table. Requires role NOMIS_INCIDENTS",
+    description = "Deletes all rows from the incidents mapping table. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -245,7 +245,7 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
   @GetMapping("/migrated/latest")
   @Operation(
     summary = "get the latest mapping for a migration",
-    description = "Requires role NOMIS_INCIDENTS",
+    description = "Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",

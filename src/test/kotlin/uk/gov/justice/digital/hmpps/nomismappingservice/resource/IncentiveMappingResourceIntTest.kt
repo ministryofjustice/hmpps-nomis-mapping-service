@@ -77,7 +77,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     mappingType: String = NOMIS_CREATED.name,
   ) {
     webTestClient.post().uri("/mapping/incentives")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         BodyInserters.fromValue(
@@ -132,7 +132,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     @Test
     internal fun `create mapping succeeds when the same mapping already exists for the same IEP`() {
       webTestClient.post().uri("/mapping/incentives")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -149,7 +149,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/incentives")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -172,7 +172,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
       val responseBody =
         webTestClient.post().uri("/mapping/incentives")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(createIncentiveMapping().copy(incentiveId = 99)))
           .exchange()
@@ -209,7 +209,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
       val responseBody =
         webTestClient.post().uri("/mapping/incentives")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(createIncentiveMapping().copy(nomisBookingId = 21)))
           .exchange()
@@ -243,7 +243,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create mapping success`() {
       webTestClient.post().uri("/mapping/incentives")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -261,7 +261,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
       val mapping1 =
         webTestClient.get().uri("/mapping/incentives/nomis-booking-id/$bookingId/nomis-incentive-sequence/$sequence")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody(IncentiveMappingDto::class.java)
@@ -274,7 +274,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping1.mappingType).isEqualTo("INCENTIVE_CREATED")
 
       val mapping2 = webTestClient.get().uri("/mapping/incentives/incentive-id/$incentiveId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(IncentiveMappingDto::class.java)
@@ -290,7 +290,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create mapping - Duplicate db error`() = runTest {
       webTestClient.post().uri("/mapping/incentives")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -312,7 +312,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
       val responseBody =
         webTestClient.post().uri("/mapping/incentives")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -372,7 +372,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success`() {
       webTestClient.post().uri("/mapping/incentives")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createIncentiveMapping()))
         .exchange()
@@ -380,7 +380,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
       val mapping =
         webTestClient.get().uri("/mapping/incentives/nomis-booking-id/$bookingId/nomis-incentive-sequence/$sequence")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody(IncentiveMappingDto::class.java)
@@ -396,7 +396,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `mapping not found`() {
       val error = webTestClient.get().uri("/mapping/incentives/incentive-id/99999")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody(ErrorResponse::class.java)
@@ -408,14 +408,14 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success with update role`() {
       webTestClient.post().uri("/mapping/incentives")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createIncentiveMapping()))
         .exchange()
         .expectStatus().isCreated
 
       webTestClient.get().uri("/mapping/incentives/nomis-booking-id/$bookingId/nomis-incentive-sequence/$sequence")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
     }
@@ -456,7 +456,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get retrieves latest migrated mapping`() {
       webTestClient.post().uri("/mapping/incentives")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -473,7 +473,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/incentives")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -490,7 +490,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/incentives")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -507,7 +507,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/incentives")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -524,7 +524,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       val mapping = webTestClient.get().uri("/mapping/incentives/migrated/latest")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(IncentiveMappingDto::class.java)
@@ -542,7 +542,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `404 when no migrated mapping found`() {
       webTestClient.post().uri("/mapping/incentives")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -559,7 +559,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       val error = webTestClient.get().uri("/mapping/incentives/migrated/latest")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody(ErrorResponse::class.java)
@@ -604,14 +604,14 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success`() {
       webTestClient.post().uri("/mapping/incentives")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createIncentiveMapping()))
         .exchange()
         .expectStatus().isCreated
 
       val mapping = webTestClient.get().uri("/mapping/incentives/incentive-id/$incentiveId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(IncentiveMappingDto::class.java)
@@ -627,7 +627,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `mapping not found`() {
       val error = webTestClient.get().uri("/mapping/incentives/incentive-id/765")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody(ErrorResponse::class.java)
@@ -639,14 +639,14 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success with update role`() {
       webTestClient.post().uri("/mapping/incentives")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createIncentiveMapping()))
         .exchange()
         .expectStatus().isCreated
 
       webTestClient.get().uri("/mapping/incentives/incentive-id/$incentiveId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
     }
@@ -682,24 +682,24 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `delete mapping success`() {
       webTestClient.post().uri("/mapping/incentives")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createIncentiveMapping()))
         .exchange()
         .expectStatus().isCreated
 
       webTestClient.get().uri("/mapping/incentives/nomis-booking-id/$bookingId/nomis-incentive-sequence/$sequence")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
 
       webTestClient.delete().uri("/mapping/incentives")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
       webTestClient.get().uri("/mapping/incentives/nomis-booking-id/$bookingId/nomis-incentive-sequence/$sequence")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
     }
@@ -707,14 +707,14 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `delete incentive mappings - migrated mappings only`() {
       webTestClient.post().uri("/mapping/incentives")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createIncentiveMapping()))
         .exchange()
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/incentives")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -730,17 +730,17 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.delete().uri("/mapping/incentives?onlyMigrated=true")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
       webTestClient.get().uri("/mapping/incentives/nomis-booking-id/$bookingId/nomis-incentive-sequence/$sequence")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
 
       webTestClient.get().uri("/mapping/incentives/incentive-id/222")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
     }
@@ -777,7 +777,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     fun `delete specific mapping success`() {
       // create mapping
       webTestClient.post().uri("/mapping/incentives")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createIncentiveMapping()))
         .exchange()
@@ -785,29 +785,29 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
       // it is present after creation by incentive id
       webTestClient.get().uri("/mapping/incentives/incentive-id/$incentiveId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
       // it is also present after creation by nomis id
       webTestClient.get().uri("/mapping/incentives/nomis-booking-id/$bookingId/nomis-incentive-sequence/$sequence")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
 
       // delete mapping
       webTestClient.delete().uri("/mapping/incentives/incentive-id/$incentiveId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
       // no longer present by incentive id
       webTestClient.get().uri("/mapping/incentives/incentive-id/$incentiveId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
       // and also no longer present by nomis id
       webTestClient.get().uri("/mapping/incentives/nomis-booking-id/$bookingId/nomis-incentive-sequence/$sequence")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
     }
@@ -816,7 +816,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
     internal fun `delete is idempotent`() {
       // create mapping
       webTestClient.post().uri("/mapping/incentives")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createIncentiveMapping()))
         .exchange()
@@ -824,12 +824,12 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
 
       // delete mapping
       webTestClient.delete().uri("/mapping/incentives/incentive-id/$incentiveId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
       // delete mapping second time still returns success
       webTestClient.delete().uri("/mapping/incentives/incentive-id/$incentiveId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
     }
@@ -893,7 +893,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
       )
 
       webTestClient.get().uri("/mapping/incentives/migration-id/2022-01-01")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -921,7 +921,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
       }
 
       webTestClient.get().uri("/mapping/incentives/migration-id/2044-01-01")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -945,7 +945,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
           .queryParam("sort", "nomisBookingId,asc")
           .build()
       }
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -973,7 +973,7 @@ class IncentiveMappingResourceIntTest : IntegrationTestBase() {
           .queryParam("sort", "nomisBookingId,asc")
           .build()
       }
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_INCENTIVES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
