@@ -75,7 +75,7 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
     activityId: Long = ACTIVITY_ID,
     label: String = MIGRATION_ID,
   ) = webTestClient.post().uri("/mapping/allocations/migration")
-    .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+    .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
     .contentType(MediaType.APPLICATION_JSON)
     .body(
       fromValue(
@@ -235,7 +235,7 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
       saveMapping()
 
       webTestClient.get().uri("/mapping/allocations/migration/nomis-allocation-id/$NOMIS_ALLOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -248,7 +248,7 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
     @Test
     fun `should return not found `() = runTest {
       webTestClient.get().uri("/mapping/allocations/migration/nomis-allocation-id/$NOMIS_ALLOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody()
@@ -292,7 +292,7 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
       saveMapping()
 
       webTestClient.get().uri("/mapping/allocations/migrated/latest")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -305,7 +305,7 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
     @Test
     fun `404 when no migrated mapping found`() {
       webTestClient.get().uri("/mapping/allocations/migrated/latest")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody()
@@ -349,7 +349,7 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
       saveMapping(2, label = "wrong-migration")
 
       webTestClient.get().uri("/mapping/allocations/migration/migration-id/$MIGRATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -370,7 +370,7 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
       saveMapping(label = "wrong-migration")
 
       webTestClient.get().uri("/mapping/allocations/migration/migration-id/$MIGRATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -389,7 +389,7 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
           .queryParam("page", "0")
           .build()
       }
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -409,7 +409,7 @@ class AllocationMigrationResourceIntTest : IntegrationTestBase() {
           .queryParam("page", "1")
           .build()
       }
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()

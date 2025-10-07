@@ -29,12 +29,12 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RequestMapping("/", produces = [MediaType.APPLICATION_JSON_VALUE])
 class HearingsMappingResource(private val mappingService: AdjudicationMappingService) {
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PostMapping("/mapping/hearings")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new hearing mapping",
-    description = "Creates a record of a DPS hearing Id and a NOMIS hearing Id . Requires NOMIS_ADJUDICATIONS",
+    description = "Creates a record of a DPS hearing Id and a NOMIS hearing Id . Requires NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -70,11 +70,11 @@ class HearingsMappingResource(private val mappingService: AdjudicationMappingSer
     )
   }
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/hearings/nomis/{id}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by NOMIS hearing Id. Requires role NOMIS_ADJUDICATIONS",
+    description = "Retrieves a mapping by NOMIS hearing Id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -101,11 +101,11 @@ class HearingsMappingResource(private val mappingService: AdjudicationMappingSer
     id: Long,
   ): AdjudicationHearingMappingDto = mappingService.getHearingMappingByNomisId(id)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/hearings/dps/{id}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by DPS hearing Id. Requires role NOMIS_ADJUDICATIONS",
+    description = "Retrieves a mapping by DPS hearing Id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -132,12 +132,12 @@ class HearingsMappingResource(private val mappingService: AdjudicationMappingSer
     id: String,
   ): AdjudicationHearingMappingDto = mappingService.getHearingMappingByDpsId(id)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @DeleteMapping("/mapping/hearings/dps/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a specific mapping by DPS hearing id",
-    description = "Deletes the mapping table row. Requires role NOMIS_ADJUDICATIONS",
+    description = "Deletes the mapping table row. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",

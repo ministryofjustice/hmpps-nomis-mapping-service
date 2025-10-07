@@ -170,7 +170,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same person to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -181,7 +181,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow a child of a person to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -210,7 +210,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -259,7 +259,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -270,7 +270,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings.copy(label = "2023-01-01T12:45:12")))
           .exchange()
@@ -290,7 +290,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person address mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -325,7 +325,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person phone mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -371,7 +371,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person email mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -406,7 +406,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person employment mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -448,7 +448,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person identifier mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -490,7 +490,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person restriction mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -525,7 +525,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person contact mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -560,7 +560,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person contact restriction mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -718,7 +718,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 200 when are mappings replaced`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/replace/prisoner/A1234KT")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -729,7 +729,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the new contact mappings`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/replace/prisoner/A1234KT")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -756,7 +756,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the new contact restriction mappings`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/replace/prisoner/A1234KT")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -779,7 +779,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.post()
           .uri("/mapping/contact-person/replace/prisoner/A1234KT")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -970,7 +970,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 200 when are mappings replaced`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/replace/person/12345")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -1000,7 +1000,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.post()
           .uri("/mapping/contact-person/replace/person/12345")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -1082,7 +1082,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/person/nomis-person-id/{personId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -1094,7 +1094,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/person/nomis-person-id/{personId}", nomisPersonId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -1161,7 +1161,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `204 when mapping does not exist`() {
         webTestClient.delete()
           .uri("/mapping/contact-person/person/nomis-person-id/{personId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -1175,7 +1175,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.delete()
           .uri("/mapping/contact-person/person/nomis-person-id/{personId}", nomisPersonId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
@@ -1238,7 +1238,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `204 when mapping does not exist`() {
         webTestClient.delete()
           .uri("/mapping/contact-person/person/dps-contact-id/{contactId}", "99999")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -1252,7 +1252,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.delete()
           .uri("/mapping/contact-person/person/dps-contact-id/{contactId}", dpsContactId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
@@ -1315,7 +1315,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/person/dps-contact-id/{contactId}", "99999")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -1327,7 +1327,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/person/dps-contact-id/{contactId}", dpsContactId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -1396,7 +1396,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
         )
 
         webTestClient.get().uri("/mapping/contact-person/person/migration-id/2023-01-01T12:45:12")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -1415,7 +1415,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `200 response even when no mappings are found`() {
         webTestClient.get().uri("/mapping/contact-person/person/migration-id/2044-01-01")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -1441,7 +1441,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
             .queryParam("sort", "nomisId,asc")
             .build()
         }
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -1518,7 +1518,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.delete()
           .uri("/mapping/contact-person/prisoner-restriction")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
@@ -1585,7 +1585,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
         )
 
         webTestClient.get().uri("/mapping/contact-person/prisoner-restriction/migration-id/2023-01-01T12:45:12")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -1604,7 +1604,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `200 response even when no mappings are found`() {
         webTestClient.get().uri("/mapping/contact-person/prisoner-restriction/migration-id/2044-01-01")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -1631,7 +1631,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
             .queryParam("sort", "nomisId,asc")
             .build()
         }
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -1745,7 +1745,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 200 when mappings are replaced`() {
         webTestClient.post()
           .uri("/mapping/contact-person/replace/prisoner-restrictions/$offenderNo")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(newMappings))
           .exchange()
@@ -1759,7 +1759,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.post()
           .uri("/mapping/contact-person/replace/prisoner-restrictions/$offenderNo")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(newMappings))
           .exchange()
@@ -1777,7 +1777,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will create new mappings for the offender`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/replace/prisoner-restrictions/$offenderNo")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(newMappings))
           .exchange()
@@ -1914,7 +1914,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 200 when mappings are replaced`() {
         webTestClient.post()
           .uri("/mapping/contact-person/replace/prisoner-restrictions/$retainedOffenderNo/replaces/$removedOffenderNo")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(newMappings))
           .exchange()
@@ -1929,7 +1929,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.post()
           .uri("/mapping/contact-person/replace/prisoner-restrictions/$retainedOffenderNo/replaces/$removedOffenderNo")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(newMappings))
           .exchange()
@@ -1949,7 +1949,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will create new mappings for the offender`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/replace/prisoner-restrictions/$retainedOffenderNo/replaces/$removedOffenderNo")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(newMappings))
           .exchange()
@@ -2029,7 +2029,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
         )
 
         webTestClient.get().uri("/mapping/contact-person/person")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -2064,7 +2064,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
             .queryParam("sort", "nomisId,asc")
             .build()
         }
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -2144,7 +2144,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       )
       webTestClient.post()
         .uri("/mapping/contact-person/migrate")
-        .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+        .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(mappings))
         .exchange()
@@ -2196,7 +2196,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.delete()
           .uri("/mapping/contact-person")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
@@ -2297,7 +2297,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same person to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/contact-person/person")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -2308,7 +2308,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/contact-person/person")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -2347,7 +2347,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/person")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -2358,7 +2358,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/person")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -2430,7 +2430,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/contact/nomis-contact-id/{contactId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -2442,7 +2442,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/contact/nomis-contact-id/{contactId}", nomisPersonContactId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -2509,7 +2509,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `204 when mapping does not exist`() {
         webTestClient.delete()
           .uri("/mapping/contact-person/contact/nomis-contact-id/{contactId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -2522,7 +2522,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
         assertThat(personContactMappingRepository.findOneByNomisId(nomisPersonContactId)).isNotNull
         webTestClient.delete()
           .uri("/mapping/contact-person/contact/nomis-contact-id/{contactId}", nomisPersonContactId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
         assertThat(personContactMappingRepository.findOneByNomisId(nomisPersonContactId)).isNull()
@@ -2584,7 +2584,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/contact/dps-prisoner-contact-id/{prisonerContactId}", "99999")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -2596,7 +2596,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/contact/dps-prisoner-contact-id/{prisonerContactId}", dpsPrisonerContactId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -2684,7 +2684,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same person contact to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/contact-person/contact")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -2695,7 +2695,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/contact-person/contact")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -2734,7 +2734,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/contact")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -2745,7 +2745,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person contact mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/contact")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -2818,7 +2818,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/address/nomis-address-id/{nomisPersonAddressId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -2830,7 +2830,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/address/nomis-address-id/{nomisPersonAddressId}", nomisPersonAddressId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -2898,7 +2898,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `204 when mapping does not exist`() {
         webTestClient.delete()
           .uri("/mapping/contact-person/address/nomis-address-id/{nomisPersonAddressId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -2911,7 +2911,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
         assertThat(personAddressMappingRepository.findOneByNomisId(nomisPersonAddressId)).isNotNull
         webTestClient.delete()
           .uri("/mapping/contact-person/address/nomis-address-id/{nomisPersonAddressId}", nomisPersonAddressId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
         assertThat(personAddressMappingRepository.findOneByNomisId(nomisPersonAddressId)).isNull()
@@ -2974,7 +2974,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/address/dps-contact-address-id/{dpsContactAddressId}", "99999")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -2986,7 +2986,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/address/dps-contact-address-id/{dpsContactAddressId}", dpsContactAddressId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -3074,7 +3074,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same person address to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/contact-person/address")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -3085,7 +3085,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/contact-person/address")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -3124,7 +3124,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/address")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -3135,7 +3135,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person address mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/address")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -3208,7 +3208,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/email/nomis-internet-address-id/{nomisInternetAddressId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -3220,7 +3220,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/email/nomis-internet-address-id/{nomisInternetAddressId}", nomisInternetAddressId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -3288,7 +3288,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `204 when mapping does not exist`() {
         webTestClient.delete()
           .uri("/mapping/contact-person/email/nomis-internet-address-id/{nomisInternetAddressId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -3301,7 +3301,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
         assertThat(personEmailMappingRepository.findOneByNomisId(nomisInternetAddressId)).isNotNull
         webTestClient.delete()
           .uri("/mapping/contact-person/email/nomis-internet-address-id/{nomisInternetAddressId}", nomisInternetAddressId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
         assertThat(personEmailMappingRepository.findOneByNomisId(nomisInternetAddressId)).isNull()
@@ -3364,7 +3364,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/email/dps-contact-email-id/{dpsContactEmailId}", "99999")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -3376,7 +3376,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/email/dps-contact-email-id/{dpsContactEmailId}", dpsContactEmailId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -3464,7 +3464,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same person email to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/contact-person/email")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -3475,7 +3475,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/contact-person/email")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -3514,7 +3514,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/email")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -3525,7 +3525,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person email mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/email")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -3599,7 +3599,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/phone/nomis-phone-id/{nomisPhoneId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -3611,7 +3611,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/phone/nomis-phone-id/{nomisPhoneId}", nomisPhoneId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -3681,7 +3681,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/phone/dps-contact-phone-id/{dpsContactPhoneId}", "99999")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -3690,7 +3690,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found even when address phone with same ID exists`() {
         webTestClient.get()
           .uri("/mapping/contact-person/phone/dps-contact-address-phone-id/{dpsContactAddressPhoneId}", dpsContactPhoneId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -3702,7 +3702,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/phone/dps-contact-phone-id/{dpsContactPhoneId}", dpsContactPhoneId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -3772,7 +3772,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/phone/dps-contact-address-phone-id/{dpsContactAddressPhoneId}", "99999")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -3781,7 +3781,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found even though global phone has same id`() {
         webTestClient.get()
           .uri("/mapping/contact-person/phone/dps-contact-phone-id/{dpsContactPhoneId}", dpsContactPhoneId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -3793,7 +3793,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/phone/dps-contact-address-phone-id/{dpsContactAddressPhoneId}", dpsContactPhoneId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -3885,7 +3885,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same person phone to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/contact-person/phone")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -3896,7 +3896,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/contact-person/phone")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -3951,7 +3951,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/phone")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -3962,7 +3962,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person phone mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/phone")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -4038,13 +4038,13 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/identifier/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}", nomisPersonId, 999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
 
         webTestClient.get()
           .uri("/mapping/contact-person/identifier/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}", 999, nomisSequenceNumber)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -4056,7 +4056,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/identifier/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}", nomisPersonId, nomisSequenceNumber)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -4127,13 +4127,13 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `204 when mapping does not exist`() {
         webTestClient.delete()
           .uri("/mapping/contact-person/identifier/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}", nomisPersonId, 999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
         webTestClient.delete()
           .uri("/mapping/contact-person/identifier/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}", 999, nomisSequenceNumber)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -4146,7 +4146,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
         assertThat(personIdentifierMappingRepository.findOneByNomisPersonIdAndNomisSequenceNumber(nomisPersonId, nomisSequenceNumber)).isNotNull
         webTestClient.delete()
           .uri("/mapping/contact-person/identifier/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}", nomisPersonId, nomisSequenceNumber)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
         assertThat(personIdentifierMappingRepository.findOneByNomisPersonIdAndNomisSequenceNumber(nomisPersonId, nomisSequenceNumber)).isNull()
@@ -4211,13 +4211,13 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/employment/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}", nomisPersonId, 999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
 
         webTestClient.get()
           .uri("/mapping/contact-person/employment/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}", 999, nomisSequenceNumber)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -4229,7 +4229,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/employment/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}", nomisPersonId, nomisSequenceNumber)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -4300,7 +4300,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/employment/dps-contact-employment-id/{dpsContactEmploymentId}", "99999")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -4312,7 +4312,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/employment/dps-contact-employment-id/{dpsContactEmploymentId}", dpsContactEmploymentId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -4404,7 +4404,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same person employment to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/contact-person/employment")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -4415,7 +4415,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/contact-person/employment")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -4457,7 +4457,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/employment")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -4468,7 +4468,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person employment mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/employment")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -4547,13 +4547,13 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `204 when mapping does not exist`() {
         webTestClient.delete()
           .uri("/mapping/contact-person/employment/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}", nomisPersonId, 999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
         webTestClient.delete()
           .uri("/mapping/contact-person/employment/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}", 999, nomisSequenceNumber)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -4566,7 +4566,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
         assertThat(personEmploymentMappingRepository.findOneByNomisPersonIdAndNomisSequenceNumber(nomisPersonId, nomisSequenceNumber)).isNotNull
         webTestClient.delete()
           .uri("/mapping/contact-person/employment/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}", nomisPersonId, nomisSequenceNumber)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
         assertThat(personEmploymentMappingRepository.findOneByNomisPersonIdAndNomisSequenceNumber(nomisPersonId, nomisSequenceNumber)).isNull()
@@ -4631,7 +4631,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/identifier/dps-contact-identifier-id/{dpsContactIdentifierId}", "99999")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -4643,7 +4643,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/identifier/dps-contact-identifier-id/{dpsContactIdentifierId}", dpsContactIdentifierId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -4735,7 +4735,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same person identifier to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/contact-person/identifier")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -4746,7 +4746,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/contact-person/identifier")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -4788,7 +4788,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/identifier")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -4799,7 +4799,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person identifier mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/identifier")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -4875,7 +4875,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/contact-restriction/nomis-contact-restriction-id/{contactRestrictionId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -4887,7 +4887,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/contact-restriction/nomis-contact-restriction-id/{contactRestrictionId}", nomisContactRestrictionId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -4954,7 +4954,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `204 when mapping does not exist`() {
         webTestClient.delete()
           .uri("/mapping/contact-person/contact-restriction/nomis-contact-restriction-id/{contactRestrictionId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -4967,7 +4967,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
         assertThat(personContactRestrictionMappingRepository.findOneByNomisId(nomisContactRestrictionId)).isNotNull
         webTestClient.delete()
           .uri("/mapping/contact-person/contact-restriction/nomis-contact-restriction-id/{contactRestrictionId}", nomisContactRestrictionId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
         assertThat(personContactRestrictionMappingRepository.findOneByNomisId(nomisContactRestrictionId)).isNull()
@@ -5029,7 +5029,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/contact-restriction/dps-prisoner-contact-restriction-id/{prisonerContactRestrictionId}", "99999")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -5041,7 +5041,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/contact-restriction/dps-prisoner-contact-restriction-id/{prisonerContactRestrictionId}", dpsPrisonerContactRestrictionId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -5129,7 +5129,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same person contact to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/contact-person/contact-restriction")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -5140,7 +5140,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/contact-person/contact-restriction")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -5179,7 +5179,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/contact-restriction")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -5190,7 +5190,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person contact mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/contact-restriction")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -5262,7 +5262,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/person-restriction/nomis-person-restriction-id/{personRestrictionId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -5274,7 +5274,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/person-restriction/nomis-person-restriction-id/{personRestrictionId}", nomisPersonRestrictionId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -5341,7 +5341,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `204 when mapping does not exist`() {
         webTestClient.delete()
           .uri("/mapping/contact-person/person-restriction/nomis-person-restriction-id/{personRestrictionId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -5354,7 +5354,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
         assertThat(personRestrictionMappingRepository.findOneByNomisId(nomisPersonRestrictionId)).isNotNull
         webTestClient.delete()
           .uri("/mapping/contact-person/person-restriction/nomis-person-restriction-id/{personRestrictionId}", nomisPersonRestrictionId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
         assertThat(personRestrictionMappingRepository.findOneByNomisId(nomisPersonRestrictionId)).isNull()
@@ -5417,7 +5417,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `204 when mapping does not exist`() {
         webTestClient.delete()
           .uri("/mapping/contact-person/prisoner-restriction/nomis-prisoner-restriction-id/{nomisPrisonerRestrictionId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -5430,7 +5430,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
         assertThat(prisonerRestrictionMappingRepository.findOneByNomisId(nomisPrisonerRestrictionId)).isNotNull
         webTestClient.delete()
           .uri("/mapping/contact-person/prisoner-restriction/nomis-prisoner-restriction-id/{nomisPrisonerRestrictionId}", nomisPrisonerRestrictionId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
         assertThat(prisonerRestrictionMappingRepository.findOneByNomisId(nomisPrisonerRestrictionId)).isNull()
@@ -5493,7 +5493,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `204 when mapping does not exist`() {
         webTestClient.delete()
           .uri("/mapping/contact-person/prisoner-restriction/dps-prisoner-restriction-id/{dpsPrisonerRestrictionId}", "non-existent-id")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -5506,7 +5506,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
         assertThat(prisonerRestrictionMappingRepository.findOneByDpsId(dpsPrisonerRestrictionId)).isNotNull
         webTestClient.delete()
           .uri("/mapping/contact-person/prisoner-restriction/dps-prisoner-restriction-id/{dpsPrisonerRestrictionId}", dpsPrisonerRestrictionId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
         assertThat(prisonerRestrictionMappingRepository.findOneByDpsId(dpsPrisonerRestrictionId)).isNull()
@@ -5574,7 +5574,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
         )
 
         webTestClient.get().uri("/mapping/contact-person/prisoner-restrictions/prisoners/$offenderNo")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -5592,7 +5592,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns empty list when no mappings found`() {
         webTestClient.get().uri("/mapping/contact-person/prisoner-restrictions/prisoners/UNKNOWN")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -5656,7 +5656,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/person-restriction/dps-contact-restriction-id/{contactRestrictionId}", "99999")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -5668,7 +5668,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/person-restriction/dps-contact-restriction-id/{contactRestrictionId}", dpsContactRestrictionId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -5756,7 +5756,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same person  to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/contact-person/person-restriction")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -5767,7 +5767,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/contact-person/person-restriction")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -5806,7 +5806,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/person-restriction")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -5817,7 +5817,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the person restriction mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/person-restriction")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -5913,7 +5913,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same prisoner to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/contact-person/prisoner-restriction")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -5924,7 +5924,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/contact-person/prisoner-restriction")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -5964,7 +5964,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/prisoner-restriction")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -5975,7 +5975,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the prisoner restriction mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/contact-person/prisoner-restriction")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -6049,7 +6049,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/prisoner-restriction/nomis-prisoner-restriction-id/{nomisPrisonerRestrictionId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -6061,7 +6061,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/prisoner-restriction/nomis-prisoner-restriction-id/{nomisPrisonerRestrictionId}", nomisPrisonerRestrictionId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -6130,7 +6130,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/contact-person/prisoner-restriction/dps-prisoner-restriction-id/{dpsPrisonerRestrictionId}", "non-existent-id")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -6142,7 +6142,7 @@ class ContactPersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/contact-person/prisoner-restriction/dps-prisoner-restriction-id/{dpsPrisonerRestrictionId}", dpsPrisonerRestrictionId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()

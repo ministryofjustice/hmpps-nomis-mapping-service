@@ -31,12 +31,12 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RequestMapping("/", produces = [MediaType.APPLICATION_JSON_VALUE])
 class PunishmentsMappingResource(private val mappingService: AdjudicationMappingService) {
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PostMapping("/mapping/punishments")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new set of adjudication punishment mapping",
-    description = "Creates a record of a DPS punishment id and NOMIS bookingId and sanction sequence. Requires NOMIS_ADJUDICATIONS",
+    description = "Creates a record of a DPS punishment id and NOMIS bookingId and sanction sequence. Requires NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -71,11 +71,11 @@ class PunishmentsMappingResource(private val mappingService: AdjudicationMapping
     )
   }
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PutMapping("/mapping/punishments")
   @Operation(
     summary = "Creates a new set of adjudication punishment mapping and deletes ones no longer required",
-    description = "Creates a record of a DPS punishment id and NOMIS bookingId and sanction sequence. The ones that require deleting are removed NOMIS id. Requires NOMIS_ADJUDICATIONS",
+    description = "Creates a record of a DPS punishment id and NOMIS bookingId and sanction sequence. The ones that require deleting are removed NOMIS id. Requires NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -110,11 +110,11 @@ class PunishmentsMappingResource(private val mappingService: AdjudicationMapping
     )
   }
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/punishments/{dpsPunishmentId}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by DPS punishment id. Requires role NOMIS_ADJUDICATIONS",
+    description = "Retrieves a mapping by DPS punishment id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -141,11 +141,11 @@ class PunishmentsMappingResource(private val mappingService: AdjudicationMapping
     dpsPunishmentId: String,
   ): AdjudicationPunishmentMappingDto = mappingService.getPunishmentMappingByDpsId(dpsPunishmentId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/punishments/nomis-booking-id/{nomisBookingId}/nomis-sanction-sequence/{nomisSanctionSequence}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by NOMIS booking id and sanction sequence. Requires role NOMIS_ADJUDICATIONS",
+    description = "Retrieves a mapping by NOMIS booking id and sanction sequence. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -175,12 +175,12 @@ class PunishmentsMappingResource(private val mappingService: AdjudicationMapping
     nomisSanctionSequence: Int,
   ): AdjudicationPunishmentMappingDto = mappingService.getPunishmentMappingByNomisId(nomisBookingId, nomisSanctionSequence)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @DeleteMapping("/mapping/punishments/{dpsPunishmentId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete mapping",
-    description = "Deletes a mapping by DPS punishment id. Requires role NOMIS_ADJUDICATIONS",
+    description = "Deletes a mapping by DPS punishment id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",

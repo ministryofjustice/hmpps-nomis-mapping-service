@@ -29,7 +29,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('NOMIS_CONTACTPERSONS')")
+@PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/contact-person", produces = [MediaType.APPLICATION_JSON_VALUE])
 class ContactPersonMappingResource(private val service: ContactPersonService) {
   private companion object {
@@ -40,7 +40,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a tree of contact person mappings typically for a migration",
-    description = "Creates a tree of contact person mappings typically for a migration between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates a tree of contact person mappings typically for a migration between NOMIS ids and dps ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = ContactPersonMappingsDto::class))],
     ),
@@ -89,7 +89,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @PostMapping("/replace/prisoner/{offenderNo}")
   @Operation(
     summary = "Replaces a list of contact related mappings.",
-    description = "Creates a list of contact and contact restrictions mappings and removes the previous supplied set. Used typically for a prisoner merge in NOMIS. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates a list of contact and contact restrictions mappings and removes the previous supplied set. Used typically for a prisoner merge in NOMIS. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Mappings replaced"),
       ApiResponse(
@@ -116,7 +116,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @PostMapping("/replace/person/{personId}")
   @Operation(
     summary = "Replaces a list of person related mappings.",
-    description = "Creates a list of person mappings and removes the previous supplied set. Used typically for a person repair in NOMIS. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates a list of person mappings and removes the previous supplied set. Used typically for a person repair in NOMIS. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Mappings replaced"),
       ApiResponse(
@@ -143,7 +143,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/person/nomis-person-id/{nomisPersonId}")
   @Operation(
     summary = "Get person mapping by nomis person Id",
-    description = "Retrieves the person a mapping by NOMIS Person Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the person a mapping by NOMIS Person Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -179,7 +179,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes person mapping by nomis person Id",
-    description = "Deletes the person a mapping by NOMIS Person Id, NB any child mappings e.g. peron address mappings remain untouched and should be removed separately. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Deletes the person a mapping by NOMIS Person Id, NB any child mappings e.g. peron address mappings remain untouched and should be removed separately. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -206,7 +206,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/person/dps-contact-id/{dpsContactId}")
   @Operation(
     summary = "Get person mapping by dps contact Id",
-    description = "Retrieves the person mapping by DPS Contact Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the person mapping by DPS Contact Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -242,7 +242,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete person mapping by dps contact Id",
-    description = "Delete the person mapping by DPS Contact Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Delete the person mapping by DPS Contact Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -269,7 +269,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/person/migration-id/{migrationId}")
   @Operation(
     summary = "Get paged person mappings by migration id",
-    description = "Retrieve all person mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieve all person mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -297,7 +297,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/person")
   @Operation(
     summary = "Get paged person mappings by migration id",
-    description = "Retrieve all person mappings. Results are paged. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieve all person mappings. Results are paged. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -323,7 +323,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes all contact person mappings",
-    description = "Deletes all contact person mappings regardless of source. This includes person, phone, address, email, employment, identifiers, restrictions, contacts and contact restrictions. This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Deletes all contact person mappings regardless of source. This includes person, phone, address, email, employment, identifiers, restrictions, contacts and contact restrictions. This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "204", description = "All mappings deleted"),
       ApiResponse(
@@ -344,7 +344,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates person mappings for synchronisation",
-    description = "Creates person mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates person mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = PersonMappingDto::class))],
     ),
@@ -390,7 +390,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/contact/nomis-contact-id/{nomisContactId}")
   @Operation(
     summary = "Get person contact mapping by nomis contact Id",
-    description = "Retrieves the person contact mapping by NOMIS Contact Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the person contact mapping by NOMIS Contact Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -426,7 +426,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete person contact mapping by nomis contact Id",
-    description = "Deletes the person contact mapping by NOMIS Contact Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Deletes the person contact mapping by NOMIS Contact Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -453,7 +453,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/contact/dps-prisoner-contact-id/{dpsPrisonerContactId}")
   @Operation(
     summary = "Get person contact mapping by dps prisoner contact Id",
-    description = "Retrieves the person contact mapping by DPS Prisoner Contact Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the person contact mapping by DPS Prisoner Contact Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -489,7 +489,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates person contact mappings for synchronisation",
-    description = "Creates person contact mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates person contact mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = PersonContactMappingDto::class))],
     ),
@@ -535,7 +535,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/address/nomis-address-id/{nomisAddressId}")
   @Operation(
     summary = "Get person address mapping by nomis contact Id",
-    description = "Retrieves the person address mapping by NOMIS Address Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the person address mapping by NOMIS Address Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -571,7 +571,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete person address mapping by nomis contact Id",
-    description = "Delete the person address mapping by NOMIS Address Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Delete the person address mapping by NOMIS Address Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -598,7 +598,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/address/dps-contact-address-id/{dpsContactAddressId}")
   @Operation(
     summary = "Get person address mapping by dps contact address Id",
-    description = "Retrieves the person address mapping by DPS Contact Address Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the person address mapping by DPS Contact Address Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -634,7 +634,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates person address mappings for synchronisation",
-    description = "Creates person address mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates person address mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = PersonAddressMappingDto::class))],
     ),
@@ -680,7 +680,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/phone/nomis-phone-id/{nomisPhoneId}")
   @Operation(
     summary = "Get person phone mapping by nomis phone Id",
-    description = "Retrieves the person phone mapping by NOMIS Phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the person phone mapping by NOMIS Phone Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -716,7 +716,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete person phone mapping by nomis phone Id",
-    description = "Delete the person phone mapping by NOMIS Phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Delete the person phone mapping by NOMIS Phone Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -748,7 +748,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/phone/dps-contact-phone-id/{dpsContactPhoneId}")
   @Operation(
     summary = "Get person phone mapping by dps contact phone Id",
-    description = "Retrieves the person phone mapping by DPS Contact Phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the person phone mapping by DPS Contact Phone Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -783,7 +783,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/phone/dps-contact-address-phone-id/{dpsContactAddressPhoneId}")
   @Operation(
     summary = "Get person mapping by dps contact address phone Id",
-    description = "Retrieves the person phone mapping by DPS Contact Address Phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the person phone mapping by DPS Contact Address Phone Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -819,7 +819,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates person phone mappings for synchronisation",
-    description = "Creates person phone mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates person phone mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = PersonPhoneMappingDto::class))],
     ),
@@ -865,7 +865,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/email/nomis-internet-address-id/{nomisInternetAddressId}")
   @Operation(
     summary = "Get person email mapping by nomis internet address Id",
-    description = "Retrieves the person email mapping by NOMIS Email/Internet Address Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the person email mapping by NOMIS Email/Internet Address Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -901,7 +901,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete person email mapping by nomis internet address Id",
-    description = "Delete the person email mapping by NOMIS Email/Internet Address Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Delete the person email mapping by NOMIS Email/Internet Address Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -928,7 +928,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/email/dps-contact-email-id/{dpsContactEmailId}")
   @Operation(
     summary = "Get contact email mapping by dps contact email Id",
-    description = "Retrieves the person email mapping by DPS Contact Email Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the person email mapping by DPS Contact Email Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -964,7 +964,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates person email mappings for synchronisation",
-    description = "Creates person email mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates person email mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = PersonEmailMappingDto::class))],
     ),
@@ -1010,7 +1010,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/identifier/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}")
   @Operation(
     summary = "Get person identifier mapping by nomis person id and sequence",
-    description = "Retrieves the person identifier mapping by NOMIS person id and NOMIS sequence number. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the person identifier mapping by NOMIS person id and NOMIS sequence number. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -1049,7 +1049,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete person identifier mapping by nomis person id and sequence",
-    description = "Delete the person identifier mapping by NOMIS person id and NOMIS sequence number. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Delete the person identifier mapping by NOMIS person id and NOMIS sequence number. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -1079,7 +1079,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/identifier/dps-contact-identifier-id/{dpsContactIdentifierId}")
   @Operation(
     summary = "Get contact identifier mapping by dps contact identifier Id",
-    description = "Retrieves the person identifier mapping by DPS Contact Identifier Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the person identifier mapping by DPS Contact Identifier Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -1115,7 +1115,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates person identifier mappings for synchronisation",
-    description = "Creates person identifier mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates person identifier mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = PersonIdentifierMappingDto::class))],
     ),
@@ -1161,7 +1161,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/employment/nomis-person-id/{nomisPersonId}/nomis-sequence-number/{nomisSequenceNumber}")
   @Operation(
     summary = "Get person employment mapping by nomis person id and sequence",
-    description = "Retrieves the person employment mapping by NOMIS person id and NOMIS sequence number. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the person employment mapping by NOMIS person id and NOMIS sequence number. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -1199,7 +1199,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/employment/dps-contact-employment-id/{dpsContactEmploymentId}")
   @Operation(
     summary = "Get contact employment mapping by dps contact employment Id",
-    description = "Retrieves the person employment mapping by DPS Contact Employment Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the person employment mapping by DPS Contact Employment Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -1235,7 +1235,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates person employment mappings for synchronisation",
-    description = "Creates person employment mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates person employment mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = PersonEmploymentMappingDto::class))],
     ),
@@ -1282,7 +1282,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete person employment mapping by nomis person id and sequence",
-    description = "Delete the person employment mapping by NOMIS person id and NOMIS sequence number. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Delete the person employment mapping by NOMIS person id and NOMIS sequence number. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -1312,7 +1312,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/contact-restriction/nomis-contact-restriction-id/{nomisContactRestrictionId}")
   @Operation(
     summary = "Get person contact restriction mapping by nomis contact Id",
-    description = "Retrieves the person contact restriction mapping by NOMIS ContactRestriction Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the person contact restriction mapping by NOMIS ContactRestriction Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -1348,7 +1348,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete person contact restriction mapping by nomis contact Id",
-    description = "Delete the person contact restriction mapping by NOMIS ContactRestriction Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Delete the person contact restriction mapping by NOMIS ContactRestriction Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -1375,7 +1375,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/contact-restriction/dps-prisoner-contact-restriction-id/{dpsPrisonerContactRestrictionId}")
   @Operation(
     summary = "Get person contact restriction mapping by dps prisoner contact restriction Id",
-    description = "Retrieves the person contact restriction mapping by DPS prisoner contact restriction Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the person contact restriction mapping by DPS prisoner contact restriction Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -1411,7 +1411,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates person contact restriction mappings for synchronisation",
-    description = "Creates person contact restriction mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates person contact restriction mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = PersonContactRestrictionMappingDto::class))],
     ),
@@ -1505,7 +1505,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates prisoner restriction mappings for synchronisation",
-    description = "Creates prisoner restriction mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates prisoner restriction mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = PrisonerRestrictionMappingDto::class))],
     ),
@@ -1551,7 +1551,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/person-restriction/nomis-person-restriction-id/{nomisPersonRestrictionId}")
   @Operation(
     summary = "Get person restriction mapping by nomis person restriction Id",
-    description = "Retrieves the person restriction mapping by NOMIS Person Restriction Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the person restriction mapping by NOMIS Person Restriction Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -1587,7 +1587,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete person restriction mapping by nomis person restriction Id",
-    description = "Delete the person restriction mapping by NOMIS Person Restriction Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Delete the person restriction mapping by NOMIS Person Restriction Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -1614,7 +1614,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/person-restriction/dps-contact-restriction-id/{dpsContactRestrictionId}")
   @Operation(
     summary = "Get person contact restriction mapping by dps contact restriction Id",
-    description = "Retrieves the person contact restriction mapping by DPS contact restriction Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the person contact restriction mapping by DPS contact restriction Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -1759,7 +1759,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/prisoner-restriction/nomis-prisoner-restriction-id/{nomisPrisonerRestrictionId}")
   @Operation(
     summary = "Get prisoner restriction mapping by nomis prisoner restriction Id",
-    description = "Retrieves the prisoner restriction mapping by NOMIS Prisoner Restriction Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the prisoner restriction mapping by NOMIS Prisoner Restriction Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -1794,7 +1794,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/prisoner-restriction/dps-prisoner-restriction-id/{dpsPrisonerRestrictionId}")
   @Operation(
     summary = "Get prisoner restriction mapping by dps prisoner restriction Id",
-    description = "Retrieves the prisoner restriction mapping by DPS Prisoner Restriction Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the prisoner restriction mapping by DPS Prisoner Restriction Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -1829,7 +1829,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/prisoner-restriction/migration-id/{migrationId}")
   @Operation(
     summary = "Get paged prisoner restriction mappings by migration id",
-    description = "Retrieve all prisoner restriction mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieve all prisoner restriction mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -1858,7 +1858,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes all prisoner restriction mappings",
-    description = "Deletes all prisoner restriction mappings regardless of source. This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Deletes all prisoner restriction mappings regardless of source. This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "204", description = "All prisoner restriction mappings deleted"),
       ApiResponse(
@@ -1879,7 +1879,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "Replace prisoner restriction mappings for an offender",
-    description = "Deletes all existing prisoner restriction mappings for the given offender number and creates new mappings from the provided list. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Deletes all existing prisoner restriction mappings for the given offender number and creates new mappings from the provided list. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Prisoner restriction mappings replaced successfully"),
       ApiResponse(
@@ -1906,7 +1906,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "Replace prisoner restriction mappings for an offender and removes any for the removed offender",
-    description = "Deletes all existing prisoner restriction mappings for the given retained offender number and removed offender number and creates new mappings from the provided list. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Deletes all existing prisoner restriction mappings for the given retained offender number and removed offender number and creates new mappings from the provided list. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Prisoner restriction mappings replaced successfully"),
       ApiResponse(
@@ -1934,7 +1934,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @GetMapping("/prisoner-restrictions/prisoners/{offenderNo}")
   @Operation(
     summary = "Get all prisoner restriction mappings for a particular offender number",
-    description = "Retrieves all prisoner restriction mappings for the given offender number. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves all prisoner restriction mappings for the given offender number. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -1962,7 +1962,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete prisoner restriction mapping by nomis prisoner restriction Id",
-    description = "Delete the prisoner restriction mapping by NOMIS Prisoner Restriction Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Delete the prisoner restriction mapping by NOMIS Prisoner Restriction Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -1990,7 +1990,7 @@ class ContactPersonMappingResource(private val service: ContactPersonService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete prisoner restriction mapping by DPS prisoner restriction Id",
-    description = "Delete the prisoner restriction mapping by DPS Prisoner Restriction Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Delete the prisoner restriction mapping by DPS Prisoner Restriction Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",

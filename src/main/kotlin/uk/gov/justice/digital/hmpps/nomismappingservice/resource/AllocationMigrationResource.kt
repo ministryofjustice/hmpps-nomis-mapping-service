@@ -30,12 +30,12 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RequestMapping("/", produces = [MediaType.APPLICATION_JSON_VALUE])
 class AllocationMigrationResource(private val mappingService: AllocationMigrationService) {
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PostMapping("/mapping/allocations/migration")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new allocation migration mapping",
-    description = "Creates a mapping between nomis allocation id and Actvities allocation id. Requires NOMIS_ACTIVITIES",
+    description = "Creates a mapping between nomis allocation id and Actvities allocation id. Requires NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = AllocationMigrationMappingDto::class))],
     ),
@@ -66,11 +66,11 @@ class AllocationMigrationResource(private val mappingService: AllocationMigratio
     )
   }
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/allocations/migration/nomis-allocation-id/{nomisAllocationId}")
   @Operation(
     summary = "get mapping for an allocation migration",
-    description = "Retrieves an allocation migration mapping by the nomis id. Requires role NOMIS_ACTIVITIES",
+    description = "Retrieves an allocation migration mapping by the nomis id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -95,11 +95,11 @@ class AllocationMigrationResource(private val mappingService: AllocationMigratio
     @Schema(description = "Nomis allocation Id", example = "12345", required = true) @PathVariable nomisAllocationId: Long,
   ): AllocationMigrationMappingDto = mappingService.getMapping(nomisAllocationId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/allocations/migrated/latest")
   @Operation(
     summary = "get the latest mapping for an allocation migration",
-    description = "Requires role NOMIS_ACTIVITIES",
+    description = "Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -125,7 +125,7 @@ class AllocationMigrationResource(private val mappingService: AllocationMigratio
   )
   suspend fun getLatestMigratedMapping(): AllocationMigrationMappingDto = mappingService.getLatestMigrated()
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/allocations/migration/migration-id/{migrationId}")
   @Operation(
     summary = "get paged mappings by migration id",
