@@ -77,7 +77,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     mappingType: String = LocationMappingType.NOMIS_CREATED.name,
   ) {
     webTestClient.post().uri("/mapping/locations")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         BodyInserters.fromValue(
@@ -131,7 +131,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     internal fun `create mapping succeeds when the same mapping already exists for the same location`() {
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -147,7 +147,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -169,7 +169,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
 
       val responseBody =
         webTestClient.post().uri("/mapping/locations")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(createLocationMapping().copy(dpsLocationId = "other-dps-location-id")))
           .exchange()
@@ -204,7 +204,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
 
       val responseBody =
         webTestClient.post().uri("/mapping/locations")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(createLocationMapping().copy(nomisLocationId = 9999)))
           .exchange()
@@ -236,7 +236,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create mapping success`() {
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -253,7 +253,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
 
       webTestClient.get()
         .uri("/mapping/locations/nomis/$NOMIS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(LocationMappingDto::class.java)
@@ -266,7 +266,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         }
 
       webTestClient.get().uri("/mapping/locations/dps/$DPS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(LocationMappingDto::class.java)
@@ -282,7 +282,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create mapping - Duplicate db error`() = runTest {
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -303,7 +303,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
 
       val responseBody =
         webTestClient.post().uri("/mapping/locations")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -369,7 +369,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success`() {
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createLocationMapping()))
         .exchange()
@@ -377,7 +377,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
 
       val mapping =
         webTestClient.get().uri("/mapping/locations/nomis/$NOMIS_LOCATION_ID")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody(LocationMappingDto::class.java)
@@ -393,7 +393,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     fun `mapping not found`() {
       val error = webTestClient.get()
         .uri("/mapping/locations/nomis/999")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody(ErrorResponse::class.java)
@@ -405,14 +405,14 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success with update role`() {
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createLocationMapping()))
         .exchange()
         .expectStatus().isCreated
 
       webTestClient.get().uri("/mapping/locations/nomis/$NOMIS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
     }
@@ -453,14 +453,14 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success`() {
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createLocationMapping()))
         .exchange()
         .expectStatus().isCreated
 
       val mapping = webTestClient.get().uri("/mapping/locations/dps/$DPS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(LocationMappingDto::class.java)
@@ -475,7 +475,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `mapping not found`() {
       val error = webTestClient.get().uri("/mapping/locations/dps/765")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody(ErrorResponse::class.java)
@@ -487,14 +487,14 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success with update role`() {
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createLocationMapping()))
         .exchange()
         .expectStatus().isCreated
 
       webTestClient.get().uri("/mapping/locations/dps/$DPS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
     }
@@ -557,7 +557,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
       )
 
       webTestClient.get().uri("/mapping/locations/migration-id/2022-01-01")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -579,7 +579,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
       }
 
       webTestClient.get().uri("/mapping/locations/migration-id/2044-01-01")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -603,7 +603,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
           .queryParam("sort", "nomisLocationId,asc")
           .build()
       }
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -631,7 +631,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
           .queryParam("sort", "nomisLocationId,asc")
           .build()
       }
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -678,7 +678,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get retrieves latest migrated mapping`() {
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -694,7 +694,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -710,7 +710,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -726,7 +726,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -742,7 +742,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       val mapping = webTestClient.get().uri("/mapping/locations/migrated/latest")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(LocationMappingDto::class.java)
@@ -759,7 +759,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `404 when no migrated mapping found`() {
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -775,7 +775,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       val error = webTestClient.get().uri("/mapping/locations/migrated/latest")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody(ErrorResponse::class.java)
@@ -816,7 +816,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     fun `delete specific mapping success`() {
       // create mapping
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createLocationMapping()))
         .exchange()
@@ -824,31 +824,31 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
 
       // it is present after creation by location id
       webTestClient.get().uri("/mapping/locations/dps/$DPS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
       // it is also present after creation by nomis id
       webTestClient.get()
         .uri("/mapping/locations/nomis/$NOMIS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
 
       // delete mapping
       webTestClient.delete().uri("/mapping/locations/dps/$DPS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
       // no longer present by location id
       webTestClient.get().uri("/mapping/locations/dps/$DPS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
       // and also no longer present by nomis id
       webTestClient.get()
         .uri("/mapping/locations/nomis/$NOMIS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
     }
@@ -857,7 +857,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     internal fun `delete is idempotent`() {
       // create mapping
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createLocationMapping()))
         .exchange()
@@ -865,12 +865,12 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
 
       // delete mapping
       webTestClient.delete().uri("/mapping/locations/dps/$DPS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
       // delete mapping second time still returns success
       webTestClient.delete().uri("/mapping/locations/dps/$DPS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
     }
@@ -907,7 +907,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     fun `delete specific mapping success`() {
       // create mapping
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createLocationMapping()))
         .exchange()
@@ -915,33 +915,33 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
 
       // it is present after creation by location id
       webTestClient.get().uri("/mapping/locations/dps/$DPS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
 
       // it is also present after creation by nomis id
       webTestClient.get()
         .uri("/mapping/locations/nomis/$NOMIS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
 
       // delete mapping
       webTestClient.delete().uri("/mapping/locations/nomis/$NOMIS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
       // no longer present by location id
       webTestClient.get().uri("/mapping/locations/dps/$DPS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
 
       // and also no longer present by nomis id
       webTestClient.get()
         .uri("/mapping/locations/nomis/$NOMIS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
     }
@@ -950,7 +950,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     internal fun `delete is idempotent`() {
       // create mapping
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createLocationMapping()))
         .exchange()
@@ -958,13 +958,13 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
 
       // delete mapping
       webTestClient.delete().uri("/mapping/locations/nomis/$NOMIS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
       // delete mapping second time still returns success
       webTestClient.delete().uri("/mapping/locations/nomis/$NOMIS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
     }
@@ -1000,7 +1000,7 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `delete mapping success`() {
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createLocationMapping()))
         .exchange()
@@ -1008,18 +1008,18 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
 
       webTestClient.get()
         .uri("/mapping/locations/nomis/$NOMIS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
 
       webTestClient.delete().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
       webTestClient.get()
         .uri("/mapping/locations/nomis/$NOMIS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
     }
@@ -1027,14 +1027,14 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `delete location mappings - migrated mappings only`() {
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createLocationMapping()))
         .exchange()
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/locations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -1049,23 +1049,23 @@ class LocationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.get().uri("/mapping/locations/dps/333")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
 
       webTestClient.delete().uri("/mapping/locations?onlyMigrated=true")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
       webTestClient.get()
         .uri("/mapping/locations/nomis/$NOMIS_LOCATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
 
       webTestClient.get().uri("/mapping/locations/dps/333")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_LOCATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
     }

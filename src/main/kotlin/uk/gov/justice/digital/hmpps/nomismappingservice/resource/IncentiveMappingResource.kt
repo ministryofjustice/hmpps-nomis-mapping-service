@@ -34,12 +34,12 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RequestMapping("/", produces = [MediaType.APPLICATION_JSON_VALUE])
 class IncentiveMappingResource(private val mappingService: IncentiveMappingService) {
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_INCENTIVES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PostMapping("/mapping/incentives")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new incentive mapping",
-    description = "Creates a mapping between nomis Incentive ids and Incentive service id. Requires ROLE_NOMIS_INCENTIVES",
+    description = "Creates a mapping between nomis Incentive ids and Incentive service id. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = IncentiveMappingDto::class))],
     ),
@@ -80,12 +80,12 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
     )
   }
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_INCENTIVES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/incentives/nomis-booking-id/{bookingId}/nomis-incentive-sequence/{incentiveSequence}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by NOMIS id. Requires role ROLE_NOMIS_INCENTIVES",
+    description = "Retrieves a mapping by NOMIS id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -118,12 +118,12 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
     incentiveSequence: Long,
   ): IncentiveMappingDto = mappingService.getIncentiveMappingByNomisId(bookingId, incentiveSequence)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_INCENTIVES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/incentives/incentive-id/{incentiveId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by Incentive id. Requires role ROLE_NOMIS_INCENTIVES",
+    description = "Retrieves a mapping by Incentive id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -153,7 +153,7 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
     incentiveId: Long,
   ): IncentiveMappingDto = mappingService.getIncentiveMappingByIncentiveId(incentiveId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_INCENTIVES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/incentives/migrated/latest")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
@@ -184,12 +184,12 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
   )
   suspend fun getLatestMigratedIncentiveMapping(): IncentiveMappingDto = mappingService.getIncentiveMappingForLatestMigrated()
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_INCENTIVES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @DeleteMapping("/mapping/incentives")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes incentive mappings",
-    description = "Deletes all rows from the the incentive mapping table. Requires role NOMIS_INCENTIVES",
+    description = "Deletes all rows from the the incentive mapping table. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -213,12 +213,12 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
     onlyMigrated,
   )
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_INCENTIVES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @DeleteMapping("/mapping/incentives/incentive-id/{incentiveId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a specific incentive mappings by incentiveId",
-    description = "Deletes the incentive mapping table. Requires role NOMIS_INCENTIVES",
+    description = "Deletes the incentive mapping table. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -237,7 +237,7 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
     incentiveId: Long,
   ) = mappingService.deleteIncentiveMapping(incentiveId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_INCENTIVES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/incentives/migration-id/{migrationId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
