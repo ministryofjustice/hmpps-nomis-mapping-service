@@ -29,7 +29,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('NOMIS_CORE_PERSON')")
+@PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/core-person", produces = [MediaType.APPLICATION_JSON_VALUE])
 class CorePersonMappingResource(private val service: CorePersonService) {
   private companion object {
@@ -40,7 +40,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a tree of core person mappings typically for a migration",
-    description = "Creates a tree of core person mappings typically for a migration between NOMIS ids and cpr ids. Requires ROLE_NOMIS_CORE_PERSON",
+    description = "Creates a tree of core person mappings typically for a migration between NOMIS ids and cpr ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -94,7 +94,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   @GetMapping("/migration-id/{migrationId}")
   @Operation(
     summary = "Get paged core person mappings by migration id",
-    description = "Retrieve all core person mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role ROLE_NOMIS_CORE_PERSON",
+    description = "Retrieve all core person mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -122,7 +122,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   @GetMapping("/person/nomis-prison-number/{nomisPrisonNumber}")
   @Operation(
     summary = "Get person mapping by nomis prison number",
-    description = "Retrieves the core person mapping by Nomis Prison Number (Offender number). Requires role ROLE_NOMIS_CORE_PERSON",
+    description = "Retrieves the core person mapping by Nomis Prison Number (Offender number). Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -154,7 +154,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   @GetMapping("/person/cpr-id/{cprId}")
   @Operation(
     summary = "Get core person mapping by cpr core person Id",
-    description = "Retrieves the person mapping by CPR Core Person Id. Requires role ROLE_NOMIS_CORE_PERSON",
+    description = "Retrieves the person mapping by CPR Core Person Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -189,7 +189,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     summary = "Deletes all core person mappings",
     description = "Deletes all core person mappings regardless of source. This includes person and address." +
       // TODO add other child tables in the description once implemented
-      " This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_CORE_PERSON",
+      " This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "204", description = "All mappings deleted"),
       ApiResponse(
@@ -209,7 +209,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   @GetMapping("/address/nomis-address-id/{nomisAddressId}")
   @Operation(
     summary = "Get a core person address mapping by nomis address Id",
-    description = "Retrieves the core person address mapping by NOMIS Address Id. Requires role ROLE_NOMIS_CORE_PERSON",
+    description = "Retrieves the core person address mapping by NOMIS Address Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -241,7 +241,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   @GetMapping("/address/cpr-address-id/{cprAddressId}")
   @Operation(
     summary = "Get person address mapping by cpr core person address Id",
-    description = "Retrieves the person address mapping by CPR Core Person Address Id. Requires role ROLE_NOMIS_CORE_PERSON",
+    description = "Retrieves the person address mapping by CPR Core Person Address Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -273,7 +273,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   @GetMapping("/phone/nomis-phone-id/{nomisPhoneId}")
   @Operation(
     summary = "Get a core person phone mapping by nomis phone Id",
-    description = "Retrieves the coreperson phone mapping by NOMIS Phone Id. Requires role ROLE_NOMIS_CORE_PERSON",
+    description = "Retrieves the coreperson phone mapping by NOMIS Phone Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -305,7 +305,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   @GetMapping("/phone/cpr-phone-id/{cprPhoneId}")
   @Operation(
     summary = "Get core person phone mapping by cpr phone Id",
-    description = "Retrieves the core person phone mapping by CPR Phone Id. Requires role ROLE_NOMIS_CORE_PERSON",
+    description = "Retrieves the core person phone mapping by CPR Phone Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -337,7 +337,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   @GetMapping("/email/nomis-email-address-id/{nomisEmailAddressId}")
   @Operation(
     summary = "Get a core person email mapping by nomis email address Id",
-    description = "Retrieves the core person email mapping by NOMIS Email/Internet Address Id. Requires role ROLE_NOMIS_CORE_PERSON",
+    description = "Retrieves the core person email mapping by NOMIS Email/Internet Address Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -369,7 +369,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   @GetMapping("/email/cpr-email-address-id/{cprEmailAddressId}")
   @Operation(
     summary = "Get a core person email mapping by cpr email address Id",
-    description = "Retrieves the core person email mapping by CPR Email Address Id. Requires role ROLE_NOMIS_CORE_PERSON",
+    description = "Retrieves the core person email mapping by CPR Email Address Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",

@@ -24,14 +24,14 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('NOMIS_VISIT_BALANCE')")
+@PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/visit-balance-adjustment", produces = [MediaType.APPLICATION_JSON_VALUE])
 class VisitBalanceAdjustmentMappingResource(private val service: VisitBalanceAdjustmentService) {
   @PostMapping("")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a prisoner visit balance adjustment mapping",
-    description = "Creates a prisoner visit balance adjustment mapping. Requires ROLE_NOMIS_VISIT_BALANCE",
+    description = "Creates a prisoner visit balance adjustment mapping. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -81,7 +81,7 @@ class VisitBalanceAdjustmentMappingResource(private val service: VisitBalanceAdj
   @GetMapping("/nomis-id/{nomisVisitBalanceAdjustmentId}")
   @Operation(
     summary = "Get prisoner visit balance adjustment mapping by Nomis visit balance adjustment id",
-    description = "Retrieves the prisoner visit balance adjustment mapping by Nomis visit balance adjustment id. Requires role ROLE_NOMIS_VISIT_BALANCE",
+    description = "Retrieves the prisoner visit balance adjustment mapping by Nomis visit balance adjustment id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -113,7 +113,7 @@ class VisitBalanceAdjustmentMappingResource(private val service: VisitBalanceAdj
   @GetMapping("/dps-id/{dpsId}")
   @Operation(
     summary = "Get visit balance adjustments mappings by DPS id",
-    description = "Retrieves a list of visit balance adjustment mappings by DPS id. Requires role ROLE_NOMIS_VISIT_BALANCE",
+    description = "Retrieves a list of visit balance adjustment mappings by DPS id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -145,7 +145,7 @@ class VisitBalanceAdjustmentMappingResource(private val service: VisitBalanceAdj
   @DeleteMapping("/dps-id/{dpsId}")
   @Operation(
     summary = "Deletes visit balance adjustment mappings",
-    description = "Deletes visit balance adjustment mappings by DPS id. Multiple rows may be deleted. Requires role NOMIS_VISIT_BALANCE",
+    description = "Deletes visit balance adjustment mappings by DPS id. Multiple rows may be deleted. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -175,7 +175,7 @@ class VisitBalanceAdjustmentMappingResource(private val service: VisitBalanceAdj
   @Operation(
     summary = "Deletes all visit balance adjustment mappings",
     description = """Deletes all visit balance adjustment mappings regardless of source.
-      This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_VISIT_BALANCE""",
+      This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
     responses = [
       ApiResponse(responseCode = "204", description = "All mappings deleted"),
       ApiResponse(

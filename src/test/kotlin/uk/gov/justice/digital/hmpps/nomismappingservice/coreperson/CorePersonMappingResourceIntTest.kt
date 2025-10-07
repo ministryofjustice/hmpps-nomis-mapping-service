@@ -138,7 +138,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same core person to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/core-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -149,7 +149,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/core-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -193,7 +193,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/core-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -204,7 +204,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the core person mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/core-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings.copy(label = "2023-01-01T12:45:12")))
           .exchange()
@@ -224,7 +224,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the core person address mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/core-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -265,7 +265,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the core person phone mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/core-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -342,7 +342,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the core person email mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/core-person/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -438,7 +438,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         )
 
         webTestClient.get().uri("/mapping/core-person/migration-id/2023-01-01T12:45:12")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -452,7 +452,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `200 response even when no mappings are found`() {
         webTestClient.get().uri("/mapping/core-person/migration-id/2044-01-01")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -478,7 +478,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
             .queryParam("sort", "nomisPrisonNumber,asc")
             .build()
         }
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -545,7 +545,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/core-person/person/nomis-prison-number/{nomisPrisonNumber}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -557,7 +557,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/core-person/person/nomis-prison-number/{nomisPrisonNumber}", nomisPrisonNumber)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -624,7 +624,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/core-person/person/cpr-id/{cprId}", "99999")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -636,7 +636,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/core-person/person/cpr-id/{cprId}", cprCoreId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -713,7 +713,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/core-person/address/cpr-address-id/{cprAddressId}", "99999")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -725,7 +725,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/core-person/address/cpr-address-id/{cprAddressId}", cprCorePersonAddressId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -773,7 +773,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       )
       webTestClient.post()
         .uri("/mapping/core-person/migrate")
-        .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+        .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(mappings))
         .exchange()
@@ -821,7 +821,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.delete()
           .uri("/mapping/core-person")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 

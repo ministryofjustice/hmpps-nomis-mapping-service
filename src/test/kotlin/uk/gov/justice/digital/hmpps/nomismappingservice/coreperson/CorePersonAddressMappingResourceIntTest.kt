@@ -87,7 +87,7 @@ class CorePersonAddressMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/core-person/address/nomis-address-id/{nomisAddressId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -99,7 +99,7 @@ class CorePersonAddressMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/core-person/address/nomis-address-id/{nomisAddressId}", nomisAddressId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -176,7 +176,7 @@ class CorePersonAddressMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/core-person/address/cpr-address-id/{cprAddressId}", "99999")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -188,7 +188,7 @@ class CorePersonAddressMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/core-person/address/cpr-address-id/{cprAddressId}", cprAddressId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CORE_PERSON")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
