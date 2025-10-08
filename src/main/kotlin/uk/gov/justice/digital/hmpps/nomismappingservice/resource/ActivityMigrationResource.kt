@@ -30,12 +30,12 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RequestMapping("/", produces = [MediaType.APPLICATION_JSON_VALUE])
 class ActivityMigrationResource(private val mappingService: ActivityMigrationService) {
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PostMapping("/mapping/activities/migration")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new activity migration mapping",
-    description = "Creates a mapping between nomis id and up to 2 Activity service ids. Requires NOMIS_ACTIVITIES",
+    description = "Creates a mapping between nomis id and up to 2 Activity service ids. Requires NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = ActivityMigrationMappingDto::class))],
     ),
@@ -66,11 +66,11 @@ class ActivityMigrationResource(private val mappingService: ActivityMigrationSer
     )
   }
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/activities/migration/nomis-course-activity-id/{courseActivityId}")
   @Operation(
     summary = "get mapping for an activity migration",
-    description = "Retrieves an activity migration mapping by course activity id. Requires role NOMIS_ACTIVITIES",
+    description = "Retrieves an activity migration mapping by course activity id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -97,11 +97,11 @@ class ActivityMigrationResource(private val mappingService: ActivityMigrationSer
     courseActivityId: Long,
   ): ActivityMigrationMappingDto = mappingService.getMapping(courseActivityId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/activities/migration/migrated/latest")
   @Operation(
     summary = "get the latest mapping for a migration",
-    description = "Requires role NOMIS_ACTIVITIES",
+    description = "Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -127,7 +127,7 @@ class ActivityMigrationResource(private val mappingService: ActivityMigrationSer
   )
   suspend fun getLatestMigratedMapping(): ActivityMigrationMappingDto = mappingService.getLatestMigrated()
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/activities/migration/migration-id/{migrationId}")
   @Operation(
     summary = "get paged mappings by migration id",
@@ -157,7 +157,7 @@ class ActivityMigrationResource(private val mappingService: ActivityMigrationSer
     migrationId: String,
   ): Page<ActivityMigrationMappingDto> = mappingService.getMappings(pageRequest = pageRequest, migrationId = migrationId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/activities/migration-count/migration-id/{migrationId}")
   @Operation(
     summary = "Get number of activities migrated",

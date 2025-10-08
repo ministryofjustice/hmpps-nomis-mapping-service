@@ -60,7 +60,7 @@ class HearingMappingResourceIntTest : IntegrationTestBase() {
     mappingType: String = AdjudicationMappingType.ADJUDICATION_CREATED.name,
   ) {
     webTestClient.post().uri("/mapping/hearings")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         BodyInserters.fromValue(
@@ -114,7 +114,7 @@ class HearingMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create mapping success - ADJUDICATION_CREATED`() {
       webTestClient.post().uri("/mapping/hearings")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -130,7 +130,7 @@ class HearingMappingResourceIntTest : IntegrationTestBase() {
 
       val createdMappingByNomisId = webTestClient.get()
         .uri("/mapping/hearings/nomis/$NOMIS_HEARING_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(AdjudicationHearingMappingDto::class.java)
@@ -142,7 +142,7 @@ class HearingMappingResourceIntTest : IntegrationTestBase() {
 
       val createdMappingByDpsId =
         webTestClient.get().uri("/mapping/hearings/dps/$DPS_HEARING_ID")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody(AdjudicationHearingMappingDto::class.java)
@@ -156,7 +156,7 @@ class HearingMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create mapping failure - adjudication exists`() {
       webTestClient.post().uri("/mapping/hearings")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -173,7 +173,7 @@ class HearingMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/hearings")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -191,7 +191,7 @@ class HearingMappingResourceIntTest : IntegrationTestBase() {
 
       val createdMappingByDpsId =
         webTestClient.get().uri("/mapping/hearings/nomis/$NOMIS_HEARING_ID")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody(AdjudicationHearingMappingDto::class.java)
@@ -205,7 +205,7 @@ class HearingMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create mapping failure - Duplicate db error`() = runTest {
       webTestClient.post().uri("/mapping/hearings")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -227,7 +227,7 @@ class HearingMappingResourceIntTest : IntegrationTestBase() {
 
       val responseBody =
         webTestClient.post().uri("/mapping/hearings")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -285,7 +285,7 @@ class HearingMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success`() {
       webTestClient.post().uri("/mapping/hearings")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createMapping()))
         .exchange()
@@ -293,7 +293,7 @@ class HearingMappingResourceIntTest : IntegrationTestBase() {
 
       val mapping = webTestClient.get()
         .uri("/mapping/hearings/dps/$DPS_HEARING_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(AdjudicationHearingMappingDto::class.java)
@@ -305,14 +305,14 @@ class HearingMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `mapping not found`() {
       webTestClient.get().uri("/mapping/hearings/dps/888")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody().jsonPath("$.userMessage").value<String> {
           Assertions.assertThat(it).isEqualTo("Not Found: DPS hearing Id=888")
         }
       webTestClient.get().uri("/mapping/hearings/nomis/999")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody().jsonPath("$.userMessage").value<String> {
@@ -352,7 +352,7 @@ class HearingMappingResourceIntTest : IntegrationTestBase() {
     fun `delete specific mapping success`() {
       // create mapping
       webTestClient.post().uri("/mapping/hearings")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createMapping()))
         .exchange()
@@ -360,19 +360,19 @@ class HearingMappingResourceIntTest : IntegrationTestBase() {
 
       // it is present after creation by adjudication id
       webTestClient.get().uri("/mapping/hearings/dps/$DPS_HEARING_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
 
       // delete mapping
       webTestClient.delete().uri("/mapping/hearings/dps/$DPS_HEARING_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
       // no longer present by dps id
       webTestClient.get().uri("/mapping/hearings/dps/$DPS_HEARING_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
     }
@@ -381,7 +381,7 @@ class HearingMappingResourceIntTest : IntegrationTestBase() {
     fun `delete is idempotent`() {
       // create mapping
       webTestClient.post().uri("/mapping/hearings")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createMapping()))
         .exchange()
@@ -389,13 +389,13 @@ class HearingMappingResourceIntTest : IntegrationTestBase() {
 
       // delete mapping
       webTestClient.delete().uri("/mapping/hearings/dps/$DPS_HEARING_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
       // delete mapping second time still returns success
       webTestClient.delete().uri("/mapping/hearings/dps/$DPS_HEARING_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
     }

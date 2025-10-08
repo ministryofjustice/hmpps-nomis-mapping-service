@@ -146,7 +146,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same corporate to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/corporate/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -157,7 +157,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow a child of a corporate to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/corporate/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -185,7 +185,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/corporate/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -231,7 +231,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/corporate/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -242,7 +242,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the corporate mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/corporate/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings.copy(label = "2023-01-01T12:45:12")))
           .exchange()
@@ -262,7 +262,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the corporate address mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/corporate/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -297,7 +297,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the corporate address phone mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/corporate/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -332,7 +332,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the corporate phone mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/corporate/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -375,7 +375,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the corporate email mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/corporate/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -410,7 +410,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the corporate web mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/corporate/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -499,7 +499,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
         )
 
         webTestClient.get().uri("/mapping/corporate/organisation/migration-id/2023-01-01T12:45:12")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -518,7 +518,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `200 response even when no mappings are found`() {
         webTestClient.get().uri("/mapping/corporate/organisation/migration-id/2044-01-01")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -544,7 +544,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
             .queryParam("sort", "nomisId,asc")
             .build()
         }
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -613,7 +613,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
         )
 
         webTestClient.get().uri("/mapping/corporate/organisation")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -648,7 +648,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
             .queryParam("sort", "nomisId,asc")
             .build()
         }
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -707,7 +707,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       )
       webTestClient.post()
         .uri("/mapping/corporate/migrate")
-        .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+        .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(mappings))
         .exchange()
@@ -756,7 +756,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.delete()
           .uri("/mapping/corporate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
@@ -845,7 +845,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same organisation to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/corporate/organisation")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -856,7 +856,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/corporate/organisation")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -895,7 +895,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/corporate/organisation")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -906,7 +906,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the organisation mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/corporate/organisation")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -978,7 +978,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/corporate/organisation/nomis-corporate-id/{corporateId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -990,7 +990,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/corporate/organisation/nomis-corporate-id/{corporateId}", nomisCorporateId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -1057,7 +1057,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/corporate/organisation/dps-organisation-id/{organisationId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -1069,7 +1069,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/corporate/organisation/dps-organisation-id/{organisationId}", dpsOrganisationId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -1138,7 +1138,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
         fun `204 when mapping not found`() {
           webTestClient.delete()
             .uri("/mapping/corporate/organisation/dps-organisation-id/{organisationId}", "99999")
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
         }
@@ -1152,7 +1152,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
           webTestClient.delete()
             .uri("/mapping/corporate/organisation/dps-organisation-id/{organisationId}", dpsOrganisationId)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
 
@@ -1215,7 +1215,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
         fun `204 when mapping not found`() {
           webTestClient.delete()
             .uri("/mapping/corporate/organisation/nomis-corporate-id/{corporateId}", 99999)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
         }
@@ -1229,7 +1229,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
           webTestClient.delete()
             .uri("/mapping/corporate/organisation/nomis-corporate-id/{corporateId}", nomisCorporateId)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
 
@@ -1314,7 +1314,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same address to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/corporate/address")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -1325,7 +1325,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/corporate/address")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -1364,7 +1364,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/corporate/address")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -1375,7 +1375,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the address mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/corporate/address")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -1446,7 +1446,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/corporate/address/nomis-address-id/{addressId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -1458,7 +1458,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/corporate/address/nomis-address-id/{addressId}", nomisAddressId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -1525,7 +1525,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/corporate/address/dps-address-id/{addressId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -1537,7 +1537,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/corporate/address/dps-address-id/{addressId}", dpsAddressId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -1606,7 +1606,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
         fun `204 when mapping not found`() {
           webTestClient.delete()
             .uri("/mapping/corporate/address/dps-address-id/{addressId}", 99999)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
         }
@@ -1620,7 +1620,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
           webTestClient.delete()
             .uri("/mapping/corporate/address/dps-address-id/{addressId}", dpsAddressId)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
 
@@ -1683,7 +1683,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
         fun `204 when mapping not found`() {
           webTestClient.delete()
             .uri("/mapping/corporate/address/nomis-address-id/{addressId}", 99999)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
         }
@@ -1697,7 +1697,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
           webTestClient.delete()
             .uri("/mapping/corporate/address/nomis-address-id/{addressId}", nomisAddressId)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
 
@@ -1782,7 +1782,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same AddressPhone to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/corporate/address-phone")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -1793,7 +1793,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/corporate/address-phone")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -1832,7 +1832,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/corporate/address-phone")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -1843,7 +1843,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the AddressPhone mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/corporate/address-phone")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -1914,7 +1914,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/corporate/address-phone/nomis-phone-id/{phoneId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -1926,7 +1926,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/corporate/address-phone/nomis-phone-id/{phoneId}", nomisAddressId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -1993,7 +1993,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/corporate/address-phone/dps-address-phone-id/{addressPhoneId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -2005,7 +2005,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/corporate/address-phone/dps-address-phone-id/{addressPhoneId}", dpsAddressPhoneId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -2074,7 +2074,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
         fun `204 when mapping not found`() {
           webTestClient.delete()
             .uri("/mapping/corporate/address-phone/dps-address-phone-id/{phoneId}", 99999)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
         }
@@ -2087,7 +2087,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
           assertThat(corporateAddressPhoneMappingRepository.findOneByDpsId(dpsAddressId)).isNotNull()
           webTestClient.delete()
             .uri("/mapping/corporate/address-phone/dps-address-phone-id/{phoneId}", dpsAddressId)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
           assertThat(corporateAddressPhoneMappingRepository.findOneByDpsId(dpsAddressId)).isNull()
@@ -2149,7 +2149,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
         fun `204 when mapping not found`() {
           webTestClient.delete()
             .uri("/mapping/corporate/address-phone/nomis-phone-id/{phoneId}", 99999)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
         }
@@ -2162,7 +2162,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
           assertThat(corporateAddressPhoneMappingRepository.findOneByNomisId(nomisAddressId)).isNotNull()
           webTestClient.delete()
             .uri("/mapping/corporate/address-phone/nomis-phone-id/{phoneId}", nomisAddressId)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
           assertThat(corporateAddressPhoneMappingRepository.findOneByNomisId(nomisAddressId)).isNull()
@@ -2246,7 +2246,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same phone to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/corporate/phone")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -2257,7 +2257,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/corporate/phone")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -2296,7 +2296,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/corporate/phone")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -2307,7 +2307,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the phone mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/corporate/phone")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -2378,7 +2378,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/corporate/phone/nomis-phone-id/{phoneId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -2390,7 +2390,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/corporate/phone/nomis-phone-id/{phoneId}", nomisPhoneId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -2457,7 +2457,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/corporate/phone/dps-phone-id/{phoneId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -2469,7 +2469,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/corporate/phone/dps-phone-id/{phoneId}", dpsPhoneId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -2538,7 +2538,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
         fun `204 when mapping not found`() {
           webTestClient.delete()
             .uri("/mapping/corporate/phone/nomis-phone-id/{phoneId}", 99999)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
         }
@@ -2551,7 +2551,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
           assertThat(corporatePhoneMappingRepository.findOneByDpsId(dpsPhoneId)).isNotNull
           webTestClient.delete()
             .uri("/mapping/corporate/phone/dps-phone-id/{phoneId}", dpsPhoneId)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
           assertThat(corporatePhoneMappingRepository.findOneByDpsId(dpsPhoneId)).isNull()
@@ -2613,7 +2613,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
         fun `204 when mapping not found`() {
           webTestClient.delete()
             .uri("/mapping/corporate/phone/nomis-phone-id/{phoneId}", 99999)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
         }
@@ -2626,7 +2626,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
           assertThat(corporatePhoneMappingRepository.findOneByNomisId(nomisPhoneId)).isNotNull
           webTestClient.delete()
             .uri("/mapping/corporate/phone/nomis-phone-id/{phoneId}", nomisPhoneId)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
           assertThat(corporatePhoneMappingRepository.findOneByNomisId(nomisPhoneId)).isNull()
@@ -2710,7 +2710,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same email to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/corporate/email")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -2721,7 +2721,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/corporate/email")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -2760,7 +2760,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/corporate/email")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -2771,7 +2771,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the email mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/corporate/email")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -2842,7 +2842,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/corporate/email/nomis-internet-address-id/{emailId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -2854,7 +2854,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/corporate/email/nomis-internet-address-id/{emailId}", nomisInternetAddressId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -2921,7 +2921,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/corporate/email/dps-email-id/{emailId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -2933,7 +2933,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/corporate/email/dps-email-id/{emailId}", dpsEmailId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -3002,7 +3002,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
         fun `204 when mapping not found`() {
           webTestClient.delete()
             .uri("/mapping/corporate/email/dps-email-id/{emailId}", 99999)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
         }
@@ -3015,7 +3015,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
           assertThat(corporateEmailMappingRepository.findOneByDpsId(dpsInternetAddressId)).isNotNull
           webTestClient.delete()
             .uri("/mapping/corporate/email/dps-email-id/{emailId}", dpsInternetAddressId)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
           assertThat(corporateEmailMappingRepository.findOneByDpsId(dpsInternetAddressId)).isNull()
@@ -3077,7 +3077,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
         fun `204 when mapping not found`() {
           webTestClient.delete()
             .uri("/mapping/corporate/email/nomis-internet-address-id/{emailId}", 99999)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
         }
@@ -3090,7 +3090,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
           assertThat(corporateEmailMappingRepository.findOneByNomisId(nomisInternetAddressId)).isNotNull
           webTestClient.delete()
             .uri("/mapping/corporate/email/nomis-internet-address-id/{emailId}", nomisInternetAddressId)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
           assertThat(corporateEmailMappingRepository.findOneByNomisId(nomisInternetAddressId)).isNull()
@@ -3174,7 +3174,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will not allow the same web to have duplicate mappings`() {
         webTestClient.post()
           .uri("/mapping/corporate/web")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -3185,7 +3185,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/corporate/web")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -3224,7 +3224,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/corporate/web")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -3235,7 +3235,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will persist the web mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/corporate/web")
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -3306,7 +3306,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/corporate/web/nomis-internet-address-id/{webId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -3318,7 +3318,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/corporate/web/nomis-internet-address-id/{webId}", nomisInternetAddressId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -3385,7 +3385,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/corporate/web/dps-web-id/{webId}", 99999)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -3397,7 +3397,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
       fun `will return the mapping data`() {
         webTestClient.get()
           .uri("/mapping/corporate/web/dps-web-id/{webId}", dpsWebId)
-          .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -3466,7 +3466,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
         fun `204 when mapping not found`() {
           webTestClient.delete()
             .uri("/mapping/corporate/web/dps-web-id/{webId}", 99999)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
         }
@@ -3480,7 +3480,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
           webTestClient.delete()
             .uri("/mapping/corporate/web/dps-web-id/{webId}", dpsInternetAddressId)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
           assertThat(corporateWebMappingRepository.findOneByDpsId(dpsInternetAddressId)).isNull()
@@ -3542,7 +3542,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
         fun `204 when mapping not found`() {
           webTestClient.delete()
             .uri("/mapping/corporate/web/nomis-internet-address-id/{webId}", 99999)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
         }
@@ -3556,7 +3556,7 @@ class CorporateMappingResourceIntTest : IntegrationTestBase() {
 
           webTestClient.delete()
             .uri("/mapping/corporate/web/nomis-internet-address-id/{webId}", nomisInternetAddressId)
-            .headers(setAuthorisation(roles = listOf("NOMIS_CONTACTPERSONS")))
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .exchange()
             .expectStatus().isNoContent
           assertThat(corporateWebMappingRepository.findOneByNomisId(nomisInternetAddressId)).isNull()

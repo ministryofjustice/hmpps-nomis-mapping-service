@@ -21,7 +21,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('NOMIS_CONTACTPERSONS')")
+@PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/contact-person/profile-details", produces = [MediaType.APPLICATION_JSON_VALUE])
 class ContactPersonProfileDetailsMigrationResource(
   private val service: ContactPersonProfileDetailMigrationService,
@@ -30,7 +30,7 @@ class ContactPersonProfileDetailsMigrationResource(
   @PutMapping("/migration")
   @Operation(
     summary = "Creates or updates a contact person profile details migration mapping for a migration",
-    description = "Creates updates a contact person profile details migration mapping for a migration between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates updates a contact person profile details migration mapping for a migration between NOMIS ids and dps ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = ContactPersonProfileDetailsMigrationMappingDto::class))],
     ),

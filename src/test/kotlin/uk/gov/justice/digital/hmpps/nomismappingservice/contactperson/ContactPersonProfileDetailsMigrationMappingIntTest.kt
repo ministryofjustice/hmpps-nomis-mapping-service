@@ -131,7 +131,7 @@ class ContactPersonProfileDetailsMigrationMappingIntTest(
       numberOfChildrenDpsIds: String,
     ) = webTestClient.put()
       .uri("/mapping/contact-person/profile-details/migration")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(BodyInserters.fromValue(request(prisonerNumber, migrationId, domesticStatusDpsIds, numberOfChildrenDpsIds)))
       .exchange()
@@ -193,7 +193,7 @@ class ContactPersonProfileDetailsMigrationMappingIntTest(
         saveMapping("C3456DE", label = "wrong-migration")
 
         webTestClient.get().uri("/mapping/contact-person/profile-details/migration/migration-id/some_migration_id")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -214,7 +214,7 @@ class ContactPersonProfileDetailsMigrationMappingIntTest(
         saveMapping(label = "wrong-migration")
 
         webTestClient.get().uri("/mapping/contact-person/profile-details/migration/migration-id/some_migration_id")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -233,7 +233,7 @@ class ContactPersonProfileDetailsMigrationMappingIntTest(
             .queryParam("page", "0")
             .build()
         }
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -253,7 +253,7 @@ class ContactPersonProfileDetailsMigrationMappingIntTest(
             .queryParam("page", "1")
             .build()
         }
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CONTACTPERSONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()

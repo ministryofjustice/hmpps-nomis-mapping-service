@@ -124,7 +124,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     mappingType: String = ADJUDICATION_CREATED.name,
   ) {
     webTestClient.post().uri("/mapping/adjudications")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         BodyInserters.fromValue(
@@ -181,7 +181,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create mapping success - ADJUDICATION_CREATED`() {
       webTestClient.post().uri("/mapping/adjudications")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -198,7 +198,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
       val createdMappingByNomisId = webTestClient.get()
         .uri("/mapping/adjudications/adjudication-number/$ADJUDICATION_NUMBER/charge-sequence/$CHARGE_SEQ")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(AdjudicationMappingDto::class.java)
@@ -211,7 +211,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
       val createdMappingByDpsId =
         webTestClient.get().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody(AdjudicationMappingDto::class.java)
@@ -226,7 +226,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create mapping success - MIGRATED`() {
       webTestClient.post().uri("/mapping/adjudications")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -245,7 +245,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
       val createdMappingByDpsId =
         webTestClient.get().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody(AdjudicationMappingDto::class.java)
@@ -259,7 +259,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create mapping failure - adjudication exists`() {
       webTestClient.post().uri("/mapping/adjudications")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -277,7 +277,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/adjudications")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -296,7 +296,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
       val createdMappingByDpsId =
         webTestClient.get().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody(AdjudicationMappingDto::class.java)
@@ -310,7 +310,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create mapping failure - Duplicate db error`() = runTest {
       webTestClient.post().uri("/mapping/adjudications")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -333,7 +333,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
       val responseBody =
         webTestClient.post().uri("/mapping/adjudications")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -392,7 +392,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `will create mapping when no hearings or punishments`(): Unit = runBlocking {
       webTestClient.post().uri("/mapping/adjudications/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -415,7 +415,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
       val createdMappingByNomisId = webTestClient.get()
         .uri("/mapping/adjudications/adjudication-number/$ADJUDICATION_NUMBER/charge-sequence/$CHARGE_SEQ")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(AdjudicationMappingDto::class.java)
@@ -429,7 +429,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
       val createdMappingByDpsId =
         webTestClient.get().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody(AdjudicationMappingDto::class.java)
@@ -448,7 +448,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `will create mapping with hearings and punishments`() = runBlocking {
       webTestClient.post().uri("/mapping/adjudications/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -495,7 +495,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
       val createdMappingByNomisId = webTestClient.get()
         .uri("/mapping/adjudications/adjudication-number/$ADJUDICATION_NUMBER/charge-sequence/$CHARGE_SEQ")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(AdjudicationMappingDto::class.java)
@@ -509,7 +509,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
       val createdMappingByDpsId =
         webTestClient.get().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody(AdjudicationMappingDto::class.java)
@@ -556,7 +556,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create mapping failure - adjudication exists`() {
       webTestClient.post().uri("/mapping/adjudications/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -578,7 +578,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/adjudications/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -601,7 +601,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
       val createdMappingByDpsId =
         webTestClient.get().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody(AdjudicationMappingDto::class.java)
@@ -646,7 +646,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success`() {
       webTestClient.post().uri("/mapping/adjudications")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createMapping()))
         .exchange()
@@ -654,7 +654,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
       val mapping = webTestClient.get()
         .uri("/mapping/adjudications/adjudication-number/$ADJUDICATION_NUMBER/charge-sequence/$CHARGE_SEQ")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(AdjudicationMappingDto::class.java)
@@ -666,14 +666,14 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `mapping not found`() {
       webTestClient.get().uri("/mapping/adjudications/adjudication-number/$ADJUDICATION_NUMBER/charge-sequence/765")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody().jsonPath("$.userMessage").value<String> {
           assertThat(it).isEqualTo("Not Found: adjudicationNumber=4444, chargeSequence=765")
         }
       webTestClient.get().uri("/mapping/adjudications/adjudication-number/765/charge-sequence/$CHARGE_SEQ")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody().jsonPath("$.userMessage").value<String> {
@@ -712,7 +712,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get retrieves latest migrated mapping`() {
       webTestClient.post().uri("/mapping/adjudications")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -727,7 +727,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/adjudications")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -744,7 +744,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/adjudications")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -761,7 +761,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/adjudications")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -778,7 +778,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       val mapping = webTestClient.get().uri("/mapping/adjudications/migrated/latest")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(AdjudicationMappingDto::class.java)
@@ -794,7 +794,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `404 when no migrated mapping found`() {
       webTestClient.post().uri("/mapping/adjudications")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -809,7 +809,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       val error = webTestClient.get().uri("/mapping/adjudications/migrated/latest")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody(ErrorResponse::class.java)
@@ -852,7 +852,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
       postCreateMappingRequest(202, chargeNumber = "202/1")
 
       val mapping = webTestClient.get().uri("/mapping/adjudications")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody<List<AdjudicationMappingDto>>()
@@ -895,7 +895,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     fun `delete specific mapping success`() {
       // create mapping
       webTestClient.post().uri("/mapping/adjudications")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createMapping()))
         .exchange()
@@ -903,19 +903,19 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
       // it is present after creation by adjudication id
       webTestClient.get().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
 
       // delete mapping
       webTestClient.delete().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
       // no longer present by charge number
       webTestClient.get().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
     }
@@ -924,7 +924,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     fun `delete is idempotent`() {
       // create mapping
       webTestClient.post().uri("/mapping/adjudications")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createMapping()))
         .exchange()
@@ -932,13 +932,13 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
 
       // delete mapping
       webTestClient.delete().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
       // delete mapping second time still returns success
       webTestClient.delete().uri("/mapping/adjudications/charge-number/{chargeNumber}", CHARGE_NUMBER)
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
     }
@@ -1060,7 +1060,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     fun `will delete all mappings for an adjudication`(): Unit = runBlocking {
       webTestClient.post().uri("/mapping/adjudications/delete-mappings")
         .bodyValue(deleteAllMappingsDto)
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
@@ -1125,7 +1125,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
       )
 
       webTestClient.get().uri("/mapping/adjudications/migration-id/2022-01-01")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -1149,7 +1149,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
       }
 
       webTestClient.get().uri("/mapping/adjudications/migration-id/2044-01-01")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -1174,7 +1174,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
           .queryParam("sort", "adjudicationNumber,asc")
           .build()
       }
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -1203,7 +1203,7 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
           .queryParam("sort", "adjudicationNumber,asc")
           .build()
       }
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()

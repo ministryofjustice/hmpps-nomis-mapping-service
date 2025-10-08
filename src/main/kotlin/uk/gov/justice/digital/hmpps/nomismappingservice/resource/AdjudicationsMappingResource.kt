@@ -33,12 +33,12 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RequestMapping("/", produces = [MediaType.APPLICATION_JSON_VALUE])
 class AdjudicationsMappingResource(private val mappingService: AdjudicationMappingService) {
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PostMapping("/mapping/adjudications")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new adjudication mapping",
-    description = "Creates a record of a adjudication number. Requires NOMIS_ADJUDICATIONS",
+    description = "Creates a record of a adjudication number. Requires NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -74,12 +74,12 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
     )
   }
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PostMapping("/mapping/adjudications/all")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new adjudication mapping along with associated hearings and punishments",
-    description = "Creates a record of a adjudication number, hearing and punishment. Requires NOMIS_ADJUDICATIONS",
+    description = "Creates a record of a adjudication number, hearing and punishment. Requires NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -115,11 +115,11 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
     )
   }
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/adjudications/charge-number/{chargeNumber}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by DPS charge number. Requires role NOMIS_ADJUDICATIONS",
+    description = "Retrieves a mapping by DPS charge number. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -146,11 +146,11 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
     chargeNumber: String,
   ): AdjudicationMappingDto = mappingService.getMappingByDpsId(chargeNumber)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/adjudications/adjudication-number/{adjudicationNumber}/charge-sequence/{chargeSequence}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by NOMIS adjudication number and charge sequence. Requires role NOMIS_ADJUDICATIONS",
+    description = "Retrieves a mapping by NOMIS adjudication number and charge sequence. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -180,11 +180,11 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
     chargeSequence: Int,
   ): AdjudicationMappingDto = mappingService.getMappingByNomisId(adjudicationNumber, chargeSequence)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/adjudications/migrated/latest")
   @Operation(
     summary = "get the latest mapping for a migration",
-    description = "Requires role NOMIS_ADJUDICATIONS",
+    description = "Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -210,12 +210,12 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
   )
   suspend fun getLatestMigratedAdjudicationMapping(): AdjudicationMappingDto = mappingService.getAdjudicationMappingForLatestMigrated()
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @DeleteMapping("/mapping/adjudications/charge-number/{chargeNumber}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a specific mapping by DPS charge number",
-    description = "Deletes the mapping table row. Requires role NOMIS_ADJUDICATIONS",
+    description = "Deletes the mapping table row. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -234,7 +234,7 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
     chargeNumber: String,
   ) = mappingService.deleteMapping(chargeNumber)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/adjudications/migration-id/{migrationId}")
   @Operation(
     summary = "get paged mappings by migration id",
@@ -264,11 +264,11 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
     migrationId: String,
   ): Page<AdjudicationMappingDto> = mappingService.getAdjudicationMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/adjudications")
   @Operation(
     summary = "Get all adjudication mappings",
-    description = "Get all the mapping table rows. Should only be used in dev (in pre/prod this could return excessive data). Requires role NOMIS_ADJUDICATIONS",
+    description = "Get all the mapping table rows. Should only be used in dev (in pre/prod this could return excessive data). Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -283,7 +283,7 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
   )
   suspend fun getAllMappings() = mappingService.getAllMappings()
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ADJUDICATIONS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PostMapping("/mapping/adjudications/delete-mappings")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(

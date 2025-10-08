@@ -76,7 +76,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
     activityId2: Long? = ACTIVITY_ID_2,
     label: String = MIGRATION_ID,
   ) = webTestClient.post().uri("/mapping/activities/migration")
-    .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+    .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
     .contentType(MediaType.APPLICATION_JSON)
     .body(
       fromValue(
@@ -285,7 +285,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
       saveMapping()
 
       webTestClient.get().uri("/mapping/activities/migration/nomis-course-activity-id/$NOMIS_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -300,7 +300,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
       saveMapping(activityId2 = null)
 
       webTestClient.get().uri("/mapping/activities/migration/nomis-course-activity-id/$NOMIS_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -313,7 +313,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
     @Test
     fun `should return not found `() = runTest {
       webTestClient.get().uri("/mapping/activities/migration/nomis-course-activity-id/$NOMIS_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody()
@@ -357,7 +357,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
       saveMapping()
 
       webTestClient.get().uri("/mapping/activities/migration/migrated/latest")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -370,7 +370,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
     @Test
     fun `404 when no migrated mapping found`() {
       webTestClient.get().uri("/mapping/activities/migration/migrated/latest")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody()
@@ -414,7 +414,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
       saveMapping(2, label = "wrong-migration")
 
       webTestClient.get().uri("/mapping/activities/migration/migration-id/$MIGRATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -435,7 +435,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
       saveMapping(label = "wrong-migration")
 
       webTestClient.get().uri("/mapping/activities/migration/migration-id/$MIGRATION_ID")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -454,7 +454,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
           .queryParam("page", "0")
           .build()
       }
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -474,7 +474,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
           .queryParam("page", "1")
           .build()
       }
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -498,7 +498,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
 
       webTestClient.get()
         .uri("/mapping/activities/migration-count/migration-id/some-migration")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody<Long>().isEqualTo(1)
@@ -515,7 +515,7 @@ class ActivityMigrationResourceIntTest : IntegrationTestBase() {
             .queryParam("includeIgnored", "true")
             .build()
         }
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody<Long>().isEqualTo(2)

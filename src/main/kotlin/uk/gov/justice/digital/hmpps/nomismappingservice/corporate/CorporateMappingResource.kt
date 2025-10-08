@@ -29,7 +29,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('NOMIS_CONTACTPERSONS')")
+@PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/corporate", produces = [MediaType.APPLICATION_JSON_VALUE])
 class CorporateMappingResource(private val service: CorporateService) {
   private companion object {
@@ -40,7 +40,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a tree of corporate mappings typically for a migration",
-    description = "Creates a tree of corporate mappings typically for a migration between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates a tree of corporate mappings typically for a migration between NOMIS ids and dps ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = CorporateMappingsDto::class))],
     ),
@@ -89,7 +89,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @GetMapping("/organisation/migration-id/{migrationId}")
   @Operation(
     summary = "Get paged corporate mappings by migration id",
-    description = "Retrieve all corporate mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieve all corporate mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -118,7 +118,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes all corporate mappings",
-    description = "Deletes all corporate mappings regardless of source. This includes corporate, phone, address, address phone, email, web. This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Deletes all corporate mappings regardless of source. This includes corporate, phone, address, address phone, email, web. This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "204", description = "All mappings deleted"),
       ApiResponse(
@@ -139,7 +139,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates corporate mappings for synchronisation",
-    description = "Creates mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class))],
     ),
@@ -185,7 +185,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @GetMapping("/organisation")
   @Operation(
     summary = "Get paged corporate mappings by migration id",
-    description = "Retrieve all corporate mappings. Results are paged. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieve all corporate mappings. Results are paged. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -210,7 +210,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @GetMapping("/organisation/nomis-corporate-id/{nomisCorporateId}")
   @Operation(
     summary = "Get corporate mapping by nomis corporate Id",
-    description = "Retrieves the corporate mapping by NOMIS Corporate Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the corporate mapping by NOMIS Corporate Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -245,7 +245,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @GetMapping("/organisation/dps-organisation-id/{dpsOrganisationId}")
   @Operation(
     summary = "Get corporate mapping by dps organisation Id",
-    description = "Retrieves the corporate mapping by DPS organisation Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the corporate mapping by DPS organisation Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -281,7 +281,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes corporate mapping by dps organisation Id",
-    description = "Deletes the corporate mapping by DPS Organisation Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Deletes the corporate mapping by DPS Organisation Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -309,7 +309,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes corporate mapping by nomis corporate Id",
-    description = "Deletes the corporate mapping by NOMIS Corporate Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Deletes the corporate mapping by NOMIS Corporate Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -337,7 +337,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates address mappings for synchronisation",
-    description = "Creates mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class))],
     ),
@@ -383,7 +383,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @GetMapping("/address/nomis-address-id/{nomisAddressId}")
   @Operation(
     summary = "Get address mapping by nomis address Id",
-    description = "Retrieves the address mapping by NOMIS Address Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the address mapping by NOMIS Address Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -418,7 +418,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @GetMapping("/address/dps-address-id/{dpsAddressId}")
   @Operation(
     summary = "Get address mapping by dps address Id",
-    description = "Retrieves the address mapping by DPS Address Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the address mapping by DPS Address Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -454,7 +454,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes address mapping by dps address Id",
-    description = "Deletes the address mapping by DPS Address Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Deletes the address mapping by DPS Address Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -482,7 +482,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes address mapping by nomis address Id",
-    description = "Deletes the address mapping by NOMIS Address Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Deletes the address mapping by NOMIS Address Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -510,7 +510,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates address phone mappings for synchronisation",
-    description = "Creates mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class))],
     ),
@@ -556,7 +556,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @GetMapping("/address-phone/nomis-phone-id/{nomisPhoneId}")
   @Operation(
     summary = "Get address phone mapping by nomis phone Id",
-    description = "Retrieves the addressPhone mapping by NOMIS phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the addressPhone mapping by NOMIS phone Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -591,7 +591,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @GetMapping("/address-phone/dps-address-phone-id/{dpsAddressPhoneId}")
   @Operation(
     summary = "Get address phone mapping by dps address phone Id",
-    description = "Retrieves the address mapping by DPS Address Phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the address mapping by DPS Address Phone Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -627,7 +627,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes address phone mapping by dps phone Id",
-    description = "Deletes the address phone mapping by DPS phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Deletes the address phone mapping by DPS phone Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -655,7 +655,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes address phone mapping by nomis phone Id",
-    description = "Deletes the address phone mapping by NOMIS phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Deletes the address phone mapping by NOMIS phone Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -683,7 +683,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates phone mappings for synchronisation",
-    description = "Creates mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class))],
     ),
@@ -729,7 +729,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @GetMapping("/phone/nomis-phone-id/{nomisPhoneId}")
   @Operation(
     summary = "Get phone mapping by nomis phone Id",
-    description = "Retrieves the phone mapping by NOMIS Phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the phone mapping by NOMIS Phone Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -764,7 +764,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @GetMapping("/phone/dps-phone-id/{dpsPhoneId}")
   @Operation(
     summary = "Get phone mapping by dps  phone Id",
-    description = "Retrieves the  mapping by DPS Phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the  mapping by DPS Phone Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -800,7 +800,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete phone mapping by dps phone Id",
-    description = "Deletes the phone mapping by DPS Phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Deletes the phone mapping by DPS Phone Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -828,7 +828,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete phone mapping by nomis phone Id",
-    description = "Deletes the phone mapping by NOMIS Phone Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Deletes the phone mapping by NOMIS Phone Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -856,7 +856,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates email mappings for synchronisation",
-    description = "Creates mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class))],
     ),
@@ -902,7 +902,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @GetMapping("/email/nomis-internet-address-id/{nomisEmailId}")
   @Operation(
     summary = "Get email mapping by nomis email Id",
-    description = "Retrieves the email mapping by NOMIS Email Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the email mapping by NOMIS Email Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -937,7 +937,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @GetMapping("/email/dps-email-id/{dpsEmailId}")
   @Operation(
     summary = "Get email mapping by dps  email Id",
-    description = "Retrieves the  mapping by DPS Email Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the  mapping by DPS Email Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -973,7 +973,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete email mapping by dps email Id",
-    description = "Deletes the email mapping by DPS Email Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Deletes the email mapping by DPS Email Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -1001,7 +1001,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete email mapping by nomis email Id",
-    description = "Deletes the email mapping by NOMIS Email Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Deletes the email mapping by NOMIS Email Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -1029,7 +1029,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates web mappings for synchronisation",
-    description = "Creates mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_CONTACTPERSONS",
+    description = "Creates mappings for synchronisation between NOMIS ids and dps ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = OrganisationsMappingDto::class))],
     ),
@@ -1075,7 +1075,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @GetMapping("/web/nomis-internet-address-id/{nomisWebId}")
   @Operation(
     summary = "Get web mapping by nomis web Id",
-    description = "Retrieves the web mapping by NOMIS Web Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the web mapping by NOMIS Web Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -1110,7 +1110,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @GetMapping("/web/dps-web-id/{dpsWebId}")
   @Operation(
     summary = "Get web mapping by dps web address Id",
-    description = "Retrieves the  mapping by DPS Web Address Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Retrieves the  mapping by DPS Web Address Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -1146,7 +1146,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete web mapping by dps web Id",
-    description = "Deletes the web mapping by DPS Web Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Deletes the web mapping by DPS Web Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -1174,7 +1174,7 @@ class CorporateMappingResource(private val service: CorporateService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete web mapping by nomis web Id",
-    description = "Deletes the web mapping by NOMIS Web Id. Requires role ROLE_NOMIS_CONTACTPERSONS",
+    description = "Deletes the web mapping by NOMIS Web Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",

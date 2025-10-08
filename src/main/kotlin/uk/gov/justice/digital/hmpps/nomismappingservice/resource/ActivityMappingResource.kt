@@ -30,12 +30,12 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RequestMapping("/", produces = [MediaType.APPLICATION_JSON_VALUE])
 class ActivityMappingResource(private val mappingService: ActivityMappingService) {
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PostMapping("/mapping/activities")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new activity mapping",
-    description = "Creates a mapping between nomis id and Activity service id. Requires NOMIS_ACTIVITIES",
+    description = "Creates a mapping between nomis id and Activity service id. Requires NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = ActivityMappingDto::class))],
     ),
@@ -66,12 +66,12 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
     )
   }
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PutMapping("/mapping/activities")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "Updates an activity mapping",
-    description = "Updates a mapping between Nomis and Activities, including both the COURSE_ACTIVITY and COURSE_SCHEDULE. Requires NOMIS_ACTIVITIES",
+    description = "Updates a mapping between Nomis and Activities, including both the COURSE_ACTIVITY and COURSE_SCHEDULE. Requires NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = ActivityMappingDto::class))],
     ),
@@ -99,12 +99,12 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
     updateRequest: ActivityMappingDto,
   ) = mappingService.updateScheduleMappings(updateRequest)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/activities/activity-schedule-id/{activityScheduleId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by activity schedule id. Requires role NOMIS_ACTIVITIES",
+    description = "Retrieves a mapping by activity schedule id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -134,12 +134,12 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
     activityScheduleId: Long,
   ): ActivityMappingDto = mappingService.getMappingById(activityScheduleId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/activities/activity-schedule-id/{activityScheduleId}/scheduled-instance-id/{scheduledInstanceId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get scheduled instance mapping",
-    description = "Retrieves a mapping by activity schedule id and scheduled instance id. Requires role NOMIS_ACTIVITIES",
+    description = "Retrieves a mapping by activity schedule id and scheduled instance id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -168,12 +168,12 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
     @Schema(description = "Scheduled instance Id", example = "67890", required = true) @PathVariable scheduledInstanceId: Long,
   ): ActivityScheduleMappingDto = mappingService.getScheduleMappingById(activityScheduleId, scheduledInstanceId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/activities/schedules/scheduled-instance-id/{scheduledInstanceId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get scheduled instance mapping",
-    description = "Retrieves a mapping by scheduled instance id. Requires role NOMIS_ACTIVITIES",
+    description = "Retrieves a mapping by scheduled instance id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -201,12 +201,12 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
     @Schema(description = "Scheduled instance Id", example = "67890", required = true) @PathVariable scheduledInstanceId: Long,
   ): ActivityScheduleMappingDto = mappingService.getScheduleMappingByScheduleId(scheduledInstanceId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @DeleteMapping("/mapping/activities/activity-schedule-id/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a specific mapping by activity schedule id",
-    description = "Deletes the mapping table row. Requires role NOMIS_ACTIVITIES",
+    description = "Deletes the mapping table row. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -225,11 +225,11 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
     id: Long,
   ) = mappingService.deleteMapping(id)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/activities")
   @Operation(
     summary = "Get all activities mappings",
-    description = "Get all the mapping table rows. Should only be used in dev (in pre/prod this could return excessive data). Requires role NOMIS_ACTIVITIES",
+    description = "Get all the mapping table rows. Should only be used in dev (in pre/prod this could return excessive data). Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -244,7 +244,7 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
   )
   suspend fun getAllMappings() = mappingService.getAllMappings()
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_ACTIVITIES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @DeleteMapping("/mapping/schedules/max-nomis-schedule-id/{maxCourseScheduleId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(

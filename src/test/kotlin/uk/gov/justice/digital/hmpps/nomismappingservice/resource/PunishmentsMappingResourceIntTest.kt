@@ -78,7 +78,7 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
     nomisSanctionSequence: Int = NOMIS_SANCTION_SEQUENCE,
   ) {
     webTestClient.post().uri("/mapping/punishments")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         BodyInserters.fromValue(
@@ -103,7 +103,7 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
     nomisSanctionSequence: Int = NOMIS_SANCTION_SEQUENCE,
   ) {
     webTestClient.put().uri("/mapping/punishments")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         BodyInserters.fromValue(
@@ -126,7 +126,7 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
     punishments: List<AdjudicationPunishmentMappingDto>,
   ) {
     webTestClient.post().uri("/mapping/punishments")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         BodyInserters.fromValue(
@@ -144,7 +144,7 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
     punishmentsToDelete: List<AdjudicationPunishmentNomisIdDto> = emptyList(),
   ) {
     webTestClient.put().uri("/mapping/punishments")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         BodyInserters.fromValue(
@@ -259,7 +259,7 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
 
         val response1 =
           webTestClient.post().uri("/mapping/punishments")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .contentType(MediaType.APPLICATION_JSON)
             .body(
               BodyInserters.fromValue(
@@ -293,7 +293,7 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
 
         val response2 =
           webTestClient.post().uri("/mapping/punishments")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .contentType(MediaType.APPLICATION_JSON)
             .body(
               BodyInserters.fromValue(
@@ -327,7 +327,7 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
 
         val response3 =
           webTestClient.post().uri("/mapping/punishments")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .contentType(MediaType.APPLICATION_JSON)
             .body(
               BodyInserters.fromValue(
@@ -379,7 +379,7 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
 
         val responseBody =
           webTestClient.post().uri("/mapping/punishments")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .contentType(MediaType.APPLICATION_JSON)
             .body(
               BodyInserters.fromValue(
@@ -540,7 +540,7 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
         )
 
         webTestClient.put().uri("/mapping/punishments")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -557,7 +557,7 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isDuplicateMapping
 
         webTestClient.put().uri("/mapping/punishments")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -588,7 +588,7 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
 
         val responseBody =
           webTestClient.put().uri("/mapping/punishments")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .contentType(MediaType.APPLICATION_JSON)
             .body(
               BodyInserters.fromValue(
@@ -662,7 +662,7 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `not found when mapping does not exist`() = runTest {
         webTestClient.get().uri("/mapping/punishments/9940235")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -673,7 +673,7 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `can read punishment mapping`() = runTest {
         webTestClient.get().uri("/mapping/punishments/$DPS_PUNISHMENT_ID")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -727,11 +727,11 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `not found when mapping does not exist`() = runTest {
         webTestClient.get().uri("mapping/punishments/nomis-booking-id/$NOMIS_BOOKING_ID/nomis-sanction-sequence/9999")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
         webTestClient.get().uri("mapping/punishments/nomis-booking-id/9999/nomis-sanction-sequence/$NOMIS_SANCTION_SEQUENCE")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -742,7 +742,7 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `can read punishment mapping`() = runTest {
         webTestClient.get().uri("mapping/punishments/nomis-booking-id/$NOMIS_BOOKING_ID/nomis-sanction-sequence/$NOMIS_SANCTION_SEQUENCE")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -796,15 +796,15 @@ class PunishmentsMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `can delete punishment mapping`() = runTest {
         webTestClient.get().uri("/mapping/punishments/$DPS_PUNISHMENT_ID")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
         webTestClient.delete().uri("/mapping/punishments/$DPS_PUNISHMENT_ID")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
         webTestClient.get().uri("/mapping/punishments/$DPS_PUNISHMENT_ID")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ADJUDICATIONS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }

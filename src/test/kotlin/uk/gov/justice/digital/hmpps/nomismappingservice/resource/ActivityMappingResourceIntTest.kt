@@ -96,7 +96,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     mappingType: String = ActivityMappingType.ACTIVITY_CREATED.name,
   ) {
     webTestClient.post().uri("/mapping/activities")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         BodyInserters.fromValue(
@@ -149,7 +149,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
       assertThat(
         webTestClient.post().uri("/mapping/activities")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(createMapping().copy(nomisCourseActivityId = 21)))
           .exchange()
@@ -162,7 +162,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     @Test
     internal fun `create mapping succeeds when the same mapping already exists for the same activity schedule`() {
       webTestClient.post().uri("/mapping/activities")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -178,7 +178,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/activities")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -200,7 +200,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
       assertThat(
         webTestClient.post().uri("/mapping/activities")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(createMapping().copy(activityScheduleId = 99)))
           .exchange()
@@ -213,7 +213,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create mapping success with schedules`() = runTest {
       webTestClient.post().uri("/mapping/activities")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -258,7 +258,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create mapping with no schedules`() = runTest {
       webTestClient.post().uri("/mapping/activities")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -288,7 +288,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create migration mapping`() = runTest {
       webTestClient.post().uri("/mapping/activities")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -315,7 +315,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create mapping - Duplicate db error`() = runTest {
       webTestClient.post().uri("/mapping/activities")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -336,7 +336,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
       val responseBody =
         webTestClient.post().uri("/mapping/activities")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -537,7 +537,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     }
 
     private fun WebTestClient.putScheduleMappings(request: String = createUpdateRequest()) = put().uri("/mapping/activities")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(BodyInserters.fromValue(request))
       .exchange()
@@ -573,7 +573,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `mapping not found`() {
       val error = webTestClient.get().uri("/mapping/activities/activity-schedule-id/765")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody(ErrorResponse::class.java)
@@ -587,7 +587,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
       activityRepository.save(ActivityMapping(activityScheduleId, activityId, 2, ActivityMappingType.ACTIVITY_CREATED))
 
       webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -605,7 +605,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
       scheduleRepository.save(ActivityScheduleMapping(21, 22, ActivityScheduleMappingType.ACTIVITY_CREATED, activityScheduleId))
 
       webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -633,7 +633,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
       )
 
       webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -681,7 +681,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `mapping not found for activity id`() {
       val error = webTestClient.get().uri("/mapping/activities/activity-schedule-id/765/scheduled-instance-id/$activityScheduledInstanceId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody(ErrorResponse::class.java)
@@ -693,7 +693,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `mapping not found for scheduled instance id`() {
       val error = webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId/scheduled-instance-id/432")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody(ErrorResponse::class.java)
@@ -705,7 +705,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `mapping found`() {
       webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId/scheduled-instance-id/$activityScheduledInstanceId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -751,7 +751,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `mapping not found for scheduled instance id`() {
       val error = webTestClient.get().uri("/mapping/activities/schedules/scheduled-instance-id/432")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody(ErrorResponse::class.java)
@@ -763,7 +763,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `mapping found`() {
       webTestClient.get().uri("/mapping/activities/schedules/scheduled-instance-id/$activityScheduledInstanceId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -806,7 +806,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
       postCreateMappingRequest(102, 202, 302)
 
       val mapping = webTestClient.get().uri("/mapping/activities")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody<List<ActivityMappingDto>>()
@@ -853,7 +853,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     fun `delete specific mapping success with schedules`() = runTest {
       // create mapping
       webTestClient.post().uri("/mapping/activities")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createMapping()))
         .exchange()
@@ -861,7 +861,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
       // it is present after creation by activity id
       webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
 
@@ -876,13 +876,13 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
       // delete mapping
       webTestClient.delete().uri("/mapping/activities/activity-schedule-id/$activityScheduleId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
       // no longer present by activity id
       webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
 
@@ -895,7 +895,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     internal fun `delete is idempotent`() {
       // create mapping
       webTestClient.post().uri("/mapping/activities")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createMapping()))
         .exchange()
@@ -903,13 +903,13 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
       // delete mapping
       webTestClient.delete().uri("/mapping/activities/activity-schedule-id/$activityScheduleId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
       // delete mapping second time still returns success
       webTestClient.delete().uri("/mapping/activities/activity-schedule-id/$activityScheduleId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
     }
@@ -946,7 +946,7 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
     fun `delete specific mapping success with schedules`() = runTest {
       // create mapping
       webTestClient.post().uri("/mapping/activities")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(createMapping(scheduledInstanceMappings = listOf(Pair(1, 1), Pair(2, 2)))),
@@ -956,11 +956,11 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
       // Schedules exist
       webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId/scheduled-instance-id/1")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
       webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId/scheduled-instance-id/2")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
 
@@ -972,17 +972,17 @@ class ActivityMappingResourceIntTest : IntegrationTestBase() {
 
       // delete everything after course schedule id 1
       webTestClient.delete().uri("/mapping/schedules/max-nomis-schedule-id/1")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
       // Only the first schedule exists
       webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId/scheduled-instance-id/1")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
       webTestClient.get().uri("/mapping/activities/activity-schedule-id/$activityScheduleId/scheduled-instance-id/2")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ACTIVITIES")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
 
