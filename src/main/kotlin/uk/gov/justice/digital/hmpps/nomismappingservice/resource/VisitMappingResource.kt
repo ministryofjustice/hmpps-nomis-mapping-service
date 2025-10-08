@@ -36,12 +36,12 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RequestMapping("/", produces = [MediaType.APPLICATION_JSON_VALUE])
 class VisitMappingResource(private val mappingService: VisitMappingService) {
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PostMapping("/mapping/visits")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new visit",
-    description = "Creates a new visit and decrements the visit balance. Requires role NOMIS_VISITS",
+    description = "Creates a new visit and decrements the visit balance. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))],
     ),
@@ -82,12 +82,12 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     )
   }
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/visits/nomisId/{nomisId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by NOMIS id. Requires role NOMIS_VISITS",
+    description = "Retrieves a mapping by NOMIS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -112,12 +112,12 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     nomisId: Long,
   ): VisitMappingDto = mappingService.getVisitMappingGivenNomisId(nomisId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/visits/vsipId/{vsipId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by VSIP id. Requires role NOMIS_VISITS",
+    description = "Retrieves a mapping by VSIP id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -142,12 +142,12 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     vsipId: String,
   ): VisitMappingDto = mappingService.getVisitMappingGivenVsipId(vsipId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/visits/migrated/latest")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get the latest mapping for a migration",
-    description = "Requires role NOMIS_VISITS",
+    description = "Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -168,12 +168,12 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
   )
   suspend fun getLatestMigratedVisitMapping(): VisitMappingDto = mappingService.getVisitMappingForLatestMigrated()
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/prison/{prisonId}/room/nomis-room-id/{nomisRoomDescription}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get room mapping",
-    description = "Retrieves a room mapping by NOMIS prison id and NOMIS room id. Requires role NOMIS_VISITS",
+    description = "Retrieves a room mapping by NOMIS prison id and NOMIS room id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -288,12 +288,12 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     nomisRoomDescription: String,
   ) = mappingService.deleteRoomMapping(prisonId, nomisRoomDescription)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @DeleteMapping("/mapping/visits")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes visit id mappings",
-    description = "Deletes all rows from the the visit id table. Requires role NOMIS_VISITS",
+    description = "Deletes all rows from the the visit id table. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -317,7 +317,7 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     onlyMigrated,
   )
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @DeleteMapping("/mapping/visits/migration-id/{migrationId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
@@ -343,7 +343,7 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     migrationId,
   )
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/visits/migration-id/{migrationId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(

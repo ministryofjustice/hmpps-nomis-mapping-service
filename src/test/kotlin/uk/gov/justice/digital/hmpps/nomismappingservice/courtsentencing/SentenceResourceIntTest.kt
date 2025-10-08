@@ -85,7 +85,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
       fun `will return 404 when mapping does not exist`() {
         webTestClient.get()
           .uri("/mapping/court-sentencing/sentences/dps-sentence-id/DOESNOTEXIST")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
           .expectBody()
@@ -96,7 +96,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
       fun `will return 200 when mapping does exist`() {
         webTestClient.get()
           .uri("/mapping/court-sentencing/sentences/dps-sentence-id/${sentenceMapping.dpsSentenceId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -171,7 +171,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
       fun `will return 404 when mapping does not exist for sentence sequence`() {
         webTestClient.get()
           .uri("/mapping/court-sentencing/sentences/nomis-booking-id/${mapping.nomisBookingId}/nomis-sentence-sequence/78")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
           .expectBody()
@@ -182,7 +182,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
       fun `will return 404 when mapping does not exist for booking id`() {
         webTestClient.get()
           .uri("/mapping/court-sentencing/sentences/nomis-booking-id/8989/nomis-sentence-sequence/${mapping.nomisSentenceSequence}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
           .expectBody()
@@ -193,7 +193,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
       fun `will return 200 when mapping does exist`() {
         webTestClient.get()
           .uri("/mapping/court-sentencing/sentences/nomis-booking-id/${mapping.nomisBookingId}/nomis-sentence-sequence/${mapping.nomisSentenceSequence}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -283,7 +283,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mapping created`() = runTest {
         webTestClient.post()
           .uri("/mapping/court-sentencing/sentences")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -307,7 +307,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
       fun `can post and then get new and existing mapping`() {
         webTestClient.post()
           .uri("/mapping/court-sentencing/sentences")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -326,13 +326,13 @@ class SentenceResourceIntTest : IntegrationTestBase() {
 
         webTestClient.get()
           .uri("/mapping/court-sentencing/sentences/dps-sentence-id/$DPS_SENTENCE_ID")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
 
         webTestClient.get()
           .uri("/mapping/court-sentencing/sentences/dps-sentence-id/$EXISTING_DPS_SENTENCE_ID")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
       }
@@ -344,7 +344,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when mapping type is invalid`() {
         webTestClient.post()
           .uri("/mapping/court-sentencing/sentences")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -371,7 +371,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when DPS id is missing`() {
         webTestClient.post()
           .uri("/mapping/court-sentencing/sentences")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -396,7 +396,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when NOMIS id is missing`() {
         webTestClient.post()
           .uri("/mapping/court-sentencing/sentences")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -420,7 +420,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
       fun `returns 409 if nomis id already exist`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/court-sentencing/sentences")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -456,7 +456,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
       fun `returns 409 if dps id already exists`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/court-sentencing/sentences")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -548,7 +548,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
       fun `will return 204 even when mapping does not exist`() {
         webTestClient.delete()
           .uri("/mapping/court-sentencing/sentences/dps-sentence-id/NOPE")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -557,19 +557,19 @@ class SentenceResourceIntTest : IntegrationTestBase() {
       fun `will return 204 when mapping does exist and is deleted`() {
         webTestClient.get()
           .uri("/mapping/court-sentencing/sentences/dps-sentence-id/${mapping.dpsSentenceId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
 
         webTestClient.delete()
           .uri("/mapping/court-sentencing/sentences/dps-sentence-id/${mapping.dpsSentenceId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
         webTestClient.get()
           .uri("/mapping/court-sentencing/sentences/dps-sentence-id/${mapping.dpsSentenceId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -634,7 +634,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
       fun `will return 204 even when mapping does not exist`() {
         webTestClient.delete()
           .uri("/mapping/court-sentencing/sentences/nomis-booking-id/${mapping.nomisBookingId}/nomis-sentence-sequence/33")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -643,20 +643,20 @@ class SentenceResourceIntTest : IntegrationTestBase() {
       fun `will return 204 when mapping does exist and is deleted`() {
         webTestClient.get()
           .uri("/mapping/court-sentencing/sentences/dps-sentence-id/${mapping.dpsSentenceId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
 
         // delete using nomis id
         webTestClient.delete()
           .uri("/mapping/court-sentencing/sentences/nomis-booking-id/${mapping.nomisBookingId}/nomis-sentence-sequence/${mapping.nomisSentenceSequence}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
         webTestClient.get()
           .uri("/mapping/court-sentencing/sentences/dps-sentence-id/${mapping.dpsSentenceId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -736,7 +736,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
 
         val response = webTestClient.post()
           .uri("/mapping/court-sentencing/sentences/dps-sentence-ids/get-list")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .bodyValue(listOf(mapping1.dpsSentenceId, mapping2.dpsSentenceId))
           .exchange()
           .expectStatus().isOk
@@ -765,7 +765,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
 
         val response = webTestClient.post()
           .uri("/mapping/court-sentencing/sentences/dps-sentence-ids/get-list")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .bodyValue(listOf("NON_EXISTENT_ID"))
           .exchange()
           .expectStatus().isOk
@@ -782,7 +782,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
 
         val response = webTestClient.post()
           .uri("/mapping/court-sentencing/sentences/dps-sentence-ids/get-list")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .bodyValue(listOf(mapping1.dpsSentenceId, "NON_EXISTENT_ID"))
           .exchange()
           .expectStatus().isOk
@@ -884,7 +884,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
 
         val response = webTestClient.post()
           .uri("/mapping/court-sentencing/sentences/nomis-sentence-ids/get-list")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .bodyValue(
             listOf(
               NomisSentenceId(nomisBookingId = mapping1.nomisBookingId, nomisSentenceSequence = mapping1.nomisSentenceSequence),
@@ -918,7 +918,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
 
         val response = webTestClient.post()
           .uri("/mapping/court-sentencing/sentences/nomis-sentence-ids/get-list")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .bodyValue(
             listOf(
               NomisSentenceId(nomisBookingId = 99999L, nomisSentenceSequence = 99),
@@ -939,7 +939,7 @@ class SentenceResourceIntTest : IntegrationTestBase() {
 
         val response = webTestClient.post()
           .uri("/mapping/court-sentencing/sentences/nomis-sentence-ids/get-list")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .bodyValue(
             listOf(
               NomisSentenceId(nomisBookingId = mapping1.nomisBookingId, nomisSentenceSequence = mapping1.nomisSentenceSequence),

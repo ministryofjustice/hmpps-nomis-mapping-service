@@ -25,7 +25,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('ROLE_NOMIS_CSIP')")
+@PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/csip/reviews", produces = [MediaType.APPLICATION_JSON_VALUE])
 class CSIPReviewMappingResource(
   private val reviewMappingService: CSIPReviewMappingService,
@@ -34,7 +34,7 @@ class CSIPReviewMappingResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new CSIP Review mapping",
-    description = "Creates a mapping between a Nomis CSIP review id and DPS CSIP review id. Requires role NOMIS_CSIP",
+    description = "Creates a mapping between a Nomis CSIP review id and DPS CSIP review id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -80,7 +80,7 @@ class CSIPReviewMappingResource(
   @GetMapping("/nomis-csip-review-id/{nomisCSIPReviewId}")
   @Operation(
     summary = "get CSIP Review mapping",
-    description = "Retrieves a CSIP Review mapping by NOMIS id. Requires role NOMIS_CSIP",
+    description = "Retrieves a CSIP Review mapping by NOMIS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -110,7 +110,7 @@ class CSIPReviewMappingResource(
   @GetMapping("/dps-csip-review-id/{dpsCSIPReviewId}")
   @Operation(
     summary = "get CSIP Review mapping",
-    description = "Retrieves a csip review mapping by DPS id. Requires role NOMIS_CSIP",
+    description = "Retrieves a csip review mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -140,7 +140,7 @@ class CSIPReviewMappingResource(
   @DeleteMapping("/dps-csip-review-id/{dpsCSIPReviewId}")
   @Operation(
     summary = "Deletes CSIP Review mapping",
-    description = "Deletes a CSIP Review mapping by DPS id. Requires role NOMIS_CSIP",
+    description = "Deletes a CSIP Review mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",

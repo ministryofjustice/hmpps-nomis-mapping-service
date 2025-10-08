@@ -94,7 +94,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `will return 404 when mapping does not exist`() {
         webTestClient.get()
           .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/DOESNOTEXIST")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
           .expectBody()
@@ -105,7 +105,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `will return 200 when mapping does exist`() {
         webTestClient.get()
           .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/${courtAppearanceMapping.dpsCourtAppearanceId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -177,7 +177,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `will return 404 when mapping does not exist`() {
         webTestClient.get()
           .uri("/mapping/court-sentencing/court-appearances/nomis-court-appearance-id/9878987")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
           .expectBody()
@@ -188,7 +188,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `will return 200 when mapping does exist`() {
         webTestClient.get()
           .uri("/mapping/court-sentencing/court-appearances/nomis-court-appearance-id/${courtAppearanceMapping.nomisCourtAppearanceId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -273,7 +273,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mapping created`() = runTest {
         webTestClient.post()
           .uri("/mapping/court-sentencing/court-appearances")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -295,7 +295,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `can create with minimal data`() = runTest {
         webTestClient.post()
           .uri("/mapping/court-sentencing/court-appearances")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -327,7 +327,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `can post and then get new and existing mapping`() {
         webTestClient.post()
           .uri("/mapping/court-sentencing/court-appearances")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -345,13 +345,13 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
 
         webTestClient.get()
           .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/$DPS_COURT_APPEARANCE_ID")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
 
         webTestClient.get()
           .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/${DPS_COURT_APPEARANCE_2_ID}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
       }
@@ -363,7 +363,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when mapping type is invalid`() {
         webTestClient.post()
           .uri("/mapping/court-sentencing/court-appearances")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -385,7 +385,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when DPS id is missing`() {
         webTestClient.post()
           .uri("/mapping/court-sentencing/court-appearances")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -405,7 +405,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when NOMIS id is missing`() {
         webTestClient.post()
           .uri("/mapping/court-sentencing/court-appearances")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -425,7 +425,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `returns 409 if nomis id already exist`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/court-sentencing/court-appearances")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -458,7 +458,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `returns 409 if dps id already exists`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/court-sentencing/court-appearances")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -546,7 +546,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `will return 204 even when mapping does not exist`() {
         webTestClient.delete()
           .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/NOPE")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -555,19 +555,19 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `will return 204 when mapping does exist and is deleted`() {
         webTestClient.get()
           .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/${mapping.dpsCourtAppearanceId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
 
         webTestClient.delete()
           .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/${mapping.dpsCourtAppearanceId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
         webTestClient.get()
           .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/${mapping.dpsCourtAppearanceId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -631,7 +631,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `will return 204 even when mapping does not exist`() {
         webTestClient.delete()
           .uri("/mapping/court-sentencing/court-appearances/nomis-court-appearance-id/13333")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -640,20 +640,20 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `will return 204 when mapping does exist and is deleted`() {
         webTestClient.get()
           .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/${mapping.dpsCourtAppearanceId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
 
         // delete using nomis id
         webTestClient.delete()
           .uri("/mapping/court-sentencing/court-appearances/nomis-court-appearance-id/${mapping.nomisCourtAppearanceId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
         webTestClient.get()
           .uri("/mapping/court-sentencing/court-appearances/dps-court-appearance-id/${mapping.dpsCourtAppearanceId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -733,7 +733,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
 
         webTestClient.get()
           .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/DOESNOTEXIST")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -746,7 +746,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
 
         val response = webTestClient.get()
           .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody(responseType)
@@ -838,7 +838,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `will return 204 even when mappings do not exist`() {
         webTestClient.delete()
           .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/non-existent-id")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -849,7 +849,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
         val responseType = object : ParameterizedTypeReference<List<CourtAppearanceRecallMappingDto>>() {}
         webTestClient.get()
           .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody(responseType)
@@ -861,14 +861,14 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
         // Delete mappings
         webTestClient.delete()
           .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
         // Verify mappings are deleted
         webTestClient.get()
           .uri("/mapping/court-sentencing/court-appearances/dps-recall-id/$dpsRecallId")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -961,7 +961,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mapping created`() = runTest {
         webTestClient.post()
           .uri("/mapping/court-sentencing/court-appearances/recall")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -990,7 +990,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
 
         webTestClient.post()
           .uri("/mapping/court-sentencing/court-appearances/recall")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -1004,7 +1004,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `can create with minimal data`() = runTest {
         webTestClient.post()
           .uri("/mapping/court-sentencing/court-appearances/recall")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -1037,7 +1037,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when nomisCourtAppearanceIds not provided`() {
         webTestClient.post()
           .uri("/mapping/court-sentencing/court-appearances/recall")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -1057,7 +1057,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when dpsRecallId not provided`() {
         webTestClient.post()
           .uri("/mapping/court-sentencing/court-appearances/recall")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(

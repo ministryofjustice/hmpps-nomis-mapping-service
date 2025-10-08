@@ -70,7 +70,7 @@ class TemporaryAbsenceResourceIntTest(
       fun saveMappings(mappings: TemporaryAbsencesPrisonerMappingDto = mappingsRequest()) {
         webTestClient.put()
           .uri("/mapping/temporary-absence/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -474,7 +474,7 @@ class TemporaryAbsenceResourceIntTest(
 
     private fun WebTestClient.createApplicationSyncMapping(mapping: TemporaryAbsenceApplicationSyncMappingDto) = post()
       .uri("/mapping/temporary-absence/application")
-      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(BodyInserters.fromValue(mapping))
       .exchange()
@@ -565,7 +565,7 @@ class TemporaryAbsenceResourceIntTest(
 
     private fun WebTestClient.getApplicationSyncMapping(nomisApplicationId: Long) = get()
       .uri("/mapping/temporary-absence/application/nomis-application-id/$nomisApplicationId")
-      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
   }
 
@@ -655,7 +655,7 @@ class TemporaryAbsenceResourceIntTest(
 
     private fun WebTestClient.getApplicationSyncMapping(dpsApplicationId: UUID) = get()
       .uri("/mapping/temporary-absence/application/dps-id/$dpsApplicationId")
-      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
   }
 
@@ -738,7 +738,7 @@ class TemporaryAbsenceResourceIntTest(
 
     private fun WebTestClient.deleteApplicationSyncMapping(nomisApplicationId: Long) = delete()
       .uri("/mapping/temporary-absence/application/nomis-application-id/$nomisApplicationId")
-      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
   }
 
@@ -895,7 +895,7 @@ class TemporaryAbsenceResourceIntTest(
 
     private fun WebTestClient.createOutsideMovementSyncMapping(mapping: TemporaryAbsenceOutsideMovementSyncMappingDto) = post()
       .uri("/mapping/temporary-absence/outside-movement")
-      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(BodyInserters.fromValue(mapping))
       .exchange()
@@ -986,7 +986,7 @@ class TemporaryAbsenceResourceIntTest(
 
     private fun WebTestClient.getOutsideMovementSyncMapping(nomisApplicationMultiId: Long) = get()
       .uri("/mapping/temporary-absence/outside-movement/nomis-application-multi-id/$nomisApplicationMultiId")
-      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
   }
 
@@ -1075,7 +1075,7 @@ class TemporaryAbsenceResourceIntTest(
 
     private fun WebTestClient.getOutsideMovementSyncMapping(dpsId: UUID) = get()
       .uri("/mapping/temporary-absence/outside-movement/dps-id/$dpsId")
-      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
   }
 
@@ -1158,7 +1158,7 @@ class TemporaryAbsenceResourceIntTest(
 
     private fun WebTestClient.deleteOutsideMovementSyncMapping(nomisApplicationMultiId: Long) = delete()
       .uri("/mapping/temporary-absence/outside-movement/nomis-application-multi-id/$nomisApplicationMultiId")
-      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
   }
 
@@ -1315,7 +1315,7 @@ class TemporaryAbsenceResourceIntTest(
 
     private fun WebTestClient.createScheduledMovementSyncMapping(mapping: ScheduledMovementSyncMappingDto) = post()
       .uri("/mapping/temporary-absence/scheduled-movement")
-      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(BodyInserters.fromValue(mapping))
       .exchange()
@@ -1406,7 +1406,7 @@ class TemporaryAbsenceResourceIntTest(
 
     private fun WebTestClient.getScheduledMovementSyncMapping(nomisEventId: Long) = get()
       .uri("/mapping/temporary-absence/scheduled-movement/nomis-event-id/$nomisEventId")
-      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
   }
 
@@ -1495,7 +1495,7 @@ class TemporaryAbsenceResourceIntTest(
 
     private fun WebTestClient.getScheduledMovementSyncMapping(dpsId: UUID) = get()
       .uri("/mapping/temporary-absence/scheduled-movement/dps-id/$dpsId")
-      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
   }
 
@@ -1578,7 +1578,7 @@ class TemporaryAbsenceResourceIntTest(
 
     private fun WebTestClient.deleteScheduledMovementSyncMapping(nomisEventId: Long) = delete()
       .uri("/mapping/temporary-absence/scheduled-movement/nomis-event-id/$nomisEventId")
-      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
   }
 
@@ -1736,7 +1736,7 @@ class TemporaryAbsenceResourceIntTest(
 
     private fun WebTestClient.createExternalMovementSyncMapping(mapping: ExternalMovementSyncMappingDto) = post()
       .uri("/mapping/temporary-absence/external-movement")
-      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(BodyInserters.fromValue(mapping))
       .exchange()
@@ -1819,7 +1819,7 @@ class TemporaryAbsenceResourceIntTest(
 
     private fun WebTestClient.getExternalMovementSyncMapping(bookingId: Long, movementSeq: Int) = get()
       .uri("/mapping/temporary-absence/external-movement/nomis-movement-id/$bookingId/$movementSeq")
-      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
   }
 
@@ -1900,7 +1900,7 @@ class TemporaryAbsenceResourceIntTest(
 
     private fun WebTestClient.getExternalMovementSyncMapping(dpsId: UUID) = get()
       .uri("/mapping/temporary-absence/external-movement/dps-id/$dpsId")
-      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
   }
 
@@ -1983,7 +1983,7 @@ class TemporaryAbsenceResourceIntTest(
 
     private fun WebTestClient.deleteExternalMovementSyncMapping(bookingId: Long, movementSeq: Int) = delete()
       .uri("/mapping/temporary-absence/external-movement/nomis-movement-id/$bookingId/$movementSeq")
-      .headers(setAuthorisation(roles = listOf("NOMIS_MOVEMENTS")))
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
   }
 }

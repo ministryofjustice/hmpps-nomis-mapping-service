@@ -28,14 +28,14 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('NOMIS_CASENOTES')")
+@PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/casenotes", produces = [MediaType.APPLICATION_JSON_VALUE])
 class CaseNotesMappingResource(private val mappingService: CaseNoteMappingService) {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new casenote mapping",
-    description = "Creates a mapping between nomis casenote id and dps casenote id. Requires ROLE_NOMIS_CASENOTES",
+    description = "Creates a mapping between nomis casenote id and dps casenote id. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = CaseNoteMappingDto::class))],
     ),
@@ -81,7 +81,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a batch of new casenote mappings",
-    description = "Creates a mapping between a batch of nomis casenote ids and dps casenote id. Requires ROLE_NOMIS_CASENOTES",
+    description = "Creates a mapping between a batch of nomis casenote ids and dps casenote id. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -135,7 +135,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
   @GetMapping("{offenderNo}/all")
   @Operation(
     summary = "Gets all case note mappings for a prisoner",
-    description = "Gets all the mappings between nomis case note ids and dps case note ids related to specific prisoner created either via migration or synchronisation. Requires NOMIS_CASENOTES",
+    description = "Gets all the mappings between nomis case note ids and dps case note ids related to specific prisoner created either via migration or synchronisation. Requires NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -162,7 +162,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
   @GetMapping("/nomis-casenote-id/{caseNoteId}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by NOMIS id. Requires role NOMIS_CASENOTES",
+    description = "Retrieves a mapping by NOMIS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -192,7 +192,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
   @PostMapping("/nomis-casenote-id")
   @Operation(
     summary = "get mappings by Nomis id",
-    description = "Retrieves multiple mappings by NOMIS case note id. Requires role NOMIS_CASENOTES",
+    description = "Retrieves multiple mappings by NOMIS case note id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -219,7 +219,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
   @GetMapping("/dps-casenote-id/{dpsCaseNoteId}/all")
   @Operation(
     summary = "get multiple mappings",
-    description = "Retrieves mappings by DPS id. In case of past merges, there could be > 1 nomis id per dps id. Requires role NOMIS_CASENOTES",
+    description = "Retrieves mappings by DPS id. In case of past merges, there could be > 1 nomis id per dps id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -243,11 +243,11 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     dpsCaseNoteId: String,
   ): List<CaseNoteMappingDto> = mappingService.getMappingsByDpsId(dpsCaseNoteId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_CASENOTES')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/migrated/latest")
   @Operation(
     summary = "get the latest mapping for a migration",
-    description = "Requires role NOMIS_CASENOTES",
+    description = "Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -301,7 +301,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
   @DeleteMapping("/nomis-casenote-id/{nomisCaseNoteId}")
   @Operation(
     summary = "Deletes mapping",
-    description = "Deletes a mapping by Nomis id. Requires role NOMIS_CASENOTES",
+    description = "Deletes a mapping by Nomis id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "204", description = "Mapping Deleted"),
       ApiResponse(
@@ -326,7 +326,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
   @DeleteMapping("/dps-casenote-id/{dpsCaseNoteId}")
   @Operation(
     summary = "Deletes mapping",
-    description = "Deletes mapping by DPS id (there could be more than one nomis id if a merge has taken place). Requires role NOMIS_CASENOTES",
+    description = "Deletes mapping by DPS id (there could be more than one nomis id if a merge has taken place). Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "204", description = "Mapping Deleted"),
       ApiResponse(
@@ -351,7 +351,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
   @PutMapping("/merge/from/{oldOffenderNo}/to/{newOffenderNo}")
   @Operation(
     summary = "Replaces all occurrences of the 'from' id with the 'to' id in the mapping table",
-    description = "Used for update after a prisoner number merge. Requires role ROLE_NOMIS_CASENOTES",
+    description = "Used for update after a prisoner number merge. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Replacement made, or not present in table"),
       ApiResponse(
@@ -375,7 +375,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
   @PutMapping("/merge/booking-id/{bookingId}/to/{newOffenderNo}")
   @Operation(
     summary = "For all case notes with the given booking id in the mapping table, sets the offender no to the given 'to' id",
-    description = "Used for update after a booking has been moved from one offender to another. Returns the affected case notes. Requires role ROLE_NOMIS_CASENOTES",
+    description = "Used for update after a booking has been moved from one offender to another. Returns the affected case notes. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Replacement made, or not present in table"),
       ApiResponse(

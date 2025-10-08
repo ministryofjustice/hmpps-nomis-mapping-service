@@ -25,7 +25,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('ROLE_NOMIS_CSIP')")
+@PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/csip/interviews", produces = [MediaType.APPLICATION_JSON_VALUE])
 class CSIPInterviewMappingResource(
   private val interviewMappingService: CSIPInterviewMappingService,
@@ -34,7 +34,7 @@ class CSIPInterviewMappingResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new CSIP Interview mapping",
-    description = "Creates a mapping between a Nomis CSIP interview id and DPS CSIP interview id. Requires role NOMIS_CSIP",
+    description = "Creates a mapping between a Nomis CSIP interview id and DPS CSIP interview id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -80,7 +80,7 @@ class CSIPInterviewMappingResource(
   @GetMapping("/nomis-csip-interview-id/{nomisCSIPInterviewId}")
   @Operation(
     summary = "get CSIP Interview mapping",
-    description = "Retrieves a CSIP Interview mapping by NOMIS id. Requires role NOMIS_CSIP",
+    description = "Retrieves a CSIP Interview mapping by NOMIS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -110,7 +110,7 @@ class CSIPInterviewMappingResource(
   @GetMapping("/dps-csip-interview-id/{dpsCSIPInterviewId}")
   @Operation(
     summary = "get CSIP Interview mapping",
-    description = "Retrieves a csip interview mapping by DPS id. Requires role NOMIS_CSIP",
+    description = "Retrieves a csip interview mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -140,7 +140,7 @@ class CSIPInterviewMappingResource(
   @DeleteMapping("/dps-csip-interview-id/{dpsCSIPInterviewId}")
   @Operation(
     summary = "Deletes CSIP Interview mapping",
-    description = "Deletes a CSIP Interview mapping by DPS id. Requires role NOMIS_CSIP",
+    description = "Deletes a CSIP Interview mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",

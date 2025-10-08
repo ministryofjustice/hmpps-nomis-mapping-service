@@ -25,7 +25,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('ROLE_NOMIS_CSIP')")
+@PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/csip/attendees", produces = [MediaType.APPLICATION_JSON_VALUE])
 class CSIPAttendeeMappingResource(
   private val attendeeMappingService: CSIPAttendeeMappingService,
@@ -34,7 +34,7 @@ class CSIPAttendeeMappingResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new CSIP Attendee mapping",
-    description = "Creates a mapping between a Nomis CSIP attendee id and DPS CSIP attendee id. Requires role NOMIS_CSIP",
+    description = "Creates a mapping between a Nomis CSIP attendee id and DPS CSIP attendee id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -80,7 +80,7 @@ class CSIPAttendeeMappingResource(
   @GetMapping("/nomis-csip-attendee-id/{nomisCSIPAttendeeId}")
   @Operation(
     summary = "get CSIP Attendee mapping",
-    description = "Retrieves a CSIP Attendee mapping by NOMIS id. Requires role NOMIS_CSIP",
+    description = "Retrieves a CSIP Attendee mapping by NOMIS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -110,7 +110,7 @@ class CSIPAttendeeMappingResource(
   @GetMapping("/dps-csip-attendee-id/{dpsCSIPAttendeeId}")
   @Operation(
     summary = "get CSIP Attendee mapping",
-    description = "Retrieves a csip attendee mapping by DPS id. Requires role NOMIS_CSIP",
+    description = "Retrieves a csip attendee mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -140,7 +140,7 @@ class CSIPAttendeeMappingResource(
   @DeleteMapping("/dps-csip-attendee-id/{dpsCSIPAttendeeId}")
   @Operation(
     summary = "Deletes CSIP Attendee mapping",
-    description = "Deletes a CSIP Attendee mapping by DPS id. Requires role NOMIS_CSIP",
+    description = "Deletes a CSIP Attendee mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",

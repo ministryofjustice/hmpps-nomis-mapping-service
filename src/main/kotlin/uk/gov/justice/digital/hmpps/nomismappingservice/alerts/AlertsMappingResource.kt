@@ -29,13 +29,13 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('NOMIS_ALERTS')")
+@PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/alerts", produces = [MediaType.APPLICATION_JSON_VALUE])
 class AlertsMappingResource(private val mappingService: AlertMappingService) {
   @GetMapping("/nomis-booking-id/{bookingId}/nomis-alert-sequence/{alertSequence}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by NOMIS id. Requires role NOMIS_ALERTS",
+    description = "Retrieves a mapping by NOMIS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -68,7 +68,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
   @GetMapping("/dps-alert-id/{dpsAlertId}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by DPS id. Requires role NOMIS_ALERTS",
+    description = "Retrieves a mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -98,7 +98,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
   @DeleteMapping("/dps-alert-id/{dpsAlertId}")
   @Operation(
     summary = "Deletes mapping",
-    description = "Deletes a mapping by DPS id. Requires role NOMIS_ALERTS",
+    description = "Deletes a mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -127,7 +127,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new alert mapping",
-    description = "Creates a mapping between nomis alert ids and dps alert id. Requires ROLE_NOMIS_ALERTS",
+    description = "Creates a mapping between nomis alert ids and dps alert id. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = AlertMappingDto::class))],
     ),
@@ -173,7 +173,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a batch of new alert mappings",
-    description = "Creates a mapping between a batch of nomis alert ids and dps alert id. Requires ROLE_NOMIS_ALERTS",
+    description = "Creates a mapping between a batch of nomis alert ids and dps alert id. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", array = ArraySchema(schema = Schema(implementation = AlertMappingDto::class)))],
     ),
@@ -223,7 +223,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a set of new alert mapping for a prisoner",
-    description = "Creates a mapping between all the nomis alert ids and dps alert id. Requires ROLE_NOMIS_ALERTS",
+    description = "Creates a mapping between all the nomis alert ids and dps alert id. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -289,7 +289,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
   @PutMapping("{offenderNo}/all")
   @Operation(
     summary = "Replaces a set of new alert mapping for a prisoner",
-    description = "Replaces the mappings between all the nomis alert ids and dps alert id. Requires ROLE_NOMIS_ALERTS",
+    description = "Replaces the mappings between all the nomis alert ids and dps alert id. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -323,7 +323,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
   @PutMapping("{offenderNo}/merge")
   @Operation(
     summary = "Replaces a set of new alert mappings for a prisoner and removes mappings for the removed prisoner record",
-    description = "Replaces the mappings between all the nomis alert ids and dps alert id. Any mappings on the removed prisoner record are deleted. Requires ROLE_NOMIS_ALERTS",
+    description = "Replaces the mappings between all the nomis alert ids and dps alert id. Any mappings on the removed prisoner record are deleted. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -361,7 +361,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
   @GetMapping("{offenderNo}/all")
   @Operation(
     summary = "Gets all alert mappings for a prisoner",
-    description = "Gets all the mapping between nomis alert ids and dps alert id related to specific prisoner created either via migration or synchronisation. Requires ROLE_NOMIS_ALERTS",
+    description = "Gets all the mapping between nomis alert ids and dps alert id related to specific prisoner created either via migration or synchronisation. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -390,7 +390,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes all alert mappings",
-    description = "Deletes all alert mappings regardless of source. This is expected to only ever been used in a non-production environment. Requires ROLE_NOMIS_ALERTS",
+    description = "Deletes all alert mappings regardless of source. This is expected to only ever been used in a non-production environment. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "204", description = "Mappings deleted"),
       ApiResponse(
@@ -491,7 +491,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
   @PutMapping("/nomis-booking-id/{bookingId}/nomis-alert-sequence/{alertSequence}")
   @Operation(
     summary = "updates mapping",
-    description = "Updates a mapping by NOMIS id setting a new NOMIS booking Id. Requires role NOMIS_ALERTS",
+    description = "Updates a mapping by NOMIS id setting a new NOMIS booking Id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",

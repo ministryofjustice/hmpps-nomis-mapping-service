@@ -34,7 +34,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('NOMIS_COURT_SENTENCING')")
+@PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/court-sentencing", produces = [MediaType.APPLICATION_JSON_VALUE])
 class CourtSentencingMappingResource(
   private val mappingService: CourtSentencingMappingService,
@@ -46,7 +46,7 @@ class CourtSentencingMappingResource(
   @GetMapping("/court-cases/dps-court-case-id/{courtCaseId}")
   @Operation(
     summary = "get court case mapping",
-    description = "Retrieves a mapping by DPS id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Retrieves a mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -78,7 +78,7 @@ class CourtSentencingMappingResource(
   @GetMapping("/court-cases/nomis-court-case-id/{courtCaseId}")
   @Operation(
     summary = "get court case mapping",
-    description = "Retrieves a mapping by NOMIS id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Retrieves a mapping by NOMIS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -107,12 +107,12 @@ class CourtSentencingMappingResource(
     courtCaseId = courtCaseId,
   )
 
-  @PreAuthorize("hasRole('NOMIS_COURT_SENTENCING')")
+  @PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PostMapping("/court-cases/nomis-case-ids/get-list")
   @Tag(name = "Multiple Court case mappings lookup")
   @Operation(
     summary = "Retrieves list of the case mappings using the supplied NOMIS case ids",
-    description = "Requires role <b>NOMIS_COURT_SENTENCING</b>",
+    description = "Requires role <b>NOMIS_MAPPING_API__SYNCHRONISATION__RW</b>",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -144,7 +144,7 @@ class CourtSentencingMappingResource(
       ),
       ApiResponse(
         responseCode = "403",
-        description = "Access forbidden to this endpoint. Requires role NOMIS_COURT_SENTENCING",
+        description = "Access forbidden to this endpoint. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
     ],
@@ -157,7 +157,7 @@ class CourtSentencingMappingResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new court case hierarchical mapping",
-    description = "Creates a mapping between nomis Court Case ID and DPS Court Case ID. Also maps child entities: Court appearances and charges. Requires ROLE_NOMIS_COURT_SENTENCING",
+    description = "Creates a mapping between nomis Court Case ID and DPS Court Case ID. Also maps child entities: Court appearances and charges. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -212,7 +212,7 @@ class CourtSentencingMappingResource(
   @PutMapping("/court-cases/replace")
   @Operation(
     summary = "Replaces all court case hierarchical mappings maintaining the DPS id",
-    description = "Replaces all the mappings between nomis Court Case ID and DPS Court Case ID. Also maps child entities: Court appearances and charges. Where a mapping does not exist for the DPS id it will create one. Requires ROLE_NOMIS_COURT_SENTENCING",
+    description = "Replaces all the mappings between nomis Court Case ID and DPS Court Case ID. Also maps child entities: Court appearances and charges. Where a mapping does not exist for the DPS id it will create one. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -243,7 +243,7 @@ class CourtSentencingMappingResource(
   @PutMapping("/court-cases/update-create")
   @Operation(
     summary = "Updates all court case hierarchical mappings maintaining the DPS id and creates additional mappings",
-    description = "Updates all the mappings between nomis Court Case ID and DPS Court Case ID. Also maps child entities: Court appearances and charges. New ones that have been requested to be created will also be created. Requires ROLE_NOMIS_COURT_SENTENCING",
+    description = "Updates all the mappings between nomis Court Case ID and DPS Court Case ID. Also maps child entities: Court appearances and charges. New ones that have been requested to be created will also be created. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -275,7 +275,7 @@ class CourtSentencingMappingResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates new court case hierarchical mappings for an offender during migration.",
-    description = "Creates mappings between nomis Court Case ID and DPS Court Case ID for an offender. Only used by migration. Also maps child entities: Court appearances and charges. Requires ROLE_NOMIS_COURT_SENTENCING",
+    description = "Creates mappings between nomis Court Case ID and DPS Court Case ID for an offender. Only used by migration. Also maps child entities: Court appearances and charges. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -328,7 +328,7 @@ class CourtSentencingMappingResource(
   @GetMapping("/prisoner/{offenderNo}/migration-summary")
   @Operation(
     summary = "Get court sentencing migration summary for offender",
-    description = "Retrieves the migration summary for and offender using the Nomis Prison Number (Offender number). The presence of this record indicated that the offender's court sentencing data has been migrated. Requires ROLE_NOMIS_COURT_SENTENCING",
+    description = "Retrieves the migration summary for and offender using the Nomis Prison Number (Offender number). The presence of this record indicated that the offender's court sentencing data has been migrated. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -360,7 +360,7 @@ class CourtSentencingMappingResource(
   @DeleteMapping("/prisoner/{offenderNo}/migration-summary")
   @Operation(
     summary = "delete court sentencing migration summary for offender",
-    description = "Deletes the migration summary for and offender using the Nomis Prison Number (Offender number). The presence of this record indicated that the offender's court sentencing data has been migrated. Requires ROLE_NOMIS_COURT_SENTENCING",
+    description = "Deletes the migration summary for and offender using the Nomis Prison Number (Offender number). The presence of this record indicated that the offender's court sentencing data has been migrated. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -388,7 +388,7 @@ class CourtSentencingMappingResource(
   @DeleteMapping("/court-cases/dps-court-case-id/{dpsCourtCaseId}")
   @Operation(
     summary = "Deletes court case mapping",
-    description = "Deletes a court case mapping by DPS id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Deletes a court case mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -416,7 +416,7 @@ class CourtSentencingMappingResource(
   @DeleteMapping("/court-cases/nomis-court-case-id/{nomisCourtCaseId}")
   @Operation(
     summary = "Deletes court case mapping",
-    description = "Deletes a court case mapping by NOMIS id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Deletes a court case mapping by NOMIS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -472,7 +472,7 @@ class CourtSentencingMappingResource(
   @GetMapping("/court-appearances/dps-court-appearance-id/{courtAppearanceId}")
   @Operation(
     summary = "get court appearance mapping",
-    description = "Retrieves a mapping by DPS id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Retrieves a mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -507,7 +507,7 @@ class CourtSentencingMappingResource(
   @GetMapping("/court-appearances/nomis-court-appearance-id/{courtAppearanceId}")
   @Operation(
     summary = "get court appearance mapping",
-    description = "Retrieves a mapping by NOMIS id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Retrieves a mapping by NOMIS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -542,7 +542,7 @@ class CourtSentencingMappingResource(
   @DeleteMapping("/court-appearances/dps-court-appearance-id/{dpsCourtAppearanceId}")
   @Operation(
     summary = "Deletes court appearances mapping",
-    description = "Deletes a court appearances mapping by DPS id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Deletes a court appearances mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -570,7 +570,7 @@ class CourtSentencingMappingResource(
   @DeleteMapping("/court-appearances/nomis-court-appearance-id/{nomisCourtAppearanceId}")
   @Operation(
     summary = "Deletes court appearance mapping",
-    description = "Deletes a court appearance mapping by NOMIS id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Deletes a court appearance mapping by NOMIS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -598,7 +598,7 @@ class CourtSentencingMappingResource(
   @GetMapping("/court-appearances/dps-recall-id/{recallId}")
   @Operation(
     summary = "get court appearance recall mappings",
-    description = "Retrieves mappings by DPS recall id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Retrieves mappings by DPS recall id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -627,7 +627,7 @@ class CourtSentencingMappingResource(
   @DeleteMapping("/court-appearances/dps-recall-id/{recallId}")
   @Operation(
     summary = "Deletes court appearance recall mappings",
-    description = "Deletes court appearance recall mappings by DPS recall id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Deletes court appearance recall mappings by DPS recall id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -655,7 +655,7 @@ class CourtSentencingMappingResource(
   @GetMapping("/court-charges/dps-court-charge-id/{courtChargeId}")
   @Operation(
     summary = "get court charge mapping",
-    description = "Retrieves a mapping by DPS id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Retrieves a mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -690,7 +690,7 @@ class CourtSentencingMappingResource(
   @GetMapping("/court-charges/nomis-court-charge-id/{courtChargeId}")
   @Operation(
     summary = "get court charge mapping",
-    description = "Retrieves a mapping by NOMIS id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Retrieves a mapping by NOMIS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -726,7 +726,7 @@ class CourtSentencingMappingResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new court appearance mapping",
-    description = "Creates a mapping between nomis Court appearance ID and DPS Court appearance ID. Requires ROLE_NOMIS_COURT_SENTENCING",
+    description = "Creates a mapping between nomis Court appearance ID and DPS Court appearance ID. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -776,7 +776,7 @@ class CourtSentencingMappingResource(
   @PutMapping("/court-charges")
   @Operation(
     summary = "Creates a new set of court charge mapping and deletes ones no longer required",
-    description = "Creates a record of a DPS court charge id and NOMIS court charge id. The ones that require deleting are removed by NOMIS id. Requires NOMIS_COURT_SENTENCING",
+    description = "Creates a record of a DPS court charge id and NOMIS court charge id. The ones that require deleting are removed by NOMIS id. Requires NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -815,7 +815,7 @@ class CourtSentencingMappingResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new single charge mapping",
-    description = "Creates a mapping between nomis offender charge ID and DPS charge ID. Requires ROLE_NOMIS_COURT_SENTENCING",
+    description = "Creates a mapping between nomis offender charge ID and DPS charge ID. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -865,7 +865,7 @@ class CourtSentencingMappingResource(
   @DeleteMapping("/court-charges/nomis-court-charge-id/{nomisCourtChargeId}")
   @Operation(
     summary = "Deletes court charge mapping",
-    description = "Deletes a court charge mapping by NOMIS id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Deletes a court charge mapping by NOMIS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -893,7 +893,7 @@ class CourtSentencingMappingResource(
   @GetMapping("/sentences/dps-sentence-id/{sentenceId}")
   @Operation(
     summary = "get sentence mapping",
-    description = "Retrieves a mapping by DPS id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Retrieves a mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -925,7 +925,7 @@ class CourtSentencingMappingResource(
   @GetMapping("/sentences/nomis-booking-id/{bookingId}/nomis-sentence-sequence/{sentenceSequence}")
   @Operation(
     summary = "get sentence mapping",
-    description = "Retrieves a mapping by nomis id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Retrieves a mapping by nomis id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -962,7 +962,7 @@ class CourtSentencingMappingResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new sentence hierarchical mapping",
-    description = "Creates a mapping between nomis sentence ID (booking id and sentence seq) and DPS Sentence ID. Also maps child charge entities. Requires ROLE_NOMIS_COURT_SENTENCING",
+    description = "Creates a mapping between nomis sentence ID (booking id and sentence seq) and DPS Sentence ID. Also maps child charge entities. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -1012,7 +1012,7 @@ class CourtSentencingMappingResource(
   @DeleteMapping("/sentences/dps-sentence-id/{dpsSentenceId}")
   @Operation(
     summary = "Deletes a sentence mapping",
-    description = "Deletes a sentence mapping by DPS id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Deletes a sentence mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -1040,7 +1040,7 @@ class CourtSentencingMappingResource(
   @DeleteMapping("/sentences/nomis-booking-id/{bookingId}/nomis-sentence-sequence/{sentenceSequence}")
   @Operation(
     summary = "Deletes a sentence mapping",
-    description = "Deletes a sentence mapping by NOMIS id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Deletes a sentence mapping by NOMIS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -1071,7 +1071,7 @@ class CourtSentencingMappingResource(
   @DeleteMapping("/all")
   @Operation(
     summary = "delete all mappings",
-    description = "Deletes all mappings, typically used before repeating a migration. Requires ROLE_NOMIS_COURT_SENTENCING",
+    description = "Deletes all mappings, typically used before repeating a migration. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -1095,7 +1095,7 @@ class CourtSentencingMappingResource(
   @GetMapping("/sentence-terms/dps-term-id/{termId}")
   @Operation(
     summary = "get sentence term mapping",
-    description = "Retrieves a mapping by DPS id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Retrieves a mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -1127,7 +1127,7 @@ class CourtSentencingMappingResource(
   @GetMapping("/sentence-terms/nomis-booking-id/{bookingId}/nomis-sentence-sequence/{sentenceSequence}/nomis-term-sequence/{termSequence}")
   @Operation(
     summary = "get sentence term mapping",
-    description = "Retrieves a mapping by nomis id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Retrieves a mapping by nomis id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -1168,7 +1168,7 @@ class CourtSentencingMappingResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new sentence term mapping",
-    description = "Creates a mapping between nomis sentence term (booking id, term seq and sentence seq) and DPS term (period length) ID. Requires ROLE_NOMIS_COURT_SENTENCING",
+    description = "Creates a mapping between nomis sentence term (booking id, term seq and sentence seq) and DPS term (period length) ID. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -1218,7 +1218,7 @@ class CourtSentencingMappingResource(
   @DeleteMapping("/sentence-terms/dps-term-id/{dpsTermId}")
   @Operation(
     summary = "Deletes a sentence term mapping",
-    description = "Deletes a sentence term mapping by DPS id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Deletes a sentence term mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -1246,7 +1246,7 @@ class CourtSentencingMappingResource(
   @DeleteMapping("/sentence-terms/nomis-booking-id/{bookingId}/nomis-sentence-sequence/{sentenceSequence}/nomis-term-sequence/{termSequence}")
   @Operation(
     summary = "Deletes a sentence term mapping",
-    description = "Deletes a sentence term mapping by NOMIS id. Requires role NOMIS_COURT_SENTENCING",
+    description = "Deletes a sentence term mapping by NOMIS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -1280,7 +1280,7 @@ class CourtSentencingMappingResource(
   @PostMapping("/sentences/dps-sentence-ids/get-list")
   @Operation(
     summary = "get sentence mappings by DPS sentence IDs",
-    description = "Retrieves mappings for a list of DPS sentence IDs. Any mappings noty found will be missing but the response will still be a 200. Requires role NOMIS_COURT_SENTENCING",
+    description = "Retrieves mappings for a list of DPS sentence IDs. Any mappings noty found will be missing but the response will still be a 200. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -1310,7 +1310,7 @@ class CourtSentencingMappingResource(
   @PostMapping("/sentences/nomis-sentence-ids/get-list")
   @Operation(
     summary = "get sentence mappings by NOMIS sentence IDs",
-    description = "Retrieves mappings for a list of NOMIS sentence IDs. Any mappings not found will be missing but the response will still be a 200. Requires role NOMIS_COURT_SENTENCING",
+    description = "Retrieves mappings for a list of NOMIS sentence IDs. Any mappings not found will be missing but the response will still be a 200. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -1341,7 +1341,7 @@ class CourtSentencingMappingResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates new court appearance recall mappings",
-    description = "Creates mappings between nomis Court appearance IDs and DPS Recall ID. Requires ROLE_NOMIS_COURT_SENTENCING",
+    description = "Creates mappings between nomis Court appearance IDs and DPS Recall ID. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(

@@ -25,7 +25,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('ROLE_NOMIS_CSIP')")
+@PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/csip/factors", produces = [MediaType.APPLICATION_JSON_VALUE])
 class CSIPFactorMappingResource(
   private val factorMappingService: CSIPFactorMappingService,
@@ -34,7 +34,7 @@ class CSIPFactorMappingResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new CSIP Factor mapping",
-    description = "Creates a mapping between a Nomis CSIP factor id and DPS CSIP factor id. Requires role NOMIS_CSIP",
+    description = "Creates a mapping between a Nomis CSIP factor id and DPS CSIP factor id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -80,7 +80,7 @@ class CSIPFactorMappingResource(
   @GetMapping("/nomis-csip-factor-id/{nomisCSIPFactorId}")
   @Operation(
     summary = "get CSIP Factor mapping",
-    description = "Retrieves a CSIP Factor mapping by NOMIS id. Requires role NOMIS_CSIP",
+    description = "Retrieves a CSIP Factor mapping by NOMIS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -110,7 +110,7 @@ class CSIPFactorMappingResource(
   @GetMapping("/dps-csip-factor-id/{dpsCSIPFactorId}")
   @Operation(
     summary = "get CSIP Factor mapping",
-    description = "Retrieves a csip factor mapping by DPS id. Requires role NOMIS_CSIP",
+    description = "Retrieves a csip factor mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -140,7 +140,7 @@ class CSIPFactorMappingResource(
   @DeleteMapping("/dps-csip-factor-id/{dpsCSIPFactorId}")
   @Operation(
     summary = "Deletes CSIP Factor mapping",
-    description = "Deletes a CSIP Factor mapping by DPS id. Requires role NOMIS_CSIP",
+    description = "Deletes a CSIP Factor mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
