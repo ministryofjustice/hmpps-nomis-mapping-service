@@ -6,6 +6,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.reactive.server.expectBodyList
 import uk.gov.justice.digital.hmpps.nomismappingservice.courtsentencing.SentenceMapping
@@ -81,11 +83,12 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
 
       @Nested
       inner class HappyPath {
-        @Test
-        fun `returns DPS and NOMIS ids`() {
+        @ParameterizedTest
+        @CsvSource(value = ["ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R", "ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW"])
+        fun `returns DPS and NOMIS ids for role`(role: String) {
           webTestClient.get()
             .uri("/api/locations/nomis/$NOMIS_LOCATION_ID")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R")))
+            .headers(setAuthorisation(roles = listOf(role)))
             .exchange()
             .expectStatus().isOk
             .expectBody()
@@ -147,11 +150,12 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
 
       @Nested
       inner class HappyPath {
-        @Test
-        fun `returns DPS and NOMIS ids`() {
+        @ParameterizedTest
+        @CsvSource(value = ["ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R", "ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW"])
+        fun `returns DPS and NOMIS ids for role`(role: String) {
           webTestClient.post()
             .uri("/api/locations/nomis")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R")))
+            .headers(setAuthorisation(roles = listOf(role)))
             .bodyValue(nomisLocationIdList)
             .exchange()
             .expectStatus().isOk
@@ -225,11 +229,12 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
 
       @Nested
       inner class HappyPath {
-        @Test
-        fun `returns DPS and NOMIS ids`() {
+        @ParameterizedTest
+        @CsvSource(value = ["ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R", "ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW"])
+        fun `returns DPS and NOMIS ids for role`(role: String) {
           webTestClient.get()
             .uri("/api/locations/dps/$DPS_LOCATION_ID")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R")))
+            .headers(setAuthorisation(roles = listOf(role)))
             .exchange()
             .expectStatus().isOk
             .expectBody()
@@ -291,11 +296,12 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
 
       @Nested
       inner class HappyPath {
-        @Test
-        fun `returns DPS and NOMIS ids`() {
+        @ParameterizedTest
+        @CsvSource(value = ["ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R", "ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW"])
+        fun `returns DPS and NOMIS ids for role`(role: String) {
           webTestClient.post()
             .uri("/api/locations/dps")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R")))
+            .headers(setAuthorisation(roles = listOf(role)))
             .bodyValue(dpsLocationIdList)
             .exchange()
             .expectStatus().isOk
@@ -403,11 +409,12 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
 
       @Nested
       inner class HappyPath {
-        @Test
-        fun `returns DPS and NOMIS ids`() {
+        @ParameterizedTest
+        @CsvSource(value = ["ROLE_NOMIS_DPS_MAPPING__SENTENCE__R", "ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW"])
+        fun `returns DPS and NOMIS ids for role`(role: String) {
           webTestClient.get()
             .uri("/api/sentences/nomis/booking-id/$nomisBookingId/sentence-sequence/$nomisSentenceSequence")
-            .headers(setAuthorisation(roles = listOf("NOMIS_DPS_MAPPING__SENTENCE__R")))
+            .headers(setAuthorisation(roles = listOf(role)))
             .exchange()
             .expectStatus().isOk
             .expectBody()
@@ -505,12 +512,13 @@ class PublicApiResourceIntTest : IntegrationTestBase() {
 
       @Nested
       inner class HappyPath {
-        @Test
-        fun `returns DPS and NOMIS ids`() {
+        @ParameterizedTest
+        @CsvSource(value = ["ROLE_NOMIS_DPS_MAPPING__SENTENCE__R", "ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW"])
+        fun `returns DPS and NOMIS ids for role`(role: String) {
           webTestClient.post()
             .uri("/api/sentences/nomis")
             .bodyValue(request)
-            .headers(setAuthorisation(roles = listOf("NOMIS_DPS_MAPPING__SENTENCE__R")))
+            .headers(setAuthorisation(roles = listOf(role)))
             .exchange()
             .expectStatus().isOk
             .expectBody()
