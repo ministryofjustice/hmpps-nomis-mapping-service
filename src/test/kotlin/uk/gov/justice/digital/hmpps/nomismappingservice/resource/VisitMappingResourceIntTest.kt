@@ -683,7 +683,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get room mapping success`() {
       webTestClient.get().uri("/prison/HEI/room-mappings")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .headers(setAuthorisation(roles = listOf("NOMIS_DPS_MAPPING__VISITS__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -698,7 +698,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `room mappings not found`() {
       webTestClient.get().uri("/prison/JJJ/room-mappings")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .headers(setAuthorisation(roles = listOf("NOMIS_DPS_MAPPING__VISITS__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -714,10 +714,10 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
     @AfterEach
     internal fun deleteData() {
       webTestClient.delete().uri("/prison/HEI/room-mappings/nomis-room-id/HEI-VISITS-SOC_VIS_TEST")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .headers(setAuthorisation(roles = listOf("NOMIS_DPS_MAPPING__VISITS__RW")))
         .exchange()
       webTestClient.delete().uri("/prison/FGF/room-mappings/nomis-room-id/nomisroom")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .headers(setAuthorisation(roles = listOf("NOMIS_DPS_MAPPING__VISITS__RW")))
         .exchange()
     }
 
@@ -750,7 +750,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create room mapping success`() {
       webTestClient.post().uri("/prison/HEI/room-mappings")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .headers(setAuthorisation(roles = listOf("NOMIS_DPS_MAPPING__VISITS__RW")))
         .body(BodyInserters.fromValue(createRoomMapping()))
         .exchange()
         .expectStatus().isCreated
@@ -759,7 +759,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create room mapping allows isOpen flag to be omitted `() {
       webTestClient.post().uri("/prison/FGF/room-mappings")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .headers(setAuthorisation(roles = listOf("NOMIS_DPS_MAPPING__VISITS__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -773,7 +773,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.get().uri("/prison/FGF/room-mappings")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .headers(setAuthorisation(roles = listOf("NOMIS_DPS_MAPPING__VISITS__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -784,7 +784,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `create room mapping rejects duplicate`() {
       webTestClient.post().uri("/prison/HEI/room-mappings")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .headers(setAuthorisation(roles = listOf("NOMIS_DPS_MAPPING__VISITS__RW")))
         .body(BodyInserters.fromValue(createRoomMapping(nomisRoomDescriptionOverride = "HEI-VISITS")))
         .exchange()
         .expectStatus().isBadRequest
@@ -821,7 +821,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `delete room mapping success`() {
       webTestClient.post().uri("/prison/HEI/room-mappings")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .headers(setAuthorisation(roles = listOf("NOMIS_DPS_MAPPING__VISITS__RW")))
         .body(BodyInserters.fromValue(createRoomMapping(nomisRoomDescriptionOverride = "ROOM_TO_BE_DELETED")))
         .exchange()
         .expectStatus().isCreated
@@ -832,7 +832,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
 
       webTestClient.delete().uri("/prison/HEI/room-mappings/nomis-room-id/ROOM_TO_BE_DELETED")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .headers(setAuthorisation(roles = listOf("NOMIS_DPS_MAPPING__VISITS__RW")))
         .exchange()
         .expectStatus().isNoContent
 
@@ -845,7 +845,7 @@ class VisitMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `delete nonexistent room - no error`() {
       webTestClient.delete().uri("/prison/HEI/room-mappings/nomis-room-id/NONEXISTENT_ROOM")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_VISITS")))
+        .headers(setAuthorisation(roles = listOf("NOMIS_DPS_MAPPING__VISITS__RW")))
         .exchange()
         .expectStatus().isNoContent
     }
