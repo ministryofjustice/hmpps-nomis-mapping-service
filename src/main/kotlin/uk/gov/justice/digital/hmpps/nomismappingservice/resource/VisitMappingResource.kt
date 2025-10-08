@@ -201,12 +201,12 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     nomisRoomDescription: String,
   ): RoomMappingDto = mappingService.getRoomMapping(prisonId, nomisRoomDescription)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_DPS_MAPPING__VISITS__RW')")
   @GetMapping("/prison/{prisonId}/room-mappings")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get room mappings for a prison",
-    description = "Retrieves  room mappings associated with a NOMIS prison id. Requires role NOMIS_VISITS",
+    description = "Retrieves  room mappings associated with a NOMIS prison id. Requires role NOMIS_DPS_MAPPING__VISITS__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -225,12 +225,12 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     prisonId: String,
   ): List<RoomMappingDto> = mappingService.getRoomMappings(prisonId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_DPS_MAPPING__VISITS__RW')")
   @PostMapping("/prison/{prisonId}/room-mappings")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new room mapping",
-    description = "Creates a new room mapping. Requires role NOMIS_VISITS",
+    description = "Creates a new room mapping. Requires role NOMIS_DPS_MAPPING__VISITS__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -261,12 +261,12 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
     createMappingRequest: CreateRoomMappingDto,
   ) = mappingService.createRoomMapping(prisonId, createMappingRequest)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_VISITS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_DPS_MAPPING__VISITS__RW')")
   @DeleteMapping("/prison/{prisonId}/room-mappings/nomis-room-id/{nomisRoomDescription}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a room mapping",
-    description = "Removes room mapping given the prison and nomis room description. Requires role NOMIS_VISITS",
+    description = "Removes room mapping given the prison and nomis room description. Requires role NOMIS_DPS_MAPPING__VISITS__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitMappingDto::class))],
     ),
