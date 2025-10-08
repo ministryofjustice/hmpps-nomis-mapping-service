@@ -25,12 +25,12 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RequestMapping("/api", produces = [MediaType.APPLICATION_JSON_VALUE])
 class PublicApiResource(private val locationService: LocationMappingService, private val sentenceService: CourtSentencingMappingService) {
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R')")
+  @PreAuthorize("hasAnyRole('ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R', 'ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/locations/nomis/{nomisLocationId}")
   @Tag(name = "NOMIS / DPS Mapping lookup")
   @Operation(
     summary = "Retrieves the DPS location id from the NOMIS internal location id",
-    description = "Requires role <b>NOMIS_DPS_MAPPING__LOCATIONS__R</b>",
+    description = "Requires role <b>NOMIS_DPS_MAPPING__LOCATIONS__R</b> or <b>NOMIS_MAPPING_API__SYNCHRONISATION__RW</b>",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -46,7 +46,7 @@ class PublicApiResource(private val locationService: LocationMappingService, pri
       ),
       ApiResponse(
         responseCode = "403",
-        description = "Access forbidden to this endpoint. Requires role NOMIS_DPS_MAPPING__LOCATIONS__R",
+        description = "Access forbidden to this endpoint. Requires role NOMIS_DPS_MAPPING__LOCATIONS__R or NOMIS_MAPPING_API__SYNCHRONISATION__RW",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
@@ -63,12 +63,12 @@ class PublicApiResource(private val locationService: LocationMappingService, pri
   ): NomisDpsLocationMapping = locationService.getMappingByNomisId(nomisLocationId)
     .let { NomisDpsLocationMapping(dpsLocationId = it.dpsLocationId, nomisLocationId = it.nomisLocationId) }
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R')")
+  @PreAuthorize("hasAnyRole('ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R', 'ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PostMapping("/locations/nomis")
   @Tag(name = "NOMIS / DPS Mapping lookup")
   @Operation(
     summary = "Retrieves all the DPS location ids from the supplied NOMIS internal location ids",
-    description = "Requires role <b>NOMIS_DPS_MAPPING__LOCATIONS__R</b>",
+    description = "Requires role <b>NOMIS_DPS_MAPPING__LOCATIONS__R</b> or <b>NOMIS_MAPPING_API__SYNCHRONISATION__RW</b>",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -100,7 +100,7 @@ class PublicApiResource(private val locationService: LocationMappingService, pri
       ),
       ApiResponse(
         responseCode = "403",
-        description = "Access forbidden to this endpoint. Requires role NOMIS_DPS_MAPPING__LOCATIONS__R",
+        description = "Access forbidden to this endpoint. Requires role NOMIS_DPS_MAPPING__LOCATIONS__R or NOMIS_MAPPING_API__SYNCHRONISATION__RW",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
     ],
@@ -110,12 +110,12 @@ class PublicApiResource(private val locationService: LocationMappingService, pri
   ): Flow<NomisDpsLocationMapping> = locationService.getAllMappingsByNomisIds(nomisLocationIds)
     .map { NomisDpsLocationMapping(dpsLocationId = it.dpsLocationId, nomisLocationId = it.nomisLocationId) }
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R')")
+  @PreAuthorize("hasAnyRole('ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R', 'ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/locations/dps/{dpsLocationId}")
   @Tag(name = "NOMIS / DPS Mapping lookup")
   @Operation(
     summary = "Retrieves the NOMIS location id from the DPS location id",
-    description = "Requires role <b>NOMIS_DPS_MAPPING__LOCATIONS__R</b>",
+    description = "Requires role <b>NOMIS_DPS_MAPPING__LOCATIONS__R</b> or <b>NOMIS_MAPPING_API__SYNCHRONISATION__RW</b>",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -131,7 +131,7 @@ class PublicApiResource(private val locationService: LocationMappingService, pri
       ),
       ApiResponse(
         responseCode = "403",
-        description = "Access forbidden to this endpoint. Requires role NOMIS_DPS_MAPPING__LOCATIONS__R",
+        description = "Access forbidden to this endpoint. Requires role NOMIS_DPS_MAPPING__LOCATIONS__R or NOMIS_MAPPING_API__SYNCHRONISATION__RW",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
@@ -148,12 +148,12 @@ class PublicApiResource(private val locationService: LocationMappingService, pri
   ): NomisDpsLocationMapping = locationService.getMappingByDpsId(dpsLocationId)
     .let { NomisDpsLocationMapping(dpsLocationId = it.dpsLocationId, nomisLocationId = it.nomisLocationId) }
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R')")
+  @PreAuthorize("hasAnyRole('ROLE_NOMIS_DPS_MAPPING__LOCATIONS__R', 'ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PostMapping("/locations/dps")
   @Tag(name = "NOMIS / DPS Mapping lookup")
   @Operation(
     summary = "Retrieves all the NOMIS location ids from the supplied DPS location ids",
-    description = "Requires role <b>NOMIS_DPS_MAPPING__LOCATIONS__R</b>",
+    description = "Requires role <b>NOMIS_DPS_MAPPING__LOCATIONS__R</b> or <b>NOMIS_MAPPING_API__SYNCHRONISATION__RW</b>",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -185,7 +185,7 @@ class PublicApiResource(private val locationService: LocationMappingService, pri
       ),
       ApiResponse(
         responseCode = "403",
-        description = "Access forbidden to this endpoint. Requires role NOMIS_DPS_MAPPING__LOCATIONS__R",
+        description = "Access forbidden to this endpoint. Requires role NOMIS_DPS_MAPPING__LOCATIONS__R or NOMIS_MAPPING_API__SYNCHRONISATION__RW",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
     ],
@@ -195,12 +195,12 @@ class PublicApiResource(private val locationService: LocationMappingService, pri
   ): Flow<NomisDpsLocationMapping> = locationService.getAllMappingsByDpsIds(dpsLocationIds)
     .map { NomisDpsLocationMapping(dpsLocationId = it.dpsLocationId, nomisLocationId = it.nomisLocationId) }
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_DPS_MAPPING__SENTENCE__R')")
+  @PreAuthorize("hasAnyRole('ROLE_NOMIS_DPS_MAPPING__SENTENCE__R', 'ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/sentences/nomis/booking-id/{nomisBookingId}/sentence-sequence/{nomisSentenceSequence}")
   @Tag(name = "NOMIS / DPS Mapping lookup")
   @Operation(
     summary = "Retrieves the DPS Sentence id from the NOMIS booking and sentence sequence",
-    description = "Requires role <b>NOMIS_DPS_MAPPING__SENTENCE__R</b>",
+    description = "Requires role <b>NOMIS_DPS_MAPPING__SENTENCE__R</b> or <b>NOMIS_MAPPING_API__SYNCHRONISATION__RW</b>",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -216,7 +216,7 @@ class PublicApiResource(private val locationService: LocationMappingService, pri
       ),
       ApiResponse(
         responseCode = "403",
-        description = "Access forbidden to this endpoint. Requires role NOMIS_DPS_MAPPING__SENTENCE__R",
+        description = "Access forbidden to this endpoint. Requires role NOMIS_DPS_MAPPING__SENTENCE__R or NOMIS_MAPPING_API__SYNCHRONISATION__RW",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
@@ -247,12 +247,12 @@ class PublicApiResource(private val locationService: LocationMappingService, pri
       )
     }
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_DPS_MAPPING__SENTENCE__R')")
+  @PreAuthorize("hasAnyRole('ROLE_NOMIS_DPS_MAPPING__SENTENCE__R', 'ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PostMapping("/sentences/nomis")
   @Tag(name = "NOMIS / DPS Mapping lookup")
   @Operation(
     summary = "Retrieves list of the DPS sentence ids from the supplied NOMIS sentence ids",
-    description = "Requires role <b>NOMIS_DPS_MAPPING__SENTENCE__R</b>",
+    description = "Requires role <b>NOMIS_DPS_MAPPING__SENTENCE__R</b> or <b>NOMIS_MAPPING_API__SYNCHRONISATION__RW</b>",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -284,7 +284,7 @@ class PublicApiResource(private val locationService: LocationMappingService, pri
       ),
       ApiResponse(
         responseCode = "403",
-        description = "Access forbidden to this endpoint. Requires role NOMIS_DPS_MAPPING__SENTENCE__R",
+        description = "Access forbidden to this endpoint. Requires role NOMIS_DPS_MAPPING__SENTENCE__R or NOMIS_MAPPING_API__SYNCHRONISATION__RW",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
     ],
