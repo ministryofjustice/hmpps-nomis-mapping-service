@@ -29,7 +29,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('ROLE_NOMIS_CSIP')")
+@PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/csip", produces = [MediaType.APPLICATION_JSON_VALUE])
 class CSIPMappingResource(private val mappingService: CSIPMappingService) {
 
@@ -37,7 +37,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new CSIP Report mapping",
-    description = "Creates a mapping between a Nomis CSIP report id and DPS CSIP report id. Requires role NOMIS_CSIP",
+    description = "Creates a mapping between a Nomis CSIP report id and DPS CSIP report id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -84,7 +84,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
   @Operation(
     summary = "Creates a new CSIP Report mapping along with any associated children",
     description = "Creates a mapping between a Nomis CSIP report id and DPS CSIP report id" +
-      " and all its children. Requires role NOMIS_CSIP",
+      " and all its children. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -130,7 +130,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Adds new child mappings to a CSIP Report",
-    description = "Adds child csip mappings. Requires role NOMIS_CSIP",
+    description = "Adds child csip mappings. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -177,7 +177,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
   @GetMapping("/nomis-csip-id/{nomisCSIPId}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by nomisCSIPId. Requires role NOMIS_CSIP",
+    description = "Retrieves a mapping by nomisCSIPId. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -207,7 +207,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
   @GetMapping("/dps-csip-id/{csipId}/all")
   @Operation(
     summary = "Get full mapping",
-    description = "Retrieves a mapping by DPS CSIP Report Id and all associated child mappings. Requires role NOMIS_CSIP",
+    description = "Retrieves a mapping by DPS CSIP Report Id and all associated child mappings. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -237,7 +237,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
   @GetMapping("/dps-csip-id/{csipId}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by DPS CSIP Id. Requires role NOMIS_CSIP",
+    description = "Retrieves a mapping by DPS CSIP Id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -267,7 +267,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
   @GetMapping("/nomis-csip-id")
   @Operation(
     summary = "get a list of mappings for Nomis CSIP Report ids",
-    description = "Retrieves matching mappings for a list of NOMIS CSIP report ids. Requires role NOMIS_CSIP",
+    description = "Retrieves matching mappings for a list of NOMIS CSIP report ids. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -293,7 +293,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a specific CSIP report mapping by DPS CSIP id and its associated children",
-    description = "Deletes a mapping by DPS id and any children. Requires role NOMIS_CSIP",
+    description = "Deletes a mapping by DPS id and any children. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -316,7 +316,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes all child mappings for a CSIP Report by DPS id",
-    description = "Deletes all child mappings associated with a specific CSIP report mapping by DPS CSIP Report id. Requires role NOMIS_CSIP",
+    description = "Deletes all child mappings associated with a specific CSIP report mapping by DPS CSIP Report id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -339,7 +339,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes CSIP mappings.",
-    description = "Deletes all rows from the csip mapping table. Requires role NOMIS_CSIP",
+    description = "Deletes all rows from the csip mapping table. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -394,7 +394,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
   @GetMapping("/migrated/latest")
   @Operation(
     summary = "get the latest mapping for a migration",
-    description = "Requires role NOMIS_CSIP",
+    description = "Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",

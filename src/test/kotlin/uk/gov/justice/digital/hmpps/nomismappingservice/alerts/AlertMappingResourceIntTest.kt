@@ -90,7 +90,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 404 when mapping does not exist`() {
         webTestClient.get()
           .uri("/mapping/alerts/nomis-booking-id/9999/nomis-alert-sequence/${mapping.nomisAlertSequence}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -99,7 +99,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 200 when mapping does exist`() {
         webTestClient.get()
           .uri("/mapping/alerts/nomis-booking-id/${mapping.nomisBookingId}/nomis-alert-sequence/${mapping.nomisAlertSequence}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -154,7 +154,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
     fun setUp() = runTest {
       webTestClient.post()
         .uri("/mapping/alerts/A1234KT/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(prisonerMappings))
         .exchange()
@@ -213,7 +213,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 200 when no mappings found for prisoner`() {
         webTestClient.get()
           .uri("/mapping/alerts/A9999KT/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -224,7 +224,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `will return all mappings for prisoner`() {
         webTestClient.get()
           .uri("/mapping/alerts/A1234KT/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -306,7 +306,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
         webTestClient.put()
           .uri("/mapping/alerts/nomis-booking-id/9999/nomis-alert-sequence/${mapping.nomisAlertSequence}")
           .bodyValue(NomisMappingIdUpdate(bookingId = newBookingId))
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -320,7 +320,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
         webTestClient.put()
           .uri("/mapping/alerts/nomis-booking-id/${mapping.nomisBookingId}/nomis-alert-sequence/${mapping.nomisAlertSequence}")
           .bodyValue(NomisMappingIdUpdate(bookingId = newBookingId))
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -340,13 +340,13 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
         webTestClient.put()
           .uri("/mapping/alerts/nomis-booking-id/${mapping.nomisBookingId}/nomis-alert-sequence/${mapping.nomisAlertSequence}")
           .bodyValue(NomisMappingIdUpdate(bookingId = newBookingId))
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
 
         webTestClient.get()
           .uri("/mapping/alerts/nomis-booking-id/$newBookingId/nomis-alert-sequence/${mapping.nomisAlertSequence}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -417,7 +417,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 404 when mapping does not exist`() {
         webTestClient.get()
           .uri("/mapping/alerts/dps-alert-id/DOESNOTEXIST")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -426,7 +426,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 200 when mapping does exist`() {
         webTestClient.get()
           .uri("/mapping/alerts/dps-alert-id/${mapping.dpsAlertId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -503,7 +503,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 204 even when mapping does not exist`() {
         webTestClient.delete()
           .uri("/mapping/alerts/dps-alert-id/DOESNOTEXIST")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -512,19 +512,19 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 204 when mapping does exist and is deleted`() {
         webTestClient.get()
           .uri("/mapping/alerts/dps-alert-id/${mapping.dpsAlertId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
 
         webTestClient.delete()
           .uri("/mapping/alerts/dps-alert-id/${mapping.dpsAlertId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
         webTestClient.get()
           .uri("/mapping/alerts/dps-alert-id/${mapping.dpsAlertId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -605,7 +605,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mapping created`() = runTest {
         webTestClient.post()
           .uri("/mapping/alerts")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -629,7 +629,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `can create with minimal data`() = runTest {
         webTestClient.post()
           .uri("/mapping/alerts")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -665,7 +665,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `can post and then get new and existing mapping`() {
         webTestClient.post()
           .uri("/mapping/alerts")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -685,13 +685,13 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.get()
           .uri("/mapping/alerts/nomis-booking-id/54321/nomis-alert-sequence/3")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
 
         webTestClient.get()
           .uri("/mapping/alerts/nomis-booking-id/${existingMapping.nomisBookingId}/nomis-alert-sequence/${existingMapping.nomisAlertSequence}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
       }
@@ -703,7 +703,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when mapping type is invalid`() {
         webTestClient.post()
           .uri("/mapping/alerts")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -726,7 +726,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when DPS id is missing`() {
         webTestClient.post()
           .uri("/mapping/alerts")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -747,7 +747,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when NOMIS ids are missing`() {
         webTestClient.post()
           .uri("/mapping/alerts")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -765,7 +765,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.post()
           .uri("/mapping/alerts")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -787,7 +787,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
         val dpsAlertId = UUID.randomUUID().toString()
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/alerts")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -824,7 +824,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 409 if dps id already exist`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/alerts")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -941,7 +941,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mapping created`() = runTest {
         webTestClient.post()
           .uri("/mapping/alerts/A1234KT/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(prisonerMappings))
           .exchange()
@@ -980,7 +980,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when mapping type is invalid`() {
         webTestClient.post()
           .uri("/mapping/alerts/A1234KT/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -1007,7 +1007,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when DPS id is missing`() {
         webTestClient.post()
           .uri("/mapping/alerts/A1234KT/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -1033,7 +1033,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when NOMIS ids are missing`() {
         webTestClient.post()
           .uri("/mapping/alerts/A1234KT/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -1056,7 +1056,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.post()
           .uri("/mapping/alerts/A1234KT/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -1083,7 +1083,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
         val dpsAlertId = UUID.randomUUID().toString()
         webTestClient.post()
           .uri("/mapping/alerts/A1234KT/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -1104,7 +1104,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `will not return 409 if dps id already exist since it will be deleted`() {
         webTestClient.post()
           .uri("/mapping/alerts/A1234KT/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -1204,7 +1204,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 200 when mapping created`() = runTest {
         webTestClient.put()
           .uri("/mapping/alerts/A1234KT/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(prisonerMappings))
           .exchange()
@@ -1243,7 +1243,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when mapping type is invalid`() {
         webTestClient.put()
           .uri("/mapping/alerts/A1234KT/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -1270,7 +1270,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when DPS id is missing`() {
         webTestClient.put()
           .uri("/mapping/alerts/A1234KT/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -1296,7 +1296,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when NOMIS ids are missing`() {
         webTestClient.put()
           .uri("/mapping/alerts/A1234KT/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -1319,7 +1319,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.put()
           .uri("/mapping/alerts/A1234KT/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -1346,7 +1346,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
         val dpsAlertId = UUID.randomUUID().toString()
         webTestClient.put()
           .uri("/mapping/alerts/A1234KT/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -1367,7 +1367,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `will not return 409 if dps id already exist since it will be deleted`() {
         webTestClient.put()
           .uri("/mapping/alerts/A1234KT/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -1481,7 +1481,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun setUp() {
         webTestClient.put()
           .uri("/mapping/alerts/A1234KT/merge")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mergedPrisonerMappings))
           .exchange()
@@ -1605,7 +1605,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
           .uri("/mapping/alerts/batch")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -1644,7 +1644,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when mapping type is invalid`() {
         webTestClient.post()
           .uri("/mapping/alerts/batch")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -1671,7 +1671,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
         val dpsAlertId = UUID.randomUUID().toString()
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/alerts/batch")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -1703,7 +1703,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 409 if dps ids already exist`() {
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/alerts/batch")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -1816,7 +1816,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
 
         webTestClient.delete()
           .uri("/mapping/alerts")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
@@ -1899,7 +1899,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       )
 
       webTestClient.get().uri("/mapping/alerts/migration-id/2023-01-01T12:45:12")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -1918,7 +1918,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `200 response even when no mappings are found`() {
       webTestClient.get().uri("/mapping/alerts/migration-id/2044-01-01")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -1946,7 +1946,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
           .queryParam("sort", "nomisAlertSequence,asc")
           .build()
       }
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -2021,7 +2021,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
       )
 
       webTestClient.get().uri("/mapping/alerts")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -2041,7 +2041,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `200 response even when no mappings are found`() {
       webTestClient.get().uri("/mapping/alerts")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -2069,7 +2069,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
           .queryParam("sort", "nomisAlertSequence,asc")
           .build()
       }
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -2121,7 +2121,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
     fun `can retrieve all mappings by migration Id`() = runTest {
       webTestClient.post()
         .uri("/mapping/alerts/A1111KT/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -2143,7 +2143,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
 
       webTestClient.post()
         .uri("/mapping/alerts/A2222KT/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -2165,7 +2165,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
 
       webTestClient.post()
         .uri("/mapping/alerts/A1234KT/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -2186,7 +2186,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.get().uri("/mapping/alerts/migration-id/2023-01-01T12:45:12/grouped-by-prisoner")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -2204,7 +2204,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
           ),
         )
       webTestClient.get().uri("/mapping/alerts/migration-id/2023-01-01T12:45:12/grouped-by-prisoner?size=1")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -2222,7 +2222,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `200 response even when no mappings are found`() {
       webTestClient.get().uri("/mapping/alerts/migration-id/2044-01-01")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -2250,7 +2250,7 @@ class AlertMappingResourceIntTest : IntegrationTestBase() {
           .queryParam("sort", "nomisAlertSequence,asc")
           .build()
       }
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_ALERTS")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()

@@ -77,7 +77,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
       fun `will return 404 when mapping does not exist`() {
         webTestClient.get()
           .uri("/mapping/court-sentencing/court-charges/dps-court-charge-id/DOESNOTEXIST")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
           .expectBody()
@@ -88,7 +88,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
       fun `will return 200 when mapping does exist`() {
         webTestClient.get()
           .uri("/mapping/court-sentencing/court-charges/dps-court-charge-id/${courtChargeMapping.dpsCourtChargeId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -155,7 +155,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
       fun `will return 404 when mapping does not exist`() {
         webTestClient.get()
           .uri("/mapping/court-sentencing/court-charges/nomis-court-charge-id/8888888")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
           .expectBody()
@@ -166,7 +166,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
       fun `will return 200 when mapping does exist`() {
         webTestClient.get()
           .uri("/mapping/court-sentencing/court-charges/nomis-court-charge-id/${courtChargeMapping.nomisCourtChargeId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -318,7 +318,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
         )
 
         webTestClient.put().uri("/mapping/court-sentencing/court-charges")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -334,7 +334,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
           .expectStatus().isDuplicateMapping
 
         webTestClient.put().uri("/mapping/court-sentencing/court-charges")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -411,7 +411,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
         postCourtChargeMappingRequest()
 
         webTestClient.post().uri("/mapping/court-sentencing/court-charges")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -426,7 +426,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
           .expectStatus().isDuplicateMapping
 
         webTestClient.post().uri("/mapping/court-sentencing/court-charges")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -500,7 +500,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
       fun `will return 204 even when mapping does not exist`() {
         webTestClient.delete()
           .uri("/mapping/court-sentencing/court-charges/nomis-court-charge-id/13333")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
       }
@@ -509,20 +509,20 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
       fun `will return 204 when mapping does exist and is deleted`() {
         webTestClient.get()
           .uri("/mapping/court-sentencing/court-charges/dps-court-charge-id/${mapping.dpsCourtChargeId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
 
         // delete using nomis id
         webTestClient.delete()
           .uri("/mapping/court-sentencing/court-charges/nomis-court-charge-id/${mapping.nomisCourtChargeId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
         webTestClient.get()
           .uri("/mapping/court-sentencing/court-charges/dps-court-charge-id/${mapping.dpsCourtChargeId}")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -554,7 +554,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
     courtChargesToDelete: List<CourtChargeNomisIdDto> = emptyList(),
   ) {
     webTestClient.put().uri("/mapping/court-sentencing/court-charges")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         BodyInserters.fromValue(
@@ -575,7 +575,7 @@ class CourtSentencingCourtChargeResourceIntTest : IntegrationTestBase() {
     ),
   ) {
     webTestClient.post().uri("/mapping/court-sentencing/court-charges")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_COURT_SENTENCING")))
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         BodyInserters.fromValue(courtCharge),

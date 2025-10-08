@@ -24,7 +24,7 @@ import java.util.UUID
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('NOMIS_MOVEMENTS')")
+@PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/temporary-absence", produces = [MediaType.APPLICATION_JSON_VALUE])
 class TemporaryAbsenceResource(
   private val service: TemporaryAbsenceService,
@@ -34,7 +34,7 @@ class TemporaryAbsenceResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates all mappings for prisoner temporary absences which are all migrated at the same time",
-    description = "Creates mappings for prisoner temporary absences including movement applications, outside movements, scheduled movements and movements. Requires ROLE_NOMIS_MOVEMENTS",
+    description = "Creates mappings for prisoner temporary absences including movement applications, outside movements, scheduled movements and movements. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = TemporaryAbsencesPrisonerMappingDto::class))],
     ),
@@ -60,7 +60,7 @@ class TemporaryAbsenceResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a mapping for a single temporary absence application",
-    description = "Creates a mapping for a single temporary absence application. Requires ROLE_NOMIS_MOVEMENTS",
+    description = "Creates a mapping for a single temporary absence application. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = TemporaryAbsenceApplicationSyncMappingDto::class))],
     ),
@@ -107,7 +107,7 @@ class TemporaryAbsenceResource(
   @GetMapping("/application/nomis-application-id/{nomisApplicationId}")
   @Operation(
     summary = "Gets a mapping for a single temporary absence application by NOMIS ID",
-    description = "Gets a mapping for a single temporary absence application by NOMIS ID. Requires ROLE_NOMIS_MOVEMENTS",
+    description = "Gets a mapping for a single temporary absence application by NOMIS ID. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Application mapping returned"),
       ApiResponse(
@@ -134,7 +134,7 @@ class TemporaryAbsenceResource(
   @GetMapping("/application/dps-id/{dpsId}")
   @Operation(
     summary = "Gets a mapping for a single temporary absence application by DPS ID",
-    description = "Gets a mapping for a single temporary absence application by DPS ID. Requires ROLE_NOMIS_MOVEMENTS",
+    description = "Gets a mapping for a single temporary absence application by DPS ID. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Application mapping returned"),
       ApiResponse(
@@ -162,7 +162,7 @@ class TemporaryAbsenceResource(
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a mapping for a single temporary absence application by NOMIS ID",
-    description = "Deletes a mapping for a single temporary absence application by NOMIS ID. Requires ROLE_NOMIS_MOVEMENTS",
+    description = "Deletes a mapping for a single temporary absence application by NOMIS ID. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = TemporaryAbsenceApplicationSyncMappingDto::class))],
     ),
@@ -188,7 +188,7 @@ class TemporaryAbsenceResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a mapping for a single temporary absence outside movement",
-    description = "Creates a mapping for a single temporary absence outside movement. Requires ROLE_NOMIS_MOVEMENTS",
+    description = "Creates a mapping for a single temporary absence outside movement. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = TemporaryAbsenceOutsideMovementSyncMappingDto::class))],
     ),
@@ -235,7 +235,7 @@ class TemporaryAbsenceResource(
   @GetMapping("/outside-movement/nomis-application-multi-id/{nomisApplicationMultiId}")
   @Operation(
     summary = "Gets a mapping for a single temporary absence outside movement by NOMIS ID",
-    description = "Gets a mapping for a single temporary absence outside movement by NOMIS ID. Requires ROLE_NOMIS_MOVEMENTS",
+    description = "Gets a mapping for a single temporary absence outside movement by NOMIS ID. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Outside movement mapping returned"),
       ApiResponse(
@@ -262,7 +262,7 @@ class TemporaryAbsenceResource(
   @GetMapping("/outside-movement/dps-id/{dpsId}")
   @Operation(
     summary = "Gets a mapping for a single temporary absence outside movement by DPS ID",
-    description = "Gets a mapping for a single temporary absence outside movement by DPS ID. Requires ROLE_NOMIS_MOVEMENTS",
+    description = "Gets a mapping for a single temporary absence outside movement by DPS ID. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Outside movement mapping returned"),
       ApiResponse(
@@ -290,7 +290,7 @@ class TemporaryAbsenceResource(
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a mapping for a single temporary absence outside movement by NOMIS ID",
-    description = "Deletes a mapping for a single temporary absence outside movement by NOMIS ID. Requires ROLE_NOMIS_MOVEMENTS",
+    description = "Deletes a mapping for a single temporary absence outside movement by NOMIS ID. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = TemporaryAbsenceOutsideMovementSyncMappingDto::class))],
     ),
@@ -316,7 +316,7 @@ class TemporaryAbsenceResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a mapping for a single scheduled movement",
-    description = "Creates a mapping for a single scheduled movement. Requires ROLE_NOMIS_MOVEMENTS",
+    description = "Creates a mapping for a single scheduled movement. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = ScheduledMovementSyncMappingDto::class))],
     ),
@@ -363,7 +363,7 @@ class TemporaryAbsenceResource(
   @GetMapping("/scheduled-movement/nomis-event-id/{nomisEventId}")
   @Operation(
     summary = "Gets a mapping for a single scheduled movement by NOMIS event ID",
-    description = "Gets a mapping for a single scheduled movement by NOMIS event ID. Requires ROLE_NOMIS_MOVEMENTS",
+    description = "Gets a mapping for a single scheduled movement by NOMIS event ID. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Scheduled movement mapping returned"),
       ApiResponse(
@@ -390,7 +390,7 @@ class TemporaryAbsenceResource(
   @GetMapping("/scheduled-movement/dps-id/{dpsId}")
   @Operation(
     summary = "Gets a mapping for a single scheduled movement by DPS event ID",
-    description = "Gets a mapping for a single scheduled movement by DPS event ID. Requires ROLE_NOMIS_MOVEMENTS",
+    description = "Gets a mapping for a single scheduled movement by DPS event ID. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Scheduled movement mapping returned"),
       ApiResponse(
@@ -418,7 +418,7 @@ class TemporaryAbsenceResource(
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a mapping for a single scheduled movement by NOMIS event ID",
-    description = "Deletes a mapping for a single scheduled movement by NOMIS event ID. Requires ROLE_NOMIS_MOVEMENTS",
+    description = "Deletes a mapping for a single scheduled movement by NOMIS event ID. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = ScheduledMovementSyncMappingDto::class))],
     ),
@@ -444,7 +444,7 @@ class TemporaryAbsenceResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a mapping for a single temporary absence external movement",
-    description = "Creates a mapping for a single temporary absence external movement. Requires ROLE_NOMIS_MOVEMENTS",
+    description = "Creates a mapping for a single temporary absence external movement. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = ExternalMovementSyncMappingDto::class))],
     ),
@@ -491,7 +491,7 @@ class TemporaryAbsenceResource(
   @GetMapping("/external-movement/nomis-movement-id/{bookingId}/{movementSeq}")
   @Operation(
     summary = "Gets a mapping for a single temporary absence external movement by NOMIS booking ID and movement sequence",
-    description = "Gets a mapping for a single temporary absence external movement by NOMIS booking ID and movement sequence. Requires ROLE_NOMIS_MOVEMENTS",
+    description = "Gets a mapping for a single temporary absence external movement by NOMIS booking ID and movement sequence. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "External movement mapping returned"),
       ApiResponse(
@@ -519,7 +519,7 @@ class TemporaryAbsenceResource(
   @GetMapping("/external-movement/dps-id/{dpsId}")
   @Operation(
     summary = "Gets a mapping for a single temporary absence external movement by DPS ID",
-    description = "Gets a mapping for a single temporary absence external movement by DPS ID. Requires ROLE_NOMIS_MOVEMENTS",
+    description = "Gets a mapping for a single temporary absence external movement by DPS ID. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "External movement mapping returned"),
       ApiResponse(
@@ -547,7 +547,7 @@ class TemporaryAbsenceResource(
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a mapping for a single temporary absence external movement by NOMIS booking ID and movement sequence",
-    description = "Deletes a mapping for a single temporary absence external movement by NOMIS booking ID and movement sequence. Requires ROLE_NOMIS_MOVEMENTS",
+    description = "Deletes a mapping for a single temporary absence external movement by NOMIS booking ID and movement sequence. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = ExternalMovementSyncMappingDto::class))],
     ),

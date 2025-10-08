@@ -32,12 +32,12 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RequestMapping("/", produces = [MediaType.APPLICATION_JSON_VALUE])
 class AppointmentMappingResource(private val mappingService: AppointmentMappingService) {
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_APPOINTMENTS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PostMapping("/mapping/appointments")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new appointment mapping",
-    description = "Creates a mapping between nomis id and Appointment instance id. Requires NOMIS_APPOINTMENTS",
+    description = "Creates a mapping between nomis id and Appointment instance id. Requires NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -83,11 +83,11 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
     )
   }
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_APPOINTMENTS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/appointments/appointment-instance-id/{appointmentInstanceId}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by appointment instance id. Requires role NOMIS_APPOINTMENTS",
+    description = "Retrieves a mapping by appointment instance id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -114,11 +114,11 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
     appointmentInstanceId: Long,
   ): AppointmentMappingDto = mappingService.getMappingById(appointmentInstanceId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_APPOINTMENTS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/appointments/nomis-event-id/{eventId}")
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by nomis event id. Requires role NOMIS_APPOINTMENTS",
+    description = "Retrieves a mapping by nomis event id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -145,11 +145,11 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
     eventId: Long,
   ): AppointmentMappingDto = mappingService.getMappingByEventId(eventId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_APPOINTMENTS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/appointments/migrated/latest")
   @Operation(
     summary = "get the latest mapping for a migration",
-    description = "Requires role NOMIS_APPOINTMENTS",
+    description = "Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -175,12 +175,12 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
   )
   suspend fun getLatestMigratedAppointmentMapping(): AppointmentMappingDto = mappingService.getAppointmentMappingForLatestMigrated()
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_APPOINTMENTS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @DeleteMapping("/mapping/appointments/appointment-instance-id/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a specific mapping by appointment instance id",
-    description = "Deletes the mapping table row. Requires role NOMIS_APPOINTMENTS",
+    description = "Deletes the mapping table row. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -199,7 +199,7 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
     id: Long,
   ) = mappingService.deleteMapping(id)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_APPOINTMENTS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @DeleteMapping("/mapping/appointments/migration-id/{migrationId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
@@ -216,7 +216,7 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
-        description = "Insufficient privileges - requires role NOMIS_APPOINTMENTS",
+        description = "Insufficient privileges - requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
         responseCode = "403",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
@@ -228,7 +228,7 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
     migrationId: String,
   ) = mappingService.deleteAppointmentMappingsByMigrationId(migrationId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_APPOINTMENTS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/appointments/migration-id/{migrationId}")
   @Operation(
     summary = "get paged mappings by migration id",
@@ -258,11 +258,11 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
     migrationId: String,
   ): Page<AppointmentMappingDto> = mappingService.getAppointmentMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_APPOINTMENTS')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/appointments")
   @Operation(
     summary = "Get all appointment mappings",
-    description = "Get all the mapping table rows. Should only be used in dev (in pre/prod this could return excessive data). Requires role NOMIS_APPOINTMENTS",
+    description = "Get all the mapping table rows. Should only be used in dev (in pre/prod this could return excessive data). Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",

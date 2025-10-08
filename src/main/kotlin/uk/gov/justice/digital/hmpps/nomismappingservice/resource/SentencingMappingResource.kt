@@ -34,12 +34,12 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RequestMapping("/", produces = [MediaType.APPLICATION_JSON_VALUE])
 class SentencingMappingResource(private val mappingService: SentencingMappingService) {
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PostMapping("/mapping/sentencing/adjustments")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new sentence adjustment mapping",
-    description = "Creates a mapping between nomis sentence adjustment ids and Sentencing service id. Requires ROLE_NOMIS_SENTENCING",
+    description = "Creates a mapping between nomis sentence adjustment ids and Sentencing service id. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -85,12 +85,12 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     )
   }
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/sentencing/adjustments/nomis-adjustment-category/{nomisAdjustmentCategory}/nomis-adjustment-id/{nomisAdjustmentId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by NOMIS id. Requires role ROLE_NOMIS_SENTENCING",
+    description = "Retrieves a mapping by NOMIS id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -138,12 +138,12 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     nomisAdjustmentCategory: String,
   ): SentencingAdjustmentMappingDto = mappingService.getSentenceAdjustmentMappingByNomisId(nomisAdjustmentId, nomisAdjustmentCategory)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/sentencing/adjustments/adjustment-id/{adjustmentId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get mapping",
-    description = "Retrieves a mapping by Sentencing adjustment id (from the sentencing domain). Requires role ROLE_NOMIS_SENTENCING",
+    description = "Retrieves a mapping by Sentencing adjustment id (from the sentencing domain). Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -173,12 +173,12 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     adjustmentId: String,
   ): SentencingAdjustmentMappingDto = mappingService.getSentencingAdjustmentMappingByAdjustmentId(adjustmentId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/sentencing/adjustments/migrated/latest")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
     summary = "get the latest mapping for a migration",
-    description = "Requires role NOMIS_SENTENCING",
+    description = "Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -204,12 +204,12 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
   )
   suspend fun getLatestMigratedSentenceAdjustmentMapping(): SentencingAdjustmentMappingDto = mappingService.getSentencingAdjustmentMappingForLatestMigrated()
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @DeleteMapping("/mapping/sentencing/adjustments")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes sentence adjustment mappings",
-    description = "Deletes all rows from the the sentence adjustment mapping table. Requires role NOMIS_SENTENCING",
+    description = "Deletes all rows from the the sentence adjustment mapping table. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -233,12 +233,12 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     onlyMigrated,
   )
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @DeleteMapping("/mapping/sentencing/adjustments/adjustment-id/{adjustmentId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a specific Sentence Adjustment mapping by sentence adjustment Id",
-    description = "Deletes the Sentence Adjustment mapping. Requires role NOMIS_SENTENCING",
+    description = "Deletes the Sentence Adjustment mapping. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -257,7 +257,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     adjustmentId: String,
   ) = mappingService.deleteSentencingAdjustmentMapping(adjustmentId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/sentencing/adjustments/migration-id/{migrationId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
@@ -288,7 +288,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
     migrationId: String,
   ): Page<SentencingAdjustmentMappingDto> = mappingService.getSentenceAdjustmentMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
-  @PreAuthorize("hasRole('ROLE_NOMIS_SENTENCING')")
+  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/sentencing/adjustments")
   @ResponseStatus(HttpStatus.OK)
   @Operation(

@@ -88,7 +88,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     mappingType: CSIPMappingType = NOMIS_CREATED,
   ) {
     webTestClient.post().uri("/mapping/csip")
-      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+      .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(
         BodyInserters.fromValue(
@@ -160,7 +160,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       val dpsCSIPId = UUID.randomUUID().toString()
       val duplicateResponse = webTestClient.post()
         .uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -194,7 +194,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       val nomisCSIPId = 90909L
       val duplicateResponse = webTestClient.post()
         .uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -228,7 +228,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       val nomisCSIPId = 67676L
       val dpsCSIPId = UUID.randomUUID().toString()
       webTestClient.post().uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -245,7 +245,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
       val mapping1 =
         webTestClient.get().uri("/mapping/csip/nomis-csip-id/$nomisCSIPId")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody(CSIPReportMappingDto::class.java)
@@ -257,7 +257,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping1.mappingType).isEqualTo(DPS_CREATED)
 
       val mapping2 = webTestClient.get().uri("/mapping/csip/dps-csip-id/$dpsCSIPId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(CSIPReportMappingDto::class.java)
@@ -274,7 +274,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       val nomisCSIPId = 35353L
       val dpsCSIPId = UUID.randomUUID().toString()
       webTestClient.post().uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -291,7 +291,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
       val responseBody =
         webTestClient.post().uri("/mapping/csip")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -319,7 +319,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will default to DPS_CREATED if missing mapping type`() {
         webTestClient.post().uri("/mapping/csip")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
@@ -341,7 +341,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 if mapping type invalid`() {
         assertThat(
           webTestClient.post().uri("/mapping/csip")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .contentType(MediaType.APPLICATION_JSON)
             .body(
               BodyInserters.fromValue(
@@ -365,7 +365,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when Nomis CSIP Report Id is missing`() {
         assertThat(
           webTestClient.post().uri("/mapping/csip")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .contentType(MediaType.APPLICATION_JSON)
             .body(
               BodyInserters.fromValue(
@@ -390,7 +390,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when DPS CSIP Report Id is missing`() {
         assertThat(
           webTestClient.post().uri("/mapping/csip")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .contentType(MediaType.APPLICATION_JSON)
             .body(
               BodyInserters.fromValue(
@@ -474,7 +474,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       val dpsCSIPId = UUID.randomUUID().toString()
       val duplicateResponse = webTestClient.post()
         .uri("/mapping/csip/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -508,7 +508,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       val nomisCSIPId = 90909L
       val duplicateResponse = webTestClient.post()
         .uri("/mapping/csip/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -592,7 +592,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       )
 
       webTestClient.post().uri("/mapping/csip/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -614,7 +614,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
       val mapping1 =
         webTestClient.get().uri("/mapping/csip/nomis-csip-id/$nomisCSIPId")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody(CSIPReportMappingDto::class.java)
@@ -626,7 +626,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping1.mappingType).isEqualTo(DPS_CREATED)
 
       val mapping2 = webTestClient.get().uri("/mapping/csip/dps-csip-id/$dpsCSIPId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(CSIPReportMappingDto::class.java)
@@ -638,7 +638,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping2.mappingType).isEqualTo(DPS_CREATED)
 
       val mapping = webTestClient.get().uri("/mapping/csip/dps-csip-id/$dpsCSIPId/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(CSIPFullMappingDto::class.java)
@@ -658,7 +658,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       val nomisCSIPId = 35353L
       val dpsCSIPId = UUID.randomUUID().toString()
       webTestClient.post().uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -675,7 +675,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
       val responseBody =
         webTestClient.post().uri("/mapping/csip/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
 
@@ -705,7 +705,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 if mapping type invalid`() {
         assertThat(
           webTestClient.post().uri("/mapping/csip/all")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .contentType(MediaType.APPLICATION_JSON)
             .body(
               BodyInserters.fromValue(
@@ -729,7 +729,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when Nomis CSIP Report Id is missing`() {
         assertThat(
           webTestClient.post().uri("/mapping/csip/all")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .contentType(MediaType.APPLICATION_JSON)
             .body(
               BodyInserters.fromValue(
@@ -759,7 +759,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       fun `is success when child mapping lists are missing`() {
         assertThat(
           webTestClient.post().uri("/mapping/csip/all")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .contentType(MediaType.APPLICATION_JSON)
             .body(
               BodyInserters.fromValue(
@@ -781,7 +781,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when DPS CSIP Report Id is missing`() {
         assertThat(
           webTestClient.post().uri("/mapping/csip/all")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .contentType(MediaType.APPLICATION_JSON)
             .body(
               BodyInserters.fromValue(
@@ -838,7 +838,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success`() {
       webTestClient.post().uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createCSIPMapping()))
         .exchange()
@@ -846,7 +846,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
       val mapping =
         webTestClient.get().uri("/mapping/csip/nomis-csip-id/1234")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody(CSIPReportMappingDto::class.java)
@@ -861,7 +861,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `mapping not found`() {
       val error = webTestClient.get().uri("/mapping/csip/nomis-csip-id/99999")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody(ErrorResponse::class.java)
@@ -873,14 +873,14 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success with update role`() {
       webTestClient.post().uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createCSIPMapping()))
         .exchange()
         .expectStatus().isCreated
 
       webTestClient.get().uri("/mapping/csip/nomis-csip-id/1234")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
     }
@@ -924,14 +924,14 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success`() {
       webTestClient.post().uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createCSIPMapping(dpsCSIPId = dpsCSIPId, nomisCSIPId = nomisCSIPId)))
         .exchange()
         .expectStatus().isCreated
 
       val mapping = webTestClient.get().uri("/mapping/csip/dps-csip-id/$dpsCSIPId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(CSIPReportMappingDto::class.java)
@@ -946,7 +946,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `mapping not found`() {
       val error = webTestClient.get().uri("/mapping/csip/dps-csip-id/9999")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody(ErrorResponse::class.java)
@@ -958,14 +958,14 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success with update role`() {
       webTestClient.post().uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createCSIPMapping(nomisCSIPId = nomisCSIPId, dpsCSIPId = dpsCSIPId)))
         .exchange()
         .expectStatus().isCreated
 
       webTestClient.get().uri("/mapping/csip/dps-csip-id/$dpsCSIPId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
     }
@@ -1013,14 +1013,14 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success - no children`() {
       webTestClient.post().uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createCSIPMapping(dpsCSIPId = dpsCSIPReportId, nomisCSIPId = nomisCSIPReportId)))
         .exchange()
         .expectStatus().isCreated
 
       val mapping = webTestClient.get().uri("/mapping/csip/dps-csip-id/$dpsCSIPReportId/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(CSIPFullMappingDto::class.java)
@@ -1038,14 +1038,14 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success`() {
       webTestClient.post().uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createCSIPMapping(dpsCSIPId = dpsCSIPReportId, nomisCSIPId = nomisCSIPReportId)))
         .exchange()
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/csip/attendees")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -1062,7 +1062,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/csip/factors")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -1079,7 +1079,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/csip/interviews")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -1096,7 +1096,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/csip/plans")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -1113,7 +1113,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/csip/reviews")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -1130,7 +1130,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       val mapping = webTestClient.get().uri("/mapping/csip/dps-csip-id/$dpsCSIPReportId/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(CSIPFullMappingDto::class.java)
@@ -1148,7 +1148,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `mapping not found`() {
       val error = webTestClient.get().uri("/mapping/csip/dps-csip-id/9999/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody(ErrorResponse::class.java)
@@ -1160,14 +1160,14 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get mapping success with update role`() {
       webTestClient.post().uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createCSIPMapping(nomisCSIPId = nomisCSIPReportId, dpsCSIPId = dpsCSIPReportId)))
         .exchange()
         .expectStatus().isCreated
 
       webTestClient.get().uri("/mapping/csip/dps-csip-id/$dpsCSIPReportId/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
     }
@@ -1225,29 +1225,29 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     fun `delete specific mapping success`() {
       // it is present after creation by csip id
       webTestClient.get().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
       // it is also present after creation by nomis id
       webTestClient.get().uri("/mapping/csip/nomis-csip-id/${mapping.nomisCSIPId}")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
 
       // delete mapping
       webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
       // no longer present by dps csip id
       webTestClient.get().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
       // and also no longer present by nomis csip id
       webTestClient.get().uri("/mapping/csip/nomis-csip-id/${mapping.nomisCSIPId}")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
     }
@@ -1256,12 +1256,12 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     internal fun `delete is idempotent`() {
       // delete mapping
       webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
       // delete mapping second time still returns success
       webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
     }
@@ -1381,7 +1381,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     fun `delete specific mapping success`() {
       // it is present after creation by csip id
       webTestClient.get().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -1395,19 +1395,19 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
       // it is also present after creation by nomis id
       webTestClient.get().uri("/mapping/csip/nomis-csip-id/${mapping.nomisCSIPId}")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
 
       // delete children mappings
       webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/children")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
       // still present by dps csip id but children deleted
       webTestClient.get().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -1421,7 +1421,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
       // and also still present by nomis csip id
       webTestClient.get().uri("/mapping/csip/nomis-csip-id/${mapping.nomisCSIPId}")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
     }
@@ -1430,12 +1430,12 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     internal fun `delete is idempotent`() {
       // delete mapping
       webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/children")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
       // delete mapping second time still returns success
       webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/children")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
     }
@@ -1512,7 +1512,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     fun `returns 409 if child csip factor already exists`() {
       val duplicateResponse = webTestClient.post()
         .uri("/mapping/csip/children/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -1554,7 +1554,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     fun `returns 404 if csip report does not exist`() {
       val missingDpsCSIPReportId = UUID.randomUUID().toString()
       webTestClient.post().uri("/mapping/csip/children/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -1596,7 +1596,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       )
 
       webTestClient.post().uri("/mapping/csip/children/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -1619,7 +1619,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       // Ensure transaction rolled back
       val mapping =
         webTestClient.get().uri("/mapping/csip/dps-csip-id/$dpsCSIPId/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody(CSIPFullMappingDto::class.java)
@@ -1685,7 +1685,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       )
 
       webTestClient.post().uri("/mapping/csip/children/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -1707,7 +1707,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
       val mapping1 =
         webTestClient.get().uri("/mapping/csip/nomis-csip-id/$nomisCSIPId")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody(CSIPReportMappingDto::class.java)
@@ -1719,7 +1719,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping1.mappingType).isEqualTo(MIGRATED)
 
       val mapping2 = webTestClient.get().uri("/mapping/csip/dps-csip-id/$dpsCSIPId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(CSIPReportMappingDto::class.java)
@@ -1731,7 +1731,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       assertThat(mapping2.mappingType).isEqualTo(MIGRATED)
 
       val mapping = webTestClient.get().uri("/mapping/csip/dps-csip-id/$dpsCSIPId/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(CSIPFullMappingDto::class.java)
@@ -1753,7 +1753,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 if mapping type invalid`() {
         assertThat(
           webTestClient.post().uri("/mapping/csip/children/all")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .contentType(MediaType.APPLICATION_JSON)
             .body(
               BodyInserters.fromValue(
@@ -1777,7 +1777,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when Nomis CSIP Report Id is missing`() {
         assertThat(
           webTestClient.post().uri("/mapping/csip/children/all")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .contentType(MediaType.APPLICATION_JSON)
             .body(
               BodyInserters.fromValue(
@@ -1807,7 +1807,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       fun `is success when child mapping lists are missing`() {
         assertThat(
           webTestClient.post().uri("/mapping/csip/children/all")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .contentType(MediaType.APPLICATION_JSON)
             .body(
               BodyInserters.fromValue(
@@ -1829,7 +1829,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 400 when DPS CSIP Report Id is missing`() {
         assertThat(
           webTestClient.post().uri("/mapping/csip/children/all")
-            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+            .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
             .contentType(MediaType.APPLICATION_JSON)
             .body(
               BodyInserters.fromValue(
@@ -1990,7 +1990,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
       // delete report mapping
       webTestClient.delete().uri("/mapping/csip/dps-csip-id/${mapping.dpsCSIPId}/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
@@ -2003,7 +2003,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
       // delete only migrated mappings
       webTestClient.delete().uri("/mapping/csip/all?onlyMigrated")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
@@ -2016,7 +2016,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
       // delete all mappings
       webTestClient.delete().uri("/mapping/csip/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
@@ -2026,43 +2026,43 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     private fun checkChildStatusValues(status: HttpStatus) {
       webTestClient.get()
         .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange().expectStatus().isEqualTo(status.value())
       webTestClient.get()
         .uri("/mapping/csip/plans/dps-csip-plan-id/$dpsCsipPlanId2")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange().expectStatus().isEqualTo(status.value())
       webTestClient.get()
         .uri("/mapping/csip/interviews/dps-csip-interview-id/$dpsCsipInterviewId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange().expectStatus().isEqualTo(status.value())
       webTestClient.get()
         .uri("/mapping/csip/interviews/dps-csip-interview-id/$dpsCsipInterviewId2")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange().expectStatus().isEqualTo(status.value())
       webTestClient.get()
         .uri("/mapping/csip/reviews/dps-csip-review-id/$dpsCsipReviewId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange().expectStatus().isEqualTo(status.value())
       webTestClient.get()
         .uri("/mapping/csip/reviews/dps-csip-review-id/$dpsCsipReviewId2")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange().expectStatus().isEqualTo(status.value())
       webTestClient.get()
         .uri("/mapping/csip/attendees/dps-csip-attendee-id/$dpsCsipAttendeeId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange().expectStatus().isEqualTo(status.value())
       webTestClient.get()
         .uri("/mapping/csip/attendees/dps-csip-attendee-id/$dpsCsipAttendeeId2")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange().expectStatus().isEqualTo(status.value())
       webTestClient.get()
         .uri("/mapping/csip/factors/dps-csip-factor-id/$dpsCsipFactorId")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange().expectStatus().isEqualTo(status.value())
       webTestClient.get()
         .uri("/mapping/csip/factors/dps-csip-factor-id/$dpsCsipFactorId2")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange().expectStatus().isEqualTo(status.value())
     }
   }
@@ -2133,7 +2133,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       fun `will return Not Found when no mappings exist`() {
         webTestClient.get()
           .uri("/mapping/csip/nomis-csip-id?nomisCSIPId=99999")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -2142,7 +2142,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       fun `will ensure at least one csip Id is passed in`() {
         webTestClient.get()
           .uri("/mapping/csip/nomis-csip-id")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isBadRequest
       }
@@ -2151,7 +2151,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       fun `will return Not Found if any of the mappings don't exist`() {
         webTestClient.get()
           .uri("/mapping/csip/nomis-csip-id?nomisCSIPId=54321&nomisCSIPId=54322&nomisCSIPId=99999")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
       }
@@ -2160,7 +2160,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       fun `will return 200 when mapping does exist`() {
         webTestClient.get()
           .uri("/mapping/csip/nomis-csip-id?nomisCSIPId=54321&nomisCSIPId=54322")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
@@ -2212,7 +2212,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `delete mapping success`() {
       webTestClient.post().uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createCSIPMapping(nomisCSIPId = 1111L, dpsCSIPId = UUID.randomUUID().toString())))
         .exchange()
@@ -2220,18 +2220,18 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
 
       webTestClient.get()
         .uri("/mapping/csip/nomis-csip-id/1111")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
 
       webTestClient.delete().uri("/mapping/csip/all")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
       webTestClient.get()
         .uri("/mapping/csip/nomis-csip-id/1111")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
     }
@@ -2239,14 +2239,14 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `delete csip mappings - migrated mappings only`() {
       webTestClient.post().uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(createCSIPMapping()))
         .exchange()
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -2261,23 +2261,23 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.get().uri("/mapping/csip/dps-csip-id/5432")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
 
       webTestClient.delete().uri("/mapping/csip/all?onlyMigrated=true")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
       webTestClient.get()
         .uri("/mapping/csip/nomis-csip-id/1234")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
 
       webTestClient.get().uri("/mapping/csip/dps-csip-id/5432")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
     }
@@ -2340,7 +2340,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       )
 
       webTestClient.get().uri("/mapping/csip/migration-id/2022-01-01")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -2362,7 +2362,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
       }
 
       webTestClient.get().uri("/mapping/csip/migration-id/2044-01-01")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -2386,7 +2386,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
           .queryParam("sort", "nomisCSIPId,asc")
           .build()
       }
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -2414,7 +2414,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
           .queryParam("sort", "nomisCSIPId,asc")
           .build()
       }
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
@@ -2461,7 +2461,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `get retrieves latest migrated mapping`() {
       webTestClient.post().uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -2477,7 +2477,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -2493,7 +2493,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -2509,7 +2509,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       webTestClient.post().uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -2525,7 +2525,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       val mapping = webTestClient.get().uri("/mapping/csip/migrated/latest")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody(CSIPReportMappingDto::class.java)
@@ -2541,7 +2541,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
     @Test
     fun `404 when no migrated mapping found`() {
       webTestClient.post().uri("/mapping/csip")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(
           BodyInserters.fromValue(
@@ -2557,7 +2557,7 @@ class CSIPMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isCreated
 
       val error = webTestClient.get().uri("/mapping/csip/migrated/latest")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_CSIP")))
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNotFound
         .expectBody(ErrorResponse::class.java)

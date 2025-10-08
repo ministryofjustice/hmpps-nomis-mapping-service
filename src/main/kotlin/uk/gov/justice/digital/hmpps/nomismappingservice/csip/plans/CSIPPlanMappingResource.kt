@@ -25,7 +25,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
-@PreAuthorize("hasRole('ROLE_NOMIS_CSIP')")
+@PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/csip/plans", produces = [MediaType.APPLICATION_JSON_VALUE])
 class CSIPPlanMappingResource(
   private val planMappingService: CSIPPlanMappingService,
@@ -34,7 +34,7 @@ class CSIPPlanMappingResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new CSIP Plan mapping",
-    description = "Creates a mapping between a Nomis CSIP plan id and DPS CSIP plan id. Requires role NOMIS_CSIP",
+    description = "Creates a mapping between a Nomis CSIP plan id and DPS CSIP plan id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -80,7 +80,7 @@ class CSIPPlanMappingResource(
   @GetMapping("/nomis-csip-plan-id/{nomisCSIPPlanId}")
   @Operation(
     summary = "get CSIP Plan mapping",
-    description = "Retrieves a CSIP Plan mapping by NOMIS id. Requires role NOMIS_CSIP",
+    description = "Retrieves a CSIP Plan mapping by NOMIS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -110,7 +110,7 @@ class CSIPPlanMappingResource(
   @GetMapping("/dps-csip-plan-id/{dpsCSIPPlanId}")
   @Operation(
     summary = "get CSIP Plan mapping",
-    description = "Retrieves a csip plan mapping by DPS id. Requires role NOMIS_CSIP",
+    description = "Retrieves a csip plan mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -140,7 +140,7 @@ class CSIPPlanMappingResource(
   @DeleteMapping("/dps-csip-plan-id/{dpsCSIPPlanId}")
   @Operation(
     summary = "Deletes CSIP Plan mapping",
-    description = "Deletes a CSIP Plan mapping by DPS id. Requires role NOMIS_CSIP",
+    description = "Deletes a CSIP Plan mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
