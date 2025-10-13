@@ -100,6 +100,7 @@ class CourtSentencingMappingService(
     createMappingRequest.courtCases.map { courtCaseMappingRequest ->
       try {
         deleteCourtCaseMappingByNomisId(courtCaseMappingRequest.nomisCourtCaseId)
+        deleteCourtCaseMappingByDpsId(courtCaseMappingRequest.dpsCourtCaseId)
         createCourtCaseMapping(courtCaseMappingRequest)
       } catch (e: Exception) {
         log.info(
@@ -112,6 +113,7 @@ class CourtSentencingMappingService(
     createMappingRequest.courtAppearances.forEach {
       try {
         deleteCourtAppearanceMappingByNomisId(it.nomisCourtAppearanceId)
+        deleteCourtAppearanceMappingByDpsId(it.dpsCourtAppearanceId)
         createCourtAppearanceMapping(it)
       } catch (e: Exception) {
         log.info(
@@ -124,6 +126,7 @@ class CourtSentencingMappingService(
     createMappingRequest.courtCharges.forEach {
       try {
         deleteCourtChargeMappingByNomisId(it.nomisCourtChargeId)
+        deleteCourtChargeMappingByDpsId(it.dpsCourtChargeId)
         createCourtChargeMapping(it)
       } catch (e: Exception) {
         log.info(
@@ -136,6 +139,7 @@ class CourtSentencingMappingService(
     createMappingRequest.sentences.forEach {
       try {
         deleteSentenceMappingByNomisId(it.nomisBookingId, it.nomisSentenceSequence)
+        deleteSentenceMappingByDpsId(it.dpsSentenceId)
         createSentenceAllMapping(it)
       } catch (e: Exception) {
         log.info(
@@ -152,6 +156,7 @@ class CourtSentencingMappingService(
           sentenceSequence = it.nomisSentenceSequence,
           termSequence = it.nomisTermSequence,
         )
+        deleteSentenceTermMappingByDpsId(it.dpsTermId)
         createSentenceTermMapping(it)
       } catch (e: Exception) {
         log.info(
@@ -447,6 +452,9 @@ class CourtSentencingMappingService(
 
   @Transactional
   suspend fun deleteCourtChargeMappingByNomisId(courtChargeId: Long) = courtChargeMappingRepository.deleteByNomisCourtChargeId(courtChargeId)
+
+  @Transactional
+  suspend fun deleteCourtChargeMappingByDpsId(courtChargeId: String) = courtChargeMappingRepository.deleteById(courtChargeId)
 
   suspend fun getCourtCaseMappingsByMigrationId(
     pageRequest: Pageable,
