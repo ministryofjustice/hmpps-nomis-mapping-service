@@ -265,25 +265,6 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
   ): Page<AdjudicationMappingDto> = mappingService.getAdjudicationMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
-  @GetMapping("/mapping/adjudications")
-  @Operation(
-    summary = "Get all adjudication mappings",
-    description = "Get all the mapping table rows. Should only be used in dev (in pre/prod this could return excessive data). Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Mapping Information Returned",
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun getAllMappings() = mappingService.getAllMappings()
-
-  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @PostMapping("/mapping/adjudications/delete-mappings")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(

@@ -219,8 +219,6 @@ class AdjudicationMappingService(
     ?.let { AdjudicationMappingDto(it) }
     ?: throw NotFoundException("No migrated mapping found")
 
-  suspend fun getAllMappings(): List<AdjudicationMappingDto> = adjudicationMappingRepository.findAll().toList().map { AdjudicationMappingDto(it) }
-
   @Transactional
   suspend fun createPunishmentMappings(punishments: List<AdjudicationPunishmentMappingDto>) = punishments.forEach { createMapping(it) }
 

@@ -568,53 +568,6 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("GET /mapping/appointments")
-  @Nested
-  inner class GetAllMappingTest {
-
-    @Test
-    fun `access forbidden when no authority`() {
-      webTestClient.get().uri("/mapping/appointments")
-        .exchange()
-        .expectStatus().isUnauthorized
-    }
-
-    @Test
-    fun `access forbidden when no role`() {
-      webTestClient.get().uri("/mapping/appointments")
-        .headers(setAuthorisation(roles = listOf()))
-        .exchange()
-        .expectStatus().isForbidden
-    }
-
-    @Test
-    fun `access forbidden with wrong role`() {
-      webTestClient.get().uri("/mapping/appointments")
-        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
-        .exchange()
-        .expectStatus().isForbidden
-    }
-
-    @Test
-    fun `get mapping success`() {
-      postCreateMappingRequest(101, 201)
-      postCreateMappingRequest(102, 202)
-
-      val mapping = webTestClient.get().uri("/mapping/appointments")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-        .exchange()
-        .expectStatus().isOk
-        .expectBody<List<AppointmentMappingDto>>()
-        .returnResult().responseBody!!
-
-      assertThat(mapping[0].nomisEventId).isEqualTo(101)
-      assertThat(mapping[0].appointmentInstanceId).isEqualTo(201)
-      assertThat(mapping[1].nomisEventId).isEqualTo(102)
-      assertThat(mapping[1].appointmentInstanceId).isEqualTo(202)
-      assertThat(mapping).hasSize(2)
-    }
-  }
-
   @DisplayName("DELETE /mapping/appointments/appointment-instance-id/{appointmentInstanceId}")
   @Nested
   inner class DeleteMappingTest {
@@ -726,42 +679,28 @@ class AppointmentMappingResourceIntTest : IntegrationTestBase() {
     fun `delete mapping success`() = runTest {
       postCreateMappingRequest(1, 11, "2023-06-23", mappingType = MIGRATED.name)
       postCreateMappingRequest(2, 22, "2023-06-24", mappingType = MIGRATED.name)
-      postCreateMappingRequest(3, 33, mappingType = APPOINTMENT_CREATED.name)
 
-      webTestClient.get().uri("/mapping/appointments")
+      webTestClient.get().uri("/mapping/appointments/migration-id/2023-06-24")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
-        .jsonPath("$[0].nomisEventId").isEqualTo(1)
-        .jsonPath("$[0].appointmentInstanceId").isEqualTo(11)
-        .jsonPath("$[0].label").isEqualTo("2023-06-23")
-        .jsonPath("$[0].mappingType").isEqualTo("MIGRATED")
-        .jsonPath("$[1].nomisEventId").isEqualTo(2)
-        .jsonPath("$[1].appointmentInstanceId").isEqualTo(22)
-        .jsonPath("$[1].label").isEqualTo("2023-06-24")
-        .jsonPath("$[1].mappingType").isEqualTo("MIGRATED")
-        .jsonPath("$[2].nomisEventId").isEqualTo(3)
-        .jsonPath("$[2].appointmentInstanceId").isEqualTo(33)
-        .jsonPath("$[2].mappingType").isEqualTo("APPOINTMENT_CREATED")
+        .jsonPath("$.content[0].nomisEventId").isEqualTo(2)
+        .jsonPath("$.content[0].appointmentInstanceId").isEqualTo(22)
+        .jsonPath("$.content[0].label").isEqualTo("2023-06-24")
+        .jsonPath("$.content[0].mappingType").isEqualTo("MIGRATED")
 
       webTestClient.delete().uri("/mapping/appointments/migration-id/2023-06-24")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isNoContent
 
-      webTestClient.get().uri("/mapping/appointments")
+      webTestClient.get().uri("/mapping/appointments/migration-id/2023-06-24")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .exchange()
         .expectStatus().isOk
         .expectBody()
-        .jsonPath("$[0].nomisEventId").isEqualTo(1)
-        .jsonPath("$[0].appointmentInstanceId").isEqualTo(11)
-        .jsonPath("$[0].label").isEqualTo("2023-06-23")
-        .jsonPath("$[0].mappingType").isEqualTo("MIGRATED")
-        .jsonPath("$[1].nomisEventId").isEqualTo(3)
-        .jsonPath("$[1].appointmentInstanceId").isEqualTo(33)
-        .jsonPath("$[1].mappingType").isEqualTo("APPOINTMENT_CREATED")
+        .jsonPath("$.content.length()").isEqualTo(0)
     }
   }
 

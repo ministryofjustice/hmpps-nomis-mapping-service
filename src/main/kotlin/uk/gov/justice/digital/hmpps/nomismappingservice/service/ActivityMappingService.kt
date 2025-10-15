@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.service
 
 import com.microsoft.applicationinsights.TelemetryClient
 import jakarta.validation.ValidationException
-import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -147,18 +146,6 @@ class ActivityMappingService(
   suspend fun getScheduleMappingByScheduleId(scheduledInstanceId: Long): ActivityScheduleMappingDto = activityScheduleMappingRepository.findOneByScheduledInstanceId(scheduledInstanceId)
     ?.let { ActivityScheduleMappingDto(it) }
     ?: throw NotFoundException("Scheduled instance id=$scheduledInstanceId")
-
-  @Transactional
-  suspend fun deleteMapping(id: Long) = activityMappingRepository.deleteById(id)
-    .also { activityScheduleMappingRepository.deleteAllByActivityScheduleId(id) }
-
-  suspend fun getAllMappings(): List<ActivityMappingDto> = activityMappingRepository.findAll().toList().map { activityMapping ->
-    activityScheduleMappingRepository.findAllByActivityScheduleId(activityMapping.activityScheduleId)
-      .map { ActivityScheduleMappingDto(it) }
-      .let { scheduleMappingDtos ->
-        ActivityMappingDto(activityMapping, scheduleMappingDtos.toList())
-      }
-  }
 
   @Transactional
   suspend fun deleteCourseSchedulesAfterId(maxCourseScheduleId: Long) = activityScheduleMappingRepository.deleteByNomisCourseScheduleIdGreaterThan(maxCourseScheduleId)
