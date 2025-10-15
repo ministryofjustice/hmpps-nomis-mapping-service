@@ -169,6 +169,25 @@ class CourtSentencingMappingService(
   }
 
   @Transactional
+  suspend fun deleteAllMappingsByDpsIds(deleteMappingRequest: DpsCourtCaseBatchMappingDto) = with(deleteMappingRequest) {
+    courtCases.forEach {
+      deleteCourtCaseMappingByDpsId(it)
+    }
+    courtAppearances.forEach {
+      deleteCourtAppearanceMappingByDpsId(it)
+    }
+    courtCharges.forEach {
+      deleteCourtChargeMappingByDpsId(it)
+    }
+    sentences.forEach {
+      deleteSentenceMappingByDpsId(it)
+    }
+    sentenceTerms.forEach {
+      deleteSentenceTermMappingByDpsId(it)
+    }
+  }
+
+  @Transactional
   suspend fun updateAllMappingsByNomisId(updateMappingRequest: CourtCaseBatchUpdateMappingDto) {
     updateMappingRequest.courtCases.map {
       courtCaseMappingRepository.save(courtCaseMappingRepository.findByNomisCourtCaseId(it.fromNomisId)!!.copy(nomisCourtCaseId = it.toNomisId))

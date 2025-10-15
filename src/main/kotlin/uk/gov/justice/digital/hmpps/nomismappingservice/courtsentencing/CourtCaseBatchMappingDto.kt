@@ -62,6 +62,25 @@ data class CourtCaseBatchUpdateMappingDto(
 
 )
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "DPS Ids for Court cases mapping deletion")
+data class DpsCourtCaseBatchMappingDto(
+  @Schema(description = "Court case Ids")
+  val courtCases: List<String> = emptyList(),
+
+  @Schema(description = "Court Appearance Ids")
+  val courtAppearances: List<String> = emptyList(),
+
+  @Schema(description = "Court Charge Ids")
+  val courtCharges: List<String> = emptyList(),
+
+  @Schema(description = "Sentence Ids")
+  val sentences: List<String> = emptyList(),
+
+  @Schema(description = "Sentence term Ids")
+  val sentenceTerms: List<String> = emptyList(),
+)
+
 data class SimpleCourtSentencingIdPair(val fromNomisId: Long, val toNomisId: Long)
 data class SentenceId(val nomisBookingId: Long, val nomisSequence: Int)
 data class CourtSentenceIdPair(val fromNomisId: SentenceId, val toNomisId: SentenceId)

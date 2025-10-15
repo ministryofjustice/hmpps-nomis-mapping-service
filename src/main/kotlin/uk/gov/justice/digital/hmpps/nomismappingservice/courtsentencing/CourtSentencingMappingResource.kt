@@ -271,6 +271,38 @@ class CourtSentencingMappingResource(
     mapping: CourtCaseBatchUpdateAndCreateMappingDto,
   ) = mappingService.updateAndCreateAllMappings(mapping)
 
+  @PostMapping("/court-cases/delete-by-dps-ids")
+  @Operation(
+    summary = "Deletes court case hierarchical mappings by DPS IDs",
+    description = "Deletes court case hierarchical mappings by DPS IDs. Also maps child entities: Court appearances and charges. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = DpsCourtCaseBatchMappingDto::class),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "204", description = "Mapping created or replaced"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  suspend fun deleteMappingByDpsId(
+    @RequestBody @Valid
+    mapping: DpsCourtCaseBatchMappingDto,
+  ) = mappingService.deleteAllMappingsByDpsIds(mapping)
+
   @PostMapping("/prisoner/{offenderNo}/court-cases")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
