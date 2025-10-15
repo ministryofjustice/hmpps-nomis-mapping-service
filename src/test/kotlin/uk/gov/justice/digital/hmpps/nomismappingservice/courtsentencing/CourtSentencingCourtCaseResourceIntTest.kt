@@ -2324,4 +2324,153 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
       }
     }
   }
+
+  @Nested
+  @DisplayName("POST /mapping/court-sentencing/court-cases/delete-by-dps-ids")
+  inner class DeleteBatchByDpsIds {
+    private val dpsCaseId = "dps-batch-case-1"
+    private val dpsAppearanceId = "dps-batch-appearance-1"
+    private val dpsChargeId = "dps-batch-charge-1"
+    private val dpsSentenceId = "dps-batch-sentence-1"
+    private val dpsTermId = "dps-batch-term-1"
+
+    @AfterEach
+    fun tearDown() = runTest { clearDown() }
+
+    @BeforeEach
+    fun seedAll() = runTest {
+      repository.save(
+        CourtCaseMapping(
+          dpsCourtCaseId = dpsCaseId,
+          nomisCourtCaseId = 4444L,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtCaseMappingType.MIGRATED,
+        ),
+      )
+      courtAppearanceRepository.save(
+        CourtAppearanceMapping(
+          dpsCourtAppearanceId = dpsAppearanceId,
+          nomisCourtAppearanceId = 5555L,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtAppearanceMappingType.MIGRATED,
+        ),
+      )
+      courtChargeRepository.save(
+        CourtChargeMapping(
+          dpsCourtChargeId = dpsChargeId,
+          nomisCourtChargeId = 6666L,
+          label = "2023-01-01T12:45:12",
+          mappingType = CourtChargeMappingType.MIGRATED,
+        ),
+      )
+      sentenceRepository.save(
+        SentenceMapping(
+          dpsSentenceId = dpsSentenceId,
+          nomisBookingId = 7777L,
+          nomisSentenceSequence = 1,
+          label = "2023-01-01T12:45:12",
+          mappingType = SentenceMappingType.MIGRATED,
+        ),
+      )
+      sentenceTermRepository.save(
+        SentenceTermMapping(
+          dpsTermId = dpsTermId,
+          nomisBookingId = 7777L,
+          nomisSentenceSequence = 1,
+          nomisTermSequence = 1,
+          label = "2023-01-01T12:45:12",
+          mappingType = SentenceTermMappingType.MIGRATED,
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/court-cases/delete-by-dps-ids")
+          .body(BodyInserters.fromValue(DpsCourtCaseBatchMappingDto()))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/court-cases/delete-by-dps-ids")
+          .headers(setAuthorisation(roles = listOf()))
+          .body(BodyInserters.fromValue(DpsCourtCaseBatchMappingDto()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/court-cases/delete-by-dps-ids")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .body(BodyInserters.fromValue(DpsCourtCaseBatchMappingDto()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will delete case, appearance, charge, sentence and sentence term mappings`() = runTest {
+        // verify present
+        assertThat(repository.findById(dpsCaseId)).isNotNull()
+        assertThat(courtAppearanceRepository.findById(dpsAppearanceId)).isNotNull()
+        assertThat(courtChargeRepository.findById(dpsChargeId)).isNotNull()
+        assertThat(sentenceRepository.findById(dpsSentenceId)).isNotNull()
+        assertThat(sentenceTermRepository.findById(dpsTermId)).isNotNull()
+
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/court-cases/delete-by-dps-ids")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .body(
+            BodyInserters.fromValue(
+              DpsCourtCaseBatchMappingDto(
+                courtCases = listOf(dpsCaseId),
+                courtAppearances = listOf(dpsAppearanceId),
+                courtCharges = listOf(dpsChargeId),
+                sentences = listOf(dpsSentenceId),
+                sentenceTerms = listOf(dpsTermId),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isNoContent
+
+        // verify deleted
+        assertThat(repository.findById(dpsCaseId)).isNull()
+        assertThat(courtAppearanceRepository.findById(dpsAppearanceId)).isNull()
+        assertThat(courtChargeRepository.findById(dpsChargeId)).isNull()
+        assertThat(sentenceRepository.findById(dpsSentenceId)).isNull()
+        assertThat(sentenceTermRepository.findById(dpsTermId)).isNull()
+      }
+
+      @Test
+      fun `will return 204 even when none exist`() {
+        webTestClient.post()
+          .uri("/mapping/court-sentencing/court-cases/delete-by-dps-ids")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .body(
+            BodyInserters.fromValue(
+              DpsCourtCaseBatchMappingDto(
+                courtCases = listOf("nope1"),
+                courtAppearances = listOf("nope2"),
+                courtCharges = listOf("nope3"),
+                sentences = listOf("nope4"),
+                sentenceTerms = listOf("nope5"),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isNoContent
+      }
+    }
+  }
 }
