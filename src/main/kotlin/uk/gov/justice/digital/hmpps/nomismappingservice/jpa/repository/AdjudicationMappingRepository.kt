@@ -20,7 +20,4 @@ interface AdjudicationMappingRepository : CoroutineCrudRepository<AdjudicationMa
     mappingType: AdjudicationMappingType,
     pageable: Pageable,
   ): Flow<AdjudicationMapping>
-
-  suspend fun deleteByLabel(label: String)
-  suspend fun deleteAllByMappingType(adjudicationMappingType: AdjudicationMappingType)
 }

@@ -819,51 +819,6 @@ class AdjudicationMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("GET /mapping/adjudications")
-  @Nested
-  inner class GetAllMappingTest {
-
-    @Test
-    fun `access forbidden when no authority`() {
-      webTestClient.get().uri("/mapping/adjudications")
-        .exchange()
-        .expectStatus().isUnauthorized
-    }
-
-    @Test
-    fun `access forbidden when no role`() {
-      webTestClient.get().uri("/mapping/adjudications")
-        .headers(setAuthorisation(roles = listOf()))
-        .exchange()
-        .expectStatus().isForbidden
-    }
-
-    @Test
-    fun `access forbidden with wrong role`() {
-      webTestClient.get().uri("/mapping/adjudications")
-        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
-        .exchange()
-        .expectStatus().isForbidden
-    }
-
-    @Test
-    fun `get mapping success`() {
-      postCreateMappingRequest(201, chargeNumber = "201/1")
-      postCreateMappingRequest(202, chargeNumber = "202/1")
-
-      val mapping = webTestClient.get().uri("/mapping/adjudications")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-        .exchange()
-        .expectStatus().isOk
-        .expectBody<List<AdjudicationMappingDto>>()
-        .returnResult().responseBody!!
-
-      assertThat(mapping[0].adjudicationNumber).isEqualTo(201)
-      assertThat(mapping[1].adjudicationNumber).isEqualTo(202)
-      assertThat(mapping).hasSize(2)
-    }
-  }
-
   @DisplayName("DELETE /mapping/adjudications/{adjudicationNumber}")
   @Nested
   inner class DeleteMappingTest {

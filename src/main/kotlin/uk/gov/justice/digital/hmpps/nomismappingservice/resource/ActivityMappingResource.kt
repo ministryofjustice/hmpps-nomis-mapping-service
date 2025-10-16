@@ -202,49 +202,6 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
   ): ActivityScheduleMappingDto = mappingService.getScheduleMappingByScheduleId(scheduledInstanceId)
 
   @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
-  @DeleteMapping("/mapping/activities/activity-schedule-id/{id}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(
-    summary = "Deletes a specific mapping by activity schedule id",
-    description = "Deletes the mapping table row. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(
-        responseCode = "204",
-        description = "Mapping deleted",
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun deleteMapping(
-    @Schema(description = "Activity schedule Id", example = "12345", required = true)
-    @PathVariable
-    id: Long,
-  ) = mappingService.deleteMapping(id)
-
-  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
-  @GetMapping("/mapping/activities")
-  @Operation(
-    summary = "Get all activities mappings",
-    description = "Get all the mapping table rows. Should only be used in dev (in pre/prod this could return excessive data). Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Success",
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun getAllMappings() = mappingService.getAllMappings()
-
-  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @DeleteMapping("/mapping/schedules/max-nomis-schedule-id/{maxCourseScheduleId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(

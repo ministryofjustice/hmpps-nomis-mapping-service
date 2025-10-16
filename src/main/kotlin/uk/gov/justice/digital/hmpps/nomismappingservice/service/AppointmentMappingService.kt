@@ -126,8 +126,6 @@ class AppointmentMappingService(
     ?.let { AppointmentMappingDto(it) }
     ?: throw NotFoundException("No migrated mapping found")
 
-  suspend fun getAllMappings(): List<AppointmentMappingDto> = appointmentMappingRepository.findAll().toList().map { AppointmentMappingDto(it) }
-
   @Transactional
   suspend fun deleteAppointmentMappingsByMigrationId(migrationId: String) {
     appointmentMappingRepository.deleteByLabel(migrationId)

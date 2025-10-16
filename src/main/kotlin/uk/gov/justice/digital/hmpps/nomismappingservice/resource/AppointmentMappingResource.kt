@@ -257,23 +257,4 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
     @PathVariable
     migrationId: String,
   ): Page<AppointmentMappingDto> = mappingService.getAppointmentMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
-
-  @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
-  @GetMapping("/mapping/appointments")
-  @Operation(
-    summary = "Get all appointment mappings",
-    description = "Get all the mapping table rows. Should only be used in dev (in pre/prod this could return excessive data). Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Mapping Information Returned",
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun getAllMappings() = mappingService.getAllMappings()
 }
