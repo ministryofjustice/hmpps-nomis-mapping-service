@@ -22,6 +22,9 @@ class TemporaryAbsenceMovementMappingRepositoryTest(
   private val nomisBookingId = 123456L
   private val nomisMovementSeq = 1
   private val offenderNo = "A1234BC"
+  private val addressId = 987654L
+  private val addressOwnerClass = "CORP"
+  private val dpsAddressText = "house, 1 street, town S1 1AA"
 
   @AfterEach
   fun tearDown() = runTest {
@@ -36,6 +39,9 @@ class TemporaryAbsenceMovementMappingRepositoryTest(
         nomisBookingId,
         nomisMovementSeq,
         offenderNo,
+        addressId,
+        addressOwnerClass,
+        dpsAddressText,
         "some_label",
         MovementMappingType.MIGRATED,
       ),
@@ -46,6 +52,9 @@ class TemporaryAbsenceMovementMappingRepositoryTest(
       assertThat(nomisBookingId).isEqualTo(nomisBookingId)
       assertThat(nomisMovementSeq).isEqualTo(nomisMovementSeq)
       assertThat(offenderNo).isEqualTo(offenderNo)
+      assertThat(nomisAddressId).isEqualTo(addressId)
+      assertThat(nomisAddressOwnerClass).isEqualTo(addressOwnerClass)
+      assertThat(dpsAddressText).isEqualTo(dpsAddressText)
       assertThat(label).isEqualTo("some_label")
       assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
     }
@@ -55,6 +64,9 @@ class TemporaryAbsenceMovementMappingRepositoryTest(
       assertThat(nomisBookingId).isEqualTo(nomisBookingId)
       assertThat(nomisMovementSeq).isEqualTo(nomisMovementSeq)
       assertThat(offenderNo).isEqualTo(offenderNo)
+      assertThat(nomisAddressId).isEqualTo(addressId)
+      assertThat(nomisAddressOwnerClass).isEqualTo(addressOwnerClass)
+      assertThat(dpsAddressText).isEqualTo(dpsAddressText)
       assertThat(label).isEqualTo("some_label")
       assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
     }
