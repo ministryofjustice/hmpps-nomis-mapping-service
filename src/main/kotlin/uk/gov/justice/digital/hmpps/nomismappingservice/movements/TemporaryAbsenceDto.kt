@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.movements
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import java.time.LocalDateTime
 import java.util.UUID
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -58,14 +59,28 @@ data class ScheduledMovementMappingDto(
   @Schema(description = "The NOMIS scheduled movement id")
   val nomisEventId: Long,
   @Schema(description = "The DPS scheduled movement id")
-  val dpsScheduledMovementId: UUID,
+  val dpsOccurrenceId: UUID,
+  @Schema(description = "The NOMIS address id")
+  val nomisAddressId: Long,
+  @Schema(description = "The NOMIS address owner class")
+  val nomisAddressOwnerClass: String,
+  @Schema(description = "The DPS address")
+  val dpsAddressText: String,
+  @Schema(description = "The DPS address")
+  val eventTime: LocalDateTime,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Mapping for a single external movement")
 data class ExternalMovementMappingDto(
-  @Schema(description = "The NOMIS external movement id")
+  @Schema(description = "The NOMIS movement sequence")
   val nomisMovementSeq: Int,
-  @Schema(description = "The DPS external movement id")
-  val dpsExternalMovementId: UUID,
+  @Schema(description = "The DPS movement id")
+  val dpsMovementId: UUID,
+  @Schema(description = "The NOMIS address id")
+  val nomisAddressId: Long?,
+  @Schema(description = "The NOMIS address owner class")
+  val nomisAddressOwnerClass: String?,
+  @Schema(description = "The DPS address")
+  val dpsAddressText: String,
 )

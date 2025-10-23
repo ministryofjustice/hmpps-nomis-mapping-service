@@ -14,7 +14,13 @@ data class ExternalMovementSyncMappingDto(
   @Schema(description = "The NOMIS movement sequence number")
   val nomisMovementSeq: Int,
   @Schema(description = "The DPS external movement id")
-  val dpsExternalMovementId: UUID,
+  val dpsMovementId: UUID,
   @Schema(description = "The source of the mapping", example = "NOMIS_CREATED")
   val mappingType: MovementMappingType,
+  @Schema(description = "The NOMIS address id")
+  val nomisAddressId: Long?,
+  @Schema(description = "The NOMIS address owner class")
+  val nomisAddressOwnerClass: String?,
+  @Schema(description = "The DPS address")
+  val dpsAddressText: String,
 )

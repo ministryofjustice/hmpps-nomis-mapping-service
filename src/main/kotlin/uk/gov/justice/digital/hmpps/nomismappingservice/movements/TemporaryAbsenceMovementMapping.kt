@@ -18,6 +18,12 @@ data class TemporaryAbsenceMovementMapping(
 
   val offenderNo: String,
 
+  val nomisAddressId: Long?,
+
+  val nomisAddressOwnerClass: String?,
+
+  val dpsAddressText: String,
+
   /**
    * ISO timestamp of batch job if a migration
    */
@@ -30,6 +36,8 @@ data class TemporaryAbsenceMovementMapping(
   val new: Boolean = true,
 
   val whenCreated: LocalDateTime? = null,
+
+  val whenUpdated: LocalDateTime? = null,
 
 ) : Persistable<UUID> {
 

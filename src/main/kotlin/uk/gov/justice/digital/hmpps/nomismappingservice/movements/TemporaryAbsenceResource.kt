@@ -357,7 +357,7 @@ class TemporaryAbsenceResource(
     service.getScheduledMovementMappingByNomisId(mapping.nomisEventId)
   }
     .getOrElse {
-      service.getScheduledMovementMappingByDpsId(mapping.dpsScheduledMovementId)
+      service.getScheduledMovementMappingByDpsId(mapping.dpsOccurrenceId)
     }
 
   @GetMapping("/scheduled-movement/nomis-event-id/{nomisEventId}")
@@ -485,7 +485,7 @@ class TemporaryAbsenceResource(
     service.getExternalMovementMappingByNomisId(mapping.bookingId, mapping.nomisMovementSeq)
   }
     .getOrElse {
-      service.getExternalMovementMappingByDpsId(mapping.dpsExternalMovementId)
+      service.getExternalMovementMappingByDpsId(mapping.dpsMovementId)
     }
 
   @GetMapping("/external-movement/nomis-movement-id/{bookingId}/{movementSeq}")

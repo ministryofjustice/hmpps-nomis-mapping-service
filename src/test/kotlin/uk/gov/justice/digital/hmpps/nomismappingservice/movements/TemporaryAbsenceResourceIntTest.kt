@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.movements
 
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.within
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -17,7 +18,8 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationT
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.isDuplicateMapping
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
+import java.time.temporal.ChronoUnit
+import java.util.*
 
 class TemporaryAbsenceResourceIntTest(
   @Autowired private val applicationRepository: TemporaryAbsenceApplicationRepository,
@@ -45,6 +47,10 @@ class TemporaryAbsenceResourceIntTest(
       private val NOMIS_MOVEMENT_IN_SEQ = 2
       private val NOMIS_UNSCHEDULED_MOVEMENT_OUT_SEQ = 3
       private val NOMIS_UNSCHEDULED_MOVEMENT_IN_SEQ = 4
+      private val NOMIS_ADDESS_ID = 6L
+      private val NOMIS_ADDRESS_OWNER_CLASS = "CORP"
+      private val DPS_ADDRESS_TEXT = "some address"
+      private val EVENT_TIME = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS)
       private val DPS_APPLICATION_ID = UUID.randomUUID()
       private val DPS_OUTSIDE_MOVEMENT_ID = UUID.randomUUID()
       private val DPS_SCHEDULED_OUT_ID = UUID.randomUUID()
@@ -106,21 +112,35 @@ class TemporaryAbsenceResourceIntTest(
                 schedules = listOf(
                   ScheduledMovementMappingDto(
                     nomisEventId = NOMIS_SCHEDULED_OUT_EVENT_ID,
-                    dpsScheduledMovementId = dpsScheduledOutId,
+                    dpsOccurrenceId = dpsScheduledOutId,
+                    nomisAddressId = NOMIS_ADDESS_ID,
+                    nomisAddressOwnerClass = NOMIS_ADDRESS_OWNER_CLASS,
+                    dpsAddressText = DPS_ADDRESS_TEXT,
+                    eventTime = EVENT_TIME,
                   ),
                   ScheduledMovementMappingDto(
                     nomisEventId = NOMIS_SCHEDULED_IN_EVENT_ID,
-                    dpsScheduledMovementId = dpsScheduledInId,
+                    dpsOccurrenceId = dpsScheduledInId,
+                    nomisAddressId = NOMIS_ADDESS_ID,
+                    nomisAddressOwnerClass = NOMIS_ADDRESS_OWNER_CLASS,
+                    dpsAddressText = DPS_ADDRESS_TEXT,
+                    eventTime = EVENT_TIME,
                   ),
                 ),
                 movements = listOf(
                   ExternalMovementMappingDto(
                     nomisMovementSeq = NOMIS_MOVEMENT_OUT_SEQ,
-                    dpsExternalMovementId = dpsMovementOutId,
+                    dpsMovementId = dpsMovementOutId,
+                    nomisAddressId = NOMIS_ADDESS_ID,
+                    nomisAddressOwnerClass = NOMIS_ADDRESS_OWNER_CLASS,
+                    dpsAddressText = DPS_ADDRESS_TEXT,
                   ),
                   ExternalMovementMappingDto(
                     nomisMovementSeq = NOMIS_MOVEMENT_IN_SEQ,
-                    dpsExternalMovementId = dpsMovementInId,
+                    dpsMovementId = dpsMovementInId,
+                    nomisAddressId = NOMIS_ADDESS_ID,
+                    nomisAddressOwnerClass = NOMIS_ADDRESS_OWNER_CLASS,
+                    dpsAddressText = DPS_ADDRESS_TEXT,
                   ),
                 ),
               ),
@@ -128,11 +148,17 @@ class TemporaryAbsenceResourceIntTest(
             unscheduledMovements = listOf(
               ExternalMovementMappingDto(
                 nomisMovementSeq = NOMIS_UNSCHEDULED_MOVEMENT_OUT_SEQ,
-                dpsExternalMovementId = dpsUnscheduledMovementOutId,
+                dpsMovementId = dpsUnscheduledMovementOutId,
+                nomisAddressId = NOMIS_ADDESS_ID,
+                nomisAddressOwnerClass = NOMIS_ADDRESS_OWNER_CLASS,
+                dpsAddressText = DPS_ADDRESS_TEXT,
               ),
               ExternalMovementMappingDto(
                 nomisMovementSeq = NOMIS_UNSCHEDULED_MOVEMENT_IN_SEQ,
-                dpsExternalMovementId = dpsUnscheduledMovementInId,
+                dpsMovementId = dpsUnscheduledMovementInId,
+                nomisAddressId = NOMIS_ADDESS_ID,
+                nomisAddressOwnerClass = NOMIS_ADDRESS_OWNER_CLASS,
+                dpsAddressText = DPS_ADDRESS_TEXT,
               ),
             ),
           ),
@@ -179,8 +205,12 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(offenderNo).isEqualTo(NOMIS_OFFENDER_NO)
           assertThat(bookingId).isEqualTo(NOMIS_BOOKING_ID)
           assertThat(whenCreated?.toLocalDate()).isEqualTo(LocalDate.now())
-          assertThat(nomisScheduleId).isEqualTo(NOMIS_SCHEDULED_OUT_EVENT_ID)
-          assertThat(dpsScheduleId).isEqualTo(DPS_SCHEDULED_OUT_ID)
+          assertThat(nomisEventId).isEqualTo(NOMIS_SCHEDULED_OUT_EVENT_ID)
+          assertThat(dpsOccurrenceId).isEqualTo(DPS_SCHEDULED_OUT_ID)
+          assertThat(nomisAddressId).isEqualTo(NOMIS_ADDESS_ID)
+          assertThat(nomisAddressOwnerClass).isEqualTo(NOMIS_ADDRESS_OWNER_CLASS)
+          assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
+          assertThat(eventTime).isEqualTo(EVENT_TIME)
           assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
         }
         with(scheduleRepository.findById(DPS_SCHEDULED_IN_ID)!!) {
@@ -188,8 +218,12 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(offenderNo).isEqualTo(NOMIS_OFFENDER_NO)
           assertThat(bookingId).isEqualTo(NOMIS_BOOKING_ID)
           assertThat(whenCreated?.toLocalDate()).isEqualTo(LocalDate.now())
-          assertThat(nomisScheduleId).isEqualTo(NOMIS_SCHEDULED_IN_EVENT_ID)
-          assertThat(dpsScheduleId).isEqualTo(DPS_SCHEDULED_IN_ID)
+          assertThat(nomisEventId).isEqualTo(NOMIS_SCHEDULED_IN_EVENT_ID)
+          assertThat(dpsOccurrenceId).isEqualTo(DPS_SCHEDULED_IN_ID)
+          assertThat(nomisAddressId).isEqualTo(NOMIS_ADDESS_ID)
+          assertThat(nomisAddressOwnerClass).isEqualTo(NOMIS_ADDRESS_OWNER_CLASS)
+          assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
+          assertThat(eventTime).isEqualTo(EVENT_TIME)
           assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
         }
       }
@@ -203,6 +237,9 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(nomisBookingId).isEqualTo(NOMIS_BOOKING_ID)
           assertThat(nomisMovementSeq).isEqualTo(NOMIS_MOVEMENT_OUT_SEQ)
           assertThat(dpsMovementId).isEqualTo(DPS_MOVEMENT_OUT_ID)
+          assertThat(nomisAddressId).isEqualTo(NOMIS_ADDESS_ID)
+          assertThat(nomisAddressOwnerClass).isEqualTo(NOMIS_ADDRESS_OWNER_CLASS)
+          assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
           assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
         }
         with(movementRepository.findById(DPS_MOVEMENT_IN_ID)!!) {
@@ -212,6 +249,9 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(nomisBookingId).isEqualTo(NOMIS_BOOKING_ID)
           assertThat(nomisMovementSeq).isEqualTo(NOMIS_MOVEMENT_IN_SEQ)
           assertThat(dpsMovementId).isEqualTo(DPS_MOVEMENT_IN_ID)
+          assertThat(nomisAddressId).isEqualTo(NOMIS_ADDESS_ID)
+          assertThat(nomisAddressOwnerClass).isEqualTo(NOMIS_ADDRESS_OWNER_CLASS)
+          assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
           assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
         }
       }
@@ -225,6 +265,9 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(nomisBookingId).isEqualTo(NOMIS_BOOKING_ID)
           assertThat(nomisMovementSeq).isEqualTo(NOMIS_UNSCHEDULED_MOVEMENT_OUT_SEQ)
           assertThat(dpsMovementId).isEqualTo(DPS_UNSCHEDULED_MOVEMENT_OUT_ID)
+          assertThat(nomisAddressId).isEqualTo(NOMIS_ADDESS_ID)
+          assertThat(nomisAddressOwnerClass).isEqualTo(NOMIS_ADDRESS_OWNER_CLASS)
+          assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
           assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
         }
         with(movementRepository.findById(DPS_UNSCHEDULED_MOVEMENT_IN_ID)!!) {
@@ -234,6 +277,9 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(nomisBookingId).isEqualTo(NOMIS_BOOKING_ID)
           assertThat(nomisMovementSeq).isEqualTo(NOMIS_UNSCHEDULED_MOVEMENT_IN_SEQ)
           assertThat(dpsMovementId).isEqualTo(DPS_UNSCHEDULED_MOVEMENT_IN_ID)
+          assertThat(nomisAddressId).isEqualTo(NOMIS_ADDESS_ID)
+          assertThat(nomisAddressOwnerClass).isEqualTo(NOMIS_ADDRESS_OWNER_CLASS)
+          assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
           assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
         }
       }
@@ -1179,6 +1225,10 @@ class TemporaryAbsenceResourceIntTest(
         23456L,
         UUID.randomUUID(),
         MovementMappingType.NOMIS_CREATED,
+        34567L,
+        "CORP",
+        "some address",
+        LocalDateTime.now(),
       )
 
       @Test
@@ -1186,11 +1236,15 @@ class TemporaryAbsenceResourceIntTest(
         webTestClient.createScheduledMovementSyncMapping(mapping)
           .expectStatus().isCreated
 
-        with(scheduleRepository.findByNomisScheduleId(mapping.nomisEventId)!!) {
+        with(scheduleRepository.findByNomisEventId(mapping.nomisEventId)!!) {
           assertThat(offenderNo).isEqualTo("A1234BC")
           assertThat(bookingId).isEqualTo(12345L)
-          assertThat(dpsScheduleId).isEqualTo(mapping.dpsScheduledMovementId)
+          assertThat(dpsOccurrenceId).isEqualTo(mapping.dpsOccurrenceId)
           assertThat(mappingType).isEqualTo(MovementMappingType.NOMIS_CREATED)
+          assertThat(nomisAddressId).isEqualTo(34567L)
+          assertThat(nomisAddressOwnerClass).isEqualTo("CORP")
+          assertThat(dpsAddressText).isEqualTo("some address")
+          assertThat(eventTime).isCloseTo(LocalDateTime.now(), within(1, ChronoUnit.SECONDS))
         }
       }
     }
@@ -1203,13 +1257,21 @@ class TemporaryAbsenceResourceIntTest(
         23456L,
         UUID.randomUUID(),
         MovementMappingType.NOMIS_CREATED,
+        34567L,
+        "CORP",
+        "some address",
+        LocalDateTime.now(),
       )
       val duplicateMappingDps = ScheduledMovementSyncMappingDto(
         "B2345CD",
         56789L,
         34567L,
-        mapping.dpsScheduledMovementId,
+        mapping.dpsOccurrenceId,
         MovementMappingType.MIGRATED,
+        34567L,
+        "CORP",
+        "some address",
+        LocalDateTime.now(),
       )
       val duplicateMappingNomis = ScheduledMovementSyncMappingDto(
         "C3456DE",
@@ -1217,6 +1279,10 @@ class TemporaryAbsenceResourceIntTest(
         mapping.nomisEventId,
         UUID.randomUUID(),
         MovementMappingType.MIGRATED,
+        34567L,
+        "CORP",
+        "some address",
+        LocalDateTime.now(),
       )
 
       @Test
@@ -1232,13 +1298,13 @@ class TemporaryAbsenceResourceIntTest(
             assertThat(moreInfo.existing)
               .containsEntry("prisonerNumber", mapping.prisonerNumber)
               .containsEntry("bookingId", mapping.bookingId.toInt())
-              .containsEntry("dpsScheduledMovementId", mapping.dpsScheduledMovementId.toString())
+              .containsEntry("dpsOccurrenceId", mapping.dpsOccurrenceId.toString())
               .containsEntry("nomisEventId", mapping.nomisEventId.toInt())
               .containsEntry("mappingType", mapping.mappingType.toString())
             assertThat(moreInfo.duplicate)
               .containsEntry("prisonerNumber", duplicateMappingDps.prisonerNumber)
               .containsEntry("bookingId", duplicateMappingDps.bookingId.toInt())
-              .containsEntry("dpsScheduledMovementId", duplicateMappingDps.dpsScheduledMovementId.toString())
+              .containsEntry("dpsOccurrenceId", duplicateMappingDps.dpsOccurrenceId.toString())
               .containsEntry("nomisEventId", duplicateMappingDps.nomisEventId.toInt())
               .containsEntry("mappingType", duplicateMappingDps.mappingType.toString())
           }
@@ -1257,13 +1323,13 @@ class TemporaryAbsenceResourceIntTest(
             assertThat(moreInfo.existing)
               .containsEntry("prisonerNumber", mapping.prisonerNumber)
               .containsEntry("bookingId", mapping.bookingId.toInt())
-              .containsEntry("dpsScheduledMovementId", mapping.dpsScheduledMovementId.toString())
+              .containsEntry("dpsOccurrenceId", mapping.dpsOccurrenceId.toString())
               .containsEntry("nomisEventId", mapping.nomisEventId.toInt())
               .containsEntry("mappingType", mapping.mappingType.toString())
             assertThat(moreInfo.duplicate)
               .containsEntry("prisonerNumber", duplicateMappingNomis.prisonerNumber)
               .containsEntry("bookingId", duplicateMappingNomis.bookingId.toInt())
-              .containsEntry("dpsScheduledMovementId", duplicateMappingNomis.dpsScheduledMovementId.toString())
+              .containsEntry("dpsOccurrenceId", duplicateMappingNomis.dpsOccurrenceId.toString())
               .containsEntry("nomisEventId", duplicateMappingNomis.nomisEventId.toInt())
               .containsEntry("mappingType", duplicateMappingNomis.mappingType.toString())
           }
@@ -1278,6 +1344,10 @@ class TemporaryAbsenceResourceIntTest(
         23456L,
         UUID.randomUUID(),
         mappingType = MovementMappingType.NOMIS_CREATED,
+        34567L,
+        "CORP",
+        "some address",
+        LocalDateTime.now(),
       )
 
       @Test
@@ -1337,6 +1407,10 @@ class TemporaryAbsenceResourceIntTest(
         23456L,
         "A1234BC",
         12345L,
+        34567L,
+        "CORP",
+        "some address",
+        LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
 
@@ -1344,15 +1418,19 @@ class TemporaryAbsenceResourceIntTest(
       fun `should get scheduled temporary absence mapping by NOMIS ID`() = runTest {
         scheduleRepository.save(mapping)
 
-        webTestClient.getScheduledMovementSyncMapping(mapping.nomisScheduleId)
+        webTestClient.getScheduledMovementSyncMapping(mapping.nomisEventId)
           .expectStatus().isOk
           .expectBody(object : ParameterizedTypeReference<ScheduledMovementSyncMappingDto>() {})
           .returnResult().responseBody!!
           .apply {
-            assertThat(nomisEventId).isEqualTo(mapping.nomisScheduleId)
-            assertThat(dpsScheduledMovementId).isEqualTo(mapping.dpsScheduleId)
+            assertThat(nomisEventId).isEqualTo(mapping.nomisEventId)
+            assertThat(dpsOccurrenceId).isEqualTo(mapping.dpsOccurrenceId)
             assertThat(prisonerNumber).isEqualTo(mapping.offenderNo)
             assertThat(bookingId).isEqualTo(mapping.bookingId)
+            assertThat(nomisAddressId).isEqualTo(mapping.nomisAddressId)
+            assertThat(nomisAddressOwnerClass).isEqualTo(mapping.nomisAddressOwnerClass)
+            assertThat(dpsAddressText).isEqualTo(mapping.dpsAddressText)
+            assertThat(eventTime).isEqualTo(mapping.eventTime)
             assertThat(mappingType).isEqualTo(mapping.mappingType)
           }
       }
@@ -1375,6 +1453,10 @@ class TemporaryAbsenceResourceIntTest(
         23456L,
         UUID.randomUUID(),
         mappingType = MovementMappingType.NOMIS_CREATED,
+        34567L,
+        "CORP",
+        "some address",
+        LocalDateTime.now(),
       )
 
       @Test
@@ -1426,6 +1508,10 @@ class TemporaryAbsenceResourceIntTest(
         23456L,
         "A1234BC",
         12345L,
+        34567L,
+        "CORP",
+        "some address",
+        LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
 
@@ -1433,15 +1519,19 @@ class TemporaryAbsenceResourceIntTest(
       fun `should get scheduled temporary absence mapping by DPS ID`() = runTest {
         scheduleRepository.save(mapping)
 
-        webTestClient.getScheduledMovementSyncMapping(mapping.dpsScheduleId)
+        webTestClient.getScheduledMovementSyncMapping(mapping.dpsOccurrenceId)
           .expectStatus().isOk
           .expectBody(object : ParameterizedTypeReference<ScheduledMovementSyncMappingDto>() {})
           .returnResult().responseBody!!
           .apply {
-            assertThat(nomisEventId).isEqualTo(mapping.nomisScheduleId)
-            assertThat(dpsScheduledMovementId).isEqualTo(mapping.dpsScheduleId)
+            assertThat(nomisEventId).isEqualTo(mapping.nomisEventId)
+            assertThat(dpsOccurrenceId).isEqualTo(mapping.dpsOccurrenceId)
             assertThat(prisonerNumber).isEqualTo(mapping.offenderNo)
             assertThat(bookingId).isEqualTo(mapping.bookingId)
+            assertThat(nomisAddressId).isEqualTo(mapping.nomisAddressId)
+            assertThat(nomisAddressOwnerClass).isEqualTo(mapping.nomisAddressOwnerClass)
+            assertThat(dpsAddressText).isEqualTo(mapping.dpsAddressText)
+            assertThat(eventTime).isEqualTo(mapping.eventTime)
             assertThat(mappingType).isEqualTo(mapping.mappingType)
           }
       }
@@ -1464,12 +1554,16 @@ class TemporaryAbsenceResourceIntTest(
         23456L,
         UUID.randomUUID(),
         mappingType = MovementMappingType.NOMIS_CREATED,
+        34567L,
+        "CORP",
+        "some address",
+        LocalDateTime.now(),
       )
 
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.get()
-          .uri("/mapping/temporary-absence/scheduled-movement/dps-id/${mapping.dpsScheduledMovementId}")
+          .uri("/mapping/temporary-absence/scheduled-movement/dps-id/${mapping.dpsOccurrenceId}")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -1477,7 +1571,7 @@ class TemporaryAbsenceResourceIntTest(
       @Test
       fun `access forbidden when no role`() {
         webTestClient.get()
-          .uri("/mapping/temporary-absence/scheduled-movement/dps-id/${mapping.dpsScheduledMovementId}")
+          .uri("/mapping/temporary-absence/scheduled-movement/dps-id/${mapping.dpsOccurrenceId}")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -1486,7 +1580,7 @@ class TemporaryAbsenceResourceIntTest(
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/mapping/temporary-absence/scheduled-movement/dps-id/${mapping.dpsScheduledMovementId}")
+          .uri("/mapping/temporary-absence/scheduled-movement/dps-id/${mapping.dpsOccurrenceId}")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -1515,6 +1609,10 @@ class TemporaryAbsenceResourceIntTest(
         23456L,
         "A1234BC",
         12345L,
+        34567L,
+        "CORP",
+        "some address",
+        LocalDateTime.now(),
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
       val mapping2 = TemporaryAbsenceScheduleMapping(
@@ -1522,6 +1620,10 @@ class TemporaryAbsenceResourceIntTest(
         65432L,
         "A1234BC",
         12345L,
+        34567L,
+        "CORP",
+        "some address",
+        LocalDateTime.now(),
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
 
@@ -1530,11 +1632,11 @@ class TemporaryAbsenceResourceIntTest(
         scheduleRepository.save(mapping1)
         scheduleRepository.save(mapping2)
 
-        webTestClient.deleteScheduledMovementSyncMapping(mapping1.nomisScheduleId)
+        webTestClient.deleteScheduledMovementSyncMapping(mapping1.nomisEventId)
           .expectStatus().isNoContent
 
-        assertThat(scheduleRepository.findByNomisScheduleId(mapping1.nomisScheduleId)).isNull()
-        assertThat(scheduleRepository.findByNomisScheduleId(mapping2.nomisScheduleId)).isNotNull
+        assertThat(scheduleRepository.findByNomisEventId(mapping1.nomisEventId)).isNull()
+        assertThat(scheduleRepository.findByNomisEventId(mapping2.nomisEventId)).isNotNull
       }
     }
 
@@ -1599,6 +1701,9 @@ class TemporaryAbsenceResourceIntTest(
         12,
         UUID.randomUUID(),
         MovementMappingType.NOMIS_CREATED,
+        34567L,
+        "CORP",
+        "some address",
       )
 
       @Test
@@ -1610,8 +1715,11 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(offenderNo).isEqualTo("A1234BC")
           assertThat(nomisBookingId).isEqualTo(12345L)
           assertThat(nomisMovementSeq).isEqualTo(12)
-          assertThat(dpsMovementId).isEqualTo(mapping.dpsExternalMovementId)
+          assertThat(dpsMovementId).isEqualTo(mapping.dpsMovementId)
           assertThat(mappingType).isEqualTo(MovementMappingType.NOMIS_CREATED)
+          assertThat(nomisAddressId).isEqualTo(mapping.nomisAddressId)
+          assertThat(nomisAddressOwnerClass).isEqualTo(mapping.nomisAddressOwnerClass)
+          assertThat(dpsAddressText).isEqualTo(dpsAddressText)
         }
       }
     }
@@ -1624,13 +1732,19 @@ class TemporaryAbsenceResourceIntTest(
         12,
         UUID.randomUUID(),
         MovementMappingType.NOMIS_CREATED,
+        34567L,
+        "CORP",
+        "some address",
       )
       val duplicateMappingDps = ExternalMovementSyncMappingDto(
         "B2345CD",
         56789L,
         13,
-        mapping.dpsExternalMovementId,
+        mapping.dpsMovementId,
         MovementMappingType.MIGRATED,
+        34567L,
+        "CORP",
+        "some address",
       )
       val duplicateMappingNomis = ExternalMovementSyncMappingDto(
         "C3456DE",
@@ -1638,6 +1752,9 @@ class TemporaryAbsenceResourceIntTest(
         mapping.nomisMovementSeq,
         UUID.randomUUID(),
         MovementMappingType.MIGRATED,
+        34567L,
+        "CORP",
+        "some address",
       )
 
       @Test
@@ -1653,13 +1770,13 @@ class TemporaryAbsenceResourceIntTest(
             assertThat(moreInfo.existing)
               .containsEntry("prisonerNumber", mapping.prisonerNumber)
               .containsEntry("bookingId", mapping.bookingId.toInt())
-              .containsEntry("dpsExternalMovementId", mapping.dpsExternalMovementId.toString())
+              .containsEntry("dpsMovementId", mapping.dpsMovementId.toString())
               .containsEntry("nomisMovementSeq", mapping.nomisMovementSeq)
               .containsEntry("mappingType", mapping.mappingType.toString())
             assertThat(moreInfo.duplicate)
               .containsEntry("prisonerNumber", duplicateMappingDps.prisonerNumber)
               .containsEntry("bookingId", duplicateMappingDps.bookingId.toInt())
-              .containsEntry("dpsExternalMovementId", duplicateMappingDps.dpsExternalMovementId.toString())
+              .containsEntry("dpsMovementId", duplicateMappingDps.dpsMovementId.toString())
               .containsEntry("nomisMovementSeq", duplicateMappingDps.nomisMovementSeq)
               .containsEntry("mappingType", duplicateMappingDps.mappingType.toString())
           }
@@ -1678,13 +1795,13 @@ class TemporaryAbsenceResourceIntTest(
             assertThat(moreInfo.existing)
               .containsEntry("prisonerNumber", mapping.prisonerNumber)
               .containsEntry("bookingId", mapping.bookingId.toInt())
-              .containsEntry("dpsExternalMovementId", mapping.dpsExternalMovementId.toString())
+              .containsEntry("dpsMovementId", mapping.dpsMovementId.toString())
               .containsEntry("nomisMovementSeq", mapping.nomisMovementSeq)
               .containsEntry("mappingType", mapping.mappingType.toString())
             assertThat(moreInfo.duplicate)
               .containsEntry("prisonerNumber", duplicateMappingNomis.prisonerNumber)
               .containsEntry("bookingId", duplicateMappingNomis.bookingId.toInt())
-              .containsEntry("dpsExternalMovementId", duplicateMappingNomis.dpsExternalMovementId.toString())
+              .containsEntry("dpsMovementId", duplicateMappingNomis.dpsMovementId.toString())
               .containsEntry("nomisMovementSeq", duplicateMappingNomis.nomisMovementSeq)
               .containsEntry("mappingType", duplicateMappingNomis.mappingType.toString())
           }
@@ -1699,6 +1816,9 @@ class TemporaryAbsenceResourceIntTest(
         12,
         UUID.randomUUID(),
         mappingType = MovementMappingType.NOMIS_CREATED,
+        34567L,
+        "CORP",
+        "some address",
       )
 
       @Test
@@ -1758,6 +1878,9 @@ class TemporaryAbsenceResourceIntTest(
         12345L,
         12,
         "A1234BC",
+        34567L,
+        "CORP",
+        "some address",
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
 
@@ -1772,8 +1895,11 @@ class TemporaryAbsenceResourceIntTest(
           .apply {
             assertThat(bookingId).isEqualTo(mapping.nomisBookingId)
             assertThat(nomisMovementSeq).isEqualTo(mapping.nomisMovementSeq)
-            assertThat(dpsExternalMovementId).isEqualTo(mapping.dpsMovementId)
+            assertThat(dpsMovementId).isEqualTo(mapping.dpsMovementId)
             assertThat(prisonerNumber).isEqualTo(mapping.offenderNo)
+            assertThat(nomisAddressId).isEqualTo(mapping.nomisAddressId)
+            assertThat(nomisAddressOwnerClass).isEqualTo(mapping.nomisAddressOwnerClass)
+            assertThat(dpsAddressText).isEqualTo(mapping.dpsAddressText)
             assertThat(mappingType).isEqualTo(mapping.mappingType)
           }
       }
@@ -1839,6 +1965,9 @@ class TemporaryAbsenceResourceIntTest(
         12345L,
         12,
         "A1234BC",
+        34567L,
+        "CORP",
+        "some address",
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
 
@@ -1853,8 +1982,11 @@ class TemporaryAbsenceResourceIntTest(
           .apply {
             assertThat(bookingId).isEqualTo(mapping.nomisBookingId)
             assertThat(nomisMovementSeq).isEqualTo(mapping.nomisMovementSeq)
-            assertThat(dpsExternalMovementId).isEqualTo(mapping.dpsMovementId)
+            assertThat(dpsMovementId).isEqualTo(mapping.dpsMovementId)
             assertThat(prisonerNumber).isEqualTo(mapping.offenderNo)
+            assertThat(nomisAddressId).isEqualTo(mapping.nomisAddressId)
+            assertThat(nomisAddressOwnerClass).isEqualTo(mapping.nomisAddressOwnerClass)
+            assertThat(dpsAddressText).isEqualTo(mapping.dpsAddressText)
             assertThat(mappingType).isEqualTo(mapping.mappingType)
           }
       }
@@ -1920,6 +2052,9 @@ class TemporaryAbsenceResourceIntTest(
         12345L,
         12,
         "A1234BC",
+        34567L,
+        "CORP",
+        "some address",
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
       val mapping2 = TemporaryAbsenceMovementMapping(
@@ -1927,6 +2062,9 @@ class TemporaryAbsenceResourceIntTest(
         12345L,
         13,
         "A1234BC",
+        34567L,
+        "CORP",
+        "some address",
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
 

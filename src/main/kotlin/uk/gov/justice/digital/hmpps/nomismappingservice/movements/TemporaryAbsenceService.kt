@@ -55,10 +55,14 @@ class TemporaryAbsenceService(
         application.schedules.forEach { schedule ->
           scheduleRepository.save(
             TemporaryAbsenceScheduleMapping(
-              schedule.dpsScheduledMovementId,
+              schedule.dpsOccurrenceId,
               schedule.nomisEventId,
               mappings.prisonerNumber,
               booking.bookingId,
+              schedule.nomisAddressId,
+              schedule.nomisAddressOwnerClass,
+              schedule.dpsAddressText,
+              schedule.eventTime,
               mappings.migrationId,
               MovementMappingType.MIGRATED,
             ),
@@ -67,10 +71,13 @@ class TemporaryAbsenceService(
         application.movements.forEach { movement ->
           movementRepository.save(
             TemporaryAbsenceMovementMapping(
-              movement.dpsExternalMovementId,
+              movement.dpsMovementId,
               booking.bookingId,
               movement.nomisMovementSeq,
               mappings.prisonerNumber,
+              movement.nomisAddressId,
+              movement.nomisAddressOwnerClass,
+              movement.dpsAddressText,
               mappings.migrationId,
               MovementMappingType.MIGRATED,
             ),
@@ -80,10 +87,13 @@ class TemporaryAbsenceService(
       booking.unscheduledMovements.forEach { unscheduledMovement ->
         movementRepository.save(
           TemporaryAbsenceMovementMapping(
-            unscheduledMovement.dpsExternalMovementId,
+            unscheduledMovement.dpsMovementId,
             booking.bookingId,
             unscheduledMovement.nomisMovementSeq,
             mappings.prisonerNumber,
+            unscheduledMovement.nomisAddressId,
+            unscheduledMovement.nomisAddressOwnerClass,
+            unscheduledMovement.dpsAddressText,
             mappings.migrationId,
             MovementMappingType.MIGRATED,
           ),
@@ -118,7 +128,7 @@ class TemporaryAbsenceService(
 
   suspend fun createScheduledMovementMapping(mappingDto: ScheduledMovementSyncMappingDto) = scheduleRepository.save(mappingDto.toMapping())
 
-  suspend fun getScheduledMovementMappingByNomisId(nomisEventId: Long) = scheduleRepository.findByNomisScheduleId(nomisEventId)
+  suspend fun getScheduledMovementMappingByNomisId(nomisEventId: Long) = scheduleRepository.findByNomisEventId(nomisEventId)
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for NOMIS event id $nomisEventId not found")
 
@@ -126,7 +136,7 @@ class TemporaryAbsenceService(
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for DPS scheduled movement id $dpsScheduledMovementId not found")
 
-  suspend fun deleteScheduledMovementMappingByNomisId(nomisEventId: Long) = scheduleRepository.deleteByNomisScheduleId(nomisEventId)
+  suspend fun deleteScheduledMovementMappingByNomisId(nomisEventId: Long) = scheduleRepository.deleteByNomisEventId(nomisEventId)
 
   suspend fun createExternalMovementMapping(mappingDto: ExternalMovementSyncMappingDto) = movementRepository.save(mappingDto.toMapping())
 
@@ -174,26 +184,37 @@ fun TemporaryAbsenceAppMultiMapping.toMappingDto(): TemporaryAbsenceOutsideMovem
 )
 
 fun ScheduledMovementSyncMappingDto.toMapping(): TemporaryAbsenceScheduleMapping = TemporaryAbsenceScheduleMapping(
-  dpsScheduledMovementId,
+  dpsOccurrenceId,
   nomisEventId,
   prisonerNumber,
   bookingId,
+  nomisAddressId,
+  nomisAddressOwnerClass,
+  dpsAddressText,
+  eventTime,
   mappingType = mappingType,
 )
 
 fun TemporaryAbsenceScheduleMapping.toMappingDto(): ScheduledMovementSyncMappingDto = ScheduledMovementSyncMappingDto(
   offenderNo,
   bookingId,
-  nomisScheduleId,
-  dpsScheduleId,
+  nomisEventId,
+  dpsOccurrenceId,
   mappingType = mappingType,
+  nomisAddressId,
+  nomisAddressOwnerClass,
+  dpsAddressText,
+  eventTime,
 )
 
 fun ExternalMovementSyncMappingDto.toMapping(): TemporaryAbsenceMovementMapping = TemporaryAbsenceMovementMapping(
-  dpsExternalMovementId,
+  dpsMovementId,
   bookingId,
   nomisMovementSeq,
   prisonerNumber,
+  nomisAddressId,
+  nomisAddressOwnerClass,
+  dpsAddressText,
   mappingType = mappingType,
 )
 
@@ -203,4 +224,7 @@ fun TemporaryAbsenceMovementMapping.toMappingDto(): ExternalMovementSyncMappingD
   nomisMovementSeq,
   dpsMovementId,
   mappingType = mappingType,
+  nomisAddressId,
+  nomisAddressOwnerClass,
+  dpsAddressText,
 )

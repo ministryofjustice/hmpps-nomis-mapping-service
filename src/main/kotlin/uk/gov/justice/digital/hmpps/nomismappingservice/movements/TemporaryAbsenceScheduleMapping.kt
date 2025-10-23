@@ -10,13 +10,21 @@ import java.util.*
 data class TemporaryAbsenceScheduleMapping(
 
   @Id
-  val dpsScheduleId: UUID,
+  val dpsOccurrenceId: UUID,
 
-  val nomisScheduleId: Long,
+  val nomisEventId: Long,
 
   val offenderNo: String,
 
   val bookingId: Long,
+
+  val nomisAddressId: Long,
+
+  val nomisAddressOwnerClass: String,
+
+  val dpsAddressText: String,
+
+  val eventTime: LocalDateTime,
 
   /**
    * ISO timestamp of batch job if a migration
@@ -31,18 +39,20 @@ data class TemporaryAbsenceScheduleMapping(
 
   val whenCreated: LocalDateTime? = null,
 
+  val whenUpdated: LocalDateTime? = null,
+
 ) : Persistable<UUID> {
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other !is TemporaryAbsenceScheduleMapping) return false
 
-    return dpsScheduleId != other.dpsScheduleId
+    return dpsOccurrenceId != other.dpsOccurrenceId
   }
 
-  override fun hashCode(): Int = dpsScheduleId.hashCode()
+  override fun hashCode(): Int = dpsOccurrenceId.hashCode()
 
   override fun isNew(): Boolean = new
 
-  override fun getId(): UUID = dpsScheduleId
+  override fun getId(): UUID = dpsOccurrenceId
 }
