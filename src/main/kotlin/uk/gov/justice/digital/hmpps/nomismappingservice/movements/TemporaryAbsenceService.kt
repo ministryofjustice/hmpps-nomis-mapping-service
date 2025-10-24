@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundExceptio
 import java.util.UUID
 
 @Service
+@Transactional(readOnly = true)
 class TemporaryAbsenceService(
   private val applicationRepository: TemporaryAbsenceApplicationRepository,
   private val appMultiRepository: TemporaryAbsenceAppMultiRepository,
@@ -102,6 +103,7 @@ class TemporaryAbsenceService(
     }
   }
 
+  @Transactional
   suspend fun createApplicationMapping(mappingDto: TemporaryAbsenceApplicationSyncMappingDto) = applicationRepository.save(mappingDto.toMapping())
 
   suspend fun getApplicationMappingByNomisId(nomisApplicationId: Long) = applicationRepository.findByNomisApplicationId(nomisApplicationId)
@@ -112,8 +114,10 @@ class TemporaryAbsenceService(
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for DPS application id $dpsApplicationId not found")
 
+  @Transactional
   suspend fun deleteApplicationMappingByNomisId(nomisApplicationId: Long) = applicationRepository.deleteByNomisApplicationId(nomisApplicationId)
 
+  @Transactional
   suspend fun createOutsideMovementMapping(mappingDto: TemporaryAbsenceOutsideMovementSyncMappingDto) = appMultiRepository.save(mappingDto.toMapping())
 
   suspend fun getOutsideMovementMappingByNomisId(nomisAppMultiId: Long) = appMultiRepository.findByNomisAppMultiId(nomisAppMultiId)
@@ -124,9 +128,22 @@ class TemporaryAbsenceService(
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for DPS outside movement id $dpsOutsideMovementId not found")
 
+  @Transactional
   suspend fun deleteOutsideMovementMappingByNomisId(nomisAppMultiId: Long) = appMultiRepository.deleteByNomisAppMultiId(nomisAppMultiId)
 
+  @Transactional
   suspend fun createScheduledMovementMapping(mappingDto: ScheduledMovementSyncMappingDto) = scheduleRepository.save(mappingDto.toMapping())
+
+  @Transactional
+  suspend fun updateScheduledMovementMapping(mappingDto: ScheduledMovementSyncMappingDto) = scheduleRepository.findById(mappingDto.dpsOccurrenceId)
+    ?.let {
+      it.nomisAddressId = mappingDto.nomisAddressId
+      it.nomisAddressOwnerClass = mappingDto.nomisAddressOwnerClass
+      it.dpsAddressText = mappingDto.dpsAddressText
+      it.eventTime = mappingDto.eventTime
+      scheduleRepository.save(it)
+    }
+    ?: throw NotFoundException("Mapping for DPS occurrence id ${mappingDto.dpsOccurrenceId} not found")
 
   suspend fun getScheduledMovementMappingByNomisId(nomisEventId: Long) = scheduleRepository.findByNomisEventId(nomisEventId)
     ?.toMappingDto()
@@ -136,9 +153,21 @@ class TemporaryAbsenceService(
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for DPS scheduled movement id $dpsScheduledMovementId not found")
 
+  @Transactional
   suspend fun deleteScheduledMovementMappingByNomisId(nomisEventId: Long) = scheduleRepository.deleteByNomisEventId(nomisEventId)
 
+  @Transactional
   suspend fun createExternalMovementMapping(mappingDto: ExternalMovementSyncMappingDto) = movementRepository.save(mappingDto.toMapping())
+
+  @Transactional
+  suspend fun updateExternalMovementMapping(mappingDto: ExternalMovementSyncMappingDto) = movementRepository.findById(mappingDto.dpsMovementId)
+    ?.let {
+      it.nomisAddressId = mappingDto.nomisAddressId
+      it.nomisAddressOwnerClass = mappingDto.nomisAddressOwnerClass
+      it.dpsAddressText = mappingDto.dpsAddressText
+      movementRepository.save(it)
+    }
+    ?: throw NotFoundException("Mapping for DPS movement id ${mappingDto.dpsMovementId} not found")
 
   suspend fun getExternalMovementMappingByNomisId(bookingId: Long, movementSeq: Int) = movementRepository.findByNomisBookingIdAndNomisMovementSeq(bookingId, movementSeq)
     ?.toMappingDto()
@@ -148,6 +177,7 @@ class TemporaryAbsenceService(
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for DPS external movement id $dpsExternalMovementId not found")
 
+  @Transactional
   suspend fun deleteExternalMovementMappingByNomisId(bookingId: Long, movementSeq: Int) = movementRepository.deleteByNomisBookingIdAndNomisMovementSeq(bookingId, movementSeq)
 }
 

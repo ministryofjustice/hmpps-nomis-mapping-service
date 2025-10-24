@@ -18,11 +18,11 @@ data class TemporaryAbsenceMovementMapping(
 
   val offenderNo: String,
 
-  val nomisAddressId: Long?,
+  var nomisAddressId: Long?,
 
-  val nomisAddressOwnerClass: String?,
+  var nomisAddressOwnerClass: String?,
 
-  val dpsAddressText: String,
+  var dpsAddressText: String,
 
   /**
    * ISO timestamp of batch job if a migration

@@ -18,13 +18,13 @@ data class TemporaryAbsenceScheduleMapping(
 
   val bookingId: Long,
 
-  val nomisAddressId: Long,
+  var nomisAddressId: Long,
 
-  val nomisAddressOwnerClass: String,
+  var nomisAddressOwnerClass: String,
 
-  val dpsAddressText: String,
+  var dpsAddressText: String,
 
-  val eventTime: LocalDateTime,
+  var eventTime: LocalDateTime,
 
   /**
    * ISO timestamp of batch job if a migration
