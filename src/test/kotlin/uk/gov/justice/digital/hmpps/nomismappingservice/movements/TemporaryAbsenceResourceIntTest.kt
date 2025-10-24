@@ -1392,6 +1392,145 @@ class TemporaryAbsenceResourceIntTest(
   }
 
   @Nested
+  @DisplayName("PUT /mapping/temporary-absence/scheduled-movement")
+  inner class UpdateScheduledMovementSyncMapping {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      scheduleRepository.deleteAll()
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = ScheduledMovementSyncMappingDto(
+        "A1234BC",
+        12345L,
+        23456L,
+        UUID.randomUUID(),
+        MovementMappingType.NOMIS_CREATED,
+        34567L,
+        "CORP",
+        "some address",
+        LocalDateTime.now(),
+      )
+
+      @Test
+      fun `should update mapping`() = runTest {
+        webTestClient.createScheduledMovementSyncMapping(mapping)
+          .expectStatus().isCreated
+
+        webTestClient.updateScheduledMovementSyncMapping(
+          mapping.copy(
+            nomisAddressId = 77777L,
+            nomisAddressOwnerClass = "OFF",
+            dpsAddressText = "a different address",
+            eventTime = LocalDateTime.now().plusDays(1),
+          ),
+        ).expectStatus().isOk
+
+        with(scheduleRepository.findByNomisEventId(mapping.nomisEventId)!!) {
+          assertThat(offenderNo).isEqualTo("A1234BC")
+          assertThat(bookingId).isEqualTo(12345L)
+          assertThat(dpsOccurrenceId).isEqualTo(mapping.dpsOccurrenceId)
+          assertThat(mappingType).isEqualTo(MovementMappingType.NOMIS_CREATED)
+          assertThat(nomisAddressId).isEqualTo(77777L)
+          assertThat(nomisAddressOwnerClass).isEqualTo("OFF")
+          assertThat(dpsAddressText).isEqualTo("a different address")
+          assertThat(eventTime).isCloseTo(LocalDateTime.now().plusDays(1), within(1, ChronoUnit.SECONDS))
+        }
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      val mapping = ScheduledMovementSyncMappingDto(
+        "A1234BC",
+        12345L,
+        23456L,
+        UUID.randomUUID(),
+        MovementMappingType.NOMIS_CREATED,
+        34567L,
+        "CORP",
+        "some address",
+        LocalDateTime.now(),
+      )
+
+      @Test
+      fun `should return not found if mapping does not exist`() = runTest {
+        webTestClient.updateScheduledMovementSyncMapping(mapping)
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class Security {
+      val mapping = ScheduledMovementSyncMappingDto(
+        "A1234BC",
+        12345L,
+        23456L,
+        UUID.randomUUID(),
+        mappingType = MovementMappingType.NOMIS_CREATED,
+        34567L,
+        "CORP",
+        "some address",
+        LocalDateTime.now(),
+      )
+
+      @BeforeEach
+      fun setUp() = runTest {
+        webTestClient.createScheduledMovementSyncMapping(mapping)
+          .expectStatus().isCreated
+      }
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.put()
+          .uri("/mapping/temporary-absence/scheduled-movement")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.put()
+          .uri("/mapping/temporary-absence/scheduled-movement")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.put()
+          .uri("/mapping/temporary-absence/scheduled-movement")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.createScheduledMovementSyncMapping(mapping: ScheduledMovementSyncMappingDto) = post()
+      .uri("/mapping/temporary-absence/scheduled-movement")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(BodyInserters.fromValue(mapping))
+      .exchange()
+
+    private fun WebTestClient.updateScheduledMovementSyncMapping(mapping: ScheduledMovementSyncMappingDto) = put()
+      .uri("/mapping/temporary-absence/scheduled-movement")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(BodyInserters.fromValue(mapping))
+      .exchange()
+  }
+
+  @Nested
   @DisplayName("GET /mapping/temporary-absence/scheduled-movement/nomis-event-id/{nomisEventId}")
   inner class GetNomisScheduledMovementSyncMapping {
 
@@ -1855,6 +1994,141 @@ class TemporaryAbsenceResourceIntTest(
     }
 
     private fun WebTestClient.createExternalMovementSyncMapping(mapping: ExternalMovementSyncMappingDto) = post()
+      .uri("/mapping/temporary-absence/external-movement")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(BodyInserters.fromValue(mapping))
+      .exchange()
+  }
+
+  @Nested
+  @DisplayName("PUT /mapping/temporary-absence/external-movement")
+  inner class UpdateExternalMovementMapping {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      movementRepository.deleteAll()
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = ExternalMovementSyncMappingDto(
+        "A1234BC",
+        12345L,
+        12,
+        UUID.randomUUID(),
+        MovementMappingType.NOMIS_CREATED,
+        34567L,
+        "CORP",
+        "some address",
+      )
+
+      @Test
+      fun `should update mapping`() = runTest {
+        webTestClient.createExternalMovementSyncMapping(mapping)
+          .expectStatus().isCreated
+
+        webTestClient.updateExternalMovementSyncMapping(
+          mapping.copy(
+            nomisAddressId = 77777L,
+            nomisAddressOwnerClass = "OFF",
+            dpsAddressText = "a different address",
+          ),
+        ).expectStatus().isOk
+
+        with(movementRepository.findByNomisBookingIdAndNomisMovementSeq(12345L, 12)!!) {
+          assertThat(offenderNo).isEqualTo("A1234BC")
+          assertThat(nomisBookingId).isEqualTo(12345L)
+          assertThat(nomisMovementSeq).isEqualTo(12)
+          assertThat(dpsMovementId).isEqualTo(mapping.dpsMovementId)
+          assertThat(mappingType).isEqualTo(MovementMappingType.NOMIS_CREATED)
+          assertThat(nomisAddressId).isEqualTo(77777L)
+          assertThat(nomisAddressOwnerClass).isEqualTo("OFF")
+          assertThat(dpsAddressText).isEqualTo("a different address")
+        }
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      val mapping = ExternalMovementSyncMappingDto(
+        "A1234BC",
+        12345L,
+        12,
+        UUID.randomUUID(),
+        MovementMappingType.NOMIS_CREATED,
+        34567L,
+        "CORP",
+        "some address",
+      )
+
+      @Test
+      fun `should return not found if mapping does not exist`() = runTest {
+        webTestClient.updateExternalMovementSyncMapping(mapping)
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class Security {
+      val mapping = ExternalMovementSyncMappingDto(
+        "A1234BC",
+        12345L,
+        12,
+        UUID.randomUUID(),
+        mappingType = MovementMappingType.NOMIS_CREATED,
+        34567L,
+        "CORP",
+        "some address",
+      )
+
+      @BeforeEach
+      fun setUp() = runTest {
+        webTestClient.createExternalMovementSyncMapping(mapping)
+          .expectStatus().isCreated
+      }
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.put()
+          .uri("/mapping/temporary-absence/external-movement")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.put()
+          .uri("/mapping/temporary-absence/external-movement")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.put()
+          .uri("/mapping/temporary-absence/external-movement")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.createExternalMovementSyncMapping(mapping: ExternalMovementSyncMappingDto) = post()
+      .uri("/mapping/temporary-absence/external-movement")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(BodyInserters.fromValue(mapping))
+      .exchange()
+
+    private fun WebTestClient.updateExternalMovementSyncMapping(mapping: ExternalMovementSyncMappingDto) = put()
       .uri("/mapping/temporary-absence/external-movement")
       .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)

@@ -353,6 +353,36 @@ class TemporaryAbsenceResource(
     )
   }
 
+  @PutMapping("/scheduled-movement")
+  @Operation(
+    summary = "Updates a mapping for a single scheduled movement",
+    description = "Updates a mapping for a single scheduled movement. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = ScheduledMovementSyncMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "200", description = "Scheduled movement mapping updated"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "The mapping already exists.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun updateScheduledMovementSyncMapping(
+    @RequestBody mapping: ScheduledMovementSyncMappingDto,
+  ) = service.updateScheduledMovementMapping(mapping)
+
   private suspend fun getExistingScheduledMovementMappingSimilarTo(mapping: ScheduledMovementSyncMappingDto) = runCatching {
     service.getScheduledMovementMappingByNomisId(mapping.nomisEventId)
   }
@@ -480,6 +510,36 @@ class TemporaryAbsenceResource(
       cause = dke,
     )
   }
+
+  @PutMapping("/external-movement")
+  @Operation(
+    summary = "Updates a mapping for a single temporary absence external movement",
+    description = "Updates a mapping for a single temporary absence external movement. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = ExternalMovementSyncMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "200", description = "External movement mapping updated"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "The mapping already exists.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun updateExternalMovementSyncMapping(
+    @RequestBody mapping: ExternalMovementSyncMappingDto,
+  ) = service.updateExternalMovementMapping(mapping)
 
   private suspend fun getExistingExternalMovementMappingSimilarTo(mapping: ExternalMovementSyncMappingDto) = runCatching {
     service.getExternalMovementMappingByNomisId(mapping.bookingId, mapping.nomisMovementSeq)
