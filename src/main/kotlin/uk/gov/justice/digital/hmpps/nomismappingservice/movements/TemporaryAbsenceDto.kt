@@ -61,12 +61,12 @@ data class ScheduledMovementMappingDto(
   @Schema(description = "The DPS scheduled movement id")
   val dpsOccurrenceId: UUID,
   @Schema(description = "The NOMIS address id")
-  val nomisAddressId: Long,
+  val nomisAddressId: Long?,
   @Schema(description = "The NOMIS address owner class")
-  val nomisAddressOwnerClass: String,
+  val nomisAddressOwnerClass: String?,
   @Schema(description = "The DPS address")
   val dpsAddressText: String,
-  @Schema(description = "The DPS address")
+  @Schema(description = "The scheduled event time")
   val eventTime: LocalDateTime,
 )
 
