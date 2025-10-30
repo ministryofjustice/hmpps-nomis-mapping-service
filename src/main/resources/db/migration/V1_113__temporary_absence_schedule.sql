@@ -1,0 +1,2 @@
+alter table temporary_absence_schedule_mapping alter column nomis_address_id drop not null;
+alter table temporary_absence_schedule_mapping alter column nomis_address_owner_class drop not null;

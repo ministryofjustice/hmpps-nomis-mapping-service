@@ -121,8 +121,8 @@ class TemporaryAbsenceResourceIntTest(
                   ScheduledMovementMappingDto(
                     nomisEventId = NOMIS_SCHEDULED_IN_EVENT_ID,
                     dpsOccurrenceId = dpsScheduledInId,
-                    nomisAddressId = NOMIS_ADDESS_ID,
-                    nomisAddressOwnerClass = NOMIS_ADDRESS_OWNER_CLASS,
+                    nomisAddressId = null,
+                    nomisAddressOwnerClass = null,
                     dpsAddressText = DPS_ADDRESS_TEXT,
                     eventTime = EVENT_TIME,
                   ),
@@ -138,8 +138,8 @@ class TemporaryAbsenceResourceIntTest(
                   ExternalMovementMappingDto(
                     nomisMovementSeq = NOMIS_MOVEMENT_IN_SEQ,
                     dpsMovementId = dpsMovementInId,
-                    nomisAddressId = NOMIS_ADDESS_ID,
-                    nomisAddressOwnerClass = NOMIS_ADDRESS_OWNER_CLASS,
+                    nomisAddressId = null,
+                    nomisAddressOwnerClass = null,
                     dpsAddressText = DPS_ADDRESS_TEXT,
                   ),
                 ),
@@ -156,8 +156,8 @@ class TemporaryAbsenceResourceIntTest(
               ExternalMovementMappingDto(
                 nomisMovementSeq = NOMIS_UNSCHEDULED_MOVEMENT_IN_SEQ,
                 dpsMovementId = dpsUnscheduledMovementInId,
-                nomisAddressId = NOMIS_ADDESS_ID,
-                nomisAddressOwnerClass = NOMIS_ADDRESS_OWNER_CLASS,
+                nomisAddressId = null,
+                nomisAddressOwnerClass = null,
                 dpsAddressText = DPS_ADDRESS_TEXT,
               ),
             ),
@@ -220,8 +220,8 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(whenCreated?.toLocalDate()).isEqualTo(LocalDate.now())
           assertThat(nomisEventId).isEqualTo(NOMIS_SCHEDULED_IN_EVENT_ID)
           assertThat(dpsOccurrenceId).isEqualTo(DPS_SCHEDULED_IN_ID)
-          assertThat(nomisAddressId).isEqualTo(NOMIS_ADDESS_ID)
-          assertThat(nomisAddressOwnerClass).isEqualTo(NOMIS_ADDRESS_OWNER_CLASS)
+          assertThat(nomisAddressId).isNull()
+          assertThat(nomisAddressOwnerClass).isNull()
           assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
           assertThat(eventTime).isEqualTo(EVENT_TIME)
           assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
@@ -249,8 +249,8 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(nomisBookingId).isEqualTo(NOMIS_BOOKING_ID)
           assertThat(nomisMovementSeq).isEqualTo(NOMIS_MOVEMENT_IN_SEQ)
           assertThat(dpsMovementId).isEqualTo(DPS_MOVEMENT_IN_ID)
-          assertThat(nomisAddressId).isEqualTo(NOMIS_ADDESS_ID)
-          assertThat(nomisAddressOwnerClass).isEqualTo(NOMIS_ADDRESS_OWNER_CLASS)
+          assertThat(nomisAddressId).isNull()
+          assertThat(nomisAddressOwnerClass).isNull()
           assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
           assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
         }
@@ -277,8 +277,8 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(nomisBookingId).isEqualTo(NOMIS_BOOKING_ID)
           assertThat(nomisMovementSeq).isEqualTo(NOMIS_UNSCHEDULED_MOVEMENT_IN_SEQ)
           assertThat(dpsMovementId).isEqualTo(DPS_UNSCHEDULED_MOVEMENT_IN_ID)
-          assertThat(nomisAddressId).isEqualTo(NOMIS_ADDESS_ID)
-          assertThat(nomisAddressOwnerClass).isEqualTo(NOMIS_ADDRESS_OWNER_CLASS)
+          assertThat(nomisAddressId).isNull()
+          assertThat(nomisAddressOwnerClass).isNull()
           assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
           assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
         }
@@ -1247,6 +1247,17 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(eventTime).isCloseTo(LocalDateTime.now(), within(1, ChronoUnit.SECONDS))
         }
       }
+
+      @Test
+      fun `should create mapping with null address`() = runTest {
+        webTestClient.createScheduledMovementSyncMapping(mapping.copy(nomisAddressId = null, nomisAddressOwnerClass = null))
+          .expectStatus().isCreated
+
+        with(scheduleRepository.findByNomisEventId(mapping.nomisEventId)!!) {
+          assertThat(nomisAddressId).isNull()
+          assertThat(nomisAddressOwnerClass).isNull()
+        }
+      }
     }
 
     @Nested
@@ -1861,6 +1872,17 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(dpsAddressText).isEqualTo(dpsAddressText)
         }
       }
+
+      @Test
+      fun `should create mapping with null address`() = runTest {
+        webTestClient.createExternalMovementSyncMapping(mapping.copy(nomisAddressId = null, nomisAddressOwnerClass = null))
+          .expectStatus().isCreated
+
+        with(movementRepository.findByNomisBookingIdAndNomisMovementSeq(12345L, 12)!!) {
+          assertThat(nomisAddressId).isNull()
+          assertThat(nomisAddressOwnerClass).isNull()
+        }
+      }
     }
 
     @Nested
@@ -1891,9 +1913,10 @@ class TemporaryAbsenceResourceIntTest(
         mapping.nomisMovementSeq,
         UUID.randomUUID(),
         MovementMappingType.MIGRATED,
-        34567L,
-        "CORP",
-        "some address",
+        // checking these don't affect the duplicate check
+        1,
+        "A",
+        "a",
       )
 
       @Test

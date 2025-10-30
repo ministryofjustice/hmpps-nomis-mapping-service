@@ -19,9 +19,9 @@ data class ScheduledMovementSyncMappingDto(
   @Schema(description = "The source of the mapping", example = "NOMIS_CREATED")
   val mappingType: MovementMappingType,
   @Schema(description = "The NOMIS address id")
-  val nomisAddressId: Long,
+  val nomisAddressId: Long?,
   @Schema(description = "The NOMIS address owner class")
-  val nomisAddressOwnerClass: String,
+  val nomisAddressOwnerClass: String?,
   @Schema(description = "The DPS address")
   val dpsAddressText: String,
   @Schema(description = "The DPS address")
