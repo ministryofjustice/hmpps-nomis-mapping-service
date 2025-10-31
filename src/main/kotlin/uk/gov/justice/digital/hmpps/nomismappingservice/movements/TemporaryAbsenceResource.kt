@@ -16,10 +16,12 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
+import java.time.LocalDate
 import java.util.UUID
 
 @RestController
@@ -629,4 +631,36 @@ class TemporaryAbsenceResource(
     @PathVariable bookingId: Long,
     @PathVariable movementSeq: Int,
   ) = service.deleteExternalMovementMappingByNomisId(bookingId, movementSeq)
+
+  @GetMapping("/scheduled-movements/nomis-address-id/{nomisAddressId}")
+  @Operation(
+    summary = "Finds scheduled movements for a temporary absence by NOMIS address ID",
+    description = "Finds scheduled movements for a temporary absence by NOMIS address ID after the passed date. If no date is passed the default value is today. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(responseCode = "200", description = "List of movements returned"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "The mapping does not exist.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun findScheduledMovementsByNomisAddressId(
+    @PathVariable nomisAddressId: Long,
+    @RequestParam(value = "fromDate", required = false) fromDate: LocalDate? = LocalDate.now(),
+  ) = service.findScheduledMovementsByNomisAddressId(nomisAddressId, fromDate!!)
 }
+
+data class FindScheduledMovementsForAddressResponse(
+  val scheduleMappings: List<ScheduledMovementSyncMappingDto>,
+)

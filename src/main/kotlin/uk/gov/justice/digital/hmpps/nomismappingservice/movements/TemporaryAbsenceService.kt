@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.movements
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundException
+import java.time.LocalDate
 import java.util.UUID
 
 @Service
@@ -179,6 +180,11 @@ class TemporaryAbsenceService(
 
   @Transactional
   suspend fun deleteExternalMovementMappingByNomisId(bookingId: Long, movementSeq: Int) = movementRepository.deleteByNomisBookingIdAndNomisMovementSeq(bookingId, movementSeq)
+
+  suspend fun findScheduledMovementsByNomisAddressId(nomisAddressId: Long, fromDate: LocalDate) = scheduleRepository
+    .findByNomisAddressIdAndEventTimeIsGreaterThanEqual(nomisAddressId, fromDate.atStartOfDay())
+    .map { it.toMappingDto() }
+    .let { FindScheduledMovementsForAddressResponse(it) }
 }
 
 fun TemporaryAbsenceApplicationSyncMappingDto.toMapping(): TemporaryAbsenceApplicationMapping = TemporaryAbsenceApplicationMapping(
