@@ -1,5 +1,11 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.officialvisits
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.toList
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundException
@@ -48,6 +54,30 @@ class VisitSlotsService(
         )
       }
     }
+  }
+
+  suspend fun getVisitTimeSlotMappingsByMigrationId(
+    pageRequest: Pageable,
+    migrationId: String,
+  ): Page<VisitTimeSlotMappingDto> = coroutineScope {
+    val mappings = async {
+      visitTimeSlotMappingRepository.findAllByLabelOrderByLabelDesc(
+        label = migrationId,
+        pageRequest = pageRequest,
+      )
+    }
+
+    val count = async {
+      visitTimeSlotMappingRepository.countAllByLabel(
+        migrationId = migrationId,
+      )
+    }
+
+    PageImpl(
+      mappings.await().toList().map { it.toDto() },
+      pageRequest,
+      count.await(),
+    )
   }
 }
 
