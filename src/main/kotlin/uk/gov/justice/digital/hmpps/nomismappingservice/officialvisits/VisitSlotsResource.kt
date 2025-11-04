@@ -129,8 +129,8 @@ class VisitSlotsResource(private val visitSlotsService: VisitSlotsService) {
     }
     throw DuplicateMappingException(
       messageIn = "Visit time slot mapping already exists",
-      duplicate = mappings.asVisitTimeSlotMappingDto(),
-      existing = existingMapping ?: mappings.asVisitTimeSlotMappingDto(),
+      duplicate = mappings,
+      existing = existingMapping?.asVisitTimeSlotMigrationMappingDto() ?: mappings,
       cause = e,
     )
   }
@@ -202,7 +202,7 @@ data class VisitSlotMigrationMappingDto(
   val nomisId: Long,
 )
 
-private fun VisitTimeSlotMigrationMappingDto.asVisitTimeSlotMappingDto() = VisitTimeSlotMappingDto(
+private fun VisitTimeSlotMappingDto.asVisitTimeSlotMigrationMappingDto() = VisitTimeSlotMigrationMappingDto(
   dpsId = this.dpsId,
   nomisPrisonId = this.nomisPrisonId,
   nomisDayOfWeek = this.nomisDayOfWeek,
@@ -210,4 +210,5 @@ private fun VisitTimeSlotMigrationMappingDto.asVisitTimeSlotMappingDto() = Visit
   label = this.label,
   mappingType = this.mappingType,
   whenCreated = this.whenCreated,
+  visitSlots = emptyList(),
 )
