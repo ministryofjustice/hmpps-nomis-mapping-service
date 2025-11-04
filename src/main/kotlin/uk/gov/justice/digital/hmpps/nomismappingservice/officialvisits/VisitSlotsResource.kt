@@ -8,6 +8,9 @@ import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -131,6 +134,34 @@ class VisitSlotsResource(private val visitSlotsService: VisitSlotsService) {
       cause = e,
     )
   }
+
+  @GetMapping("/migration-id/{migrationId}")
+  @Operation(
+    summary = "Get paged visit time slot mappings by migration id",
+    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Visit time slots mapping page returned",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getVisitTimeSlotMappingsByMigrationId(
+    @PageableDefault pageRequest: Pageable,
+    @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
+    @PathVariable
+    migrationId: String,
+  ): Page<VisitTimeSlotMappingDto> = visitSlotsService.getVisitTimeSlotMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   private suspend fun getExistingVisitTimeSlotMappingSimilarTo(mapping: VisitTimeSlotMigrationMappingDto) = runCatching {
     visitSlotsService.getVisitTimeSlotMappingByNomisId(
