@@ -1,24 +1,36 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.officialvisits
 
 import kotlinx.coroutines.test.runTest
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.within
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.ParameterizedTypeReference
+import org.springframework.http.MediaType
+import org.springframework.web.reactive.function.BodyInserters
+import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.nomismappingservice.integration.isDuplicateMapping
 import uk.gov.justice.digital.hmpps.nomismappingservice.jpa.StandardMappingType
 import java.time.DayOfWeek
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 class VisitSlotsResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var visitTimeSlotMappingRepository: VisitTimeSlotMappingRepository
 
+  @Autowired
+  private lateinit var visitSlotMappingRepository: VisitSlotMappingRepository
+
   @AfterEach
   fun tearDown() = runTest {
     visitTimeSlotMappingRepository.deleteAll()
+    visitSlotMappingRepository.deleteAll()
   }
 
   @Nested
@@ -110,6 +122,213 @@ class VisitSlotsResourceIntTest : IntegrationTestBase() {
           .jsonPath("nomisSlotSequence").isEqualTo(nomisSlotSequence)
           .jsonPath("label").isEqualTo("2020-01-01T10:00")
           .jsonPath("mappingType").isEqualTo("MIGRATED")
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("POST /mapping/visit-slots")
+  inner class CreateMigrationMappings {
+    val nomisPrisonId = "WWI"
+    val nomisDayOfWeek = DayOfWeek.MONDAY
+    val nomisSlotSequence = 2
+    val dpsId = "123456789"
+
+    @Nested
+    inner class Security {
+      val mapping = VisitTimeSlotMigrationMappingDto(
+        dpsId = dpsId,
+        nomisPrisonId = nomisPrisonId,
+        nomisDayOfWeek = nomisDayOfWeek,
+        nomisSlotSequence = nomisSlotSequence,
+        label = "2020-01-01T10:00",
+        visitSlots = listOf(),
+        mappingType = StandardMappingType.MIGRATED,
+        whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/visit-slots")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/visit-slots")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/visit-slots")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      val mapping = VisitTimeSlotMigrationMappingDto(
+        dpsId = dpsId,
+        nomisPrisonId = nomisPrisonId,
+        nomisDayOfWeek = nomisDayOfWeek,
+        nomisSlotSequence = nomisSlotSequence,
+        label = "2020-01-01T10:00",
+        visitSlots = listOf(),
+        mappingType = StandardMappingType.MIGRATED,
+        whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+      )
+
+      val existingMapping = VisitTimeSlotMapping(
+        dpsId = dpsId,
+        nomisPrisonId = nomisPrisonId,
+        nomisDayOfWeek = nomisDayOfWeek,
+        nomisSlotSequence = nomisSlotSequence,
+        label = "2019-01-01T10:00",
+        mappingType = StandardMappingType.MIGRATED,
+        whenCreated = LocalDateTime.parse("2019-01-01T10:14"),
+      )
+
+      @BeforeEach
+      fun setUp() = runTest {
+        visitTimeSlotMappingRepository.save(existingMapping)
+      }
+
+      @Test
+      fun `will not allow the same time slot to have duplicate NOMIS ids`() {
+        webTestClient.post()
+          .uri("/mapping/visit-slots")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping.copy(dpsId = "96969")))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+      }
+
+      @Test
+      fun `will not allow the same time slot to have duplicate DPS ids`() {
+        webTestClient.post()
+          .uri("/mapping/visit-slots")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping.copy(nomisSlotSequence = 999)))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+      }
+
+      @Test
+      fun `will return details of the existing and duplicate mappings`() {
+        val duplicateResponse = webTestClient.post()
+          .uri("/mapping/visit-slots")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping.copy(dpsId = "96969")))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+          .expectBody(
+            object :
+              ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
+          )
+          .returnResult().responseBody
+
+        with(duplicateResponse!!) {
+          assertThat(this.moreInfo.existing)
+            .containsEntry("nomisPrisonId", existingMapping.nomisPrisonId)
+            .containsEntry("nomisSlotSequence", existingMapping.nomisSlotSequence)
+            .containsEntry("nomisDayOfWeek", existingMapping.nomisDayOfWeek.toString())
+            .containsEntry("dpsId", existingMapping.dpsId)
+          assertThat(this.moreInfo.duplicate)
+            .containsEntry("nomisPrisonId", existingMapping.nomisPrisonId)
+            .containsEntry("nomisSlotSequence", existingMapping.nomisSlotSequence)
+            .containsEntry("nomisDayOfWeek", existingMapping.nomisDayOfWeek.toString())
+            .containsEntry("dpsId", "96969")
+        }
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = VisitTimeSlotMigrationMappingDto(
+        dpsId = dpsId,
+        nomisPrisonId = nomisPrisonId,
+        nomisDayOfWeek = nomisDayOfWeek,
+        nomisSlotSequence = nomisSlotSequence,
+        label = "2020-01-01T10:00",
+        visitSlots = listOf(VisitSlotMigrationMappingDto(dpsId = "99999", nomisId = 99999), VisitSlotMigrationMappingDto(dpsId = "99998", nomisId = 99998)),
+        mappingType = StandardMappingType.MIGRATED,
+      )
+
+      @Test
+      fun `returns 201 when mappings created`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/visit-slots")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+      }
+
+      @Test
+      fun `will persist the time slot mappings`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/visit-slots")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+
+        val timeSlotMapping =
+          visitTimeSlotMappingRepository.findOneByDpsId(dpsId)!!
+
+        assertThat(timeSlotMapping.dpsId).isEqualTo(mapping.dpsId)
+        assertThat(timeSlotMapping.nomisPrisonId).isEqualTo(mapping.nomisPrisonId)
+        assertThat(timeSlotMapping.nomisDayOfWeek).isEqualTo(mapping.nomisDayOfWeek)
+        assertThat(timeSlotMapping.nomisSlotSequence).isEqualTo(mapping.nomisSlotSequence)
+        assertThat(timeSlotMapping.label).isEqualTo(mapping.label)
+        assertThat(timeSlotMapping.mappingType).isEqualTo(mapping.mappingType)
+        assertThat(timeSlotMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+      }
+
+      @Test
+      fun `will persist the visit  slot mappings`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/visit-slots")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+
+        with(visitSlotMappingRepository.findOneByDpsId("99999")!!) {
+          assertThat(this.dpsId).isEqualTo("99999")
+          assertThat(this.nomisId).isEqualTo(99999)
+          assertThat(this.label).isEqualTo(mapping.label)
+          assertThat(this.mappingType).isEqualTo(mapping.mappingType)
+          assertThat(this.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        }
+        with(visitSlotMappingRepository.findOneByDpsId("99998")!!) {
+          assertThat(this.dpsId).isEqualTo("99998")
+          assertThat(this.nomisId).isEqualTo(99998)
+          assertThat(this.label).isEqualTo(mapping.label)
+          assertThat(this.mappingType).isEqualTo(mapping.mappingType)
+          assertThat(this.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        }
       }
     }
   }

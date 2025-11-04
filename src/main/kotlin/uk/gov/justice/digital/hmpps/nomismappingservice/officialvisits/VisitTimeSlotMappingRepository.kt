@@ -12,6 +12,10 @@ interface VisitTimeSlotMappingRepository : CoroutineCrudRepository<VisitTimeSlot
     nomisSlotSequence: Int,
   ): VisitTimeSlotMapping?
 
+  suspend fun findOneByDpsId(
+    dpsId: String,
+  ): VisitTimeSlotMapping?
+
   @Suppress("unused")
   suspend fun countAllByLabel(migrationId: String): Long
 }

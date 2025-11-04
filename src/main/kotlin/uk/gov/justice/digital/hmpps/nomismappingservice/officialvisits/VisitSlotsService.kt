@@ -6,8 +6,11 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundExceptio
 import java.time.DayOfWeek
 
 @Service
-@Transactional(readOnly = true)
-class VisitSlotsService(private val visitTimeSlotMappingRepository: VisitTimeSlotMappingRepository) {
+@Transactional
+class VisitSlotsService(
+  private val visitTimeSlotMappingRepository: VisitTimeSlotMappingRepository,
+  private val visitSlotMappingRepository: VisitSlotMappingRepository,
+) {
   suspend fun getVisitTimeSlotMappingByNomisId(nomisPrisonId: String, nomisDayOfWeek: DayOfWeek, nomisSlotSequence: Int) = visitTimeSlotMappingRepository.findOneByNomisPrisonIdAndNomisDayOfWeekAndNomisSlotSequence(
     nomisPrisonId = nomisPrisonId,
     nomisDayOfWeek = nomisDayOfWeek,
@@ -15,6 +18,37 @@ class VisitSlotsService(private val visitTimeSlotMappingRepository: VisitTimeSlo
   )
     ?.toDto()
     ?: throw NotFoundException("No visit slot mapping found for nomisPrisonId=$nomisPrisonId,nomisDayOfWeek=$nomisDayOfWeek,nomisSlotSequence=$nomisSlotSequence")
+
+  suspend fun getVisitTimeSlotMappingByDpsIdOrNull(dpsId: String) = visitTimeSlotMappingRepository.findOneByDpsId(dpsId)
+    ?.toDto()
+
+  suspend fun createMappings(mappings: VisitTimeSlotMigrationMappingDto) {
+    with(mappings) {
+      visitTimeSlotMappingRepository.save(
+        VisitTimeSlotMapping(
+          dpsId = dpsId,
+          nomisPrisonId = nomisPrisonId,
+          nomisDayOfWeek = nomisDayOfWeek,
+          nomisSlotSequence = nomisSlotSequence,
+          label = label,
+          mappingType = mappingType,
+          whenCreated = whenCreated,
+        ),
+      )
+
+      visitSlots.forEach {
+        visitSlotMappingRepository.save(
+          VisitSlotMapping(
+            dpsId = it.dpsId,
+            nomisId = it.nomisId,
+            label = label,
+            mappingType = mappingType,
+            whenCreated = whenCreated,
+          ),
+        )
+      }
+    }
+  }
 }
 
 private fun VisitTimeSlotMapping.toDto() = VisitTimeSlotMappingDto(
