@@ -4,13 +4,23 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import jakarta.validation.Valid
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.dao.DuplicateKeyException
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingErrorResponse
+import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingException
 import uk.gov.justice.digital.hmpps.nomismappingservice.jpa.StandardMappingType
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.time.DayOfWeek
@@ -21,6 +31,10 @@ import java.time.LocalDateTime
 @PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/visit-slots", produces = [MediaType.APPLICATION_JSON_VALUE])
 class VisitSlotsResource(private val visitSlotsService: VisitSlotsService) {
+  private companion object {
+    val log: Logger = LoggerFactory.getLogger(this::class.java)
+  }
+
   @GetMapping("/time-slots/nomis-prison-id/{nomisPrisonId}/nomis-day-of-week/{nomisDayOfWeek}/nomis-slot-sequence/{nomisSlotSequence}")
   @Operation(
     summary = "Get visit time slot mapping by nomis prison id, day of week and sequence",
@@ -67,6 +81,68 @@ class VisitSlotsResource(private val visitSlotsService: VisitSlotsService) {
     nomisDayOfWeek = nomisDayOfWeek,
     nomisSlotSequence = nomisSlotSequence,
   )
+
+  @PostMapping
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates a mini tree of visit time slots mappings typically for a migration",
+    description = "Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitTimeSlotMigrationMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mappings created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createMigrationMappings(
+    @RequestBody @Valid
+    mappings: VisitTimeSlotMigrationMappingDto,
+  ) = try {
+    visitSlotsService.createMappings(mappings)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingVisitTimeSlotMappingSimilarTo(mappings)
+    if (existingMapping == null) {
+      log.error("Child duplicate key found for time slot even though the time slot has never been migrated", e)
+    }
+    throw DuplicateMappingException(
+      messageIn = "Visit time slot mapping already exists",
+      duplicate = mappings.asVisitTimeSlotMappingDto(),
+      existing = existingMapping ?: mappings.asVisitTimeSlotMappingDto(),
+      cause = e,
+    )
+  }
+
+  private suspend fun getExistingVisitTimeSlotMappingSimilarTo(mapping: VisitTimeSlotMigrationMappingDto) = runCatching {
+    visitSlotsService.getVisitTimeSlotMappingByNomisId(
+      nomisPrisonId = mapping.nomisPrisonId,
+      nomisDayOfWeek = mapping.nomisDayOfWeek,
+      nomisSlotSequence = mapping.nomisSlotSequence,
+    )
+  }.getOrElse {
+    visitSlotsService.getVisitTimeSlotMappingByDpsIdOrNull(
+      dpsId = mapping.dpsId,
+    )
+  }
 }
 
 data class VisitTimeSlotMappingDto(
@@ -77,4 +153,30 @@ data class VisitTimeSlotMappingDto(
   val label: String?,
   val mappingType: StandardMappingType,
   val whenCreated: LocalDateTime?,
+)
+
+data class VisitTimeSlotMigrationMappingDto(
+  val dpsId: String,
+  val nomisPrisonId: String,
+  val nomisDayOfWeek: DayOfWeek,
+  val nomisSlotSequence: Int,
+  val visitSlots: List<VisitSlotMigrationMappingDto>,
+  val label: String?,
+  val mappingType: StandardMappingType = StandardMappingType.MIGRATED,
+  val whenCreated: LocalDateTime? = null,
+)
+
+data class VisitSlotMigrationMappingDto(
+  val dpsId: String,
+  val nomisId: Long,
+)
+
+private fun VisitTimeSlotMigrationMappingDto.asVisitTimeSlotMappingDto() = VisitTimeSlotMappingDto(
+  dpsId = this.dpsId,
+  nomisPrisonId = this.nomisPrisonId,
+  nomisDayOfWeek = this.nomisDayOfWeek,
+  nomisSlotSequence = this.nomisSlotSequence,
+  label = this.label,
+  mappingType = this.mappingType,
+  whenCreated = this.whenCreated,
 )
