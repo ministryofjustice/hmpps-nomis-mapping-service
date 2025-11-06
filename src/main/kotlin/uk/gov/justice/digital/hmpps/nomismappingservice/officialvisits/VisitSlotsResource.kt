@@ -26,7 +26,6 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingE
 import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingException
 import uk.gov.justice.digital.hmpps.nomismappingservice.jpa.StandardMappingType
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
-import java.time.DayOfWeek
 import java.time.LocalDateTime
 
 @RestController
@@ -75,7 +74,7 @@ class VisitSlotsResource(private val visitSlotsService: VisitSlotsService) {
     nomisPrisonId: String,
     @Schema(description = "NOMIS day of the week", example = "MONDAY", required = true)
     @PathVariable
-    nomisDayOfWeek: DayOfWeek,
+    nomisDayOfWeek: String,
     @Schema(description = "NOMIS slot sequence", example = "4", required = true)
     @PathVariable
     nomisSlotSequence: Int,
@@ -179,7 +178,7 @@ class VisitSlotsResource(private val visitSlotsService: VisitSlotsService) {
 data class VisitTimeSlotMappingDto(
   val dpsId: String,
   val nomisPrisonId: String,
-  val nomisDayOfWeek: DayOfWeek,
+  val nomisDayOfWeek: String,
   val nomisSlotSequence: Int,
   val label: String?,
   val mappingType: StandardMappingType,
@@ -189,7 +188,7 @@ data class VisitTimeSlotMappingDto(
 data class VisitTimeSlotMigrationMappingDto(
   val dpsId: String,
   val nomisPrisonId: String,
-  val nomisDayOfWeek: DayOfWeek,
+  val nomisDayOfWeek: String,
   val nomisSlotSequence: Int,
   val visitSlots: List<VisitSlotMigrationMappingDto>,
   val label: String?,
