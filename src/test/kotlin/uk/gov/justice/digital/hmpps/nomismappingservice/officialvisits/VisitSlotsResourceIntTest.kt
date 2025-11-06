@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestDuplicateErro
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.isDuplicateMapping
 import uk.gov.justice.digital.hmpps.nomismappingservice.jpa.StandardMappingType
-import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
@@ -38,7 +37,7 @@ class VisitSlotsResourceIntTest : IntegrationTestBase() {
   @DisplayName("GET /mapping/visit-slots/time-slots/nomis-prison-id/{nomisPrisonId}/nomis-day-of-week/{nomisDayOfWeek}/nomis-slot-sequence/{nomisSlotSequence}")
   inner class GetVisitTimeSlotMappingByNomisIds {
     val nomisPrisonId = "WWI"
-    val nomisDayOfWeek = DayOfWeek.MONDAY
+    val nomisDayOfWeek = "MON"
     val nomisSlotSequence = 2
     val dpsId = "123456789"
 
@@ -89,15 +88,6 @@ class VisitSlotsResourceIntTest : IntegrationTestBase() {
     @Nested
     inner class Validation {
       @Test
-      fun `400 error when invalid day of week supplied`() {
-        webTestClient.get()
-          .uri("/mapping/visit-slots/time-slots/nomis-prison-id/$nomisPrisonId/nomis-day-of-week/AUGUST/nomis-slot-sequence/$nomisSlotSequence")
-          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isBadRequest
-      }
-
-      @Test
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/visit-slots/time-slots/nomis-prison-id/$nomisPrisonId/nomis-day-of-week/$nomisDayOfWeek/nomis-slot-sequence/99")
@@ -119,7 +109,7 @@ class VisitSlotsResourceIntTest : IntegrationTestBase() {
           .expectBody()
           .jsonPath("dpsId").isEqualTo(dpsId)
           .jsonPath("nomisPrisonId").isEqualTo(nomisPrisonId)
-          .jsonPath("nomisDayOfWeek").isEqualTo("MONDAY")
+          .jsonPath("nomisDayOfWeek").isEqualTo("MON")
           .jsonPath("nomisSlotSequence").isEqualTo(nomisSlotSequence)
           .jsonPath("label").isEqualTo("2020-01-01T10:00")
           .jsonPath("mappingType").isEqualTo("MIGRATED")
@@ -131,7 +121,7 @@ class VisitSlotsResourceIntTest : IntegrationTestBase() {
   @DisplayName("POST /mapping/visit-slots")
   inner class CreateMigrationMappings {
     val nomisPrisonId = "WWI"
-    val nomisDayOfWeek = DayOfWeek.MONDAY
+    val nomisDayOfWeek = "MON"
     val nomisSlotSequence = 2
     val dpsId = "123456789"
 
@@ -250,12 +240,12 @@ class VisitSlotsResourceIntTest : IntegrationTestBase() {
           assertThat(this.moreInfo.existing)
             .containsEntry("nomisPrisonId", existingMapping.nomisPrisonId)
             .containsEntry("nomisSlotSequence", existingMapping.nomisSlotSequence)
-            .containsEntry("nomisDayOfWeek", existingMapping.nomisDayOfWeek.toString())
+            .containsEntry("nomisDayOfWeek", existingMapping.nomisDayOfWeek)
             .containsEntry("dpsId", existingMapping.dpsId)
           assertThat(this.moreInfo.duplicate)
             .containsEntry("nomisPrisonId", existingMapping.nomisPrisonId)
             .containsEntry("nomisSlotSequence", existingMapping.nomisSlotSequence)
-            .containsEntry("nomisDayOfWeek", existingMapping.nomisDayOfWeek.toString())
+            .containsEntry("nomisDayOfWeek", existingMapping.nomisDayOfWeek)
             .containsEntry("dpsId", "96969")
         }
       }
@@ -338,7 +328,7 @@ class VisitSlotsResourceIntTest : IntegrationTestBase() {
   @Nested
   inner class GetVisitTimeSlotMappingsByMigrationId {
     val nomisPrisonId = "WWI"
-    val nomisDayOfWeek = DayOfWeek.MONDAY
+    val nomisDayOfWeek = "MON"
 
     @Nested
     inner class Security {
