@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.movements
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -661,6 +662,9 @@ class TemporaryAbsenceResource(
   ) = service.findScheduledMovementsByNomisAddressId(nomisAddressId, fromDate!!)
 }
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Synchronisation mappings affected by a change of address")
 data class FindScheduledMovementsForAddressResponse(
+  @Schema(description = "All sync mappings related to the passed NOMIS address ID. Note historical sync mappings are not included.")
   val scheduleMappings: List<ScheduledMovementSyncMappingDto>,
 )
