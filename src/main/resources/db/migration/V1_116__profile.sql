@@ -1,4 +1,4 @@
-drop table if exists temporary_absence_movement_mapping;
+drop table if exists profile_mapping;
 
 create table profile_mapping
 (
