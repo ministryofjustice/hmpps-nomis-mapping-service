@@ -784,7 +784,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
             nomisProfileType = "IMM",
             nomisPrisonNumber = "A1234BC",
             mappingType = CorePersonMappingType.CPR_CREATED,
-          )
+          ),
         ),
       )
       webTestClient.post()

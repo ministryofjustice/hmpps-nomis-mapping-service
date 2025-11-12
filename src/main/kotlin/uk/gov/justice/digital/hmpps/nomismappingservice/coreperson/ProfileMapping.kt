@@ -41,4 +41,3 @@ data class ProfileMapping(
 
   override fun getId(): UUID = cprId
 }
-

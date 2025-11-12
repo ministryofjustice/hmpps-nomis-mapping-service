@@ -426,7 +426,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   suspend fun createProfileMapping(
     @RequestBody @Valid
     mapping: ProfileMappingIdDto,
-  )= try {
+  ) = try {
     service.createProfileMapping(mapping)
   } catch (e: DuplicateKeyException) {
     val existingMapping = getExistingProfileMappingSimilarTo(mapping)

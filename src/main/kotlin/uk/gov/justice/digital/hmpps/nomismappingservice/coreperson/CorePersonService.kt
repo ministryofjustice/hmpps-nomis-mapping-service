@@ -149,7 +149,7 @@ private inline fun <reified T : AbstractCorePersonMapping> CorePersonMappingsDto
 )
 
 private fun CorePersonMappingsDto.toMapping(mapping: ProfileMappingIdDto): ProfileMapping = ProfileMapping(
-  UUID.fromString( mapping.cprId),
+  UUID.fromString(mapping.cprId),
   mapping.nomisBookingId,
   mapping.nomisProfileType,
   this.personMapping.nomisPrisonNumber,
