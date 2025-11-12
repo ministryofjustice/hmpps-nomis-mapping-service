@@ -21,6 +21,8 @@ data class CorePersonMappingsDto(
   val phoneMappings: List<CorePersonPhoneMappingIdDto>,
   @Schema(description = "Core Person email mappings")
   val emailMappings: List<CorePersonSimpleMappingIdDto>,
+  @Schema(description = "Core Person profile mappings")
+  val profileMappings: List<ProfileMappingIdDto>,
   // TODO add more child mappings
 )
 
@@ -89,6 +91,33 @@ class CorePersonEmailAddressMappingDto(
   val cprId: String,
   @Schema(description = "NOMIS id")
   val nomisId: Long,
+  label: String?,
+  mappingType: CorePersonMappingType,
+  whenCreated: LocalDateTime?,
+) : AbstractCorePersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
+
+class ProfileMappingIdDto(
+  @Schema(description = "CPR profile id")
+  val cprId: String,
+  @Schema(description = "NOMIS booking id")
+  val nomisBookingId: Long,
+  @Schema(description = "NOMIS profile type")
+  val nomisProfileType: String,
+  @Schema(description = "NOMIS Prison number aka Offender number")
+  val nomisPrisonNumber: String,
+  @Schema(description = "Mapping type - currently defaulted to be NOMIS_CREATED")
+  val mappingType: CorePersonMappingType = CorePersonMappingType.NOMIS_CREATED,
+)
+
+class ProfileMappingDto(
+  @Schema(description = "CPR profile id")
+  val cprId: String,
+  @Schema(description = "NOMIS booking id")
+  val nomisBookingId: Long,
+  @Schema(description = "NOMIS profile type")
+  val nomisProfileType: String,
+  @Schema(description = "NOMIS Prison number aka Offender number")
+  val nomisPrisonNumber: String,
   label: String?,
   mappingType: CorePersonMappingType,
   whenCreated: LocalDateTime?,
