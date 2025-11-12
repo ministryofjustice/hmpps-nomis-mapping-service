@@ -34,12 +34,16 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var corePersonEmailAddressMappingRepository: CorePersonEmailAddressMappingRepository
 
+  @Autowired
+  private lateinit var profileMappingRepository: ProfileMappingRepository
+
   @AfterEach
   fun tearDown() = runTest {
     corePersonEmailAddressMappingRepository.deleteAll()
     corePersonPhoneMappingRepository.deleteAll()
     corePersonAddressMappingRepository.deleteAll()
     corePersonMappingRepository.deleteAll()
+    profileMappingRepository.deleteAll()
   }
 
   @Nested
@@ -59,6 +63,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         addressMappings = emptyList(),
         phoneMappings = emptyList(),
         emailMappings = emptyList(),
+        profileMappings = emptyList(),
       )
 
       @Test
@@ -109,6 +114,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         addressMappings = emptyList(),
         phoneMappings = emptyList(),
         emailMappings = emptyList(),
+        profileMappings = emptyList(),
       )
 
       @BeforeEach
@@ -187,6 +193,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         addressMappings = emptyList(),
         phoneMappings = emptyList(),
         emailMappings = emptyList(),
+        profileMappings = emptyList(),
       )
 
       @Test
@@ -770,6 +777,15 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
             nomisId = 12345L,
           ),
         ),
+        profileMappings = listOf(
+          ProfileMappingIdDto(
+            cprId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+            nomisBookingId = 12345678L,
+            nomisProfileType = "IMM",
+            nomisPrisonNumber = "A1234BC",
+            mappingType = CorePersonMappingType.CPR_CREATED,
+          )
+        ),
       )
       webTestClient.post()
         .uri("/mapping/core-person/migrate")
@@ -818,6 +834,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         assertThat(corePersonPhoneMappingRepository.findAll().count()).isEqualTo(1)
         assertThat(corePersonAddressMappingRepository.findAll().count()).isEqualTo(1)
         assertThat(corePersonMappingRepository.findAll().count()).isEqualTo(1)
+        assertThat(profileMappingRepository.findAll().count()).isEqualTo(1)
 
         webTestClient.delete()
           .uri("/mapping/core-person")
@@ -830,6 +847,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         assertThat(corePersonMappingRepository.findAll().count()).isEqualTo(0)
         assertThat(corePersonAddressMappingRepository.findAll().count()).isEqualTo(0)
         assertThat(corePersonMappingRepository.findAll().count()).isEqualTo(0)
+        assertThat(profileMappingRepository.findAll().count()).isEqualTo(0)
       }
     }
   }
