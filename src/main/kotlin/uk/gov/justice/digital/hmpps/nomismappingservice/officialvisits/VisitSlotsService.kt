@@ -78,6 +78,11 @@ class VisitSlotsService(
       count.await(),
     )
   }
+
+  suspend fun deleteAllMappings() {
+    visitTimeSlotMappingRepository.deleteAll()
+    visitSlotMappingRepository.deleteAll()
+  }
 }
 
 private fun VisitTimeSlotMapping.toDto() = VisitTimeSlotMappingDto(
