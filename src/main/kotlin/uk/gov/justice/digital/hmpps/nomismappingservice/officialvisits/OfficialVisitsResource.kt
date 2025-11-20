@@ -33,12 +33,12 @@ import java.time.LocalDateTime
 @Validated
 @PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/official-visits", produces = [MediaType.APPLICATION_JSON_VALUE])
-class OfficialVisitsResource {
+class OfficialVisitsResource(private val officialVisitsService: OfficialVisitsService) {
   private companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
-  @GetMapping("/visit/{nomisVisitId}")
+  @GetMapping("/visit/nomis-id/{nomisVisitId}")
   @Operation(
     summary = "Gets visit mapping by nomis visit id",
     description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
@@ -68,7 +68,7 @@ class OfficialVisitsResource {
     @Schema(description = "NOMIS visit id", example = "123", required = true)
     @PathVariable
     nomisVisitId: Long,
-  ): OfficialVisitMappingDto = TODO()
+  ): OfficialVisitMappingDto = officialVisitsService.getOfficialVisitMappingByNomisId(nomisId = nomisVisitId)
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
@@ -106,7 +106,7 @@ class OfficialVisitsResource {
     @RequestBody @Valid
     mappings: OfficialVisitMigrationMappingDto,
   ): Unit = try {
-    TODO()
+    officialVisitsService.createMappings(mappings)
   } catch (e: DuplicateKeyException) {
     val existingMapping = getExistingVisitMappingSimilarTo(mappings)
     if (existingMapping == null) {
@@ -142,11 +142,11 @@ class OfficialVisitsResource {
     ],
   )
   suspend fun getOfficialVisitMappingsByMigrationId(
-    @Suppress("unused") @PageableDefault pageRequest: Pageable,
+    @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
     migrationId: String,
-  ): Page<OfficialVisitMappingDto> = TODO()
+  ): Page<OfficialVisitMappingDto> = officialVisitsService.getOfficialVisitMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
   @DeleteMapping("/all")
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -170,13 +170,12 @@ class OfficialVisitsResource {
       ),
     ],
   )
-  suspend fun deleteAllMappings(): Unit = TODO()
+  suspend fun deleteAllMappings(): Unit = officialVisitsService.deleteAllMappings()
 
-  @Suppress("RedundantNullableReturnType")
-  private suspend fun getExistingVisitMappingSimilarTo(@Suppress("unused") mapping: OfficialVisitMigrationMappingDto): OfficialVisitMappingDto? = runCatching {
-    TODO()
+  private suspend fun getExistingVisitMappingSimilarTo(mapping: OfficialVisitMigrationMappingDto): OfficialVisitMappingDto? = runCatching {
+    officialVisitsService.getOfficialVisitMappingByNomisId(nomisId = mapping.nomisId)
   }.getOrElse {
-    TODO()
+    officialVisitsService.getOfficialVisitMappingByDpsIdOrNull(dpsId = mapping.dpsId)
   }
 }
 
