@@ -22,7 +22,13 @@ class VisitSlotsService(
     nomisSlotSequence = nomisSlotSequence,
   )
     ?.toDto()
-    ?: throw NotFoundException("No visit slot mapping found for nomisPrisonId=$nomisPrisonId,nomisDayOfWeek=$nomisDayOfWeek,nomisSlotSequence=$nomisSlotSequence")
+    ?: throw NotFoundException("No visit time slot mapping found for nomisPrisonId=$nomisPrisonId,nomisDayOfWeek=$nomisDayOfWeek,nomisSlotSequence=$nomisSlotSequence")
+
+  suspend fun getVisitSlotMappingByNomisId(nomisId: Long) = visitSlotMappingRepository.findOneByNomisId(
+    nomisId = nomisId,
+  )
+    ?.toDto()
+    ?: throw NotFoundException("No visit slot mapping found for nomisVisitSlotId=$nomisId")
 
   suspend fun getVisitTimeSlotMappingByDpsIdOrNull(dpsId: String) = visitTimeSlotMappingRepository.findOneByDpsId(dpsId)
     ?.toDto()
@@ -90,6 +96,13 @@ private fun VisitTimeSlotMapping.toDto() = VisitTimeSlotMappingDto(
   nomisPrisonId = nomisPrisonId,
   nomisDayOfWeek = nomisDayOfWeek,
   nomisSlotSequence = nomisSlotSequence,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+private fun VisitSlotMapping.toDto() = VisitSlotMappingDto(
+  dpsId = dpsId,
+  nomisId = nomisId,
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,
