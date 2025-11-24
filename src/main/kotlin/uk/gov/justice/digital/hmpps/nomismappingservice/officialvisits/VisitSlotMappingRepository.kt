@@ -9,4 +9,8 @@ interface VisitSlotMappingRepository : CoroutineCrudRepository<VisitSlotMapping,
   suspend fun findOneByDpsId(
     dpsId: String,
   ): VisitSlotMapping?
+
+  suspend fun findOneByNomisId(
+    nomisId: Long,
+  ): VisitSlotMapping?
 }

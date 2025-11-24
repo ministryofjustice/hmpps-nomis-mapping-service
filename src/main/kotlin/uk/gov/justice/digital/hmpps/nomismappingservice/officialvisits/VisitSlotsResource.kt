@@ -85,6 +85,40 @@ class VisitSlotsResource(private val visitSlotsService: VisitSlotsService) {
     nomisSlotSequence = nomisSlotSequence,
   )
 
+  @GetMapping("/visit-slot/nomis-id/{nomisId}")
+  @Operation(
+    summary = "Get visit slot mapping by nomis visit slot id",
+    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping data",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getVisitSlotMappingByNomisId(
+    @Schema(description = "NOMIS visit slot id", example = "1234", required = true)
+    @PathVariable
+    nomisId: Long,
+  ): VisitSlotMappingDto = visitSlotsService.getVisitSlotMappingByNomisId(
+    nomisId = nomisId,
+  )
+
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -205,6 +239,14 @@ data class VisitTimeSlotMappingDto(
   val nomisPrisonId: String,
   val nomisDayOfWeek: String,
   val nomisSlotSequence: Int,
+  val label: String?,
+  val mappingType: StandardMappingType,
+  val whenCreated: LocalDateTime?,
+)
+
+data class VisitSlotMappingDto(
+  val dpsId: String,
+  val nomisId: Long,
   val label: String?,
   val mappingType: StandardMappingType,
   val whenCreated: LocalDateTime?,
