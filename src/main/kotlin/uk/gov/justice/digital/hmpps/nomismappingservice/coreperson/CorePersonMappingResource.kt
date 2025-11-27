@@ -470,6 +470,70 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     profileType: String,
   ): ProfileMappingDto = service.getProfileMappingByNomisId(bookingId, profileType)
 
+  @GetMapping("/belief/nomis-belief-id/{nomisBeliefId}")
+  @Operation(
+    summary = "Get a core person belief mapping by nomis belief Id",
+    description = "Retrieves the core person belief mapping by NOMIS Belief Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Core Person belief mapping data",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getBeliefMappingByNomisId(
+    @Schema(description = "NOMIS belief id", example = "12345", required = true)
+    @PathVariable
+    nomisBeliefId: Long,
+  ): CorePersonBeliefMappingDto = service.getBeliefMappingByNomisId(nomisId = nomisBeliefId)
+
+  @GetMapping("/belief/cpr-belief-id/{cprBeliefId}")
+  @Operation(
+    summary = "Get person belief mapping by cpr core person belief Id",
+    description = "Retrieves the person belief mapping by CPR Core Person Belief Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Person belief mapping data",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getBeliefMappingByCprId(
+    @Schema(description = "CPR belief id", example = "12345", required = true)
+    @PathVariable
+    cprBeliefId: String,
+  ): CorePersonBeliefMappingDto = service.getBeliefMappingByCprId(cprId = cprBeliefId)
+
   private suspend fun getExistingCorePersonMappingSimilarTo(personMapping: CorePersonMappingIdDto) = runCatching {
     service.getCorePersonMappingByNomisPrisonNumber(
       nomisPrisonNumber = personMapping.nomisPrisonNumber,
