@@ -64,6 +64,7 @@ class TemporaryAbsenceService(
               schedule.nomisAddressId,
               schedule.nomisAddressOwnerClass,
               schedule.dpsAddressText,
+              null,
               schedule.eventTime,
               mappings.migrationId,
               MovementMappingType.MIGRATED,
@@ -81,6 +82,7 @@ class TemporaryAbsenceService(
               movement.nomisAddressOwnerClass,
               movement.dpsAddressText,
               mappings.migrationId,
+              null,
               MovementMappingType.MIGRATED,
             ),
           )
@@ -97,6 +99,7 @@ class TemporaryAbsenceService(
             unscheduledMovement.nomisAddressOwnerClass,
             unscheduledMovement.dpsAddressText,
             mappings.migrationId,
+            null,
             MovementMappingType.MIGRATED,
           ),
         )
@@ -227,6 +230,7 @@ fun ScheduledMovementSyncMappingDto.toMapping(): TemporaryAbsenceScheduleMapping
   nomisAddressId,
   nomisAddressOwnerClass,
   dpsAddressText,
+  dpsUprn,
   eventTime,
   mappingType = mappingType,
 )
@@ -240,6 +244,7 @@ fun TemporaryAbsenceScheduleMapping.toMappingDto(): ScheduledMovementSyncMapping
   nomisAddressId,
   nomisAddressOwnerClass,
   dpsAddressText,
+  dpsUprn,
   eventTime,
 )
 
@@ -251,6 +256,7 @@ fun ExternalMovementSyncMappingDto.toMapping(): TemporaryAbsenceMovementMapping 
   nomisAddressId,
   nomisAddressOwnerClass,
   dpsAddressText,
+  dpsUprn = dpsUprn,
   mappingType = mappingType,
 )
 
@@ -263,4 +269,5 @@ fun TemporaryAbsenceMovementMapping.toMappingDto(): ExternalMovementSyncMappingD
   nomisAddressId,
   nomisAddressOwnerClass,
   dpsAddressText,
+  dpsUprn,
 )

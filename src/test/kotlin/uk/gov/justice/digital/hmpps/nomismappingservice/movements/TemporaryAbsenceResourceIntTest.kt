@@ -1229,6 +1229,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
 
@@ -1272,6 +1273,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
       val duplicateMappingDps = ScheduledMovementSyncMappingDto(
@@ -1283,6 +1285,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
       val duplicateMappingNomis = ScheduledMovementSyncMappingDto(
@@ -1294,6 +1297,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
 
@@ -1359,6 +1363,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
 
@@ -1423,6 +1428,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
 
@@ -1464,6 +1470,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
 
@@ -1485,6 +1492,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
 
@@ -1561,6 +1569,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
@@ -1607,6 +1616,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
 
@@ -1662,6 +1672,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
@@ -1708,6 +1719,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
 
@@ -1763,6 +1775,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
@@ -1774,6 +1787,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
@@ -1855,6 +1869,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
       )
 
       @Test
@@ -1897,6 +1912,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
       )
       val duplicateMappingDps = ExternalMovementSyncMappingDto(
         "B2345CD",
@@ -1907,6 +1923,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
       )
       val duplicateMappingNomis = ExternalMovementSyncMappingDto(
         "C3456DE",
@@ -1918,6 +1935,7 @@ class TemporaryAbsenceResourceIntTest(
         1,
         "A",
         "a",
+        77L,
       )
 
       @Test
@@ -1982,6 +2000,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
       )
 
       @Test
@@ -2045,6 +2064,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
       )
 
       @Test
@@ -2084,6 +2104,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
       )
 
       @Test
@@ -2104,6 +2125,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
       )
 
       @BeforeEach
@@ -2179,6 +2201,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        dpsUprn = 77L,
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
 
@@ -2266,6 +2289,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        dpsUprn = 77L,
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
 
@@ -2353,6 +2377,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        dpsUprn = 77L,
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
       val mapping2 = TemporaryAbsenceMovementMapping(
@@ -2363,6 +2388,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        dpsUprn = 77L,
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
 
@@ -2464,6 +2490,7 @@ class TemporaryAbsenceResourceIntTest(
       nomisAddressOwnerClass = "CORP",
       dpsAddressText = "some address",
       eventTime = eventTime,
+      dpsUprn = 77L,
       mappingType = MovementMappingType.NOMIS_CREATED,
     )
 
