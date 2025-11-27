@@ -26,6 +26,7 @@ class TemporaryAbsenceScheduleMappingRepositoryTest(
   private val addressId = 987654L
   private val addressOwnerClass = "CORP"
   private val dpsAddressText = "house, 1 street, town S1 1AA"
+  private val dpsUprn = 77L
   private val eventTime = LocalDateTime.now()
 
   @AfterEach
@@ -44,6 +45,7 @@ class TemporaryAbsenceScheduleMappingRepositoryTest(
         addressId,
         addressOwnerClass,
         dpsAddressText,
+        dpsUprn,
         eventTime,
         "some_label",
         MovementMappingType.MIGRATED,

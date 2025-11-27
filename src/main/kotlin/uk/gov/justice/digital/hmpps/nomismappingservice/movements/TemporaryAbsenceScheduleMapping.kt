@@ -24,6 +24,8 @@ data class TemporaryAbsenceScheduleMapping(
 
   var dpsAddressText: String,
 
+  var dpsUprn: Long?,
+
   var eventTime: LocalDateTime,
 
   /**
