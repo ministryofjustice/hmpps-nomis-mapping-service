@@ -14,6 +14,7 @@ class TemporaryAbsenceService(
   private val scheduleRepository: TemporaryAbsenceScheduleRepository,
   private val movementRepository: TemporaryAbsenceMovementRepository,
   private val migrationRepository: TemporaryAbsenceMigrationRepository,
+  private val addressRepository: TemporaryAbsenceAddressRepository,
 ) {
 
   @Transactional
@@ -70,6 +71,9 @@ class TemporaryAbsenceService(
               MovementMappingType.MIGRATED,
             ),
           )
+          if (schedule.nomisAddressOwnerClass != null && schedule.nomisAddressId != null) {
+            upsertMigrationAddressMapping(schedule.nomisAddressOwnerClass, schedule.nomisAddressId, mappings.prisonerNumber, schedule.dpsAddressText)
+          }
         }
         application.movements.forEach { movement ->
           movementRepository.save(
@@ -86,6 +90,9 @@ class TemporaryAbsenceService(
               MovementMappingType.MIGRATED,
             ),
           )
+          if (movement.nomisAddressOwnerClass != null && movement.nomisAddressId != null) {
+            upsertMigrationAddressMapping(movement.nomisAddressOwnerClass, movement.nomisAddressId, mappings.prisonerNumber, movement.dpsAddressText)
+          }
         }
       }
       booking.unscheduledMovements.forEach { unscheduledMovement ->
@@ -103,8 +110,29 @@ class TemporaryAbsenceService(
             MovementMappingType.MIGRATED,
           ),
         )
+        if (unscheduledMovement.nomisAddressOwnerClass != null && unscheduledMovement.nomisAddressId != null) {
+          upsertMigrationAddressMapping(unscheduledMovement.nomisAddressOwnerClass, unscheduledMovement.nomisAddressId, mappings.prisonerNumber, unscheduledMovement.dpsAddressText)
+        }
       }
     }
+  }
+
+  @Transactional
+  suspend fun upsertMigrationAddressMapping(nomisOwnerClass: String, nomisAddressId: Long, nomisOffenderNo: String, dpsAddressText: String) {
+    val offenderNo = if (nomisOwnerClass == "OFF") nomisOffenderNo else null
+    addressRepository.findByNomisAddressIdAndNomisAddressOwnerClassAndNomisOffenderNo(nomisAddressId, nomisOwnerClass, offenderNo)
+      ?.also {
+        it.dpsAddressText = dpsAddressText
+        addressRepository.save(it)
+      }
+      ?: addressRepository.save(
+        TemporaryAbsenceAddressMapping(
+          nomisAddressId = nomisAddressId,
+          nomisAddressOwnerClass = nomisOwnerClass,
+          nomisOffenderNo = offenderNo,
+          dpsAddressText = dpsAddressText,
+        ),
+      )
   }
 
   @Transactional
