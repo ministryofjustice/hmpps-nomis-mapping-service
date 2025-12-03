@@ -692,8 +692,43 @@ class TemporaryAbsenceResource(
       ),
     ],
   )
-  suspend fun findAddress(
+  suspend fun findAddressByDpsId(
     @RequestBody request: FindTemporaryAbsenceAddressByDpsIdRequest,
+  ) = service.findAddress(request)
+
+  @PostMapping("/addresses/by-nomis-id")
+  @Operation(
+    summary = "Finds a DPS address matching the NOMIS address details",
+    description = "Check for an existing mapping of NOMIS address to DPS address. For address owner class OFF this must be an offender address, otherwise it's an address matching the address owner class. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = FindTemporaryAbsenceAddressByNomisIdRequest::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "200", description = "An address was returned"),
+      ApiResponse(
+        responseCode = "400",
+        description = "The request is invalid",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "An address could not be found.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun findAddressByNomisId(
+    @RequestBody request: FindTemporaryAbsenceAddressByNomisIdRequest,
   ) = service.findAddress(request)
 }
 
@@ -718,6 +753,19 @@ data class FindTemporaryAbsenceAddressByDpsIdRequest(
 
   @Schema(description = "The DPS address text")
   val dpsAddressText: String,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Find a DPS address from the NOMIS address details")
+data class FindTemporaryAbsenceAddressByNomisIdRequest(
+  @Schema(description = "Offender Number")
+  val offenderNo: String,
+
+  @Schema(description = "Address owner class")
+  val ownerClass: String,
+
+  @Schema(description = "The unique NOMIS address id")
+  val nomisAddressId: Long,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

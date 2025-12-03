@@ -225,6 +225,15 @@ class TemporaryAbsenceService(
       ?.toMappingDto()
       ?: throw NotFoundException("No address found for address owner class $ownerClass and offender $offenderNo with dpsUprn $dpsUprn and dpsAddressText $dpsAddressText")
   }
+
+  suspend fun findAddress(request: FindTemporaryAbsenceAddressByNomisIdRequest): TemporaryAbsenceAddressMappingResponse = with(request) {
+    when (ownerClass) {
+      "OFF" -> addressRepository.findByNomisOffenderNoAndNomisAddressId(offenderNo, nomisAddressId)
+      else -> addressRepository.findByNomisAddressOwnerClassAndNomisAddressId(ownerClass, nomisAddressId)
+    }
+      ?.toMappingDto()
+      ?: throw NotFoundException("No address found for address owner class $ownerClass and offender $offenderNo with nomisAddressId $nomisAddressId")
+  }
 }
 
 fun TemporaryAbsenceApplicationSyncMappingDto.toMapping(): TemporaryAbsenceApplicationMapping = TemporaryAbsenceApplicationMapping(
