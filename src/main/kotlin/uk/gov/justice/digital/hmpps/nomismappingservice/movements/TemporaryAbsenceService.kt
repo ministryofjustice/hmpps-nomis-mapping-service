@@ -216,6 +216,15 @@ class TemporaryAbsenceService(
     .findByNomisAddressIdAndEventTimeIsGreaterThanEqual(nomisAddressId, fromDate.atStartOfDay())
     .map { it.toMappingDto() }
     .let { FindScheduledMovementsForAddressResponse(it) }
+
+  suspend fun findAddress(request: FindTemporaryAbsenceAddressByDpsIdRequest): TemporaryAbsenceAddressMappingResponse = with(request) {
+    when (ownerClass) {
+      "OFF" -> addressRepository.findByNomisOffenderNoAndDpsUprnAndDpsAddressText(offenderNo, dpsUprn, dpsAddressText)
+      else -> addressRepository.findByNomisAddressOwnerClassAndDpsUprnAndDpsAddressText(ownerClass, dpsUprn, dpsAddressText)
+    }
+      ?.toMappingDto()
+      ?: throw NotFoundException("No address found for address owner class $ownerClass and offender $offenderNo with dpsUprn $dpsUprn and dpsAddressText $dpsAddressText")
+  }
 }
 
 fun TemporaryAbsenceApplicationSyncMappingDto.toMapping(): TemporaryAbsenceApplicationMapping = TemporaryAbsenceApplicationMapping(
@@ -298,4 +307,12 @@ fun TemporaryAbsenceMovementMapping.toMappingDto(): ExternalMovementSyncMappingD
   nomisAddressOwnerClass,
   dpsAddressText,
   dpsUprn,
+)
+
+fun TemporaryAbsenceAddressMapping.toMappingDto() = TemporaryAbsenceAddressMappingResponse(
+  nomisOffenderNo,
+  nomisAddressOwnerClass,
+  nomisAddressId,
+  dpsUprn,
+  dpsAddressText,
 )

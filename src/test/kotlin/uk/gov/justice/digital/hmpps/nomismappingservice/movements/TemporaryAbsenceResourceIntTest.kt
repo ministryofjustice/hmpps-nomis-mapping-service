@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.integration.isDuplicateM
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import java.util.*
+import java.util.UUID
 
 class TemporaryAbsenceResourceIntTest(
   @Autowired private val applicationRepository: TemporaryAbsenceApplicationRepository,
@@ -2702,4 +2702,153 @@ class TemporaryAbsenceResourceIntTest(
       .expectBody<FindScheduledMovementsForAddressResponse>()
       .returnResult().responseBody!!
   }
+
+  @Nested
+  @DisplayName("POST /mapping/temporary-absence/addresses/by-dps-id")
+  inner class FindAddressByDpsId {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      addressRepository.deleteAll()
+    }
+
+    @Test
+    fun `should find address by owner class and uprn`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", 456L, "dps address text"))
+
+      webTestClient.findAddressOk("CORP", "ANY", 456L, "dps address text")
+        .apply {
+          assertThat(ownerClass).isEqualTo("CORP")
+          assertThat(addressId).isEqualTo(123L)
+        }
+    }
+
+    @Test
+    fun `should find address by owner class and address text`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", null, "dps address text"))
+
+      webTestClient.findAddressOk("CORP", "ANY", null, "dps address text")
+        .apply {
+          assertThat(ownerClass).isEqualTo("CORP")
+          assertThat(addressId).isEqualTo(123L)
+        }
+    }
+
+    @Test
+    fun `should find offender address by offender and uprn`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", 456L, "dps address text"))
+
+      webTestClient.findAddressOk("OFF", "A1234BC", 456L, "dps address text")
+        .apply {
+          assertThat(ownerClass).isEqualTo("OFF")
+          assertThat(addressId).isEqualTo(123L)
+        }
+    }
+
+    @Test
+    fun `should find offender address by offender and address text`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", null, "dps address text"))
+
+      webTestClient.findAddressOk("OFF", "A1234BC", null, "dps address text")
+        .apply {
+          assertThat(ownerClass).isEqualTo("OFF")
+          assertThat(addressId).isEqualTo(123L)
+        }
+    }
+
+    @Test
+    fun `should return not found if offender address does not exist for uprn`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", 456L, "dps address text"))
+
+      webTestClient.findAddress("OFF", "A1234BC", 999L, "dps address text")
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `should return not found if address does not exist for uprn`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", 456L, "dps address text"))
+
+      webTestClient.findAddress("CORP", "ANY", 999L, "dps address text")
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `should return not found if offfender address does not exist for address text`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", null, "dps address text"))
+
+      webTestClient.findAddress("OFF", "A1234BC", null, "wrong text")
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `should return not found if address does not exist for address text`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", null, "dps address text"))
+
+      webTestClient.findAddress("CORP", "ANY", null, "wrong text")
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `should return bad request`() = runTest {
+      webTestClient.post()
+        .uri("/mapping/temporary-absence/addresses/by-dps-id")
+        .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue("{}")
+        .exchange()
+        .expectStatus().isBadRequest
+    }
+
+    @Test
+    fun `access not authorised when no authority`() = runTest {
+      webTestClient.post()
+        .uri("/mapping/temporary-absence/addresses/by-dps-id")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(FindTemporaryAbsenceAddressByDpsIdRequest("any", "any", 1, "any")))
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() = runTest {
+      webTestClient.post()
+        .uri("/mapping/temporary-absence/addresses/by-dps-id")
+        .headers(setAuthorisation(roles = listOf()))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(FindTemporaryAbsenceAddressByDpsIdRequest("any", "any", 1, "any")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden when wrong role`() = runTest {
+      webTestClient.post()
+        .uri("/mapping/temporary-absence/addresses/by-dps-id")
+        .headers(setAuthorisation(roles = listOf("BANANAS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(FindTemporaryAbsenceAddressByDpsIdRequest("any", "any", 1, "any")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+  }
+
+  private fun anAddressMapping(offenderNo: String, addressId: Long, ownerClass: String, dpsUprn: Long?, dpsAddressText: String) = TemporaryAbsenceAddressMapping(
+    nomisAddressId = addressId,
+    nomisAddressOwnerClass = ownerClass,
+    nomisOffenderNo = offenderNo,
+    dpsAddressText = dpsAddressText,
+    dpsUprn = dpsUprn,
+  )
+
+  private fun WebTestClient.findAddressOk(ownerClass: String, offenderNo: String, dpsUprn: Long?, dpsAddressText: String) = findAddress(ownerClass, offenderNo, dpsUprn, dpsAddressText)
+    .expectStatus().isOk
+    .expectBody<TemporaryAbsenceAddressMappingResponse>()
+    .returnResult().responseBody!!
+
+  private fun WebTestClient.findAddress(ownerClass: String, offenderNo: String, dpsUprn: Long?, dpsAddressText: String) = post()
+    .uri("/mapping/temporary-absence/addresses/by-dps-id")
+    .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+    .contentType(MediaType.APPLICATION_JSON)
+    .body(BodyInserters.fromValue(FindTemporaryAbsenceAddressByDpsIdRequest(offenderNo, ownerClass, dpsUprn, dpsAddressText)))
+    .exchange()
 }
