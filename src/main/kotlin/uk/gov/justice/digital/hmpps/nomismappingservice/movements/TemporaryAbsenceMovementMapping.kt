@@ -29,6 +29,8 @@ data class TemporaryAbsenceMovementMapping(
    */
   val label: String? = null,
 
+  var dpsUprn: Long?,
+
   val mappingType: MovementMappingType,
 
   @Transient

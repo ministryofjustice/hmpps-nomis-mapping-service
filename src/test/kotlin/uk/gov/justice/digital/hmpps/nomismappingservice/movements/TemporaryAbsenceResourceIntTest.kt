@@ -28,143 +28,150 @@ class TemporaryAbsenceResourceIntTest(
   @Autowired private val scheduleRepository: TemporaryAbsenceScheduleRepository,
   @Autowired private val movementRepository: TemporaryAbsenceMovementRepository,
   @Autowired private val migrationRepository: TemporaryAbsenceMigrationRepository,
+  @Autowired private val addressRepository: TemporaryAbsenceAddressRepository,
 ) : IntegrationTestBase() {
 
   @Nested
   @DisplayName("PUT /mapping/temporary-absence/migrate")
+  @Suppress("ktlint:standard:property-naming")
   inner class Migrate {
+
+    private val MIGRATION_ID = "2025-08-13T13:44:55"
+    private val NOMIS_OFFENDER_NO = "A1234BC"
+    private val NOMIS_BOOKING_ID = 1L
+    private val NOMIS_APPLICATION_ID = 2L
+    private val NOMIS_APPLICATION_MULTI_ID = 3L
+    private val NOMIS_SCHEDULED_OUT_EVENT_ID = 4L
+    private val NOMIS_SCHEDULED_IN_EVENT_ID = 5L
+    private val NOMIS_MOVEMENT_OUT_SEQ = 1
+    private val NOMIS_MOVEMENT_IN_SEQ = 2
+    private val NOMIS_UNSCHEDULED_MOVEMENT_OUT_SEQ = 3
+    private val NOMIS_UNSCHEDULED_MOVEMENT_IN_SEQ = 4
+    private val NOMIS_ADDESS_ID = 6L
+    private val NOMIS_ADDRESS_OWNER_CLASS = "CORP"
+    private val DPS_ADDRESS_TEXT = "some address"
+    private val EVENT_TIME = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS)
+    private val DPS_APPLICATION_ID = UUID.randomUUID()
+    private val DPS_OUTSIDE_MOVEMENT_ID = UUID.randomUUID()
+    private val DPS_SCHEDULED_OUT_ID = UUID.randomUUID()
+    private val DPS_SCHEDULED_IN_ID = UUID.randomUUID()
+    private val DPS_MOVEMENT_OUT_ID = UUID.randomUUID()
+    private val DPS_MOVEMENT_IN_ID = UUID.randomUUID()
+    private val DPS_UNSCHEDULED_MOVEMENT_OUT_ID = UUID.randomUUID()
+    private val DPS_UNSCHEDULED_MOVEMENT_IN_ID = UUID.randomUUID()
+
+    @AfterEach
+    fun clearDatabase() = runTest {
+      movementRepository.deleteAll()
+      scheduleRepository.deleteAll()
+      appMultiRepository.deleteAll()
+      applicationRepository.deleteAll()
+      addressRepository.deleteAll()
+    }
+
+    fun saveMappings(mappings: TemporaryAbsencesPrisonerMappingDto = mappingsRequest()) {
+      webTestClient.put()
+        .uri("/mapping/temporary-absence/migrate")
+        .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(mappings))
+        .exchange()
+        .expectStatus().isCreated
+    }
+
+    fun mappingsRequest(
+      dpsApplicationId: UUID = DPS_APPLICATION_ID,
+      dpsOutsideMovementId: UUID = DPS_OUTSIDE_MOVEMENT_ID,
+      dpsScheduledOutId: UUID = DPS_SCHEDULED_OUT_ID,
+      dpsScheduledInId: UUID = DPS_SCHEDULED_IN_ID,
+      dpsMovementOutId: UUID = DPS_MOVEMENT_OUT_ID,
+      dpsMovementInId: UUID = DPS_MOVEMENT_IN_ID,
+      dpsUnscheduledMovementOutId: UUID = DPS_UNSCHEDULED_MOVEMENT_OUT_ID,
+      dpsUnscheduledMovementInId: UUID = DPS_UNSCHEDULED_MOVEMENT_IN_ID,
+      migrationId: String = MIGRATION_ID,
+      nomisAddressId: Long = NOMIS_ADDESS_ID,
+      nomisAddressOwnerClass: String = NOMIS_ADDRESS_OWNER_CLASS,
+      dpsAddressText: String = DPS_ADDRESS_TEXT,
+    ) = TemporaryAbsencesPrisonerMappingDto(
+      prisonerNumber = NOMIS_OFFENDER_NO,
+      migrationId = migrationId,
+      bookings = listOf(
+        TemporaryAbsenceBookingMappingDto(
+          bookingId = NOMIS_BOOKING_ID,
+          applications = listOf(
+            TemporaryAbsenceApplicationMappingDto(
+              nomisMovementApplicationId = NOMIS_APPLICATION_ID,
+              dpsMovementApplicationId = dpsApplicationId,
+              outsideMovements = listOf(
+                TemporaryAbsencesOutsideMovementMappingDto(
+                  nomisMovementApplicationMultiId = NOMIS_APPLICATION_MULTI_ID,
+                  dpsOutsideMovementId = dpsOutsideMovementId,
+                ),
+              ),
+              schedules = listOf(
+                ScheduledMovementMappingDto(
+                  nomisEventId = NOMIS_SCHEDULED_OUT_EVENT_ID,
+                  dpsOccurrenceId = dpsScheduledOutId,
+                  nomisAddressId = nomisAddressId,
+                  nomisAddressOwnerClass = nomisAddressOwnerClass,
+                  dpsAddressText = dpsAddressText,
+                  eventTime = EVENT_TIME,
+                ),
+                ScheduledMovementMappingDto(
+                  nomisEventId = NOMIS_SCHEDULED_IN_EVENT_ID,
+                  dpsOccurrenceId = dpsScheduledInId,
+                  nomisAddressId = null,
+                  nomisAddressOwnerClass = null,
+                  dpsAddressText = DPS_ADDRESS_TEXT,
+                  eventTime = EVENT_TIME,
+                ),
+              ),
+              movements = listOf(
+                ExternalMovementMappingDto(
+                  nomisMovementSeq = NOMIS_MOVEMENT_OUT_SEQ,
+                  dpsMovementId = dpsMovementOutId,
+                  nomisAddressId = nomisAddressId,
+                  nomisAddressOwnerClass = nomisAddressOwnerClass,
+                  dpsAddressText = dpsAddressText,
+                ),
+                ExternalMovementMappingDto(
+                  nomisMovementSeq = NOMIS_MOVEMENT_IN_SEQ,
+                  dpsMovementId = dpsMovementInId,
+                  nomisAddressId = null,
+                  nomisAddressOwnerClass = null,
+                  dpsAddressText = dpsAddressText,
+                ),
+              ),
+            ),
+          ),
+          unscheduledMovements = listOf(
+            ExternalMovementMappingDto(
+              nomisMovementSeq = NOMIS_UNSCHEDULED_MOVEMENT_OUT_SEQ,
+              dpsMovementId = dpsUnscheduledMovementOutId,
+              nomisAddressId = nomisAddressId,
+              nomisAddressOwnerClass = nomisAddressOwnerClass,
+              dpsAddressText = dpsAddressText,
+            ),
+            ExternalMovementMappingDto(
+              nomisMovementSeq = NOMIS_UNSCHEDULED_MOVEMENT_IN_SEQ,
+              dpsMovementId = dpsUnscheduledMovementInId,
+              nomisAddressId = null,
+              nomisAddressOwnerClass = null,
+              dpsAddressText = dpsAddressText,
+            ),
+          ),
+        ),
+      ),
+    )
 
     @Nested
     @Suppress("ktlint:standard:property-naming")
     inner class HappyPath {
-      private val MIGRATION_ID = "2025-08-13T13:44:55"
-      private val NOMIS_OFFENDER_NO = "A1234BC"
-      private val NOMIS_BOOKING_ID = 1L
-      private val NOMIS_APPLICATION_ID = 2L
-      private val NOMIS_APPLICATION_MULTI_ID = 3L
-      private val NOMIS_SCHEDULED_OUT_EVENT_ID = 4L
-      private val NOMIS_SCHEDULED_IN_EVENT_ID = 5L
-      private val NOMIS_MOVEMENT_OUT_SEQ = 1
-      private val NOMIS_MOVEMENT_IN_SEQ = 2
-      private val NOMIS_UNSCHEDULED_MOVEMENT_OUT_SEQ = 3
-      private val NOMIS_UNSCHEDULED_MOVEMENT_IN_SEQ = 4
-      private val NOMIS_ADDESS_ID = 6L
-      private val NOMIS_ADDRESS_OWNER_CLASS = "CORP"
-      private val DPS_ADDRESS_TEXT = "some address"
-      private val EVENT_TIME = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS)
-      private val DPS_APPLICATION_ID = UUID.randomUUID()
-      private val DPS_OUTSIDE_MOVEMENT_ID = UUID.randomUUID()
-      private val DPS_SCHEDULED_OUT_ID = UUID.randomUUID()
-      private val DPS_SCHEDULED_IN_ID = UUID.randomUUID()
-      private val DPS_MOVEMENT_OUT_ID = UUID.randomUUID()
-      private val DPS_MOVEMENT_IN_ID = UUID.randomUUID()
-      private val DPS_UNSCHEDULED_MOVEMENT_OUT_ID = UUID.randomUUID()
-      private val DPS_UNSCHEDULED_MOVEMENT_IN_ID = UUID.randomUUID()
-
-      @AfterEach
-      fun clearDatabase() = runTest {
-        movementRepository.deleteAll()
-        scheduleRepository.deleteAll()
-        appMultiRepository.deleteAll()
-        applicationRepository.deleteAll()
-      }
 
       @BeforeEach
       fun setUp() {
         saveMappings()
       }
-
-      fun saveMappings(mappings: TemporaryAbsencesPrisonerMappingDto = mappingsRequest()) {
-        webTestClient.put()
-          .uri("/mapping/temporary-absence/migrate")
-          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(mappings))
-          .exchange()
-          .expectStatus().isCreated
-      }
-
-      fun mappingsRequest(
-        dpsApplicationId: UUID = DPS_APPLICATION_ID,
-        dpsOutsideMovementId: UUID = DPS_OUTSIDE_MOVEMENT_ID,
-        dpsScheduledOutId: UUID = DPS_SCHEDULED_OUT_ID,
-        dpsScheduledInId: UUID = DPS_SCHEDULED_IN_ID,
-        dpsMovementOutId: UUID = DPS_MOVEMENT_OUT_ID,
-        dpsMovementInId: UUID = DPS_MOVEMENT_IN_ID,
-        dpsUnscheduledMovementOutId: UUID = DPS_UNSCHEDULED_MOVEMENT_OUT_ID,
-        dpsUnscheduledMovementInId: UUID = DPS_UNSCHEDULED_MOVEMENT_IN_ID,
-        migrationId: String = MIGRATION_ID,
-      ) = TemporaryAbsencesPrisonerMappingDto(
-        prisonerNumber = NOMIS_OFFENDER_NO,
-        migrationId = migrationId,
-        bookings = listOf(
-          TemporaryAbsenceBookingMappingDto(
-            bookingId = NOMIS_BOOKING_ID,
-            applications = listOf(
-              TemporaryAbsenceApplicationMappingDto(
-                nomisMovementApplicationId = NOMIS_APPLICATION_ID,
-                dpsMovementApplicationId = dpsApplicationId,
-                outsideMovements = listOf(
-                  TemporaryAbsencesOutsideMovementMappingDto(
-                    nomisMovementApplicationMultiId = NOMIS_APPLICATION_MULTI_ID,
-                    dpsOutsideMovementId = dpsOutsideMovementId,
-                  ),
-                ),
-                schedules = listOf(
-                  ScheduledMovementMappingDto(
-                    nomisEventId = NOMIS_SCHEDULED_OUT_EVENT_ID,
-                    dpsOccurrenceId = dpsScheduledOutId,
-                    nomisAddressId = NOMIS_ADDESS_ID,
-                    nomisAddressOwnerClass = NOMIS_ADDRESS_OWNER_CLASS,
-                    dpsAddressText = DPS_ADDRESS_TEXT,
-                    eventTime = EVENT_TIME,
-                  ),
-                  ScheduledMovementMappingDto(
-                    nomisEventId = NOMIS_SCHEDULED_IN_EVENT_ID,
-                    dpsOccurrenceId = dpsScheduledInId,
-                    nomisAddressId = null,
-                    nomisAddressOwnerClass = null,
-                    dpsAddressText = DPS_ADDRESS_TEXT,
-                    eventTime = EVENT_TIME,
-                  ),
-                ),
-                movements = listOf(
-                  ExternalMovementMappingDto(
-                    nomisMovementSeq = NOMIS_MOVEMENT_OUT_SEQ,
-                    dpsMovementId = dpsMovementOutId,
-                    nomisAddressId = NOMIS_ADDESS_ID,
-                    nomisAddressOwnerClass = NOMIS_ADDRESS_OWNER_CLASS,
-                    dpsAddressText = DPS_ADDRESS_TEXT,
-                  ),
-                  ExternalMovementMappingDto(
-                    nomisMovementSeq = NOMIS_MOVEMENT_IN_SEQ,
-                    dpsMovementId = dpsMovementInId,
-                    nomisAddressId = null,
-                    nomisAddressOwnerClass = null,
-                    dpsAddressText = DPS_ADDRESS_TEXT,
-                  ),
-                ),
-              ),
-            ),
-            unscheduledMovements = listOf(
-              ExternalMovementMappingDto(
-                nomisMovementSeq = NOMIS_UNSCHEDULED_MOVEMENT_OUT_SEQ,
-                dpsMovementId = dpsUnscheduledMovementOutId,
-                nomisAddressId = NOMIS_ADDESS_ID,
-                nomisAddressOwnerClass = NOMIS_ADDRESS_OWNER_CLASS,
-                dpsAddressText = DPS_ADDRESS_TEXT,
-              ),
-              ExternalMovementMappingDto(
-                nomisMovementSeq = NOMIS_UNSCHEDULED_MOVEMENT_IN_SEQ,
-                dpsMovementId = dpsUnscheduledMovementInId,
-                nomisAddressId = null,
-                nomisAddressOwnerClass = null,
-                dpsAddressText = DPS_ADDRESS_TEXT,
-              ),
-            ),
-          ),
-        ),
-      )
 
       @Test
       fun `should save migration mapping`() = runTest {
@@ -322,6 +329,99 @@ class TemporaryAbsenceResourceIntTest(
         assertThat(movementRepository.findById(DPS_UNSCHEDULED_MOVEMENT_OUT_ID)).isNull()
         assertThat(movementRepository.findById(dpsUnscheduledMovementOutId)).isNotNull
         assertThat(migrationRepository.findById(NOMIS_OFFENDER_NO)!!.label).isEqualTo("second_migration")
+      }
+    }
+
+    @Nested
+    inner class Addresses {
+      private val NOMIS_OFF_ADDRESS_ID = 16L
+
+      @Test
+      fun `should save corporate address mapping`() = runTest {
+        saveMappings(
+          mappingsRequest(
+            nomisAddressId = NOMIS_ADDESS_ID,
+            nomisAddressOwnerClass = "CORP",
+            dpsAddressText = DPS_ADDRESS_TEXT,
+          ),
+        )
+
+        with(addressRepository.findByNomisAddressIdAndNomisAddressOwnerClassAndNomisOffenderNo(NOMIS_ADDESS_ID, "CORP", null)!!) {
+          assertThat(nomisAddressOwnerClass).isEqualTo("CORP")
+          assertThat(nomisOffenderNo).isNull()
+          assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
+          assertThat(dpsUprn).isNull()
+        }
+      }
+
+      @Test
+      fun `should save offender address mapping`() = runTest {
+        saveMappings(
+          mappingsRequest(
+            nomisAddressId = NOMIS_OFF_ADDRESS_ID,
+            nomisAddressOwnerClass = "OFF",
+            dpsAddressText = DPS_ADDRESS_TEXT,
+          ),
+        )
+
+        with(addressRepository.findByNomisAddressIdAndNomisAddressOwnerClassAndNomisOffenderNo(NOMIS_OFF_ADDRESS_ID, "OFF", NOMIS_OFFENDER_NO)!!) {
+          assertThat(nomisAddressOwnerClass).isEqualTo("OFF")
+          assertThat(nomisOffenderNo).isEqualTo(NOMIS_OFFENDER_NO)
+          assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
+          assertThat(dpsUprn).isNull()
+        }
+      }
+
+      @Test
+      fun `should handle corporate address mapping already exists`() = runTest {
+        saveMappings(
+          mappingsRequest(
+            nomisAddressId = NOMIS_ADDESS_ID,
+            nomisAddressOwnerClass = "CORP",
+            dpsAddressText = DPS_ADDRESS_TEXT,
+          ),
+        )
+
+        saveMappings(
+          mappingsRequest(
+            nomisAddressId = NOMIS_ADDESS_ID,
+            nomisAddressOwnerClass = "CORP",
+            dpsAddressText = DPS_ADDRESS_TEXT,
+          ),
+        )
+
+        with(addressRepository.findByNomisAddressIdAndNomisAddressOwnerClassAndNomisOffenderNo(NOMIS_ADDESS_ID, "CORP", null)!!) {
+          assertThat(nomisAddressOwnerClass).isEqualTo("CORP")
+          assertThat(nomisOffenderNo).isNull()
+          assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
+          assertThat(dpsUprn).isNull()
+        }
+      }
+
+      @Test
+      fun `should handle offender address mapping already exists`() = runTest {
+        saveMappings(
+          mappingsRequest(
+            nomisAddressId = NOMIS_OFF_ADDRESS_ID,
+            nomisAddressOwnerClass = "OFF",
+            dpsAddressText = DPS_ADDRESS_TEXT,
+          ),
+        )
+
+        saveMappings(
+          mappingsRequest(
+            nomisAddressId = NOMIS_OFF_ADDRESS_ID,
+            nomisAddressOwnerClass = "OFF",
+            dpsAddressText = DPS_ADDRESS_TEXT,
+          ),
+        )
+
+        with(addressRepository.findByNomisAddressIdAndNomisAddressOwnerClassAndNomisOffenderNo(NOMIS_OFF_ADDRESS_ID, "OFF", NOMIS_OFFENDER_NO)!!) {
+          assertThat(nomisAddressOwnerClass).isEqualTo("OFF")
+          assertThat(nomisOffenderNo).isEqualTo(NOMIS_OFFENDER_NO)
+          assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
+          assertThat(dpsUprn).isNull()
+        }
       }
     }
 
@@ -1229,6 +1329,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
 
@@ -1272,6 +1373,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
       val duplicateMappingDps = ScheduledMovementSyncMappingDto(
@@ -1283,6 +1385,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
       val duplicateMappingNomis = ScheduledMovementSyncMappingDto(
@@ -1294,6 +1397,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
 
@@ -1359,6 +1463,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
 
@@ -1423,6 +1528,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
 
@@ -1464,6 +1570,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
 
@@ -1485,6 +1592,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
 
@@ -1561,6 +1669,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
@@ -1607,6 +1716,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
 
@@ -1662,6 +1772,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
@@ -1708,6 +1819,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
       )
 
@@ -1763,6 +1875,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
@@ -1774,6 +1887,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
         LocalDateTime.now(),
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
@@ -1855,6 +1969,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
       )
 
       @Test
@@ -1897,6 +2012,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
       )
       val duplicateMappingDps = ExternalMovementSyncMappingDto(
         "B2345CD",
@@ -1907,6 +2023,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
       )
       val duplicateMappingNomis = ExternalMovementSyncMappingDto(
         "C3456DE",
@@ -1918,6 +2035,7 @@ class TemporaryAbsenceResourceIntTest(
         1,
         "A",
         "a",
+        77L,
       )
 
       @Test
@@ -1982,6 +2100,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
       )
 
       @Test
@@ -2045,6 +2164,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
       )
 
       @Test
@@ -2084,6 +2204,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
       )
 
       @Test
@@ -2104,6 +2225,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        77L,
       )
 
       @BeforeEach
@@ -2179,6 +2301,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        dpsUprn = 77L,
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
 
@@ -2266,6 +2389,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        dpsUprn = 77L,
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
 
@@ -2353,6 +2477,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        dpsUprn = 77L,
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
       val mapping2 = TemporaryAbsenceMovementMapping(
@@ -2363,6 +2488,7 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        dpsUprn = 77L,
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
 
@@ -2464,6 +2590,7 @@ class TemporaryAbsenceResourceIntTest(
       nomisAddressOwnerClass = "CORP",
       dpsAddressText = "some address",
       eventTime = eventTime,
+      dpsUprn = 77L,
       mappingType = MovementMappingType.NOMIS_CREATED,
     )
 
