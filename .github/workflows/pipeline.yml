@@ -45,7 +45,7 @@ jobs:
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_verify.yml@v2 # WORKFLOW_VERSION
     secrets: inherit
     with:
-      postgres-tag: "17"
+      postgres-tag: "18"
       postgres-db: mapping
       postgres-username: mapping
       postgres-password: mapping
