@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.movements
 
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
@@ -1316,6 +1317,7 @@ class TemporaryAbsenceResourceIntTest(
     @AfterEach
     fun tearDown() = runTest {
       scheduleRepository.deleteAll()
+      addressRepository.deleteAll()
     }
 
     @Nested
@@ -1351,6 +1353,30 @@ class TemporaryAbsenceResourceIntTest(
       }
 
       @Test
+      fun `should create address mapping`() = runTest {
+        webTestClient.createScheduledMovementSyncMapping(mapping)
+          .expectStatus().isCreated
+
+        with(addressRepository.findByNomisAddressOwnerClassAndNomisAddressId("CORP", 34567L)!!) {
+          assertThat(nomisOffenderNo).isNull()
+          assertThat(dpsUprn).isEqualTo(77L)
+          assertThat(dpsAddressText).isEqualTo("some address")
+        }
+      }
+
+      @Test
+      fun `should create offender address mapping`() = runTest {
+        webTestClient.createScheduledMovementSyncMapping(mapping.copy(nomisAddressOwnerClass = "OFF"))
+          .expectStatus().isCreated
+
+        with(addressRepository.findByNomisOffenderNoAndNomisAddressId("A1234BC", 34567L)!!) {
+          assertThat(nomisAddressId).isEqualTo(34567L)
+          assertThat(dpsUprn).isEqualTo(77L)
+          assertThat(dpsAddressText).isEqualTo("some address")
+        }
+      }
+
+      @Test
       fun `should create mapping with null address`() = runTest {
         webTestClient.createScheduledMovementSyncMapping(mapping.copy(nomisAddressId = null, nomisAddressOwnerClass = null))
           .expectStatus().isCreated
@@ -1359,6 +1385,14 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(nomisAddressId).isNull()
           assertThat(nomisAddressOwnerClass).isNull()
         }
+      }
+
+      @Test
+      fun `should NOT create mapping with null address`() = runTest {
+        webTestClient.createScheduledMovementSyncMapping(mapping.copy(nomisAddressId = null, nomisAddressOwnerClass = null))
+          .expectStatus().isCreated
+
+        assertThat(addressRepository.findAll().toList()).isEmpty()
       }
     }
 
@@ -1515,6 +1549,7 @@ class TemporaryAbsenceResourceIntTest(
     @AfterEach
     fun tearDown() = runTest {
       scheduleRepository.deleteAll()
+      addressRepository.deleteAll()
     }
 
     @Nested
@@ -1555,6 +1590,46 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(nomisAddressOwnerClass).isEqualTo("OFF")
           assertThat(dpsAddressText).isEqualTo("a different address")
           assertThat(eventTime).isCloseTo(LocalDateTime.now().plusDays(1), within(1, ChronoUnit.SECONDS))
+        }
+      }
+
+      @Test
+      fun `should add address mapping if NOMIS schedule address changes`() = runTest {
+        webTestClient.createScheduledMovementSyncMapping(mapping)
+          .expectStatus().isCreated
+
+        webTestClient.updateScheduledMovementSyncMapping(
+          mapping = mapping.copy(
+            nomisAddressId = 77777L,
+            nomisAddressOwnerClass = "OFF",
+            dpsAddressText = "a different address",
+            eventTime = LocalDateTime.now().plusDays(1),
+          ),
+          source = "NOMIS",
+        ).expectStatus().isOk
+
+        with(addressRepository.findByNomisOffenderNoAndNomisAddressId("A1234BC", 77777L)!!) {
+          assertThat(nomisAddressOwnerClass).isEqualTo("OFF")
+          assertThat(dpsAddressText).isEqualTo("a different address")
+        }
+      }
+
+      @Test
+      fun `should add address mapping if DPS schedule address changes`() = runTest {
+        webTestClient.createScheduledMovementSyncMapping(mapping)
+          .expectStatus().isCreated
+
+        webTestClient.updateScheduledMovementSyncMapping(
+          mapping = mapping.copy(
+            nomisAddressId = 8888L,
+            nomisAddressOwnerClass = "OFF",
+            eventTime = LocalDateTime.now().plusDays(1),
+          ),
+          source = "DPS",
+        ).expectStatus().isOk
+
+        with(addressRepository.findByNomisAddressOwnerClassAndDpsUprnAndDpsAddressText("OFF", 77L, "some address")!!) {
+          assertThat(nomisAddressId).isEqualTo(8888L)
         }
       }
     }
@@ -1642,8 +1717,8 @@ class TemporaryAbsenceResourceIntTest(
       .body(BodyInserters.fromValue(mapping))
       .exchange()
 
-    private fun WebTestClient.updateScheduledMovementSyncMapping(mapping: ScheduledMovementSyncMappingDto) = put()
-      .uri("/mapping/temporary-absence/scheduled-movement")
+    private fun WebTestClient.updateScheduledMovementSyncMapping(mapping: ScheduledMovementSyncMappingDto, source: String = "NOMIS") = put()
+      .uri("/mapping/temporary-absence/scheduled-movement?source=$source")
       .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(BodyInserters.fromValue(mapping))
