@@ -23,6 +23,8 @@ data class CorePersonMappingsDto(
   val emailMappings: List<CorePersonSimpleMappingIdDto>,
   @Schema(description = "Core Person profile mappings")
   val profileMappings: List<ProfileMappingIdDto>,
+  @Schema(description = "Core Person belief mappings")
+  val beliefMappings: List<CorePersonSimpleMappingIdDto>,
   // TODO add more child mappings
 )
 
@@ -118,6 +120,16 @@ class ProfileMappingDto(
   val nomisProfileType: String,
   @Schema(description = "NOMIS Prison number aka Offender number")
   val nomisPrisonNumber: String,
+  label: String?,
+  mappingType: CorePersonMappingType,
+  whenCreated: LocalDateTime?,
+) : AbstractCorePersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
+
+class CorePersonBeliefMappingDto(
+  @Schema(description = "CPR belief id")
+  val cprId: String,
+  @Schema(description = "NOMIS Belief id")
+  val nomisId: Long,
   label: String?,
   mappingType: CorePersonMappingType,
   whenCreated: LocalDateTime?,
