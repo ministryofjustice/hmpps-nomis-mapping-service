@@ -2883,7 +2883,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Test
     fun `should find address by owner class and uprn`() = runTest {
-      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", 456L, "dps address text"))
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", 456L, "dps address text", "corp name", "S1 1AA"))
 
       webTestClient.findAddressOk("CORP", "ANY", 456L, "dps address text")
         .apply {
@@ -2894,7 +2894,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Test
     fun `should find address by owner class and address text`() = runTest {
-      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", null, "dps address text"))
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", null, "dps address text", "corp name", "S1 1AA"))
 
       webTestClient.findAddressOk("CORP", "ANY", null, "dps address text")
         .apply {
@@ -2905,7 +2905,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Test
     fun `should find offender address by offender and uprn`() = runTest {
-      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", 456L, "dps address text"))
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", 456L, "dps address text", null, "S1 1AA"))
 
       webTestClient.findAddressOk("OFF", "A1234BC", 456L, "dps address text")
         .apply {
@@ -2916,7 +2916,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Test
     fun `should find offender address by offender and address text`() = runTest {
-      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", null, "dps address text"))
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", null, "dps address text", null, "S1 1AA"))
 
       webTestClient.findAddressOk("OFF", "A1234BC", null, "dps address text")
         .apply {
@@ -2927,7 +2927,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Test
     fun `should return not found if offender address does not exist for uprn`() = runTest {
-      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", 456L, "dps address text"))
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", 456L, "dps address text", null, "S1 1AA"))
 
       webTestClient.findAddress("OFF", "A1234BC", 999L, "dps address text")
         .expectStatus().isNotFound
@@ -2935,7 +2935,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Test
     fun `should return not found if address does not exist for uprn`() = runTest {
-      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", 456L, "dps address text"))
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", 456L, "dps address text", "corp name", "S1 1AA"))
 
       webTestClient.findAddress("CORP", "ANY", 999L, "dps address text")
         .expectStatus().isNotFound
@@ -2943,7 +2943,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Test
     fun `should return not found if offfender address does not exist for address text`() = runTest {
-      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", null, "dps address text"))
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", null, "dps address text", null, "S1 1AA"))
 
       webTestClient.findAddress("OFF", "A1234BC", null, "wrong text")
         .expectStatus().isNotFound
@@ -2951,7 +2951,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Test
     fun `should return not found if address does not exist for address text`() = runTest {
-      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", null, "dps address text"))
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", null, "dps address text", "corp name", "S1 1AA"))
 
       webTestClient.findAddress("CORP", "ANY", null, "wrong text")
         .expectStatus().isNotFound
@@ -3000,12 +3000,14 @@ class TemporaryAbsenceResourceIntTest(
         .expectStatus().isForbidden
     }
 
-    private fun anAddressMapping(offenderNo: String, addressId: Long, ownerClass: String, dpsUprn: Long?, dpsAddressText: String) = TemporaryAbsenceAddressMapping(
+    private fun anAddressMapping(offenderNo: String, addressId: Long, ownerClass: String, dpsUprn: Long?, dpsAddressText: String, dpsDescription: String?, dpsPostcode: String?) = TemporaryAbsenceAddressMapping(
       nomisAddressId = addressId,
       nomisAddressOwnerClass = ownerClass,
       nomisOffenderNo = offenderNo,
       dpsAddressText = dpsAddressText,
       dpsUprn = dpsUprn,
+      dpsDescription = dpsDescription,
+      dpsPostcode = dpsPostcode,
     )
 
     private fun WebTestClient.findAddressOk(ownerClass: String, offenderNo: String, dpsUprn: Long?, dpsAddressText: String) = findAddress(ownerClass, offenderNo, dpsUprn, dpsAddressText)
@@ -3032,7 +3034,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Test
     fun `should find address by owner class and address ID`() = runTest {
-      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", 456L, "dps address text"))
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", 456L, "dps address text", "corp name", "S1 1AA"))
 
       webTestClient.findAddressOk("CORP", "ANY", 123L)
         .apply {
@@ -3043,7 +3045,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Test
     fun `should find offender address by offender and address ID`() = runTest {
-      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", 456L, "dps address text"))
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", 456L, "dps address text", null, "S1 1AA"))
 
       webTestClient.findAddressOk("OFF", "A1234BC", 123L)
         .apply {
@@ -3054,7 +3056,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Test
     fun `should return not found if address does not exist for address ID`() = runTest {
-      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", 456L, "dps address text"))
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", 456L, "dps address text", "corp name", "S1 1AA"))
 
       webTestClient.findAddress("CORP", "ANY", 999L)
         .expectStatus().isNotFound
@@ -3062,7 +3064,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Test
     fun `should return not found if offender address does not exist for address ID`() = runTest {
-      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", 456L, "dps address text"))
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", 456L, "dps address text", null, "S1 1AA"))
 
       webTestClient.findAddress("OFF", "A1234BC", 999L)
         .expectStatus().isNotFound
@@ -3111,12 +3113,14 @@ class TemporaryAbsenceResourceIntTest(
         .expectStatus().isForbidden
     }
 
-    private fun anAddressMapping(offenderNo: String, addressId: Long, ownerClass: String, dpsUprn: Long?, dpsAddressText: String) = TemporaryAbsenceAddressMapping(
+    private fun anAddressMapping(offenderNo: String, addressId: Long, ownerClass: String, dpsUprn: Long?, dpsAddressText: String, dpsDescription: String?, dpsPostcode: String?) = TemporaryAbsenceAddressMapping(
       nomisAddressId = addressId,
       nomisAddressOwnerClass = ownerClass,
       nomisOffenderNo = offenderNo,
       dpsAddressText = dpsAddressText,
       dpsUprn = dpsUprn,
+      dpsDescription = dpsDescription,
+      dpsPostcode = dpsPostcode,
     )
 
     private fun WebTestClient.findAddressOk(ownerClass: String, offenderNo: String, addressId: Long) = findAddress(ownerClass, offenderNo, addressId)
