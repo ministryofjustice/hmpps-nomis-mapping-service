@@ -786,4 +786,10 @@ data class TemporaryAbsenceAddressMappingResponse(
 
   @Schema(description = "The DPS address text")
   val dpsAddressText: String,
+
+  @Schema(description = "The DPS address description")
+  val dpsDescription: String? = null,
+
+  @Schema(description = "The DPS address postcode")
+  val dpsPostcode: String? = null,
 )

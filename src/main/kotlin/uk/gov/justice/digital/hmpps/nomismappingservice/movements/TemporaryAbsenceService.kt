@@ -392,4 +392,6 @@ fun TemporaryAbsenceAddressMapping.toMappingDto() = TemporaryAbsenceAddressMappi
   nomisAddressId,
   dpsUprn,
   dpsAddressText,
+  dpsDescription,
+  dpsPostcode,
 )
