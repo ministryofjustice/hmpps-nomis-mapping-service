@@ -67,13 +67,15 @@ class TemporaryAbsenceService(
               schedule.nomisAddressOwnerClass,
               schedule.dpsAddressText,
               null,
+              schedule.dpsDescription,
+              schedule.dpsPostcode,
               schedule.eventTime,
               mappings.migrationId,
               MovementMappingType.MIGRATED,
             ),
           )
           if (schedule.nomisAddressOwnerClass != null && schedule.nomisAddressId != null) {
-            upsertAddressMappingByNomisId(schedule.nomisAddressOwnerClass, schedule.nomisAddressId, mappings.prisonerNumber, schedule.dpsAddressText)
+            upsertAddressMappingByNomisId(schedule.nomisAddressOwnerClass, schedule.nomisAddressId, mappings.prisonerNumber, schedule.dpsAddressText, null, schedule.dpsDescription, schedule.dpsPostcode)
           }
         }
         application.movements.forEach { movement ->
@@ -88,11 +90,13 @@ class TemporaryAbsenceService(
               movement.dpsAddressText,
               mappings.migrationId,
               null,
+              movement.dpsDescription,
+              movement.dpsPostcode,
               MovementMappingType.MIGRATED,
             ),
           )
           if (movement.nomisAddressOwnerClass != null && movement.nomisAddressId != null) {
-            upsertAddressMappingByNomisId(movement.nomisAddressOwnerClass, movement.nomisAddressId, mappings.prisonerNumber, movement.dpsAddressText)
+            upsertAddressMappingByNomisId(movement.nomisAddressOwnerClass, movement.nomisAddressId, mappings.prisonerNumber, movement.dpsAddressText, null, movement.dpsDescription, movement.dpsPostcode)
           }
         }
       }
@@ -108,6 +112,8 @@ class TemporaryAbsenceService(
             unscheduledMovement.dpsAddressText,
             mappings.migrationId,
             null,
+            unscheduledMovement.dpsDescription,
+            unscheduledMovement.dpsPostcode,
             MovementMappingType.MIGRATED,
           ),
         )
@@ -119,7 +125,7 @@ class TemporaryAbsenceService(
   }
 
   @Transactional
-  suspend fun upsertAddressMappingByNomisId(nomisOwnerClass: String, nomisAddressId: Long, nomisOffenderNo: String, dpsAddressText: String, dpsUprn: Long? = null) {
+  suspend fun upsertAddressMappingByNomisId(nomisOwnerClass: String, nomisAddressId: Long, nomisOffenderNo: String, dpsAddressText: String, dpsUprn: Long? = null, dpsDescription: String? = null, dpsPostcode: String? = null) {
     val offenderNo = if (nomisOwnerClass == "OFF") nomisOffenderNo else null
     addressRepository.findByNomisAddressIdAndNomisAddressOwnerClassAndNomisOffenderNo(nomisAddressId, nomisOwnerClass, offenderNo)
       ?.also {
@@ -134,12 +140,14 @@ class TemporaryAbsenceService(
           nomisOffenderNo = offenderNo,
           dpsUprn = dpsUprn,
           dpsAddressText = dpsAddressText,
+          dpsDescription = dpsDescription,
+          dpsPostcode = dpsPostcode,
         ),
       )
   }
 
   @Transactional
-  suspend fun upsertAddressMappingByDpsId(dpsAddressText: String, dpsUprn: Long? = null, nomisOwnerClass: String, nomisAddressId: Long, nomisOffenderNo: String? = null) {
+  suspend fun upsertAddressMappingByDpsId(dpsAddressText: String, dpsUprn: Long? = null, dpsDescription: String? = null, dpsPostcode: String? = null, nomisOwnerClass: String, nomisAddressId: Long, nomisOffenderNo: String? = null) {
     val offenderNo = if (nomisOwnerClass == "OFF") nomisOffenderNo else null
     when (nomisOwnerClass) {
       "OFF" -> addressRepository.findByNomisOffenderNoAndDpsUprnAndDpsAddressText(nomisOffenderNo!!, dpsUprn, dpsAddressText)
@@ -157,6 +165,8 @@ class TemporaryAbsenceService(
           nomisOffenderNo = offenderNo,
           dpsAddressText = dpsAddressText,
           dpsUprn = dpsUprn,
+          dpsDescription = dpsDescription,
+          dpsPostcode = dpsPostcode,
         ),
       )
   }
@@ -195,8 +205,8 @@ class TemporaryAbsenceService(
       if (it.nomisAddressOwnerClass != null && it.nomisAddressId != null) {
         val offenderNo = if (it.nomisAddressOwnerClass == "OFF") it.offenderNo else null
         when (it.mappingType) {
-          DPS_CREATED -> upsertAddressMappingByDpsId(it.dpsAddressText, it.dpsUprn, it.nomisAddressOwnerClass!!, it.nomisAddressId!!, offenderNo)
-          else -> upsertAddressMappingByNomisId(it.nomisAddressOwnerClass!!, it.nomisAddressId!!, it.offenderNo, it.dpsAddressText, it.dpsUprn)
+          DPS_CREATED -> upsertAddressMappingByDpsId(it.dpsAddressText, it.dpsUprn, it.dpsDescription, it.dpsPostcode, it.nomisAddressOwnerClass!!, it.nomisAddressId!!, offenderNo)
+          else -> upsertAddressMappingByNomisId(it.nomisAddressOwnerClass!!, it.nomisAddressId!!, it.offenderNo, it.dpsAddressText, it.dpsUprn, it.dpsDescription, it.dpsPostcode)
         }
       }
     }
@@ -208,6 +218,8 @@ class TemporaryAbsenceService(
       it.nomisAddressId = mappingDto.nomisAddressId
       it.nomisAddressOwnerClass = mappingDto.nomisAddressOwnerClass
       it.dpsAddressText = mappingDto.dpsAddressText
+      it.dpsDescription = mappingDto.dpsDescription
+      it.dpsPostcode = mappingDto.dpsPostcode
       it.eventTime = mappingDto.eventTime
       scheduleRepository.save(it)
     }
@@ -215,8 +227,8 @@ class TemporaryAbsenceService(
       if (it.nomisAddressOwnerClass != null && it.nomisAddressId != null) {
         val offenderNo = if (it.nomisAddressOwnerClass == "OFF") it.offenderNo else null
         when (source) {
-          "DPS" -> upsertAddressMappingByDpsId(it.dpsAddressText, it.dpsUprn, it.nomisAddressOwnerClass!!, it.nomisAddressId!!, offenderNo)
-          "NOMIS" -> upsertAddressMappingByNomisId(it.nomisAddressOwnerClass!!, it.nomisAddressId!!, it.offenderNo, it.dpsAddressText, it.dpsUprn)
+          "DPS" -> upsertAddressMappingByDpsId(it.dpsAddressText, it.dpsUprn, it.dpsDescription, it.dpsPostcode, it.nomisAddressOwnerClass!!, it.nomisAddressId!!, offenderNo)
+          "NOMIS" -> upsertAddressMappingByNomisId(it.nomisAddressOwnerClass!!, it.nomisAddressId!!, it.offenderNo, it.dpsAddressText, it.dpsUprn, it.dpsDescription, it.dpsPostcode)
         }
       }
     }
@@ -243,6 +255,8 @@ class TemporaryAbsenceService(
       it.nomisAddressId = mappingDto.nomisAddressId
       it.nomisAddressOwnerClass = mappingDto.nomisAddressOwnerClass
       it.dpsAddressText = mappingDto.dpsAddressText
+      it.dpsDescription = mappingDto.dpsDescription
+      it.dpsPostcode = mappingDto.dpsPostcode
       movementRepository.save(it).toMappingDto()
     }
     ?: throw NotFoundException("Mapping for DPS movement id ${mappingDto.dpsMovementId} not found")
@@ -323,6 +337,8 @@ fun ScheduledMovementSyncMappingDto.toMapping(): TemporaryAbsenceScheduleMapping
   nomisAddressOwnerClass,
   dpsAddressText,
   dpsUprn,
+  dpsDescription,
+  dpsPostcode,
   eventTime,
   mappingType = mappingType,
 )
@@ -337,6 +353,8 @@ fun TemporaryAbsenceScheduleMapping.toMappingDto(): ScheduledMovementSyncMapping
   nomisAddressOwnerClass,
   dpsAddressText,
   dpsUprn,
+  dpsDescription,
+  dpsPostcode,
   eventTime,
 )
 
@@ -349,6 +367,8 @@ fun ExternalMovementSyncMappingDto.toMapping(): TemporaryAbsenceMovementMapping 
   nomisAddressOwnerClass,
   dpsAddressText,
   dpsUprn = dpsUprn,
+  dpsDescription = dpsDescription,
+  dpsPostcode = dpsPostcode,
   mappingType = mappingType,
 )
 
@@ -361,6 +381,8 @@ fun TemporaryAbsenceMovementMapping.toMappingDto(): ExternalMovementSyncMappingD
   nomisAddressId,
   nomisAddressOwnerClass,
   dpsAddressText,
+  dpsDescription,
+  dpsPostcode,
   dpsUprn,
 )
 

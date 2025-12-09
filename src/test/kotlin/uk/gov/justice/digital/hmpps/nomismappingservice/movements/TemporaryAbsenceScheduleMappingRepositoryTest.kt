@@ -46,6 +46,8 @@ class TemporaryAbsenceScheduleMappingRepositoryTest(
         addressOwnerClass,
         dpsAddressText,
         dpsUprn,
+        null,
+        null,
         eventTime,
         "some_label",
         MovementMappingType.MIGRATED,
