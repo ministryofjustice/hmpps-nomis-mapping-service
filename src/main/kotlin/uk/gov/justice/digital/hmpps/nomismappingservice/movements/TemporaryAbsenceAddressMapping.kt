@@ -23,6 +23,10 @@ data class TemporaryAbsenceAddressMapping(
 
   var dpsUprn: Long? = null,
 
+  var dpsDescription: String? = null,
+
+  var dpsPostcode: String? = null,
+
   @Transient
   @Value("false")
   val new: Boolean = true,
