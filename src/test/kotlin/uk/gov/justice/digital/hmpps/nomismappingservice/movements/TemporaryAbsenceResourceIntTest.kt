@@ -211,19 +211,6 @@ class TemporaryAbsenceResourceIntTest(
       }
 
       @Test
-      fun `should save application outside movement mappings`() = runTest {
-        with(appMultiRepository.findById(DPS_OUTSIDE_MOVEMENT_ID)!!) {
-          assertThat(label).isEqualTo(MIGRATION_ID)
-          assertThat(offenderNo).isEqualTo(NOMIS_OFFENDER_NO)
-          assertThat(bookingId).isEqualTo(NOMIS_BOOKING_ID)
-          assertThat(whenCreated?.toLocalDate()).isEqualTo(LocalDate.now())
-          assertThat(nomisAppMultiId).isEqualTo(NOMIS_APPLICATION_MULTI_ID)
-          assertThat(dpsAppMultiId).isEqualTo(DPS_OUTSIDE_MOVEMENT_ID)
-          assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
-        }
-      }
-
-      @Test
       fun `should save application schedule mappings`() = runTest {
         with(scheduleRepository.findById(DPS_SCHEDULED_OUT_ID)!!) {
           assertThat(label).isEqualTo(MIGRATION_ID)

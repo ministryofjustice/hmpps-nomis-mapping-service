@@ -44,18 +44,6 @@ class TemporaryAbsenceService(
             MovementMappingType.MIGRATED,
           ),
         )
-        application.outsideMovements.forEach { outside ->
-          appMultiRepository.save(
-            TemporaryAbsenceAppMultiMapping(
-              outside.dpsOutsideMovementId,
-              outside.nomisMovementApplicationMultiId,
-              mappings.prisonerNumber,
-              booking.bookingId,
-              mappings.migrationId,
-              MovementMappingType.MIGRATED,
-            ),
-          )
-        }
         application.schedules.forEach { schedule ->
           scheduleRepository.save(
             TemporaryAbsenceScheduleMapping(
