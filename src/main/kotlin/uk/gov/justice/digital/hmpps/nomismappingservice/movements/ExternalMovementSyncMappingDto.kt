@@ -23,6 +23,10 @@ data class ExternalMovementSyncMappingDto(
   val nomisAddressOwnerClass: String?,
   @Schema(description = "The DPS address")
   val dpsAddressText: String,
+  @Schema(description = "The DPS description")
+  val dpsDescription: String?,
+  @Schema(description = "The DPS postcode")
+  val dpsPostcode: String?,
   @Schema(description = "The DPS address unique ID")
   val dpsUprn: Long?,
 )

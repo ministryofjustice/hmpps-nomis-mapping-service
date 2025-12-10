@@ -66,6 +66,10 @@ data class ScheduledMovementMappingDto(
   val nomisAddressOwnerClass: String?,
   @Schema(description = "The DPS address")
   val dpsAddressText: String,
+  @Schema(description = "The DPS address description")
+  val dpsDescription: String?,
+  @Schema(description = "The DPS postcode")
+  val dpsPostcode: String?,
   @Schema(description = "The scheduled event time")
   val eventTime: LocalDateTime,
 )
@@ -83,4 +87,8 @@ data class ExternalMovementMappingDto(
   val nomisAddressOwnerClass: String?,
   @Schema(description = "The DPS address")
   val dpsAddressText: String,
+  @Schema(description = "The DPS address description")
+  val dpsDescription: String?,
+  @Schema(description = "The DPS postcode")
+  val dpsPostcode: String?,
 )

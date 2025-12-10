@@ -45,6 +45,8 @@ class TemporaryAbsenceMovementMappingRepositoryTest(
         dpsAddressText,
         "some_label",
         dpsUprn,
+        null,
+        null,
         MovementMappingType.MIGRATED,
       ),
     )

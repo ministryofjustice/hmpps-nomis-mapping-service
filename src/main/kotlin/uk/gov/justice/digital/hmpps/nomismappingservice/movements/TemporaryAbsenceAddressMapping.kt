@@ -11,17 +11,21 @@ data class TemporaryAbsenceAddressMapping(
 
   @Id
   @Generated
-  val id: Long = -1,
+  val id: Long = 0,
 
-  val nomisAddressId: Long,
+  var nomisAddressId: Long,
 
-  val nomisAddressOwnerClass: String,
+  var nomisAddressOwnerClass: String,
 
-  val nomisOffenderNo: String? = null,
+  var nomisOffenderNo: String? = null,
 
   var dpsAddressText: String,
 
   var dpsUprn: Long? = null,
+
+  var dpsDescription: String? = null,
+
+  var dpsPostcode: String? = null,
 
   @Transient
   @Value("false")

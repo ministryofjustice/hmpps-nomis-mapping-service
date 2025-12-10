@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.movements
 
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
@@ -20,7 +21,7 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.integration.isDuplicateM
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import java.util.*
+import java.util.UUID
 
 class TemporaryAbsenceResourceIntTest(
   @Autowired private val applicationRepository: TemporaryAbsenceApplicationRepository,
@@ -50,6 +51,8 @@ class TemporaryAbsenceResourceIntTest(
     private val NOMIS_ADDESS_ID = 6L
     private val NOMIS_ADDRESS_OWNER_CLASS = "CORP"
     private val DPS_ADDRESS_TEXT = "some address"
+    private val DPS_DESCRIPTION = "corp name"
+    private val DPS_POSTCODE = "S1 1AA"
     private val EVENT_TIME = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS)
     private val DPS_APPLICATION_ID = UUID.randomUUID()
     private val DPS_OUTSIDE_MOVEMENT_ID = UUID.randomUUID()
@@ -92,6 +95,8 @@ class TemporaryAbsenceResourceIntTest(
       nomisAddressId: Long = NOMIS_ADDESS_ID,
       nomisAddressOwnerClass: String = NOMIS_ADDRESS_OWNER_CLASS,
       dpsAddressText: String = DPS_ADDRESS_TEXT,
+      dpsDescription: String = DPS_DESCRIPTION,
+      dpsPostcode: String = DPS_POSTCODE,
     ) = TemporaryAbsencesPrisonerMappingDto(
       prisonerNumber = NOMIS_OFFENDER_NO,
       migrationId = migrationId,
@@ -115,6 +120,8 @@ class TemporaryAbsenceResourceIntTest(
                   nomisAddressId = nomisAddressId,
                   nomisAddressOwnerClass = nomisAddressOwnerClass,
                   dpsAddressText = dpsAddressText,
+                  dpsDescription = dpsDescription,
+                  dpsPostcode = dpsPostcode,
                   eventTime = EVENT_TIME,
                 ),
                 ScheduledMovementMappingDto(
@@ -123,6 +130,8 @@ class TemporaryAbsenceResourceIntTest(
                   nomisAddressId = null,
                   nomisAddressOwnerClass = null,
                   dpsAddressText = DPS_ADDRESS_TEXT,
+                  dpsDescription = null,
+                  dpsPostcode = null,
                   eventTime = EVENT_TIME,
                 ),
               ),
@@ -133,6 +142,8 @@ class TemporaryAbsenceResourceIntTest(
                   nomisAddressId = nomisAddressId,
                   nomisAddressOwnerClass = nomisAddressOwnerClass,
                   dpsAddressText = dpsAddressText,
+                  dpsDescription = dpsDescription,
+                  dpsPostcode = dpsPostcode,
                 ),
                 ExternalMovementMappingDto(
                   nomisMovementSeq = NOMIS_MOVEMENT_IN_SEQ,
@@ -140,6 +151,8 @@ class TemporaryAbsenceResourceIntTest(
                   nomisAddressId = null,
                   nomisAddressOwnerClass = null,
                   dpsAddressText = dpsAddressText,
+                  dpsDescription = null,
+                  dpsPostcode = null,
                 ),
               ),
             ),
@@ -151,6 +164,8 @@ class TemporaryAbsenceResourceIntTest(
               nomisAddressId = nomisAddressId,
               nomisAddressOwnerClass = nomisAddressOwnerClass,
               dpsAddressText = dpsAddressText,
+              dpsDescription = dpsDescription,
+              dpsPostcode = dpsPostcode,
             ),
             ExternalMovementMappingDto(
               nomisMovementSeq = NOMIS_UNSCHEDULED_MOVEMENT_IN_SEQ,
@@ -158,6 +173,8 @@ class TemporaryAbsenceResourceIntTest(
               nomisAddressId = null,
               nomisAddressOwnerClass = null,
               dpsAddressText = dpsAddressText,
+              dpsDescription = null,
+              dpsPostcode = null,
             ),
           ),
         ),
@@ -218,6 +235,8 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(nomisAddressId).isEqualTo(NOMIS_ADDESS_ID)
           assertThat(nomisAddressOwnerClass).isEqualTo(NOMIS_ADDRESS_OWNER_CLASS)
           assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
+          assertThat(dpsDescription).isEqualTo(DPS_DESCRIPTION)
+          assertThat(dpsPostcode).isEqualTo(DPS_POSTCODE)
           assertThat(eventTime).isEqualTo(EVENT_TIME)
           assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
         }
@@ -231,6 +250,8 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(nomisAddressId).isNull()
           assertThat(nomisAddressOwnerClass).isNull()
           assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
+          assertThat(dpsDescription).isNull()
+          assertThat(dpsPostcode).isNull()
           assertThat(eventTime).isEqualTo(EVENT_TIME)
           assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
         }
@@ -248,6 +269,8 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(nomisAddressId).isEqualTo(NOMIS_ADDESS_ID)
           assertThat(nomisAddressOwnerClass).isEqualTo(NOMIS_ADDRESS_OWNER_CLASS)
           assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
+          assertThat(dpsDescription).isEqualTo(DPS_DESCRIPTION)
+          assertThat(dpsPostcode).isEqualTo(DPS_POSTCODE)
           assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
         }
         with(movementRepository.findById(DPS_MOVEMENT_IN_ID)!!) {
@@ -260,6 +283,8 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(nomisAddressId).isNull()
           assertThat(nomisAddressOwnerClass).isNull()
           assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
+          assertThat(dpsDescription).isNull()
+          assertThat(dpsPostcode).isNull()
           assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
         }
       }
@@ -276,6 +301,8 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(nomisAddressId).isEqualTo(NOMIS_ADDESS_ID)
           assertThat(nomisAddressOwnerClass).isEqualTo(NOMIS_ADDRESS_OWNER_CLASS)
           assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
+          assertThat(dpsDescription).isEqualTo(DPS_DESCRIPTION)
+          assertThat(dpsPostcode).isEqualTo(DPS_POSTCODE)
           assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
         }
         with(movementRepository.findById(DPS_UNSCHEDULED_MOVEMENT_IN_ID)!!) {
@@ -288,6 +315,8 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(nomisAddressId).isNull()
           assertThat(nomisAddressOwnerClass).isNull()
           assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
+          assertThat(dpsDescription).isNull()
+          assertThat(dpsPostcode).isNull()
           assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
         }
       }
@@ -343,6 +372,8 @@ class TemporaryAbsenceResourceIntTest(
             nomisAddressId = NOMIS_ADDESS_ID,
             nomisAddressOwnerClass = "CORP",
             dpsAddressText = DPS_ADDRESS_TEXT,
+            dpsDescription = DPS_DESCRIPTION,
+            dpsPostcode = DPS_POSTCODE,
           ),
         )
 
@@ -351,6 +382,8 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(nomisOffenderNo).isNull()
           assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
           assertThat(dpsUprn).isNull()
+          assertThat(dpsDescription).isEqualTo(DPS_DESCRIPTION)
+          assertThat(dpsPostcode).isEqualTo(DPS_POSTCODE)
         }
       }
 
@@ -361,6 +394,8 @@ class TemporaryAbsenceResourceIntTest(
             nomisAddressId = NOMIS_OFF_ADDRESS_ID,
             nomisAddressOwnerClass = "OFF",
             dpsAddressText = DPS_ADDRESS_TEXT,
+            dpsDescription = DPS_DESCRIPTION,
+            dpsPostcode = DPS_POSTCODE,
           ),
         )
 
@@ -369,6 +404,8 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(nomisOffenderNo).isEqualTo(NOMIS_OFFENDER_NO)
           assertThat(dpsAddressText).isEqualTo(DPS_ADDRESS_TEXT)
           assertThat(dpsUprn).isNull()
+          assertThat(dpsDescription).isEqualTo(DPS_DESCRIPTION)
+          assertThat(dpsPostcode).isEqualTo(DPS_POSTCODE)
         }
       }
 
@@ -1316,6 +1353,7 @@ class TemporaryAbsenceResourceIntTest(
     @AfterEach
     fun tearDown() = runTest {
       scheduleRepository.deleteAll()
+      addressRepository.deleteAll()
     }
 
     @Nested
@@ -1330,6 +1368,8 @@ class TemporaryAbsenceResourceIntTest(
         "CORP",
         "some address",
         77L,
+        "some description",
+        "S1 1AA",
         LocalDateTime.now(),
       )
 
@@ -1346,7 +1386,37 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(nomisAddressId).isEqualTo(34567L)
           assertThat(nomisAddressOwnerClass).isEqualTo("CORP")
           assertThat(dpsAddressText).isEqualTo("some address")
+          assertThat(dpsDescription).isEqualTo("some description")
+          assertThat(dpsPostcode).isEqualTo("S1 1AA")
           assertThat(eventTime).isCloseTo(LocalDateTime.now(), within(1, ChronoUnit.SECONDS))
+        }
+      }
+
+      @Test
+      fun `should create address mapping`() = runTest {
+        webTestClient.createScheduledMovementSyncMapping(mapping)
+          .expectStatus().isCreated
+
+        with(addressRepository.findByNomisAddressOwnerClassAndNomisAddressId("CORP", 34567L)!!) {
+          assertThat(nomisOffenderNo).isNull()
+          assertThat(dpsUprn).isEqualTo(77L)
+          assertThat(dpsAddressText).isEqualTo("some address")
+          assertThat(dpsDescription).isEqualTo("some description")
+          assertThat(dpsPostcode).isEqualTo("S1 1AA")
+        }
+      }
+
+      @Test
+      fun `should create offender address mapping`() = runTest {
+        webTestClient.createScheduledMovementSyncMapping(mapping.copy(nomisAddressOwnerClass = "OFF"))
+          .expectStatus().isCreated
+
+        with(addressRepository.findByNomisOffenderNoAndNomisAddressId("A1234BC", 34567L)!!) {
+          assertThat(nomisAddressId).isEqualTo(34567L)
+          assertThat(dpsUprn).isEqualTo(77L)
+          assertThat(dpsAddressText).isEqualTo("some address")
+          assertThat(dpsDescription).isEqualTo("some description")
+          assertThat(dpsPostcode).isEqualTo("S1 1AA")
         }
       }
 
@@ -1359,6 +1429,14 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(nomisAddressId).isNull()
           assertThat(nomisAddressOwnerClass).isNull()
         }
+      }
+
+      @Test
+      fun `should NOT create mapping with null address`() = runTest {
+        webTestClient.createScheduledMovementSyncMapping(mapping.copy(nomisAddressId = null, nomisAddressOwnerClass = null))
+          .expectStatus().isCreated
+
+        assertThat(addressRepository.findAll().toList()).isEmpty()
       }
     }
 
@@ -1374,6 +1452,8 @@ class TemporaryAbsenceResourceIntTest(
         "CORP",
         "some address",
         77L,
+        "some description",
+        "S1 1AA",
         LocalDateTime.now(),
       )
       val duplicateMappingDps = ScheduledMovementSyncMappingDto(
@@ -1386,6 +1466,8 @@ class TemporaryAbsenceResourceIntTest(
         "CORP",
         "some address",
         77L,
+        "some description",
+        "S1 1AA",
         LocalDateTime.now(),
       )
       val duplicateMappingNomis = ScheduledMovementSyncMappingDto(
@@ -1398,6 +1480,8 @@ class TemporaryAbsenceResourceIntTest(
         "CORP",
         "some address",
         77L,
+        "some description",
+        "S1 1AA",
         LocalDateTime.now(),
       )
 
@@ -1464,6 +1548,8 @@ class TemporaryAbsenceResourceIntTest(
         "CORP",
         "some address",
         77L,
+        "some description",
+        "S1 1AA",
         LocalDateTime.now(),
       )
 
@@ -1515,6 +1601,7 @@ class TemporaryAbsenceResourceIntTest(
     @AfterEach
     fun tearDown() = runTest {
       scheduleRepository.deleteAll()
+      addressRepository.deleteAll()
     }
 
     @Nested
@@ -1529,6 +1616,8 @@ class TemporaryAbsenceResourceIntTest(
         "CORP",
         "some address",
         77L,
+        "some description",
+        "S1 1AA",
         LocalDateTime.now(),
       )
 
@@ -1542,6 +1631,8 @@ class TemporaryAbsenceResourceIntTest(
             nomisAddressId = 77777L,
             nomisAddressOwnerClass = "OFF",
             dpsAddressText = "a different address",
+            dpsDescription = "a different description",
+            dpsPostcode = "S1 2BB",
             eventTime = LocalDateTime.now().plusDays(1),
           ),
         ).expectStatus().isOk
@@ -1554,7 +1645,49 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(nomisAddressId).isEqualTo(77777L)
           assertThat(nomisAddressOwnerClass).isEqualTo("OFF")
           assertThat(dpsAddressText).isEqualTo("a different address")
+          assertThat(dpsDescription).isEqualTo("a different description")
+          assertThat(dpsPostcode).isEqualTo("S1 2BB")
           assertThat(eventTime).isCloseTo(LocalDateTime.now().plusDays(1), within(1, ChronoUnit.SECONDS))
+        }
+      }
+
+      @Test
+      fun `should add address mapping if NOMIS schedule address changes`() = runTest {
+        webTestClient.createScheduledMovementSyncMapping(mapping)
+          .expectStatus().isCreated
+
+        webTestClient.updateScheduledMovementSyncMapping(
+          mapping = mapping.copy(
+            nomisAddressId = 77777L,
+            nomisAddressOwnerClass = "OFF",
+            dpsAddressText = "a different address",
+            eventTime = LocalDateTime.now().plusDays(1),
+          ),
+          source = "NOMIS",
+        ).expectStatus().isOk
+
+        with(addressRepository.findByNomisOffenderNoAndNomisAddressId("A1234BC", 77777L)!!) {
+          assertThat(nomisAddressOwnerClass).isEqualTo("OFF")
+          assertThat(dpsAddressText).isEqualTo("a different address")
+        }
+      }
+
+      @Test
+      fun `should add address mapping if DPS schedule address changes`() = runTest {
+        webTestClient.createScheduledMovementSyncMapping(mapping)
+          .expectStatus().isCreated
+
+        webTestClient.updateScheduledMovementSyncMapping(
+          mapping = mapping.copy(
+            nomisAddressId = 8888L,
+            nomisAddressOwnerClass = "OFF",
+            eventTime = LocalDateTime.now().plusDays(1),
+          ),
+          source = "DPS",
+        ).expectStatus().isOk
+
+        with(addressRepository.findByNomisAddressOwnerClassAndDpsUprnAndDpsAddressText("OFF", 77L, "some address")!!) {
+          assertThat(nomisAddressId).isEqualTo(8888L)
         }
       }
     }
@@ -1571,6 +1704,8 @@ class TemporaryAbsenceResourceIntTest(
         "CORP",
         "some address",
         77L,
+        "some description",
+        "S1 1AA",
         LocalDateTime.now(),
       )
 
@@ -1593,6 +1728,8 @@ class TemporaryAbsenceResourceIntTest(
         "CORP",
         "some address",
         77L,
+        "some description",
+        "S1 1AA",
         LocalDateTime.now(),
       )
 
@@ -1642,8 +1779,8 @@ class TemporaryAbsenceResourceIntTest(
       .body(BodyInserters.fromValue(mapping))
       .exchange()
 
-    private fun WebTestClient.updateScheduledMovementSyncMapping(mapping: ScheduledMovementSyncMappingDto) = put()
-      .uri("/mapping/temporary-absence/scheduled-movement")
+    private fun WebTestClient.updateScheduledMovementSyncMapping(mapping: ScheduledMovementSyncMappingDto, source: String = "NOMIS") = put()
+      .uri("/mapping/temporary-absence/scheduled-movement?source=$source")
       .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(BodyInserters.fromValue(mapping))
@@ -1670,6 +1807,8 @@ class TemporaryAbsenceResourceIntTest(
         "CORP",
         "some address",
         77L,
+        "some name",
+        "S1 1AA",
         LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
@@ -1690,6 +1829,8 @@ class TemporaryAbsenceResourceIntTest(
             assertThat(nomisAddressId).isEqualTo(mapping.nomisAddressId)
             assertThat(nomisAddressOwnerClass).isEqualTo(mapping.nomisAddressOwnerClass)
             assertThat(dpsAddressText).isEqualTo(mapping.dpsAddressText)
+            assertThat(dpsDescription).isEqualTo(mapping.dpsDescription)
+            assertThat(dpsPostcode).isEqualTo(mapping.dpsPostcode)
             assertThat(eventTime).isEqualTo(mapping.eventTime)
             assertThat(mappingType).isEqualTo(mapping.mappingType)
           }
@@ -1712,11 +1853,13 @@ class TemporaryAbsenceResourceIntTest(
         12345L,
         23456L,
         UUID.randomUUID(),
-        mappingType = MovementMappingType.NOMIS_CREATED,
+        MovementMappingType.NOMIS_CREATED,
         34567L,
         "CORP",
         "some address",
         77L,
+        "some description",
+        "S1 1AA",
         LocalDateTime.now(),
       )
 
@@ -1773,6 +1916,8 @@ class TemporaryAbsenceResourceIntTest(
         "CORP",
         "some address",
         77L,
+        "some description",
+        "S1 1AA",
         LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
@@ -1793,6 +1938,8 @@ class TemporaryAbsenceResourceIntTest(
             assertThat(nomisAddressId).isEqualTo(mapping.nomisAddressId)
             assertThat(nomisAddressOwnerClass).isEqualTo(mapping.nomisAddressOwnerClass)
             assertThat(dpsAddressText).isEqualTo(mapping.dpsAddressText)
+            assertThat(dpsDescription).isEqualTo(mapping.dpsDescription)
+            assertThat(dpsPostcode).isEqualTo(mapping.dpsPostcode)
             assertThat(eventTime).isEqualTo(mapping.eventTime)
             assertThat(mappingType).isEqualTo(mapping.mappingType)
           }
@@ -1815,11 +1962,13 @@ class TemporaryAbsenceResourceIntTest(
         12345L,
         23456L,
         UUID.randomUUID(),
-        mappingType = MovementMappingType.NOMIS_CREATED,
+        MovementMappingType.NOMIS_CREATED,
         34567L,
         "CORP",
         "some address",
         77L,
+        "some description",
+        "S1 1AA",
         LocalDateTime.now(),
       )
 
@@ -1876,7 +2025,9 @@ class TemporaryAbsenceResourceIntTest(
         "CORP",
         "some address",
         77L,
-        LocalDateTime.now(),
+        "some description",
+        "S1 1AA",
+        LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
       val mapping2 = TemporaryAbsenceScheduleMapping(
@@ -1888,6 +2039,8 @@ class TemporaryAbsenceResourceIntTest(
         "CORP",
         "some address",
         77L,
+        "some description",
+        "S1 1AA",
         LocalDateTime.now(),
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
@@ -1969,6 +2122,8 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        "some description",
+        "S1 1AA",
         77L,
       )
 
@@ -2012,6 +2167,8 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        "some description",
+        "S1 1AA",
         77L,
       )
       val duplicateMappingDps = ExternalMovementSyncMappingDto(
@@ -2023,6 +2180,8 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        "some description",
+        "S1 1AA",
         77L,
       )
       val duplicateMappingNomis = ExternalMovementSyncMappingDto(
@@ -2035,6 +2194,8 @@ class TemporaryAbsenceResourceIntTest(
         1,
         "A",
         "a",
+        "some description",
+        "S1 1AA",
         77L,
       )
 
@@ -2100,6 +2261,8 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        "some description",
+        "S1 1AA",
         77L,
       )
 
@@ -2164,6 +2327,8 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        "some description",
+        "S1 1AA",
         77L,
       )
 
@@ -2204,6 +2369,8 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        "some description",
+        "S1 1AA",
         77L,
       )
 
@@ -2225,6 +2392,8 @@ class TemporaryAbsenceResourceIntTest(
         34567L,
         "CORP",
         "some address",
+        "some description",
+        "S1 1AA",
         77L,
       )
 
@@ -2701,5 +2870,269 @@ class TemporaryAbsenceResourceIntTest(
       .expectStatus().isOk
       .expectBody<FindScheduledMovementsForAddressResponse>()
       .returnResult().responseBody!!
+  }
+
+  @Nested
+  @DisplayName("POST /mapping/temporary-absence/addresses/by-dps-id")
+  inner class FindAddressByDpsId {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      addressRepository.deleteAll()
+    }
+
+    @Test
+    fun `should find address by owner class and uprn`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", 456L, "dps address text", "corp name", "S1 1AA"))
+
+      webTestClient.findAddressOk("CORP", "ANY", 456L, "dps address text")
+        .apply {
+          assertThat(ownerClass).isEqualTo("CORP")
+          assertThat(addressId).isEqualTo(123L)
+        }
+    }
+
+    @Test
+    fun `should find address by owner class and address text`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", null, "dps address text", "corp name", "S1 1AA"))
+
+      webTestClient.findAddressOk("CORP", "ANY", null, "dps address text")
+        .apply {
+          assertThat(ownerClass).isEqualTo("CORP")
+          assertThat(addressId).isEqualTo(123L)
+        }
+    }
+
+    @Test
+    fun `should find offender address by offender and uprn`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", 456L, "dps address text", null, "S1 1AA"))
+
+      webTestClient.findAddressOk("OFF", "A1234BC", 456L, "dps address text")
+        .apply {
+          assertThat(ownerClass).isEqualTo("OFF")
+          assertThat(addressId).isEqualTo(123L)
+        }
+    }
+
+    @Test
+    fun `should find offender address by offender and address text`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", null, "dps address text", null, "S1 1AA"))
+
+      webTestClient.findAddressOk("OFF", "A1234BC", null, "dps address text")
+        .apply {
+          assertThat(ownerClass).isEqualTo("OFF")
+          assertThat(addressId).isEqualTo(123L)
+        }
+    }
+
+    @Test
+    fun `should return not found if offender address does not exist for uprn`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", 456L, "dps address text", null, "S1 1AA"))
+
+      webTestClient.findAddress("OFF", "A1234BC", 999L, "dps address text")
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `should return not found if address does not exist for uprn`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", 456L, "dps address text", "corp name", "S1 1AA"))
+
+      webTestClient.findAddress("CORP", "ANY", 999L, "dps address text")
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `should return not found if offfender address does not exist for address text`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", null, "dps address text", null, "S1 1AA"))
+
+      webTestClient.findAddress("OFF", "A1234BC", null, "wrong text")
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `should return not found if address does not exist for address text`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", null, "dps address text", "corp name", "S1 1AA"))
+
+      webTestClient.findAddress("CORP", "ANY", null, "wrong text")
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `should return bad request`() = runTest {
+      webTestClient.post()
+        .uri("/mapping/temporary-absence/addresses/by-dps-id")
+        .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue("{}")
+        .exchange()
+        .expectStatus().isBadRequest
+    }
+
+    @Test
+    fun `access not authorised when no authority`() = runTest {
+      webTestClient.post()
+        .uri("/mapping/temporary-absence/addresses/by-dps-id")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(FindTemporaryAbsenceAddressByDpsIdRequest("any", "any", 1, "any")))
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() = runTest {
+      webTestClient.post()
+        .uri("/mapping/temporary-absence/addresses/by-dps-id")
+        .headers(setAuthorisation(roles = listOf()))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(FindTemporaryAbsenceAddressByDpsIdRequest("any", "any", 1, "any")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden when wrong role`() = runTest {
+      webTestClient.post()
+        .uri("/mapping/temporary-absence/addresses/by-dps-id")
+        .headers(setAuthorisation(roles = listOf("BANANAS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(FindTemporaryAbsenceAddressByDpsIdRequest("any", "any", 1, "any")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    private fun anAddressMapping(offenderNo: String, addressId: Long, ownerClass: String, dpsUprn: Long?, dpsAddressText: String, dpsDescription: String?, dpsPostcode: String?) = TemporaryAbsenceAddressMapping(
+      nomisAddressId = addressId,
+      nomisAddressOwnerClass = ownerClass,
+      nomisOffenderNo = offenderNo,
+      dpsAddressText = dpsAddressText,
+      dpsUprn = dpsUprn,
+      dpsDescription = dpsDescription,
+      dpsPostcode = dpsPostcode,
+    )
+
+    private fun WebTestClient.findAddressOk(ownerClass: String, offenderNo: String, dpsUprn: Long?, dpsAddressText: String) = findAddress(ownerClass, offenderNo, dpsUprn, dpsAddressText)
+      .expectStatus().isOk
+      .expectBody<TemporaryAbsenceAddressMappingResponse>()
+      .returnResult().responseBody!!
+
+    private fun WebTestClient.findAddress(ownerClass: String, offenderNo: String, dpsUprn: Long?, dpsAddressText: String) = post()
+      .uri("/mapping/temporary-absence/addresses/by-dps-id")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(BodyInserters.fromValue(FindTemporaryAbsenceAddressByDpsIdRequest(offenderNo, ownerClass, dpsUprn, dpsAddressText)))
+      .exchange()
+  }
+
+  @Nested
+  @DisplayName("POST /mapping/temporary-absence/addresses/by-nomis-id")
+  inner class FindAddressByNomisId {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      addressRepository.deleteAll()
+    }
+
+    @Test
+    fun `should find address by owner class and address ID`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", 456L, "dps address text", "corp name", "S1 1AA"))
+
+      webTestClient.findAddressOk("CORP", "ANY", 123L)
+        .apply {
+          assertThat(dpsUprn).isEqualTo(456L)
+          assertThat(dpsAddressText).isEqualTo("dps address text")
+        }
+    }
+
+    @Test
+    fun `should find offender address by offender and address ID`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", 456L, "dps address text", null, "S1 1AA"))
+
+      webTestClient.findAddressOk("OFF", "A1234BC", 123L)
+        .apply {
+          assertThat(dpsUprn).isEqualTo(456L)
+          assertThat(dpsAddressText).isEqualTo("dps address text")
+        }
+    }
+
+    @Test
+    fun `should return not found if address does not exist for address ID`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", 456L, "dps address text", "corp name", "S1 1AA"))
+
+      webTestClient.findAddress("CORP", "ANY", 999L)
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `should return not found if offender address does not exist for address ID`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", 456L, "dps address text", null, "S1 1AA"))
+
+      webTestClient.findAddress("OFF", "A1234BC", 999L)
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `should return bad request`() = runTest {
+      webTestClient.post()
+        .uri("/mapping/temporary-absence/addresses/by-nomis-id")
+        .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue("{}")
+        .exchange()
+        .expectStatus().isBadRequest
+    }
+
+    @Test
+    fun `access not authorised when no authority`() = runTest {
+      webTestClient.post()
+        .uri("/mapping/temporary-absence/addresses/by-nomis-id")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(FindTemporaryAbsenceAddressByNomisIdRequest("any", "any", 1)))
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() = runTest {
+      webTestClient.post()
+        .uri("/mapping/temporary-absence/addresses/by-nomis-id")
+        .headers(setAuthorisation(roles = listOf()))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(FindTemporaryAbsenceAddressByNomisIdRequest("any", "any", 1)))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden when wrong role`() = runTest {
+      webTestClient.post()
+        .uri("/mapping/temporary-absence/addresses/by-nomis-id")
+        .headers(setAuthorisation(roles = listOf("BANANAS")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(FindTemporaryAbsenceAddressByNomisIdRequest("any", "any", 1)))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    private fun anAddressMapping(offenderNo: String, addressId: Long, ownerClass: String, dpsUprn: Long?, dpsAddressText: String, dpsDescription: String?, dpsPostcode: String?) = TemporaryAbsenceAddressMapping(
+      nomisAddressId = addressId,
+      nomisAddressOwnerClass = ownerClass,
+      nomisOffenderNo = offenderNo,
+      dpsAddressText = dpsAddressText,
+      dpsUprn = dpsUprn,
+      dpsDescription = dpsDescription,
+      dpsPostcode = dpsPostcode,
+    )
+
+    private fun WebTestClient.findAddressOk(ownerClass: String, offenderNo: String, addressId: Long) = findAddress(ownerClass, offenderNo, addressId)
+      .expectStatus().isOk
+      .expectBody<TemporaryAbsenceAddressMappingResponse>()
+      .returnResult().responseBody!!
+
+    private fun WebTestClient.findAddress(ownerClass: String, offenderNo: String, addressId: Long) = post()
+      .uri("/mapping/temporary-absence/addresses/by-nomis-id")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(BodyInserters.fromValue(FindTemporaryAbsenceAddressByNomisIdRequest(offenderNo, ownerClass, addressId)))
+      .exchange()
   }
 }

@@ -6,4 +6,8 @@ import org.springframework.stereotype.Repository
 @Repository
 interface TemporaryAbsenceAddressRepository : CoroutineCrudRepository<TemporaryAbsenceAddressMapping, Long> {
   suspend fun findByNomisAddressIdAndNomisAddressOwnerClassAndNomisOffenderNo(nomisAddressId: Long, nomisAddressOwnerClass: String, nomisOffenderNo: String?): TemporaryAbsenceAddressMapping?
+  suspend fun findByNomisOffenderNoAndDpsUprnAndDpsAddressText(offenderNo: String, dpsUprn: Long?, dpsAddressText: String): TemporaryAbsenceAddressMapping?
+  suspend fun findByNomisAddressOwnerClassAndDpsUprnAndDpsAddressText(ownerClass: String, dpsUprn: Long?, dpsAddressText: String): TemporaryAbsenceAddressMapping?
+  suspend fun findByNomisOffenderNoAndNomisAddressId(offenderNo: String, nomisAddressId: Long): TemporaryAbsenceAddressMapping?
+  suspend fun findByNomisAddressOwnerClassAndNomisAddressId(ownerClass: String, nomisAddressId: Long): TemporaryAbsenceAddressMapping?
 }
