@@ -36,8 +36,8 @@ data class TemporaryAbsenceApplicationMappingDto(
   val nomisMovementApplicationId: Long,
   @Schema(description = "The DPS temporary absence application id")
   val dpsMovementApplicationId: UUID,
-  @Schema(description = "Mappings for each outside movement recorded against the application")
-  val outsideMovements: List<TemporaryAbsencesOutsideMovementMappingDto>,
+  @Schema(description = "Mappings for each outside movement recorded against the application", required = false)
+  val outsideMovements: List<TemporaryAbsencesOutsideMovementMappingDto>? = null,
   @Schema(description = "All scheduled movement mappings")
   val schedules: List<ScheduledMovementMappingDto>,
   @Schema(description = "All actual external movement mappings")
