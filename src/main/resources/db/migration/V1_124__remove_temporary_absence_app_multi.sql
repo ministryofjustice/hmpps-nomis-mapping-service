@@ -1,0 +1,1 @@
+drop table temporary_absence_app_multi_mapping

@@ -11,7 +11,6 @@ import java.util.UUID
 @Transactional(readOnly = true)
 class TemporaryAbsenceService(
   private val applicationRepository: TemporaryAbsenceApplicationRepository,
-  private val appMultiRepository: TemporaryAbsenceAppMultiRepository,
   private val scheduleRepository: TemporaryAbsenceScheduleRepository,
   private val movementRepository: TemporaryAbsenceMovementRepository,
   private val migrationRepository: TemporaryAbsenceMigrationRepository,
@@ -29,7 +28,6 @@ class TemporaryAbsenceService(
   @Transactional
   suspend fun createMappings(mappings: TemporaryAbsencesPrisonerMappingDto) {
     applicationRepository.deleteByOffenderNo(mappings.prisonerNumber)
-    appMultiRepository.deleteByOffenderNo(mappings.prisonerNumber)
     scheduleRepository.deleteByOffenderNo(mappings.prisonerNumber)
     movementRepository.deleteByOffenderNo(mappings.prisonerNumber)
     mappings.bookings.forEach { booking ->
@@ -174,20 +172,6 @@ class TemporaryAbsenceService(
   suspend fun deleteApplicationMappingByNomisId(nomisApplicationId: Long) = applicationRepository.deleteByNomisApplicationId(nomisApplicationId)
 
   @Transactional
-  suspend fun createOutsideMovementMapping(mappingDto: TemporaryAbsenceOutsideMovementSyncMappingDto) = appMultiRepository.save(mappingDto.toMapping()).toMappingDto()
-
-  suspend fun getOutsideMovementMappingByNomisId(nomisAppMultiId: Long) = appMultiRepository.findByNomisAppMultiId(nomisAppMultiId)
-    ?.toMappingDto()
-    ?: throw NotFoundException("Mapping for NOMIS application multi id $nomisAppMultiId not found")
-
-  suspend fun getOutsideMovementMappingByDpsId(dpsOutsideMovementId: UUID) = appMultiRepository.findById(dpsOutsideMovementId)
-    ?.toMappingDto()
-    ?: throw NotFoundException("Mapping for DPS outside movement id $dpsOutsideMovementId not found")
-
-  @Transactional
-  suspend fun deleteOutsideMovementMappingByNomisId(nomisAppMultiId: Long) = appMultiRepository.deleteByNomisAppMultiId(nomisAppMultiId)
-
-  @Transactional
   suspend fun createScheduledMovementMapping(mappingDto: ScheduledMovementSyncMappingDto) = scheduleRepository.save(mappingDto.toMapping())
     .also {
       if (it.nomisAddressOwnerClass != null && it.nomisAddressId != null) {
@@ -297,22 +281,6 @@ fun TemporaryAbsenceApplicationMapping.toMappingDto(): TemporaryAbsenceApplicati
   bookingId,
   nomisApplicationId,
   dpsApplicationId,
-  mappingType = mappingType,
-)
-
-fun TemporaryAbsenceOutsideMovementSyncMappingDto.toMapping(): TemporaryAbsenceAppMultiMapping = TemporaryAbsenceAppMultiMapping(
-  dpsOutsideMovementId,
-  nomisMovementApplicationMultiId,
-  prisonerNumber,
-  bookingId,
-  mappingType = mappingType,
-)
-
-fun TemporaryAbsenceAppMultiMapping.toMappingDto(): TemporaryAbsenceOutsideMovementSyncMappingDto = TemporaryAbsenceOutsideMovementSyncMappingDto(
-  offenderNo,
-  bookingId,
-  nomisAppMultiId,
-  dpsAppMultiId,
   mappingType = mappingType,
 )
 
