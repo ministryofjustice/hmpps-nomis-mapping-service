@@ -21,50 +21,6 @@ class CorporateService(
   private val corporateEmailMappingRepository: CorporateEmailMappingRepository,
   private val corporateWebMappingRepository: CorporateWebMappingRepository,
 ) {
-  @Transactional
-  suspend fun createMappings(mappings: CorporateMappingsDto) {
-    with(mappings) {
-      corporateMappingRepository.save(toCorporateMapping())
-      corporateAddressMapping.forEach {
-        corporateAddressMappingRepository.save(toMapping(it))
-      }
-      corporateAddressPhoneMapping.forEach {
-        corporateAddressPhoneMappingRepository.save(toMapping(it))
-      }
-      corporatePhoneMapping.forEach {
-        corporatePhoneMappingRepository.save(toMapping(it))
-      }
-      corporateEmailMapping.forEach {
-        corporateEmailMappingRepository.save(toMapping(it))
-      }
-      corporateWebMapping.forEach {
-        corporateWebMappingRepository.save(toMapping(it))
-      }
-    }
-  }
-
-  suspend fun getCorporateMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<OrganisationsMappingDto> = coroutineScope {
-    val mappings = async {
-      corporateMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
-        label = migrationId,
-        mappingType = CorporateMappingType.MIGRATED,
-        pageRequest = pageRequest,
-      )
-    }
-
-    val count = async {
-      corporateMappingRepository.countAllByLabelAndMappingType(
-        migrationId = migrationId,
-        mappingType = CorporateMappingType.MIGRATED,
-      )
-    }
-
-    PageImpl(
-      mappings.await().toList().map { it.toDto() },
-      pageRequest,
-      count.await(),
-    )
-  }
   suspend fun getAllCorporateMappings(pageRequest: Pageable): Page<OrganisationsMappingDto> = coroutineScope {
     val mappings = async {
       corporateMappingRepository.findAllBy(
@@ -214,28 +170,6 @@ class CorporateService(
   @Transactional
   suspend fun deleteWebMappingByNomisId(nomisId: Long) = corporateWebMappingRepository.deleteByNomisId(nomisId = nomisId)
 }
-
-private fun CorporateMappingsDto.toCorporateMapping() = CorporateMapping(
-  dpsId = corporateMapping.dpsId,
-  nomisId = corporateMapping.nomisId,
-  label = label,
-  mappingType = mappingType,
-  whenCreated = whenCreated,
-)
-
-private inline fun <reified T : AbstractCorporateMapping> CorporateMappingsDto.toMapping(mapping: CorporateMappingIdDto): T = T::class.java.getDeclaredConstructor(
-  String::class.java,
-  Long::class.java,
-  String::class.java,
-  CorporateMappingType::class.java,
-  LocalDateTime::class.java,
-).newInstance(
-  mapping.dpsId,
-  mapping.nomisId,
-  this.label,
-  this.mappingType,
-  this.whenCreated,
-)
 
 private inline fun <reified T : AbstractCorporateMapping> OrganisationsMappingDto.toMapping(): T = T::class.java.getDeclaredConstructor(
   String::class.java,

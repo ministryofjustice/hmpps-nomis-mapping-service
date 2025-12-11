@@ -5,8 +5,6 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -32,109 +30,6 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/corporate", produces = [MediaType.APPLICATION_JSON_VALUE])
 class CorporateMappingResource(private val service: CorporateService) {
-  private companion object {
-    val log: Logger = LoggerFactory.getLogger(this::class.java)
-  }
-
-  @PostMapping("/migrate")
-  @ResponseStatus(HttpStatus.CREATED)
-  @Operation(
-    summary = "Creates a tree of corporate mappings typically for a migration",
-    description = "Creates a tree of corporate mappings typically for a migration between NOMIS ids and dps ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = CorporateMappingsDto::class))],
-    ),
-    responses = [
-      ApiResponse(responseCode = "201", description = "Mappings created"),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Access forbidden for this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "409",
-        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
-          ),
-        ],
-      ),
-    ],
-  )
-  suspend fun createMappings(
-    @RequestBody @Valid
-    mappings: CorporateMappingsDto,
-  ) = try {
-    service.createMappings(mappings)
-  } catch (e: DuplicateKeyException) {
-    val existingMapping = getExistingCorporateMappingSimilarTo(mappings.corporateMapping)
-    if (existingMapping == null) {
-      log.error("Child duplicate key found for corporate even though the corporate has never been migrated", e)
-    }
-    throw DuplicateMappingException(
-      messageIn = "Corporate mapping already exists",
-      duplicate = mappings.asOrganisationsMappingDto(),
-      existing = existingMapping ?: mappings.asOrganisationsMappingDto(),
-      cause = e,
-    )
-  }
-
-  @GetMapping("/organisation/migration-id/{migrationId}")
-  @Operation(
-    summary = "Get paged corporate mappings by migration id",
-    description = "Retrieve all corporate mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Corporate mapping page returned",
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun getCorporateMappingsByMigrationId(
-    @PageableDefault pageRequest: Pageable,
-    @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
-    @PathVariable
-    migrationId: String,
-  ): Page<OrganisationsMappingDto> = service.getCorporateMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
-
-  @DeleteMapping
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(
-    summary = "Deletes all corporate mappings",
-    description = "Deletes all corporate mappings regardless of source. This includes corporate, phone, address, address phone, email, web. This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(responseCode = "204", description = "All mappings deleted"),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Access forbidden for this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun deleteAllMappings() = service.deleteAllMappings()
-
   @PostMapping("/organisation")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -1198,16 +1093,6 @@ class CorporateMappingResource(private val service: CorporateService) {
     nomisWebId: Long,
   ) = service.deleteWebMappingByNomisId(nomisId = nomisWebId)
 
-  private suspend fun getExistingCorporateMappingSimilarTo(corporateMapping: CorporateMappingIdDto) = runCatching {
-    service.getCorporateMappingByNomisId(
-      nomisId = corporateMapping.nomisId,
-    )
-  }.getOrElse {
-    service.getCorporateMappingByDpsIdOrNull(
-      dpsId = corporateMapping.dpsId,
-    )
-  }
-
   private suspend fun getExistingOrganisationMappingSimilarTo(mapping: OrganisationsMappingDto) = runCatching {
     service.getCorporateMappingByNomisId(
       nomisId = mapping.nomisId,
@@ -1267,11 +1152,3 @@ class CorporateMappingResource(private val service: CorporateService) {
     )
   }
 }
-
-private fun CorporateMappingsDto.asOrganisationsMappingDto() = OrganisationsMappingDto(
-  dpsId = corporateMapping.dpsId,
-  nomisId = corporateMapping.nomisId,
-  mappingType = mappingType,
-  label = label,
-  whenCreated = whenCreated,
-)
