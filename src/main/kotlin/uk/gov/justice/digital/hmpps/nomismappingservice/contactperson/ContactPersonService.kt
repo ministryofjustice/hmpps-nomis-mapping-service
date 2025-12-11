@@ -37,37 +37,6 @@ class ContactPersonService(
     ?.toDto()
 
   @Transactional
-  suspend fun createMappings(mappings: ContactPersonMappingsDto) {
-    with(mappings) {
-      personMappingRepository.save(toPersonMapping())
-      personAddressMapping.forEach {
-        personAddressMappingRepository.save(toMapping(it))
-      }
-      personPhoneMapping.forEach {
-        personPhoneMappingRepository.save(toMapping(it))
-      }
-      personEmailMapping.forEach {
-        personEmailMappingRepository.save(toMapping(it))
-      }
-      personEmploymentMapping.forEach {
-        personEmploymentMappingRepository.save(toMapping(it))
-      }
-      personIdentifierMapping.forEach {
-        personIdentifierMappingRepository.save(toMapping(it))
-      }
-      personRestrictionMapping.forEach {
-        personRestrictionMappingRepository.save(toMapping(it))
-      }
-      personContactMapping.forEach {
-        personContactMappingRepository.save(toMapping(it))
-      }
-      personContactRestrictionMapping.forEach {
-        personContactRestrictionMappingRepository.save(toMapping(it))
-      }
-    }
-  }
-
-  @Transactional
   suspend fun replaceMappings(mappings: ContactPersonMappingsDto) {
     with(mappings) {
       personMappingRepository.deleteByNomisId(nomisId = personMapping.nomisId)
@@ -157,28 +126,6 @@ class ContactPersonService(
     personContactMappingRepository.save(mapping.toPersonContactMapping())
   }
 
-  suspend fun getPersonMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<PersonMappingDto> = coroutineScope {
-    val mappings = async {
-      personMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
-        label = migrationId,
-        mappingType = ContactPersonMappingType.MIGRATED,
-        pageRequest = pageRequest,
-      )
-    }
-
-    val count = async {
-      personMappingRepository.countAllByLabelAndMappingType(
-        migrationId = migrationId,
-        mappingType = ContactPersonMappingType.MIGRATED,
-      )
-    }
-
-    PageImpl(
-      mappings.await().toList().map { it.toDto() },
-      pageRequest,
-      count.await(),
-    )
-  }
   suspend fun getAllPersonMappings(pageRequest: Pageable): Page<PersonMappingDto> = coroutineScope {
     val mappings = async {
       personMappingRepository.findAllBy(
@@ -195,19 +142,6 @@ class ContactPersonService(
       pageRequest,
       count.await(),
     )
-  }
-
-  @Transactional
-  suspend fun deleteAllMappings() {
-    personContactRestrictionMappingRepository.deleteAll()
-    personContactMappingRepository.deleteAll()
-    personRestrictionMappingRepository.deleteAll()
-    personIdentifierMappingRepository.deleteAll()
-    personEmploymentMappingRepository.deleteAll()
-    personEmailMappingRepository.deleteAll()
-    personPhoneMappingRepository.deleteAll()
-    personAddressMappingRepository.deleteAll()
-    personMappingRepository.deleteAll()
   }
 
   suspend fun getPersonAddressMappingByNomisId(nomisId: Long) = personAddressMappingRepository.findOneByNomisId(nomisId = nomisId)
@@ -343,29 +277,6 @@ class ContactPersonService(
 
   suspend fun getPrisonerRestrictionMappingByDpsIdOrNull(dpsId: String) = prisonerRestrictionMappingRepository.findOneByDpsId(dpsId = dpsId)?.toDto()
   suspend fun getPrisonerRestrictionMappingsByOffenderNo(offenderNo: String) = prisonerRestrictionMappingRepository.findAllByOffenderNo(offenderNo = offenderNo).map { it.toDto() }
-
-  suspend fun getPrisonerRestrictionMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<PrisonerRestrictionMappingDto> = coroutineScope {
-    val mappings = async {
-      prisonerRestrictionMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
-        label = migrationId,
-        mappingType = ContactPersonMappingType.MIGRATED,
-        pageRequest = pageRequest,
-      )
-    }
-
-    val count = async {
-      prisonerRestrictionMappingRepository.countAllByLabelAndMappingType(
-        migrationId = migrationId,
-        mappingType = ContactPersonMappingType.MIGRATED,
-      )
-    }
-
-    PageImpl(
-      mappings.await().toList().map { it.toDto() },
-      pageRequest,
-      count.await(),
-    )
-  }
 
   @Transactional
   suspend fun deletePrisonerRestrictionMappingByNomisId(nomisId: Long) = prisonerRestrictionMappingRepository.deleteByNomisId(nomisId = nomisId)
