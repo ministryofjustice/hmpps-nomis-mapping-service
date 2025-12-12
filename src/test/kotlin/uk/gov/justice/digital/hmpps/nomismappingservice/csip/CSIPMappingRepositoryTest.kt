@@ -5,13 +5,16 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
+import uk.gov.justice.digital.hmpps.nomismappingservice.config.R2dbcConfig
 import uk.gov.justice.digital.hmpps.nomismappingservice.csip.CSIPMappingType.MIGRATED
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestBase
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 
-@DataR2dbcTest
+@Import(R2dbcConfig::class)
+@SpringBootTest
 @ActiveProfiles("test")
 @WithMockAuthUser
 class CSIPMappingRepositoryTest : TestBase() {

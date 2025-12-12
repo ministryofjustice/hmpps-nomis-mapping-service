@@ -5,7 +5,7 @@ import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 
-abstract class AbstractMappingTyped<T>(
+abstract class AbstractMappingTyped<T : Any>(
   val label: String? = null,
   val mappingType: StandardMappingType,
 
