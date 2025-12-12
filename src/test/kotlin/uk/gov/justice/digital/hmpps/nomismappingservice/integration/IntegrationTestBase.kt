@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.integration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.http.HttpHeaders
 import org.springframework.test.web.reactive.server.StatusAssertions
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -10,6 +11,7 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestBase
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
+@AutoConfigureWebTestClient
 abstract class IntegrationTestBase : TestBase() {
 
   @Autowired

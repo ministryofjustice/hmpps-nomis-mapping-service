@@ -6,7 +6,7 @@ import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 
-abstract class AbstractCorporateMappingTyped<T>(
+abstract class AbstractCorporateMappingTyped<T : Any>(
   @Id
   val dpsId: String,
   val nomisId: Long,
