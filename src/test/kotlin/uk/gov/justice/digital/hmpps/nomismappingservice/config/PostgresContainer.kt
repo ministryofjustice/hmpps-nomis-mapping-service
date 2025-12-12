@@ -5,6 +5,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.Wait
 import java.io.IOException
 import java.net.ServerSocket
+// TODO move to import org.testcontainers.postgresql.PostgreSQLContainer
 
 object PostgresContainer {
   val instance: PostgreSQLContainer<Nothing>? by lazy { startPostgresqlContainer() }
