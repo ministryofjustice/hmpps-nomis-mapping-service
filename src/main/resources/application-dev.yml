@@ -31,3 +31,9 @@ spring:
 visit-balance-adjustment.expiry:
   schedule:
     cron: "0 0 8 * * MON-FRI"
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
