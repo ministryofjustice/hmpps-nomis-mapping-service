@@ -15,10 +15,13 @@ spring:
   devtools:
     add-properties: true
 
-  flyway:
+  datasource:
     url: jdbc:postgresql://localhost:5432/mapping?sslmode=prefer
-    user: mapping
+    username: mapping
     password: mapping
+
+  flyway:
+    enabled: true
 
   r2dbc:
     url: r2dbc:postgresql://localhost:5432/mapping?sslmode=prefer
