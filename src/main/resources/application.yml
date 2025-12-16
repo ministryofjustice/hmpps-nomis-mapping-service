@@ -36,11 +36,9 @@ spring:
   devtools:
     add-properties: false
 
-  datasource:
-    url: jdbc:postgresql://${DATABASE_ENDPOINT}/${DATABASE_NAME}?sslmode=verify-full
-
   flyway:
     enabled: true
+    url: jdbc:postgresql://${DATABASE_ENDPOINT}/${DATABASE_NAME}?sslmode=verify-full
 
   data:
     web:

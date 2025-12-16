@@ -11,9 +11,9 @@ api:
       hmpps-auth: http://localhost:8090/auth
 
 spring:
-  datasource:
+  flyway:
     url: jdbc:postgresql://localhost:5432/mapping?sslmode=prefer
-    username: mapping
+    user: mapping
     password: mapping
 
   r2dbc:
