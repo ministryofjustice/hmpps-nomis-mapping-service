@@ -18,6 +18,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-flyway")
   implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.0.0")
 
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.20.1")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.10.2")
 
