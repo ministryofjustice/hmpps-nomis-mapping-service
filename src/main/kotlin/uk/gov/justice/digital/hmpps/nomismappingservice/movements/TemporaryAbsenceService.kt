@@ -1,11 +1,17 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.movements
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.toList
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.MovementMappingType.DPS_CREATED
 import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundException
 import java.time.LocalDate
-import java.util.UUID
+import java.util.*
 
 @Service
 @Transactional(readOnly = true)
@@ -266,6 +272,30 @@ class TemporaryAbsenceService(
       ?.toMappingDto()
       ?: throw NotFoundException("No address found for address owner class $ownerClass and offender $offenderNo with nomisAddressId $nomisAddressId")
   }
+
+  suspend fun getCountByMigrationId(
+    pageRequest: Pageable,
+    migrationId: String,
+  ): Page<TemporaryAbsenceMigrationDto> = coroutineScope {
+    val mappings = async {
+      migrationRepository.findAllByLabelOrderByLabelDesc(
+        label = migrationId,
+        pageRequest = pageRequest,
+      )
+    }
+
+    val count = async {
+      migrationRepository.countAllByLabel(
+        migrationId = migrationId,
+      )
+    }
+
+    PageImpl(
+      mappings.await().toList().map { it.toDto() },
+      pageRequest,
+      count.await(),
+    )
+  }
 }
 
 fun TemporaryAbsenceApplicationSyncMappingDto.toMapping(): TemporaryAbsenceApplicationMapping = TemporaryAbsenceApplicationMapping(
@@ -351,3 +381,5 @@ fun TemporaryAbsenceAddressMapping.toMappingDto() = TemporaryAbsenceAddressMappi
   dpsDescription,
   dpsPostcode,
 )
+
+fun TemporaryAbsenceMigration.toDto() = TemporaryAbsenceMigrationDto(offenderNo, label)

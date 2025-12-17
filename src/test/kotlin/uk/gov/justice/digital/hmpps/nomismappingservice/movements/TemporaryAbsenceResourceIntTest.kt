@@ -2689,4 +2689,70 @@ class TemporaryAbsenceResourceIntTest(
       .body(BodyInserters.fromValue(FindTemporaryAbsenceAddressByNomisIdRequest(offenderNo, ownerClass, addressId)))
       .exchange()
   }
+
+  @DisplayName("GET /mapping/temporary-absence/migration-id/{migrationId}")
+  @Nested
+  inner class GetMappingsCountByMigrationId {
+
+    @BeforeEach
+    fun setUp() = runTest {
+      migrationRepository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get().uri("/mapping/temporary-absence/migration-id/2022-01-01T00:00:00")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get().uri("/mapping/temporary-absence/migration-id/2022-01-01T00:00:00")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get().uri("/mapping/temporary-absence/migration-id/2022-01-01T00:00:00")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+
+      @Test
+      fun `can retrieve mappings count by migration Id`() = runTest {
+        (1L..4).forEach {
+          migrationRepository.save(
+            TemporaryAbsenceMigration(
+              offenderNo = "any$it",
+              label = "2023-01-01T12:45:12",
+            ),
+          )
+        }
+
+        migrationRepository.save(
+          TemporaryAbsenceMigration(
+            offenderNo = "different",
+            label = "2022-02-02T12:45:12",
+          ),
+        )
+
+        webTestClient.get().uri("/mapping/temporary-absence/migration-id/2023-01-01T12:45:12")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("totalElements").isEqualTo(4)
+      }
+    }
+  }
 }
