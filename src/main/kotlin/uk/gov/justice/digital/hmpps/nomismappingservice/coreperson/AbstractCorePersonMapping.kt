@@ -5,7 +5,7 @@ import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 
-abstract class AbstractCorePersonMappingTyped<T>(
+abstract class AbstractCorePersonMappingTyped<T : Any>(
   val nomisPrisonNumber: String,
   val label: String? = null,
   val mappingType: CorePersonMappingType,
