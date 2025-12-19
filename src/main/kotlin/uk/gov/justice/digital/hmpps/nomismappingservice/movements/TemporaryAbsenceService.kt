@@ -67,10 +67,8 @@ class TemporaryAbsenceService(
 
     // save all unscheduled movement mappings
     mappings.bookings.flatMap { booking ->
-      booking.applications.flatMap { application ->
-        booking.unscheduledMovements.map { movement ->
-          movement.toEntity(mappings.prisonerNumber, booking.bookingId, mappings.migrationId)
-        }
+      booking.unscheduledMovements.map { movement ->
+        movement.toEntity(mappings.prisonerNumber, booking.bookingId, mappings.migrationId)
       }
     }.also { movementRepository.saveAll(it).count() }
 
