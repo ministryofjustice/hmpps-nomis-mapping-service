@@ -64,11 +64,43 @@ class OfficialVisitsResource(private val officialVisitsService: OfficialVisitsSe
       ),
     ],
   )
-  suspend fun getVisitMappingByNomisIds(
+  suspend fun getVisitMappingByNomisId(
     @Schema(description = "NOMIS visit id", example = "123", required = true)
     @PathVariable
     nomisVisitId: Long,
   ): OfficialVisitMappingDto = officialVisitsService.getOfficialVisitMappingByNomisId(nomisId = nomisVisitId)
+
+  @GetMapping("/visit/dps-id/{dpsVisitId}")
+  @Operation(
+    summary = "Gets visit mapping by dps visit id",
+    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping data",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getVisitMappingByDpsId(
+    @Schema(description = "DPS visit id", example = "123", required = true)
+    @PathVariable
+    dpsVisitId: String,
+  ): OfficialVisitMappingDto = officialVisitsService.getOfficialVisitMappingByDpsId(dpsId = dpsVisitId)
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
