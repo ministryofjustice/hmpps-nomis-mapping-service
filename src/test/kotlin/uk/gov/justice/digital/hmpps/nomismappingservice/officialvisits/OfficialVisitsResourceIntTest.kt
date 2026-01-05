@@ -35,7 +35,7 @@ class OfficialVisitsResourceIntTest : IntegrationTestBase() {
 
   @Nested
   @DisplayName("GET /mapping/official-visits/visit/nomis-id/{nomisId}")
-  inner class GetOfficialVisitMappingByNomisIds {
+  inner class GetOfficialVisitMappingByNomisId {
     val nomisId = 73737L
     val dpsId = "123456789"
 
@@ -99,6 +99,84 @@ class OfficialVisitsResourceIntTest : IntegrationTestBase() {
       fun `will retrieve mapping`() {
         webTestClient.get()
           .uri("/mapping/official-visits/visit/nomis-id/$nomisId")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("dpsId").isEqualTo(dpsId)
+          .jsonPath("nomisId").isEqualTo(nomisId)
+          .jsonPath("label").isEqualTo("2020-01-01T10:00")
+          .jsonPath("mappingType").isEqualTo("MIGRATED")
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/official-visits/visit/dps-id/{dpsId}")
+  inner class GetOfficialVisitMappingByDpsId {
+    val nomisId = 73737L
+    val dpsId = "123456789"
+
+    @BeforeEach
+    fun setUp() = runTest {
+      officialVisitMappingRepository.save(
+        OfficialVisitMapping(
+          dpsId = dpsId,
+          nomisId = nomisId,
+          label = "2020-01-01T10:00",
+          mappingType = StandardMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access unauthorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/official-visits/visit/dps-id/$dpsId")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/official-visits/visit/dps-id/$dpsId")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/official-visits/visit/dps-id/$dpsId")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `404 when mapping not found`() {
+        webTestClient.get()
+          .uri("/mapping/official-visits/visit/dps-id/99")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will retrieve mapping`() {
+        webTestClient.get()
+          .uri("/mapping/official-visits/visit/dps-id/$dpsId")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
