@@ -20,10 +20,14 @@ class OfficialVisitsService(
     nomisId = nomisId,
   )
     ?.toDto()
-    ?: throw NotFoundException("No visit slot mapping found for nomisId=$nomisId")
+    ?: throw NotFoundException("No visit mapping found for nomisId=$nomisId")
 
   suspend fun getOfficialVisitMappingByDpsIdOrNull(dpsId: String) = officialVisitMappingRepository.findOneByDpsId(dpsId)
     ?.toDto()
+
+  suspend fun getOfficialVisitMappingByDpsId(dpsId: String) = officialVisitMappingRepository.findOneByDpsId(dpsId)
+    ?.toDto()
+    ?: throw NotFoundException("No visit mapping found for dpsId=$dpsId")
 
   suspend fun createMappings(mappings: OfficialVisitMigrationMappingDto) {
     with(mappings) {
