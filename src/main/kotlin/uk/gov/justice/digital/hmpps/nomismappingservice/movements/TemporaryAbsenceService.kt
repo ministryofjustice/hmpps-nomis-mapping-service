@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.movements
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -31,89 +32,73 @@ class TemporaryAbsenceService(
     }
   }
 
+  // TODO - this was supposed to perform batch inserts which are needed for performance reasons. Unfortunately Spring R2DBC doesn't support batch inserts/updates so it's not any quicker. We'll have to roll our own with something like this: https://blog.davidvassallo.me/2022/03/01/spring-boot-r2dbc-insert-batching-reactive-sql/.
   @Transactional
   suspend fun createMappings(mappings: TemporaryAbsencesPrisonerMappingDto) {
+    // Clear down old mappings
     applicationRepository.deleteByOffenderNo(mappings.prisonerNumber)
     scheduleRepository.deleteByOffenderNo(mappings.prisonerNumber)
     movementRepository.deleteByOffenderNo(mappings.prisonerNumber)
-    mappings.bookings.forEach { booking ->
-      booking.applications.forEach { application ->
-        applicationRepository.save(
-          TemporaryAbsenceApplicationMapping(
-            application.dpsMovementApplicationId,
-            application.nomisMovementApplicationId,
-            mappings.prisonerNumber,
-            booking.bookingId,
-            mappings.migrationId,
-            MovementMappingType.MIGRATED,
-          ),
-        )
-        application.schedules.forEach { schedule ->
-          scheduleRepository.save(
-            TemporaryAbsenceScheduleMapping(
-              schedule.dpsOccurrenceId,
-              schedule.nomisEventId,
-              mappings.prisonerNumber,
-              booking.bookingId,
-              schedule.nomisAddressId,
-              schedule.nomisAddressOwnerClass,
-              schedule.dpsAddressText,
-              null,
-              schedule.dpsDescription,
-              schedule.dpsPostcode,
-              schedule.eventTime,
-              mappings.migrationId,
-              MovementMappingType.MIGRATED,
-            ),
-          )
-          if (schedule.nomisAddressOwnerClass != null && schedule.nomisAddressId != null) {
-            upsertAddressMappingByNomisId(schedule.nomisAddressOwnerClass, schedule.nomisAddressId, mappings.prisonerNumber, schedule.dpsAddressText, null, schedule.dpsDescription, schedule.dpsPostcode)
-          }
-        }
-        application.movements.forEach { movement ->
-          movementRepository.save(
-            TemporaryAbsenceMovementMapping(
-              movement.dpsMovementId,
-              booking.bookingId,
-              movement.nomisMovementSeq,
-              mappings.prisonerNumber,
-              movement.nomisAddressId,
-              movement.nomisAddressOwnerClass,
-              movement.dpsAddressText,
-              mappings.migrationId,
-              null,
-              movement.dpsDescription,
-              movement.dpsPostcode,
-              MovementMappingType.MIGRATED,
-            ),
-          )
-          if (movement.nomisAddressOwnerClass != null && movement.nomisAddressId != null) {
-            upsertAddressMappingByNomisId(movement.nomisAddressOwnerClass, movement.nomisAddressId, mappings.prisonerNumber, movement.dpsAddressText, null, movement.dpsDescription, movement.dpsPostcode)
-          }
+
+    // Save all application mappings
+    mappings.bookings.flatMap { booking ->
+      booking.applications.map { application ->
+        application.toEntity(mappings.prisonerNumber, booking.bookingId, mappings.migrationId)
+      }
+    }.also { applicationRepository.saveAll(it).count() }
+
+    // save all schedule mappings
+    mappings.bookings.flatMap { booking ->
+      booking.applications.flatMap { application ->
+        application.schedules.map { schedule ->
+          schedule.toEntity(mappings.prisonerNumber, booking.bookingId, mappings.migrationId)
         }
       }
-      booking.unscheduledMovements.forEach { unscheduledMovement ->
-        movementRepository.save(
-          TemporaryAbsenceMovementMapping(
-            unscheduledMovement.dpsMovementId,
-            booking.bookingId,
-            unscheduledMovement.nomisMovementSeq,
-            mappings.prisonerNumber,
-            unscheduledMovement.nomisAddressId,
-            unscheduledMovement.nomisAddressOwnerClass,
-            unscheduledMovement.dpsAddressText,
-            mappings.migrationId,
-            null,
-            unscheduledMovement.dpsDescription,
-            unscheduledMovement.dpsPostcode,
-            MovementMappingType.MIGRATED,
-          ),
-        )
-        if (unscheduledMovement.nomisAddressOwnerClass != null && unscheduledMovement.nomisAddressId != null) {
-          upsertAddressMappingByNomisId(unscheduledMovement.nomisAddressOwnerClass, unscheduledMovement.nomisAddressId, mappings.prisonerNumber, unscheduledMovement.dpsAddressText)
+    }.also { scheduleRepository.saveAll(it).count() }
+
+    // save all scheduled movement mappings
+    mappings.bookings.flatMap { booking ->
+      booking.applications.flatMap { application ->
+        application.movements.map { movement ->
+          movement.toEntity(mappings.prisonerNumber, booking.bookingId, mappings.migrationId)
         }
+      }
+    }.also { movementRepository.saveAll(it).count() }
+
+    // save all unscheduled movement mappings
+    mappings.bookings.flatMap { booking ->
+      booking.unscheduledMovements.map { movement ->
+        movement.toEntity(mappings.prisonerNumber, booking.bookingId, mappings.migrationId)
+      }
+    }.also { movementRepository.saveAll(it).count() }
+
+    // get all unique addresses
+    val uniqueAddresses = mutableSetOf<Address>()
+    mappings.bookings.flatMap { booking ->
+      booking.applications.flatMap { application ->
+        application.schedules.filter { it.nomisAddressOwnerClass != null && it.nomisAddressId != null }
+          .map { schedule ->
+            Address(schedule.nomisAddressId!!, schedule.nomisAddressOwnerClass!!, schedule.dpsAddressText, schedule.dpsDescription, schedule.dpsPostcode)
+          }
+      }
+    }.also { uniqueAddresses.addAll(it) }
+
+    mappings.bookings.forEach { booking ->
+      booking.applications.flatMap { application ->
+        application.movements.filter { it.nomisAddressOwnerClass != null && it.nomisAddressId != null }
+          .map { unscheduledMovement ->
+            Address(unscheduledMovement.nomisAddressId!!, unscheduledMovement.nomisAddressOwnerClass!!, unscheduledMovement.dpsAddressText, unscheduledMovement.dpsDescription, unscheduledMovement.dpsPostcode)
+          }.also { uniqueAddresses.addAll(it) }
       }
     }
+
+    // save or update addresses
+    uniqueAddresses.map { address ->
+      val offenderNo = if (address.nomisAddressOwnerClass == "OFF") mappings.prisonerNumber else null
+      addressRepository.findByNomisAddressIdAndNomisAddressOwnerClassAndNomisOffenderNo(address.nomisAddressId, address.nomisAddressOwnerClass, offenderNo)
+        ?.also { saved -> saved.dpsAddressText = address.dpsAddressText }
+        ?: address.toEntity(offenderNo)
+    }.also { addressRepository.saveAll(it).count() }
   }
 
   @Transactional
@@ -383,3 +368,60 @@ fun TemporaryAbsenceAddressMapping.toMappingDto() = TemporaryAbsenceAddressMappi
 )
 
 fun TemporaryAbsenceMigration.toDto() = TemporaryAbsenceMigrationDto(offenderNo, label)
+
+private data class Address(
+  val nomisAddressId: Long,
+  val nomisAddressOwnerClass: String,
+  val dpsAddressText: String,
+  val dpsDescription: String? = null,
+  val dpsPostcode: String? = null,
+)
+
+private fun TemporaryAbsenceApplicationMappingDto.toEntity(offenderNo: String, bookingId: Long, migrationId: String) = TemporaryAbsenceApplicationMapping(
+  dpsApplicationId = dpsMovementApplicationId,
+  nomisApplicationId = nomisMovementApplicationId,
+  offenderNo = offenderNo,
+  bookingId = bookingId,
+  label = migrationId,
+  mappingType = MovementMappingType.MIGRATED,
+)
+
+private fun ScheduledMovementMappingDto.toEntity(offenderNo: String, bookingId: Long, migrationId: String) = TemporaryAbsenceScheduleMapping(
+  dpsOccurrenceId = dpsOccurrenceId,
+  nomisEventId = nomisEventId,
+  offenderNo = offenderNo,
+  bookingId = bookingId,
+  nomisAddressId = nomisAddressId,
+  nomisAddressOwnerClass = nomisAddressOwnerClass,
+  dpsAddressText = dpsAddressText,
+  dpsUprn = null,
+  dpsDescription = dpsDescription,
+  dpsPostcode = dpsPostcode,
+  eventTime = eventTime,
+  label = migrationId,
+  mappingType = MovementMappingType.MIGRATED,
+)
+
+private fun ExternalMovementMappingDto.toEntity(offenderNo: String, bookingId: Long, migrationId: String) = TemporaryAbsenceMovementMapping(
+  dpsMovementId = dpsMovementId,
+  nomisBookingId = bookingId,
+  nomisMovementSeq = nomisMovementSeq,
+  offenderNo = offenderNo,
+  nomisAddressId = nomisAddressId,
+  nomisAddressOwnerClass = nomisAddressOwnerClass,
+  dpsAddressText = dpsAddressText,
+  label = migrationId,
+  dpsUprn = null,
+  dpsDescription = dpsDescription,
+  dpsPostcode = dpsPostcode,
+  mappingType = MovementMappingType.MIGRATED,
+)
+
+private fun Address.toEntity(offenderNo: String?) = TemporaryAbsenceAddressMapping(
+  nomisAddressId = nomisAddressId,
+  nomisAddressOwnerClass = nomisAddressOwnerClass,
+  nomisOffenderNo = offenderNo,
+  dpsAddressText = dpsAddressText,
+  dpsDescription = dpsDescription,
+  dpsPostcode = dpsPostcode,
+)
