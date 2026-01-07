@@ -2753,6 +2753,25 @@ class TemporaryAbsenceResourceIntTest(
           .expectBody()
           .jsonPath("totalElements").isEqualTo(4)
       }
+
+      @Test
+      fun `should return when created as mandatory in migration service`() = runTest {
+        val now = LocalDateTime.now().withNano(0)
+        migrationRepository.save(
+          TemporaryAbsenceMigration(
+            offenderNo = "any",
+            label = "2023-01-01T12:45:12",
+            whenCreated = now,
+          ),
+        )
+
+        webTestClient.get().uri("/mapping/temporary-absence/migration-id/2023-01-01T12:45:12")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("content[0].whenCreated").isEqualTo("$now")
+      }
     }
   }
 }
