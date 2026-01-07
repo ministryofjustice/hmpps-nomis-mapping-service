@@ -367,7 +367,7 @@ fun TemporaryAbsenceAddressMapping.toMappingDto() = TemporaryAbsenceAddressMappi
   dpsPostcode,
 )
 
-fun TemporaryAbsenceMigration.toDto() = TemporaryAbsenceMigrationDto(offenderNo, label)
+fun TemporaryAbsenceMigration.toDto() = TemporaryAbsenceMigrationDto(offenderNo, label, whenCreated)
 
 private data class Address(
   val nomisAddressId: Long,
