@@ -37,6 +37,9 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var profileMappingRepository: ProfileMappingRepository
 
+  @Autowired
+  private lateinit var beliefMappingRepository: CorePersonBeliefMappingRepository
+
   @AfterEach
   fun tearDown() = runTest {
     corePersonEmailAddressMappingRepository.deleteAll()
@@ -44,6 +47,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
     corePersonAddressMappingRepository.deleteAll()
     corePersonMappingRepository.deleteAll()
     profileMappingRepository.deleteAll()
+    beliefMappingRepository.deleteAll()
   }
 
   @Nested
@@ -64,6 +68,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         phoneMappings = emptyList(),
         emailMappings = emptyList(),
         profileMappings = emptyList(),
+        beliefMappings = emptyList(),
       )
 
       @Test
@@ -115,6 +120,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         phoneMappings = emptyList(),
         emailMappings = emptyList(),
         profileMappings = emptyList(),
+        beliefMappings = emptyList(),
       )
 
       @BeforeEach
@@ -194,6 +200,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         phoneMappings = emptyList(),
         emailMappings = emptyList(),
         profileMappings = emptyList(),
+        beliefMappings = emptyList(),
       )
 
       @Test
@@ -375,6 +382,47 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
           )
         }
         with(corePersonEmailAddressMappingRepository.findOneByCprId("e96babce-4a24-49d7-8447-b45f8768f6c1")!!) {
+          assertThat(cprId).isEqualTo("e96babce-4a24-49d7-8447-b45f8768f6c1")
+          assertThat(nomisId).isEqualTo(2L)
+          assertThat(label).isEqualTo(mappings.label)
+          assertThat(mappingType).isEqualTo(mappings.mappingType)
+          assertThat(whenCreated).isCloseTo(
+            LocalDateTime.now(),
+            within(10, ChronoUnit.SECONDS),
+          )
+        }
+      }
+
+      @Test
+      fun `will persist the core person belief mapping`() = runTest {
+        webTestClient.post().uri("/mapping/core-person/migrate")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              mappings.copy(
+                beliefMappings = listOf(
+                  CorePersonSimpleMappingIdDto(cprId = "0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6", nomisId = 1),
+                  CorePersonSimpleMappingIdDto(cprId = "e96babce-4a24-49d7-8447-b45f8768f6c1", nomisId = 2),
+                ),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isCreated
+
+        with(beliefMappingRepository.findOneByNomisId(1)!!) {
+          assertThat(cprId).isEqualTo("0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6")
+          assertThat(nomisId).isEqualTo(1L)
+          assertThat(label).isEqualTo(mappings.label)
+          assertThat(mappingType).isEqualTo(mappings.mappingType)
+          assertThat(whenCreated).isCloseTo(
+            LocalDateTime.now(),
+            within(10, ChronoUnit.SECONDS),
+          )
+        }
+
+        with(beliefMappingRepository.findOneByCprId("e96babce-4a24-49d7-8447-b45f8768f6c1")!!) {
           assertThat(cprId).isEqualTo("e96babce-4a24-49d7-8447-b45f8768f6c1")
           assertThat(nomisId).isEqualTo(2L)
           assertThat(label).isEqualTo(mappings.label)
@@ -786,6 +834,12 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
             mappingType = CorePersonMappingType.CPR_CREATED,
           ),
         ),
+        beliefMappings = listOf(
+          CorePersonSimpleMappingIdDto(
+            cprId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
+            nomisId = 12345678L,
+          ),
+        ),
       )
       webTestClient.post()
         .uri("/mapping/core-person/migrate")
@@ -835,6 +889,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         assertThat(corePersonAddressMappingRepository.findAll().count()).isEqualTo(1)
         assertThat(corePersonMappingRepository.findAll().count()).isEqualTo(1)
         assertThat(profileMappingRepository.findAll().count()).isEqualTo(1)
+        assertThat(beliefMappingRepository.findAll().count()).isEqualTo(1)
 
         webTestClient.delete()
           .uri("/mapping/core-person")
@@ -848,6 +903,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         assertThat(corePersonAddressMappingRepository.findAll().count()).isEqualTo(0)
         assertThat(corePersonMappingRepository.findAll().count()).isEqualTo(0)
         assertThat(profileMappingRepository.findAll().count()).isEqualTo(0)
+        assertThat(beliefMappingRepository.findAll().count()).isEqualTo(0)
       }
     }
   }
