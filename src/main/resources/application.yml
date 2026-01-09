@@ -27,9 +27,6 @@ spring:
         jwt:
           jwk-set-uri: ${api.base.url.hmpps-auth}/.well-known/jwks.json
 
-  devtools:
-    add-properties: false
-
   flyway:
     enabled: true
     url: jdbc:postgresql://${DATABASE_ENDPOINT}/${DATABASE_NAME}?sslmode=verify-full
