@@ -11,15 +11,27 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.jpa.NonAssociationMappin
 
 @Repository
 interface NonAssociationMappingRepository : CoroutineCrudRepository<NonAssociationMapping, Long> {
-  suspend fun findOneByFirstOffenderNoAndSecondOffenderNoAndNomisTypeSequence(firstOffenderNo: String, secondOffenderNo: String, nomisTypeSequence: Int): NonAssociationMapping?
+  suspend fun findOneByFirstOffenderNoAndSecondOffenderNoAndNomisTypeSequence(
+    firstOffenderNo: String,
+    secondOffenderNo: String,
+    nomisTypeSequence: Int,
+  ): NonAssociationMapping?
+
   suspend fun findFirstByMappingTypeOrderByWhenCreatedDesc(mappingType: NonAssociationMappingType): NonAssociationMapping?
   suspend fun countAllByLabelAndMappingType(label: String, mappingType: NonAssociationMappingType): Long
-  fun findAllByLabelAndMappingTypeOrderByLabelDesc(label: String, mappingType: NonAssociationMappingType, pageable: Pageable): Flow<NonAssociationMapping>
+  fun findAllByLabelAndMappingTypeOrderByLabelDesc(
+    label: String,
+    mappingType: NonAssociationMappingType,
+    pageable: Pageable,
+  ): Flow<NonAssociationMapping>
 
   @Modifying
   suspend fun deleteByMappingTypeEquals(mappingType: NonAssociationMappingType): NonAssociationMapping?
 
-  suspend fun findByFirstOffenderNoOrSecondOffenderNo(offenderNo1: String, offenderNo2: String): List<NonAssociationMapping>
+  suspend fun findByFirstOffenderNoOrSecondOffenderNo(
+    offenderNo1: String,
+    offenderNo2: String,
+  ): List<NonAssociationMapping>
 
   @Modifying
   @Query("UPDATE non_association_mapping SET first_offender_no = :firstOffenderNo WHERE non_association_id = :nonAssociationId")
@@ -76,6 +88,8 @@ interface NonAssociationMappingRepository : CoroutineCrudRepository<NonAssociati
         )
     """,
   )
-  suspend fun findCommonThirdParties(offenderNo1: String,
-                                     offenderNo2: String): List<NonAssociationMapping>
+  suspend fun findCommonThirdParties(
+    offenderNo1: String,
+    offenderNo2: String,
+  ): List<NonAssociationMapping>
 }

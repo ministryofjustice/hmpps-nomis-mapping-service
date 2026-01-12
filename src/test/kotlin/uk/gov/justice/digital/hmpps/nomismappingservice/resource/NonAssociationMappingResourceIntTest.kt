@@ -4,7 +4,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.byLessThan
-import org.hamcrest.Matchers
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -1052,7 +1051,8 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isOk
         .expectBody(NonAssociationMappingDto::class.java)
-        .returnResult().responseBody!!.apply {
+        .returnResult().responseBody!!
+        .apply {
           assertThat(nonAssociationId).isEqualTo(1)
           assertThat(firstOffenderNo).isEqualTo("B5678BB")
           assertThat(secondOffenderNo).isEqualTo("A1234AB")
@@ -1063,7 +1063,8 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         .exchange()
         .expectStatus().isOk
         .expectBody(NonAssociationMappingDto::class.java)
-        .returnResult().responseBody!!.apply {
+        .returnResult().responseBody!!
+        .apply {
           assertThat(nonAssociationId).isEqualTo(2)
           assertThat(firstOffenderNo).isEqualTo("A1234AC")
           assertThat(secondOffenderNo).isEqualTo("B5678BB")

@@ -51,7 +51,7 @@ class NonAssociationMappingService(
             existingMapping = NonAssociationMappingDto(this@run),
           ),
         )
-        return
+        return@with
       }
       throw DuplicateMappingException(
         messageIn = alreadyExistsMessage(
