@@ -9,7 +9,6 @@ configurations {
   implementation {
     exclude(module = "spring-boot-starter-web")
     exclude(module = "spring-boot-starter-tomcat")
-    exclude(group = "com.fasterxml.jackson.module", module = "jackson-module-kotlin")
   }
 }
 
