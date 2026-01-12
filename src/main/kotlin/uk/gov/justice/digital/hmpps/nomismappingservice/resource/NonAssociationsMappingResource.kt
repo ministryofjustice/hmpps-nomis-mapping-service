@@ -90,25 +90,6 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
   @Operation(
     summary = "get mapping",
     description = "Retrieves a mapping by firstOffenderNo, secondOffenderNo and Nomis type sequence. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Mapping Information Returned",
-        content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = NonAssociationMappingDto::class)),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "404",
-        description = "Non association id does not exist in mapping table",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
   )
   suspend fun getNonAssociationMappingGivenNomisId(
     @Schema(description = "First offender number", example = "A1234BC", required = true)
@@ -122,29 +103,25 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
     typeSequence: Int,
   ): NonAssociationMappingDto = mappingService.getNonAssociationMappingByNomisId(firstOffenderNo, secondOffenderNo, typeSequence)
 
+  @GetMapping("/find/common-between/{oldOffenderNo}/and/{newOffenderNo}")
+  @Operation(
+    summary = "Find third parties where mappings exist with both offenders",
+    description = """Gets any third party offenders where NAs exist with both the old and the new.
+      This info is needed to check whether a merge will succeed or hit an index constraint. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
+  )
+  suspend fun getNonAssociationMappingsOfMerge(
+    @Schema(description = "Old offender number of merge", example = "A1234BC", required = true)
+    @PathVariable
+    oldOffenderNo: String,
+    @Schema(description = "New offender number of merge", example = "D5678EF", required = true)
+    @PathVariable
+    newOffenderNo: String,
+  ): List<String> = mappingService.getNonAssociationMappingsOfMerge(oldOffenderNo, newOffenderNo)
+
   @GetMapping("/non-association-id/{nonAssociationId}")
   @Operation(
     summary = "get mapping",
     description = "Retrieves a mapping by Non-Association Id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Mapping Information Returned",
-        content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = NonAssociationMappingDto::class)),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "404",
-        description = "Non association id does not exist in mapping table",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
   )
   suspend fun getNonAssociationMappingGivenNonAssociationId(
     @Schema(description = "Non-association id", example = "2", required = true)
@@ -157,23 +134,6 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
   @Operation(
     summary = "get paged mappings by migration id",
     description = "Retrieve all mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged.",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Mapping page returned",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = NonAssociationMappingDto::class),
-          ),
-        ],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
   )
   suspend fun getNonAssociationMappingsByMigrationId(
     @PageableDefault pageRequest: Pageable,
@@ -233,32 +193,6 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
     @PathVariable
     nonAssociationId: Long,
   ) = mappingService.deleteNonAssociationMapping(nonAssociationId)
-
-  @DeleteMapping
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(
-    summary = "Deletes non-association mappings.",
-    description = "Deletes all rows from the non-associations mapping table. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(
-        responseCode = "204",
-        description = "Non association mappings deleted",
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun deleteNonAssociationMappings(
-    @RequestParam(value = "onlyMigrated", required = false, defaultValue = "false")
-    @Parameter(
-      description = "if true delete mapping entries created by the migration process only (synchronisation records are unaffected)",
-      example = "true",
-    )
-    onlyMigrated: Boolean,
-  ) = mappingService.deleteNonAssociationMappings(onlyMigrated)
 
   @PutMapping("/merge/from/{oldOffenderNo}/to/{newOffenderNo}")
   @Operation(

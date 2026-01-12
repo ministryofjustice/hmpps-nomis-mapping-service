@@ -52,4 +52,30 @@ interface NonAssociationMappingRepository : CoroutineCrudRepository<NonAssociati
     secondOffenderNo: String,
     newOffenderNo: String,
   ): Int
+
+  @Query(
+    """SELECT *
+    FROM non_association_mapping na1
+    WHERE (na1.first_offender_no = :offenderNo1
+        and na1.second_offender_no in (select na11.second_offender_no
+                                        from non_association_mapping na11
+                                        where na11.first_offender_no = :offenderNo2
+                                     union
+                                        select na12.first_offender_no
+                                          from non_association_mapping na12
+                                          where na12.second_offender_no = :offenderNo2)
+        )
+      or (na1.second_offender_no = :offenderNo1
+        and na1.first_offender_no in (select na21.first_offender_no
+                                       from non_association_mapping na21
+                                       where na21.second_offender_no = :offenderNo2
+                                     union
+                                       select na22.second_offender_no
+                                         from non_association_mapping na22
+                                         where na22.first_offender_no = :offenderNo2)
+        )
+    """,
+  )
+  suspend fun findCommonThirdParties(offenderNo1: String,
+                                     offenderNo2: String): List<NonAssociationMapping>
 }

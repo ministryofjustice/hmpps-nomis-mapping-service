@@ -62,6 +62,11 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
     )
   }
 
+  @AfterEach
+  internal fun deleteData() = runBlocking {
+    nonAssociationRepository.deleteAll()
+  }
+
   private fun createNonAssociationMapping(
     nonAssociationId: Long = NON_ASSOCIATION_ID,
     firstOffenderNo: String = FIRST_OFFENDER_NO,
@@ -108,12 +113,6 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("POST /mapping/non-associations")
   @Nested
   inner class CreateNonAssociationMappingTest {
-
-    @AfterEach
-    internal fun deleteData() = runBlocking {
-      nonAssociationRepository.deleteAll()
-    }
-
     @Test
     fun `access forbidden when no authority`() {
       webTestClient.post().uri("/mapping/non-associations")
@@ -363,12 +362,6 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("GET /mapping/non-associations/first-offender-no/{firstOffenderNo}/second-offender-no/{secondOffenderNo}/type-sequence/{typeSequence}")
   @Nested
   inner class GetNomisMappingTest {
-
-    @AfterEach
-    internal fun deleteData() = runBlocking {
-      nonAssociationRepository.deleteAll()
-    }
-
     @Test
     fun `access forbidden when no authority`() {
       webTestClient.get()
@@ -454,12 +447,6 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("GET /mapping/non-associations/non-association-id/{nonAssociationId}")
   @Nested
   inner class GetNonAssociationMappingTest {
-
-    @AfterEach
-    internal fun deleteData() = runBlocking {
-      nonAssociationRepository.deleteAll()
-    }
-
     @Test
     fun `access forbidden when no authority`() {
       webTestClient.get().uri("/mapping/non-associations/non-association-id/$NON_ASSOCIATION_ID")
@@ -538,12 +525,6 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("GET /mapping/non-associations/migration-id/{migrationId}")
   @Nested
   inner class GetMappingByMigrationIdTest {
-
-    @AfterEach
-    internal fun deleteData() = runBlocking {
-      nonAssociationRepository.deleteAll()
-    }
-
     @Test
     fun `access forbidden when no authority`() {
       webTestClient.get().uri("/mapping/migration-id/2022-01-01T00:00:00")
@@ -597,8 +578,8 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
         .expectBody()
         .jsonPath("totalElements").isEqualTo(4)
-        .jsonPath("$.content..nonAssociationId").value(Matchers.contains(1, 2, 3, 4))
-        .jsonPath("$.content..nomisTypeSequence").value(Matchers.contains(1, 2, 3, 4))
+        .jsonPath("$.content..nonAssociationId").value<List<Int>> { assertThat(it).contains(1, 2, 3, 4) }
+        .jsonPath("$.content..nomisTypeSequence").value<List<Int>> { assertThat(it).contains(1, 2, 3, 4) }
         .jsonPath("$.content[0].whenCreated").isNotEmpty
     }
 
@@ -681,12 +662,6 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("GET /mapping/non-associations/migrated/latest")
   @Nested
   inner class GeMappingMigratedLatestTest {
-
-    @AfterEach
-    internal fun deleteData() = runBlocking {
-      nonAssociationRepository.deleteAll()
-    }
-
     @Test
     fun `access forbidden when no authority`() {
       webTestClient.get().uri("/mapping/non-associations/migrated/latest")
@@ -912,113 +887,9 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
-  @DisplayName("DELETE /mapping/non-associations")
-  @Nested
-  inner class DeleteMappingsTest {
-
-    @Test
-    fun `access forbidden when no authority`() {
-      webTestClient.delete().uri("/mapping/non-associations")
-        .exchange()
-        .expectStatus().isUnauthorized
-    }
-
-    @Test
-    fun `access forbidden when no role`() {
-      webTestClient.delete().uri("/mapping/non-associations")
-        .headers(setAuthorisation(roles = listOf()))
-        .exchange()
-        .expectStatus().isForbidden
-    }
-
-    @Test
-    fun `access forbidden with wrong role`() {
-      webTestClient.delete().uri("/mapping/non-associations")
-        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
-        .exchange()
-        .expectStatus().isForbidden
-    }
-
-    @Test
-    fun `delete mapping success`() {
-      webTestClient.post().uri("/mapping/non-associations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(BodyInserters.fromValue(createNonAssociationMapping()))
-        .exchange()
-        .expectStatus().isCreated
-
-      webTestClient.get()
-        .uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-        .exchange()
-        .expectStatus().isOk
-
-      webTestClient.delete().uri("/mapping/non-associations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-        .exchange()
-        .expectStatus().isNoContent
-
-      webTestClient.get()
-        .uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-        .exchange()
-        .expectStatus().isNotFound
-    }
-
-    @Test
-    fun `delete nonAssociation mappings - migrated mappings only`() {
-      webTestClient.post().uri("/mapping/non-associations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(BodyInserters.fromValue(createNonAssociationMapping()))
-        .exchange()
-        .expectStatus().isCreated
-
-      webTestClient.post().uri("/mapping/non-associations")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(
-          BodyInserters.fromValue(
-            createNonAssociationMapping(
-              nonAssociationId = 333,
-              nomisTypeSequence = 2,
-              firstOffenderNo = FIRST_OFFENDER_NO,
-              secondOffenderNo = SECOND_OFFENDER_NO,
-              mappingType = MIGRATED.name,
-            ),
-          ),
-        )
-        .exchange()
-        .expectStatus().isCreated
-
-      webTestClient.delete().uri("/mapping/non-associations?onlyMigrated=true")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-        .exchange()
-        .expectStatus().isNoContent
-
-      webTestClient.get()
-        .uri("/mapping/non-associations/first-offender-no/$FIRST_OFFENDER_NO/second-offender-no/$SECOND_OFFENDER_NO/type-sequence/$TYPE_SEQUENCE")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-        .exchange()
-        .expectStatus().isOk
-
-      webTestClient.get().uri("/mapping/non-associations/non-association-id/222")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-        .exchange()
-        .expectStatus().isNotFound
-    }
-  }
-
   @DisplayName("PUT /mapping/non-associations/merge/from/{firstOffenderNo}/to/{secondOffenderNo}")
   @Nested
   inner class MergeTest {
-
-    @AfterEach
-    internal fun deleteData() = runBlocking {
-      nonAssociationRepository.deleteAll()
-    }
-
     @Test
     fun `access forbidden when no authority`() {
       webTestClient.put().uri("/mapping/non-associations/merge/from/$FIRST_OFFENDER_NO/to/$SECOND_OFFENDER_NO")
@@ -1182,10 +1053,10 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
         .expectBody(NonAssociationMappingDto::class.java)
         .returnResult().responseBody!!.apply {
-        assertThat(nonAssociationId).isEqualTo(1)
-        assertThat(firstOffenderNo).isEqualTo("B5678BB")
-        assertThat(secondOffenderNo).isEqualTo("A1234AB")
-      }
+          assertThat(nonAssociationId).isEqualTo(1)
+          assertThat(firstOffenderNo).isEqualTo("B5678BB")
+          assertThat(secondOffenderNo).isEqualTo("A1234AB")
+        }
       webTestClient.get()
         .uri("/mapping/non-associations/first-offender-no/A1234AC/second-offender-no/B5678BB/type-sequence/1")
         .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
@@ -1193,21 +1064,16 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
         .expectBody(NonAssociationMappingDto::class.java)
         .returnResult().responseBody!!.apply {
-        assertThat(nonAssociationId).isEqualTo(2)
-        assertThat(firstOffenderNo).isEqualTo("A1234AC")
-        assertThat(secondOffenderNo).isEqualTo("B5678BB")
-      }
+          assertThat(nonAssociationId).isEqualTo(2)
+          assertThat(firstOffenderNo).isEqualTo("A1234AC")
+          assertThat(secondOffenderNo).isEqualTo("B5678BB")
+        }
     }
   }
 
   @DisplayName("PUT /mapping/non-associations/update-list/from/{oldOffenderNo}/to/{newOffenderNo}")
   @Nested
   inner class BookingMovedTest {
-    @AfterEach
-    internal fun deleteData() = runBlocking {
-      nonAssociationRepository.deleteAll()
-    }
-
     @Test
     fun `access forbidden when no authority`() {
       webTestClient.put().uri("/mapping/non-associations/update-list/from/$FIRST_OFFENDER_NO/to/$SECOND_OFFENDER_NO")
@@ -1361,6 +1227,90 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
             "Validation failure: New offenderNo is in the list, when updating offender id from A1234AA to A1234AB",
           )
         }
+    }
+  }
+
+  @DisplayName("GET /find/common-between/{oldOffenderNo}/and/{newOffenderNo")
+  @Nested
+  inner class FindCommonTest {
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.get().uri("/mapping/non-associations/find/common-between/$FIRST_OFFENDER_NO/and/$SECOND_OFFENDER_NO")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get().uri("/mapping/non-associations/find/common-between/$FIRST_OFFENDER_NO/and/$SECOND_OFFENDER_NO")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.get().uri("/mapping/non-associations/find/common-between/$FIRST_OFFENDER_NO/and/$SECOND_OFFENDER_NO")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `one common 3rd party - 1`() {
+      postCreateNonAssociationMappingRequest(1, "A1234AA", "COMMON")
+      postCreateNonAssociationMappingRequest(2, "COMMON", "A1234AB")
+
+      assertResultList(listOf("COMMON"))
+    }
+
+    @Test
+    fun `one common 3rd party - 2`() {
+      postCreateNonAssociationMappingRequest(1, "A1234AA", "COMMON")
+      postCreateNonAssociationMappingRequest(2, "A1234AB", "COMMON")
+
+      assertResultList(listOf("COMMON"))
+    }
+
+    @Test
+    fun `one common 3rd party - 3`() {
+      postCreateNonAssociationMappingRequest(1, "COMMON", "A1234AA")
+      postCreateNonAssociationMappingRequest(2, "COMMON", "A1234AB")
+
+      assertResultList(listOf("COMMON"))
+    }
+
+    @Test
+    fun `one common 3rd party - 4`() {
+      postCreateNonAssociationMappingRequest(1, "COMMON", "A1234AA")
+      postCreateNonAssociationMappingRequest(2, "A1234AB", "COMMON")
+
+      assertResultList(listOf("COMMON"))
+    }
+
+    @Test
+    fun `multiple common 3rd parties`() {
+      postCreateNonAssociationMappingRequest(1, "COMMON1", "A1234AA")
+      postCreateNonAssociationMappingRequest(2, "A1234AB", "COMMON1")
+      postCreateNonAssociationMappingRequest(3, "COMMON2", "A1234AA")
+      postCreateNonAssociationMappingRequest(4, "A1234AB", "COMMON2")
+      postCreateNonAssociationMappingRequest(5, "A1234AA", "OTHER-A")
+      postCreateNonAssociationMappingRequest(6, "A1234AB", "OTHER-B")
+
+      assertResultList(listOf("COMMON1", "COMMON2"))
+    }
+
+    private fun assertResultList(expected: List<String>) {
+      assertThat(
+        webTestClient.get()
+          .uri("/mapping/non-associations/find/common-between/A1234AA/and/A1234AB")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody(object : ParameterizedTypeReference<List<String>>() {})
+          .returnResult()
+          .responseBody!!,
+      ).isEqualTo(expected)
     }
   }
 }
