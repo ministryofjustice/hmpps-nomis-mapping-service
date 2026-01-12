@@ -72,19 +72,25 @@ interface NonAssociationMappingRepository : CoroutineCrudRepository<NonAssociati
         and na1.second_offender_no in (select na11.second_offender_no
                                         from non_association_mapping na11
                                         where na11.first_offender_no = :offenderNo2
+                                          and na11.nomis_type_sequence = na1.nomis_type_sequence
                                      union
                                         select na12.first_offender_no
                                           from non_association_mapping na12
-                                          where na12.second_offender_no = :offenderNo2)
+                                          where na12.second_offender_no = :offenderNo2
+                                            and na12.nomis_type_sequence = na1.nomis_type_sequence
+                                      )
         )
       or (na1.second_offender_no = :offenderNo1
         and na1.first_offender_no in (select na21.first_offender_no
                                        from non_association_mapping na21
                                        where na21.second_offender_no = :offenderNo2
+                                          and na21.nomis_type_sequence = na1.nomis_type_sequence
                                      union
                                        select na22.second_offender_no
                                          from non_association_mapping na22
-                                         where na22.first_offender_no = :offenderNo2)
+                                         where na22.first_offender_no = :offenderNo2
+                                           and na22.nomis_type_sequence = na1.nomis_type_sequence
+                                     )
         )
     """,
   )

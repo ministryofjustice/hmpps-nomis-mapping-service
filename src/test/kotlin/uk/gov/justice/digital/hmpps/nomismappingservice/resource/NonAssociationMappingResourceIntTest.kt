@@ -1313,5 +1313,15 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
           .responseBody!!,
       ).isEqualTo(expected)
     }
+
+    @Test
+    fun `different sequence values`() {
+      postCreateNonAssociationMappingRequest(1, "COMMON", "A1234AA", 1)
+      postCreateNonAssociationMappingRequest(2, "A1234AA", "COMMON", 2)
+      postCreateNonAssociationMappingRequest(3, "A1234AB", "COMMON", 3)
+      postCreateNonAssociationMappingRequest(4, "COMMON", "A1234AB", 4)
+
+      assertResultList(emptyList())
+    }
   }
 }
