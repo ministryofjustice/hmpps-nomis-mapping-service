@@ -1,0 +1,16 @@
+services:
+  mapping-db:
+    image: postgres:18
+    networks:
+      - hmpps
+    container_name: mapping-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=mapping
+      - POSTGRES_USER=mapping
+      - POSTGRES_DB=mapping
+
+networks:
+  hmpps:
