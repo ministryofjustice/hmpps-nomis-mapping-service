@@ -51,7 +51,7 @@ class NonAssociationMappingService(
             existingMapping = NonAssociationMappingDto(this@run),
           ),
         )
-        return
+        return@with
       }
       throw DuplicateMappingException(
         messageIn = alreadyExistsMessage(
@@ -114,6 +114,15 @@ class NonAssociationMappingService(
     ?.let { NonAssociationMappingDto(it) }
     ?: throw NotFoundException("Non-association with firstOffenderNo=$firstOffenderNo, secondOffenderNo=$secondOffenderNo, and nomisTypeSequence=$nomisTypeSequence not found")
 
+  suspend fun getNonAssociationMappingsOfMerge(
+    oldOffenderNo: String,
+    newOffenderNo: String,
+  ): List<String> = nonAssociationMappingRepository
+    .findCommonThirdParties(
+      oldOffenderNo,
+      newOffenderNo,
+    ).map { if (it.firstOffenderNo == oldOffenderNo || it.firstOffenderNo == newOffenderNo) it.secondOffenderNo else it.firstOffenderNo }
+
   suspend fun getNonAssociationMappingByNonAssociationId(nonAssociationId: Long): NonAssociationMappingDto = nonAssociationMappingRepository.findById(nonAssociationId)
     ?.let { NonAssociationMappingDto(it) }
     ?: throw NotFoundException("nonAssociationId=$nonAssociationId")
@@ -147,13 +156,6 @@ class NonAssociationMappingService(
 
   @Transactional
   suspend fun deleteNonAssociationMapping(nonAssociationId: Long) = nonAssociationMappingRepository.deleteById(nonAssociationId)
-
-  @Transactional
-  suspend fun deleteNonAssociationMappings(onlyMigrated: Boolean) = onlyMigrated.takeIf { it }?.apply {
-    nonAssociationMappingRepository.deleteByMappingTypeEquals(MIGRATED)
-  } ?: run {
-    nonAssociationMappingRepository.deleteAll()
-  }
 
   @Transactional
   suspend fun updateMappingsByNomisId(oldOffenderNo: String, newOffenderNo: String) {

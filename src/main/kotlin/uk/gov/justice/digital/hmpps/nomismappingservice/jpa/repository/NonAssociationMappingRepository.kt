@@ -11,15 +11,27 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.jpa.NonAssociationMappin
 
 @Repository
 interface NonAssociationMappingRepository : CoroutineCrudRepository<NonAssociationMapping, Long> {
-  suspend fun findOneByFirstOffenderNoAndSecondOffenderNoAndNomisTypeSequence(firstOffenderNo: String, secondOffenderNo: String, nomisTypeSequence: Int): NonAssociationMapping?
+  suspend fun findOneByFirstOffenderNoAndSecondOffenderNoAndNomisTypeSequence(
+    firstOffenderNo: String,
+    secondOffenderNo: String,
+    nomisTypeSequence: Int,
+  ): NonAssociationMapping?
+
   suspend fun findFirstByMappingTypeOrderByWhenCreatedDesc(mappingType: NonAssociationMappingType): NonAssociationMapping?
   suspend fun countAllByLabelAndMappingType(label: String, mappingType: NonAssociationMappingType): Long
-  fun findAllByLabelAndMappingTypeOrderByLabelDesc(label: String, mappingType: NonAssociationMappingType, pageable: Pageable): Flow<NonAssociationMapping>
+  fun findAllByLabelAndMappingTypeOrderByLabelDesc(
+    label: String,
+    mappingType: NonAssociationMappingType,
+    pageable: Pageable,
+  ): Flow<NonAssociationMapping>
 
   @Modifying
   suspend fun deleteByMappingTypeEquals(mappingType: NonAssociationMappingType): NonAssociationMapping?
 
-  suspend fun findByFirstOffenderNoOrSecondOffenderNo(offenderNo1: String, offenderNo2: String): List<NonAssociationMapping>
+  suspend fun findByFirstOffenderNoOrSecondOffenderNo(
+    offenderNo1: String,
+    offenderNo2: String,
+  ): List<NonAssociationMapping>
 
   @Modifying
   @Query("UPDATE non_association_mapping SET first_offender_no = :firstOffenderNo WHERE non_association_id = :nonAssociationId")
@@ -52,4 +64,38 @@ interface NonAssociationMappingRepository : CoroutineCrudRepository<NonAssociati
     secondOffenderNo: String,
     newOffenderNo: String,
   ): Int
+
+  @Query(
+    """SELECT *
+    FROM non_association_mapping na1
+    WHERE (na1.first_offender_no = :offenderNo1
+        and na1.second_offender_no in (select na11.second_offender_no
+                                        from non_association_mapping na11
+                                        where na11.first_offender_no = :offenderNo2
+                                          and na11.nomis_type_sequence = na1.nomis_type_sequence
+                                     union
+                                        select na12.first_offender_no
+                                          from non_association_mapping na12
+                                          where na12.second_offender_no = :offenderNo2
+                                            and na12.nomis_type_sequence = na1.nomis_type_sequence
+                                      )
+        )
+      or (na1.second_offender_no = :offenderNo1
+        and na1.first_offender_no in (select na21.first_offender_no
+                                       from non_association_mapping na21
+                                       where na21.second_offender_no = :offenderNo2
+                                          and na21.nomis_type_sequence = na1.nomis_type_sequence
+                                     union
+                                       select na22.second_offender_no
+                                         from non_association_mapping na22
+                                         where na22.first_offender_no = :offenderNo2
+                                           and na22.nomis_type_sequence = na1.nomis_type_sequence
+                                     )
+        )
+    """,
+  )
+  suspend fun findCommonThirdParties(
+    offenderNo1: String,
+    offenderNo2: String,
+  ): List<NonAssociationMapping>
 }
