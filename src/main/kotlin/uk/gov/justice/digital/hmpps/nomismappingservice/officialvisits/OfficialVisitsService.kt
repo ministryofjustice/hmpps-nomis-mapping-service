@@ -54,6 +54,19 @@ class OfficialVisitsService(
       }
     }
   }
+  suspend fun createVisitMapping(mapping: OfficialVisitMappingDto) {
+    officialVisitMappingRepository.save(
+      with(mapping) {
+        OfficialVisitMapping(
+          dpsId = dpsId,
+          nomisId = nomisId,
+          label = label,
+          mappingType = mappingType,
+          whenCreated = whenCreated,
+        )
+      },
+    )
+  }
 
   suspend fun getOfficialVisitMappingsByMigrationId(
     pageRequest: Pageable,
