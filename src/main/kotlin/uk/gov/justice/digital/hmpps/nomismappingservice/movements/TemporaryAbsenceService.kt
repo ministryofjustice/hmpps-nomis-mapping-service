@@ -180,6 +180,7 @@ class TemporaryAbsenceService(
     ?.let {
       it.nomisAddressId = mappingDto.nomisAddressId
       it.nomisAddressOwnerClass = mappingDto.nomisAddressOwnerClass
+      it.dpsUprn = mappingDto.dpsUprn
       it.dpsAddressText = mappingDto.dpsAddressText
       it.dpsDescription = mappingDto.dpsDescription
       it.dpsPostcode = mappingDto.dpsPostcode
