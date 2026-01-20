@@ -542,6 +542,168 @@ class OfficialVisitsResourceIntTest : IntegrationTestBase() {
     }
   }
 
+  @Nested
+  @DisplayName("POST /mapping/official-visits/visitor")
+  inner class CreateVisitorMapping {
+    val nomisId = 123L
+    val dpsId = "123456789"
+
+    @Nested
+    inner class Security {
+      val mapping = OfficialVisitorMappingDto(
+        dpsId = dpsId,
+        nomisId = nomisId,
+        label = "2020-01-01T10:00",
+        mappingType = StandardMappingType.MIGRATED,
+        whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/official-visits/visitor")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/official-visits/visitor")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/official-visits/visitor")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      val mapping = OfficialVisitorMappingDto(
+        dpsId = dpsId,
+        nomisId = nomisId,
+        label = "2020-01-01T10:00",
+        mappingType = StandardMappingType.MIGRATED,
+        whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+      )
+
+      val existingMapping = VisitorMapping(
+        dpsId = dpsId,
+        nomisId = nomisId,
+        label = "2019-01-01T10:00",
+        mappingType = StandardMappingType.MIGRATED,
+        whenCreated = LocalDateTime.parse("2019-01-01T10:14"),
+      )
+
+      @BeforeEach
+      fun setUp() = runTest {
+        visitorMappingRepository.save(existingMapping)
+      }
+
+      @Test
+      fun `will not allow the same visitor to have duplicate NOMIS ids`() {
+        webTestClient.post()
+          .uri("/mapping/official-visits/visitor")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping.copy(dpsId = "96969")))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+      }
+
+      @Test
+      fun `will not allow the same visitor to have duplicate DPS ids`() {
+        webTestClient.post()
+          .uri("/mapping/official-visits/visitor")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping.copy(nomisId = 999)))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+      }
+
+      @Test
+      fun `will return details of the existing and duplicate mappings`() {
+        val duplicateResponse = webTestClient.post()
+          .uri("/mapping/official-visits/visitor")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping.copy(dpsId = "96969")))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+          .expectBody(
+            object :
+              ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
+          )
+          .returnResult().responseBody
+
+        with(duplicateResponse!!) {
+          assertThat(this.moreInfo.existing)
+            .containsEntry("nomisId", existingMapping.nomisId.toInt())
+            .containsEntry("dpsId", existingMapping.dpsId)
+          assertThat(this.moreInfo.duplicate)
+            .containsEntry("nomisId", existingMapping.nomisId.toInt())
+            .containsEntry("dpsId", "96969")
+        }
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = OfficialVisitorMappingDto(
+        dpsId = dpsId,
+        nomisId = nomisId,
+        label = "2020-01-01T10:00",
+        mappingType = StandardMappingType.MIGRATED,
+      )
+
+      @Test
+      fun `returns 201 when mappings created`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/official-visits/visitor")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+      }
+
+      @Test
+      fun `will persist the visitor mapping`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/official-visits/visitor")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+
+        val visitMapping =
+          visitorMappingRepository.findOneByDpsId(dpsId)!!
+
+        assertThat(visitMapping.dpsId).isEqualTo(mapping.dpsId)
+        assertThat(visitMapping.nomisId).isEqualTo(mapping.nomisId)
+        assertThat(visitMapping.label).isEqualTo(mapping.label)
+        assertThat(visitMapping.mappingType).isEqualTo(mapping.mappingType)
+        assertThat(visitMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+      }
+    }
+  }
+
   @DisplayName("GET /mapping/official-visits/migration-id/{migrationId}")
   @Nested
   inner class GetOfficialVisitMappingsByMigrationId {
