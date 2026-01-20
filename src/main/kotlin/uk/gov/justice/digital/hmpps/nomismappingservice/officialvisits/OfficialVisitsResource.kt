@@ -152,6 +152,53 @@ class OfficialVisitsResource(private val officialVisitsService: OfficialVisitsSe
     )
   }
 
+  @PostMapping("/visit")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates a visit mapping typically for synchronisation",
+    description = "Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = OfficialVisitMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createVisitMapping(
+    @RequestBody @Valid
+    mapping: OfficialVisitMappingDto,
+  ): Unit = try {
+    officialVisitsService.createVisitMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingVisitMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Visit mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
+
   @GetMapping("/migration-id/{migrationId}")
   @Operation(
     summary = "Get paged visit mappings by migration id",
@@ -209,6 +256,11 @@ class OfficialVisitsResource(private val officialVisitsService: OfficialVisitsSe
   }.getOrElse {
     officialVisitsService.getOfficialVisitMappingByDpsIdOrNull(dpsId = mapping.dpsId)
   }
+  private suspend fun getExistingVisitMappingSimilarTo(mapping: OfficialVisitMappingDto): OfficialVisitMappingDto? = runCatching {
+    officialVisitsService.getOfficialVisitMappingByNomisId(nomisId = mapping.nomisId)
+  }.getOrElse {
+    officialVisitsService.getOfficialVisitMappingByDpsIdOrNull(dpsId = mapping.dpsId)
+  }
 }
 
 data class OfficialVisitMappingDto(
@@ -216,7 +268,7 @@ data class OfficialVisitMappingDto(
   val nomisId: Long,
   val label: String?,
   val mappingType: StandardMappingType,
-  val whenCreated: LocalDateTime?,
+  val whenCreated: LocalDateTime? = null,
 )
 
 data class OfficialVisitMigrationMappingDto(

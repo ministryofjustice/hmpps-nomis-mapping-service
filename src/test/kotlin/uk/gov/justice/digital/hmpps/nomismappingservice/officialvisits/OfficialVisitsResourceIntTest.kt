@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.officialvisits
 
 import kotlinx.coroutines.test.runTest
+import net.minidev.json.JSONArray
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
-import org.hamcrest.Matchers
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -264,7 +264,7 @@ class OfficialVisitsResourceIntTest : IntegrationTestBase() {
       }
 
       @Test
-      fun `will not allow the same time slot to have duplicate NOMIS ids`() {
+      fun `will not allow the same visit to have duplicate NOMIS ids`() {
         webTestClient.post()
           .uri("/mapping/official-visits")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
@@ -275,7 +275,7 @@ class OfficialVisitsResourceIntTest : IntegrationTestBase() {
       }
 
       @Test
-      fun `will not allow the same time slot to have duplicate DPS ids`() {
+      fun `will not allow the same visit to have duplicate DPS ids`() {
         webTestClient.post()
           .uri("/mapping/official-visits")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
@@ -333,7 +333,7 @@ class OfficialVisitsResourceIntTest : IntegrationTestBase() {
       }
 
       @Test
-      fun `will persist the time slot mappings`() = runTest {
+      fun `will persist the visit mappings`() = runTest {
         webTestClient.post()
           .uri("/mapping/official-visits")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
@@ -342,18 +342,18 @@ class OfficialVisitsResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isCreated
 
-        val timeSlotMapping =
+        val visitMapping =
           officialVisitMappingRepository.findOneByDpsId(dpsId)!!
 
-        assertThat(timeSlotMapping.dpsId).isEqualTo(mapping.dpsId)
-        assertThat(timeSlotMapping.nomisId).isEqualTo(mapping.nomisId)
-        assertThat(timeSlotMapping.label).isEqualTo(mapping.label)
-        assertThat(timeSlotMapping.mappingType).isEqualTo(mapping.mappingType)
-        assertThat(timeSlotMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        assertThat(visitMapping.dpsId).isEqualTo(mapping.dpsId)
+        assertThat(visitMapping.nomisId).isEqualTo(mapping.nomisId)
+        assertThat(visitMapping.label).isEqualTo(mapping.label)
+        assertThat(visitMapping.mappingType).isEqualTo(mapping.mappingType)
+        assertThat(visitMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
       }
 
       @Test
-      fun `will persist the visit  slot mappings`() = runTest {
+      fun `will persist the visitor mappings`() = runTest {
         webTestClient.post()
           .uri("/mapping/official-visits")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
@@ -376,6 +376,168 @@ class OfficialVisitsResourceIntTest : IntegrationTestBase() {
           assertThat(this.mappingType).isEqualTo(mapping.mappingType)
           assertThat(this.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         }
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("POST /mapping/official-visits/visit")
+  inner class CreateVisitMapping {
+    val nomisId = 123L
+    val dpsId = "123456789"
+
+    @Nested
+    inner class Security {
+      val mapping = OfficialVisitMappingDto(
+        dpsId = dpsId,
+        nomisId = nomisId,
+        label = "2020-01-01T10:00",
+        mappingType = StandardMappingType.MIGRATED,
+        whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/official-visits/visit")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/official-visits/visit")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/official-visits/visit")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      val mapping = OfficialVisitMappingDto(
+        dpsId = dpsId,
+        nomisId = nomisId,
+        label = "2020-01-01T10:00",
+        mappingType = StandardMappingType.MIGRATED,
+        whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+      )
+
+      val existingMapping = OfficialVisitMapping(
+        dpsId = dpsId,
+        nomisId = nomisId,
+        label = "2019-01-01T10:00",
+        mappingType = StandardMappingType.MIGRATED,
+        whenCreated = LocalDateTime.parse("2019-01-01T10:14"),
+      )
+
+      @BeforeEach
+      fun setUp() = runTest {
+        officialVisitMappingRepository.save(existingMapping)
+      }
+
+      @Test
+      fun `will not allow the same visit to have duplicate NOMIS ids`() {
+        webTestClient.post()
+          .uri("/mapping/official-visits/visit")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping.copy(dpsId = "96969")))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+      }
+
+      @Test
+      fun `will not allow the same visit to have duplicate DPS ids`() {
+        webTestClient.post()
+          .uri("/mapping/official-visits/visit")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping.copy(nomisId = 999)))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+      }
+
+      @Test
+      fun `will return details of the existing and duplicate mappings`() {
+        val duplicateResponse = webTestClient.post()
+          .uri("/mapping/official-visits/visit")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping.copy(dpsId = "96969")))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+          .expectBody(
+            object :
+              ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
+          )
+          .returnResult().responseBody
+
+        with(duplicateResponse!!) {
+          assertThat(this.moreInfo.existing)
+            .containsEntry("nomisId", existingMapping.nomisId.toInt())
+            .containsEntry("dpsId", existingMapping.dpsId)
+          assertThat(this.moreInfo.duplicate)
+            .containsEntry("nomisId", existingMapping.nomisId.toInt())
+            .containsEntry("dpsId", "96969")
+        }
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = OfficialVisitMappingDto(
+        dpsId = dpsId,
+        nomisId = nomisId,
+        label = "2020-01-01T10:00",
+        mappingType = StandardMappingType.MIGRATED,
+      )
+
+      @Test
+      fun `returns 201 when mappings created`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/official-visits/visit")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+      }
+
+      @Test
+      fun `will persist the visit mapping`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/official-visits/visit")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+
+        val visitMapping =
+          officialVisitMappingRepository.findOneByDpsId(dpsId)!!
+
+        assertThat(visitMapping.dpsId).isEqualTo(mapping.dpsId)
+        assertThat(visitMapping.nomisId).isEqualTo(mapping.nomisId)
+        assertThat(visitMapping.label).isEqualTo(mapping.label)
+        assertThat(visitMapping.mappingType).isEqualTo(mapping.mappingType)
+        assertThat(visitMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
       }
     }
   }
@@ -442,14 +604,14 @@ class OfficialVisitsResourceIntTest : IntegrationTestBase() {
           .expectStatus().isOk
           .expectBody()
           .jsonPath("totalElements").isEqualTo(4)
-          .jsonPath("$.content..nomisId").value(
-            Matchers.contains(
+          .jsonPath("$.content..nomisId").value<JSONArray> {
+            assertThat(it).contains(
               1,
               2,
               3,
               4,
-            ),
-          )
+            )
+          }
           .jsonPath("$.content[0].whenCreated").isNotEmpty
       }
 
