@@ -246,6 +246,38 @@ class OfficialVisitsResource(private val officialVisitsService: OfficialVisitsSe
     )
   }
 
+  @GetMapping("/visitor/nomis-id/{nomisVisitorId}")
+  @Operation(
+    summary = "Gets visitor mapping by nomis visitor id",
+    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping data",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getVisitorMappingByNomisId(
+    @Schema(description = "NOMIS visitor id", example = "123", required = true)
+    @PathVariable
+    nomisVisitorId: Long,
+  ): OfficialVisitorMappingDto = officialVisitsService.getOfficialVisitorMappingByNomisId(nomisId = nomisVisitorId)
+
   @GetMapping("/migration-id/{migrationId}")
   @Operation(
     summary = "Get paged visit mappings by migration id",

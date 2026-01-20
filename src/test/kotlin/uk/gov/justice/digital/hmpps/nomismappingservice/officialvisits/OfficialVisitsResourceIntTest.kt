@@ -704,6 +704,84 @@ class OfficialVisitsResourceIntTest : IntegrationTestBase() {
     }
   }
 
+  @Nested
+  @DisplayName("GET /mapping/official-visits/visitor/nomis-id/{nomisId}")
+  inner class GetOfficialVisitorMappingByNomisId {
+    val nomisId = 73737L
+    val dpsId = "123456789"
+
+    @BeforeEach
+    fun setUp() = runTest {
+      visitorMappingRepository.save(
+        VisitorMapping(
+          dpsId = dpsId,
+          nomisId = nomisId,
+          label = "2020-01-01T10:00",
+          mappingType = StandardMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access unauthorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/official-visits/visitor/nomis-id/$nomisId")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/official-visits/visitor/nomis-id/$nomisId")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/official-visits/visitor/nomis-id/$nomisId")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `404 when mapping not found`() {
+        webTestClient.get()
+          .uri("/mapping/official-visits/visitor/nomis-id/99")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will retrieve mapping`() {
+        webTestClient.get()
+          .uri("/mapping/official-visits/visitor/nomis-id/$nomisId")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("dpsId").isEqualTo(dpsId)
+          .jsonPath("nomisId").isEqualTo(nomisId)
+          .jsonPath("label").isEqualTo("2020-01-01T10:00")
+          .jsonPath("mappingType").isEqualTo("MIGRATED")
+      }
+    }
+  }
+
   @DisplayName("GET /mapping/official-visits/migration-id/{migrationId}")
   @Nested
   inner class GetOfficialVisitMappingsByMigrationId {
