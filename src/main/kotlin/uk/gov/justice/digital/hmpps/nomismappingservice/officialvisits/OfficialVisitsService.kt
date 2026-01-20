@@ -22,7 +22,16 @@ class OfficialVisitsService(
     ?.toDto()
     ?: throw NotFoundException("No visit mapping found for nomisId=$nomisId")
 
+  suspend fun getOfficialVisitorMappingByNomisId(nomisId: Long) = visitorMappingRepository.findOneByNomisId(
+    nomisId = nomisId,
+  )
+    ?.toDto()
+    ?: throw NotFoundException("No visitor mapping found for nomisId=$nomisId")
+
   suspend fun getOfficialVisitMappingByDpsIdOrNull(dpsId: String) = officialVisitMappingRepository.findOneByDpsId(dpsId)
+    ?.toDto()
+
+  suspend fun getOfficialVisitorMappingByDpsIdOrNull(dpsId: String) = visitorMappingRepository.findOneByDpsId(dpsId)
     ?.toDto()
 
   suspend fun getOfficialVisitMappingByDpsId(dpsId: String) = officialVisitMappingRepository.findOneByDpsId(dpsId)
@@ -67,6 +76,19 @@ class OfficialVisitsService(
       },
     )
   }
+  suspend fun createVisitorMapping(mapping: OfficialVisitorMappingDto) {
+    visitorMappingRepository.save(
+      with(mapping) {
+        VisitorMapping(
+          dpsId = dpsId,
+          nomisId = nomisId,
+          label = label,
+          mappingType = mappingType,
+          whenCreated = whenCreated,
+        )
+      },
+    )
+  }
 
   suspend fun getOfficialVisitMappingsByMigrationId(
     pageRequest: Pageable,
@@ -99,6 +121,14 @@ class OfficialVisitsService(
 }
 
 private fun OfficialVisitMapping.toDto() = OfficialVisitMappingDto(
+  dpsId = dpsId,
+  nomisId = nomisId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private fun VisitorMapping.toDto() = OfficialVisitorMappingDto(
   dpsId = dpsId,
   nomisId = nomisId,
   label = label,

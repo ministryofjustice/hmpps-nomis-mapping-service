@@ -9,4 +9,8 @@ interface VisitorMappingRepository : CoroutineCrudRepository<VisitorMapping, Str
   suspend fun findOneByDpsId(
     dpsId: String,
   ): VisitorMapping?
+
+  suspend fun findOneByNomisId(
+    nomisId: Long,
+  ): VisitorMapping?
 }
