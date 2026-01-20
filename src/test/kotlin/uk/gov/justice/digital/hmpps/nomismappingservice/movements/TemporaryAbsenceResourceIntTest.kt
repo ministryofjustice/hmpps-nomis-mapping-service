@@ -1184,6 +1184,7 @@ class TemporaryAbsenceResourceIntTest(
           mapping.copy(
             nomisAddressId = 77777L,
             nomisAddressOwnerClass = "OFF",
+            dpsUprn = 777L,
             dpsAddressText = "a different address",
             dpsDescription = "a different description",
             dpsPostcode = "S1 2BB",
@@ -1198,6 +1199,7 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(mappingType).isEqualTo(MovementMappingType.NOMIS_CREATED)
           assertThat(nomisAddressId).isEqualTo(77777L)
           assertThat(nomisAddressOwnerClass).isEqualTo("OFF")
+          assertThat(dpsUprn).isEqualTo(777L)
           assertThat(dpsAddressText).isEqualTo("a different address")
           assertThat(dpsDescription).isEqualTo("a different description")
           assertThat(dpsPostcode).isEqualTo("S1 2BB")
@@ -1214,6 +1216,7 @@ class TemporaryAbsenceResourceIntTest(
           mapping = mapping.copy(
             nomisAddressId = 77777L,
             nomisAddressOwnerClass = "OFF",
+            dpsUprn = 777L,
             dpsAddressText = "a different address",
             eventTime = LocalDateTime.now().plusDays(1),
           ),
@@ -1222,6 +1225,7 @@ class TemporaryAbsenceResourceIntTest(
 
         with(addressRepository.findByNomisOffenderNoAndNomisAddressId("A1234BC", 77777L)!!) {
           assertThat(nomisAddressOwnerClass).isEqualTo("OFF")
+          assertThat(dpsUprn).isEqualTo(777L)
           assertThat(dpsAddressText).isEqualTo("a different address")
         }
       }
@@ -1235,13 +1239,15 @@ class TemporaryAbsenceResourceIntTest(
           mapping = mapping.copy(
             nomisAddressId = 8888L,
             nomisAddressOwnerClass = "OFF",
+            dpsUprn = 888L,
             eventTime = LocalDateTime.now().plusDays(1),
           ),
           source = "DPS",
         ).expectStatus().isOk
 
-        with(addressRepository.findByNomisAddressOwnerClassAndDpsUprnAndDpsAddressText("OFF", 77L, "some address")!!) {
+        with(addressRepository.findByNomisAddressOwnerClassAndDpsUprnAndDpsAddressText("OFF", 888L, "some address")!!) {
           assertThat(nomisAddressId).isEqualTo(8888L)
+          assertThat(dpsUprn).isEqualTo(888L)
         }
       }
     }
