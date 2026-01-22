@@ -117,11 +117,11 @@ class NonAssociationMappingService(
   suspend fun getNonAssociationMappingsOfMerge(
     oldOffenderNo: String,
     newOffenderNo: String,
-  ): List<String> = nonAssociationMappingRepository
+  ): List<NonAssociationMappingDto> = nonAssociationMappingRepository
     .findCommonThirdParties(
       oldOffenderNo,
       newOffenderNo,
-    ).map { if (it.firstOffenderNo == oldOffenderNo || it.firstOffenderNo == newOffenderNo) it.secondOffenderNo else it.firstOffenderNo }
+    ).map { NonAssociationMappingDto(it) }
 
   suspend fun getNonAssociationMappingByNonAssociationId(nonAssociationId: Long): NonAssociationMappingDto = nonAssociationMappingRepository.findById(nonAssociationId)
     ?.let { NonAssociationMappingDto(it) }
@@ -219,5 +219,10 @@ class NonAssociationMappingService(
         null,
       )
     }
+  }
+
+  @Transactional
+  suspend fun resetSequence(nonAssociationId: Long, newSequence: Int) {
+    nonAssociationMappingRepository.resetSequence(nonAssociationId, newSequence)
   }
 }
