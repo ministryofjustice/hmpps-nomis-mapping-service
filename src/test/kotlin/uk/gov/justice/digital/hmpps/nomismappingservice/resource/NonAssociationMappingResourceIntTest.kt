@@ -1262,7 +1262,12 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
       postCreateNonAssociationMappingRequest(1, "A1234AA", "COMMON")
       postCreateNonAssociationMappingRequest(2, "COMMON", "A1234AB")
 
-      assertResultList(listOf("COMMON"))
+      assertResultList(
+        listOf(
+          dto(1, "A1234AA", "COMMON", 1),
+          dto(2, "COMMON", "A1234AB", 1),
+        ),
+      )
     }
 
     @Test
@@ -1270,7 +1275,12 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
       postCreateNonAssociationMappingRequest(1, "A1234AA", "COMMON")
       postCreateNonAssociationMappingRequest(2, "A1234AB", "COMMON")
 
-      assertResultList(listOf("COMMON"))
+      assertResultList(
+        listOf(
+          dto(1, "A1234AA", "COMMON", 1),
+          dto(2, "A1234AB", "COMMON", 1),
+        ),
+      )
     }
 
     @Test
@@ -1278,15 +1288,35 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
       postCreateNonAssociationMappingRequest(1, "COMMON", "A1234AA")
       postCreateNonAssociationMappingRequest(2, "COMMON", "A1234AB")
 
-      assertResultList(listOf("COMMON"))
+      assertResultList(
+        listOf(
+          dto(1, "COMMON", "A1234AA", 1),
+          dto(2, "COMMON", "A1234AB", 1),
+        ),
+      )
     }
 
     @Test
     fun `one common 3rd party - 4`() {
-      postCreateNonAssociationMappingRequest(1, "COMMON", "A1234AA")
-      postCreateNonAssociationMappingRequest(2, "A1234AB", "COMMON")
+      postCreateNonAssociationMappingRequest(1, "COMMON", "A1234AA", 3)
+      postCreateNonAssociationMappingRequest(2, "A1234AB", "COMMON", 3)
 
-      assertResultList(listOf("COMMON"))
+      assertResultList(
+        listOf(
+          dto(1, "COMMON", "A1234AA", 3),
+          dto(2, "A1234AB", "COMMON", 3),
+        ),
+      )
+    }
+
+    @Test
+    fun `a common 3rd party but with different sequences`() {
+      postCreateNonAssociationMappingRequest(1, "COMMON", "A1234AA", 1)
+      postCreateNonAssociationMappingRequest(2, "A1234AA", "COMMON", 2)
+      postCreateNonAssociationMappingRequest(3, "A1234AB", "COMMON", 3)
+      postCreateNonAssociationMappingRequest(4, "COMMON", "A1234AB", 4)
+
+      assertResultList(emptyList())
     }
 
     @Test
@@ -1298,20 +1328,39 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
       postCreateNonAssociationMappingRequest(5, "A1234AA", "OTHER-A")
       postCreateNonAssociationMappingRequest(6, "A1234AB", "OTHER-B")
 
-      assertResultList(listOf("COMMON1", "COMMON2"))
+      assertResultList(
+        listOf(
+          dto(1, "COMMON1", "A1234AA", 1),
+          dto(2, "A1234AB", "COMMON1", 1),
+          dto(3, "COMMON2", "A1234AA", 1),
+          dto(4, "A1234AB", "COMMON2", 1),
+        ),
+      )
     }
 
-    private fun assertResultList(expected: List<String>) {
-      assertThat(
-        webTestClient.get()
-          .uri("/mapping/non-associations/find/common-between/A1234AA/and/A1234AB")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody(object : ParameterizedTypeReference<List<String>>() {})
-          .returnResult()
-          .responseBody!!,
-      ).isEqualTo(expected)
+    private fun assertResultList(expected: List<NonAssociationMappingDto>) {
+      val actual = webTestClient.get()
+        .uri("/mapping/non-associations/find/common-between/A1234AA/and/A1234AB")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody(object : ParameterizedTypeReference<List<NonAssociationMappingDto>>() {})
+        .returnResult()
+        .responseBody!!
+
+      assertThat(actual).hasSize(expected.size)
+      assertThat(actual).matches(
+        { list ->
+          !list.mapIndexed { index, dto ->
+            dto.nonAssociationId == expected[index].nonAssociationId &&
+              dto.firstOffenderNo == expected[index].firstOffenderNo &&
+              dto.secondOffenderNo == expected[index].secondOffenderNo &&
+              dto.nomisTypeSequence == expected[index].nomisTypeSequence
+          }
+            .contains(false)
+        },
+        "expected:\n$expected",
+      )
     }
 
     @Test
@@ -1324,4 +1373,74 @@ class NonAssociationMappingResourceIntTest : IntegrationTestBase() {
       assertResultList(emptyList())
     }
   }
+
+  @DisplayName("PUT /non-association-id/{nonAssociationId}/sequence/{newSequence}")
+  @Nested
+  inner class ResetSequenceTest {
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.put().uri("/mapping/non-associations/non-association-id/123456/sequence/2")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.put().uri("/mapping/non-associations/non-association-id/123456/sequence/2")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.put().uri("/mapping/non-associations/non-association-id/123456/sequence/2")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `sets sequence value correctly`() {
+      postCreateNonAssociationMappingRequest(1, "A1234AA", "A1234AB", 1)
+      postCreateNonAssociationMappingRequest(2, "A1234AA", "A1234AB", 2)
+
+      webTestClient.put().uri("/mapping/non-associations/non-association-id/1/sequence/3")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+        .exchange()
+        .expectStatus().isOk
+
+      //  NA sequence has changed
+      webTestClient.get()
+        .uri("/mapping/non-associations/non-association-id/1")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("nomisTypeSequence").isEqualTo(3)
+
+      // The other NA has not changed
+      webTestClient.get()
+        .uri("/mapping/non-associations/non-association-id/2")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+        .jsonPath("nomisTypeSequence").isEqualTo(2)
+    }
+  }
 }
+
+private fun dto(
+  nonAssociationId: Long,
+  firstOffenderNo: String,
+  secondOffenderNo: String,
+  nomisTypeSequence: Int,
+) = NonAssociationMappingDto(
+  nonAssociationId,
+  firstOffenderNo,
+  secondOffenderNo,
+  nomisTypeSequence,
+  null,
+  "",
+)

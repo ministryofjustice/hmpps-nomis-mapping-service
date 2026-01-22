@@ -114,7 +114,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
     @Schema(description = "New offender number of merge", example = "D5678EF", required = true)
     @PathVariable
     newOffenderNo: String,
-  ): List<String> = mappingService.getNonAssociationMappingsOfMerge(oldOffenderNo, newOffenderNo)
+  ): List<NonAssociationMappingDto> = mappingService.getNonAssociationMappingsOfMerge(oldOffenderNo, newOffenderNo)
 
   @GetMapping("/non-association-id/{nonAssociationId}")
   @Operation(
@@ -250,5 +250,22 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
     nonAssociations: List<String>,
   ) {
     mappingService.updateMappingsInList(oldOffenderNo, newOffenderNo, nonAssociations)
+  }
+
+  @PutMapping("/non-association-id/{nonAssociationId}/sequence/{newSequence}")
+  @Operation(
+    summary = "Sets sequence of a non-association to a new value",
+    description = "This is used to avoid duplicate errors in merges where both the old and the new prisoner number have " +
+      "non-associations with a 3rd party. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+  )
+  suspend fun resetSequence(
+    @Schema(description = "Non-association id", example = "2345678", required = true)
+    @PathVariable
+    nonAssociationId: Long,
+    @Schema(description = "Nomis type sequence to change it to", example = "2", required = true)
+    @PathVariable
+    newSequence: Int,
+  ) {
+    mappingService.resetSequence(nonAssociationId, newSequence)
   }
 }
