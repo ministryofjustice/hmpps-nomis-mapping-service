@@ -31,6 +31,7 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.api.NomisSentenceId
 import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
+import java.time.LocalDateTime
 
 @RestController
 @Validated
@@ -1123,6 +1124,34 @@ class CourtSentencingMappingResource(
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
   suspend fun deleteAllMappings() = mappingService.deleteAllMappings()
+
+  @DeleteMapping("/cut-off-date/{cutoffDateTime}")
+  @Operation(
+    summary = "delete all mappings",
+    description = "Deletes all mappings created after the given date time. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Mappings deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  suspend fun deleteAllMappingsAfterDate(
+    @Schema(description = "delete all mappings created after this time", example = "2020-03-24T12:00:00", required = true)
+    @PathVariable
+    cutoffDateTime: String,
+  ) = mappingService.deleteAllMappingsAfterDateTime(cutoffDateTime = LocalDateTime.parse(cutoffDateTime))
 
   @GetMapping("/sentence-terms/dps-term-id/{termId}")
   @Operation(
