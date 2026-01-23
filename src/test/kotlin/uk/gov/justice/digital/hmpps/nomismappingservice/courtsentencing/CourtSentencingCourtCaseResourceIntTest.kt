@@ -4,7 +4,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
-import org.hamcrest.Matchers
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -29,7 +28,9 @@ private const val NOMIS_COURT_APPEARANCE_4_ID = 8765L
 private const val NOMIS_COURT_CHARGE_1_ID = 32121L
 private const val NOMIS_COURT_CHARGE_2_ID = 87676L
 private const val NOMIS_SENTENCE_SEQ = 1
+private const val NOMIS_SENTENCE_SEQ_2 = 2
 private const val NOMIS_SENTENCE_TERM_SEQ = 2
+private const val NOMIS_SENTENCE_TERM_SEQ_2 = 3
 private const val NOMIS_BOOKING_ID = 32456L
 private const val DPS_SENTENCE_ID = "dpss1"
 private const val DPS_SENTENCE_ID_2 = "dpss2"
@@ -52,6 +53,7 @@ private const val EXISTING_NOMIS_COURT_CASE_ID = 98765L
 private const val EXISTING_NOMIS_COURT_APPEARANCE_ID = 98733L
 private const val EXISTING_NOMIS_SENTENCE_SEQ = 4
 private const val EXISTING_NOMIS_SENTENCE_TERM_SEQ = 5
+private const val MAPPING_DELETION_CUT_OFF = "2024-01-04T12:00:00"
 
 class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
   @Autowired
@@ -62,6 +64,9 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var courtAppearanceRepository: CourtAppearanceMappingRepository
+
+  @Autowired
+  private lateinit var courtAppearanceRecallRepository: CourtAppearanceRecallMappingRepository
 
   @Autowired
   private lateinit var courtChargeRepository: CourtChargeMappingRepository
@@ -780,6 +785,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
   private suspend fun clearDown() {
     repository.deleteAll()
     courtAppearanceRepository.deleteAll()
+    courtAppearanceRecallRepository.deleteAll()
     courtChargeRepository.deleteAll()
     sentenceRepository.deleteAll()
     sentenceTermRepository.deleteAll()
@@ -2060,14 +2066,14 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
         .expectStatus().isOk
         .expectBody()
         .jsonPath("totalElements").isEqualTo(4)
-        .jsonPath("$.content..offenderNo").value(
-          Matchers.contains(
+        .jsonPath("$.content..offenderNo").value<List<*>> { offenderNos ->
+          assertThat(offenderNos).containsExactly(
             "offender1",
             "offender2",
             "offender3",
             "offender4",
-          ),
-        )
+          )
+        }
         .jsonPath("$.content[0].whenCreated").isNotEmpty
     }
 
@@ -2213,6 +2219,229 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
       }
     }
   }
+
+  @Nested
+  @DisplayName("DELETE /mapping/court-sentencing/cut-off-date/{cutoffDateTime}")
+  inner class DeleteAllMappingsAfterDateTime {
+    val whenCreated2023 = LocalDateTime.of(2023, 12, 31, 23, 59, 59)
+
+    @BeforeEach
+    fun setUp() = runTest {
+      repository.save(
+        courtCaseMapping(),
+      )
+      repository.save(
+        courtCaseMapping(whenCreated = whenCreated2023, nomisCourtCaseId = NOMIS_COURT_CASE_2_ID, dpsCourtCaseId = DPS_COURT_CASE_2_ID),
+      )
+      courtAppearanceRepository.save(
+        courtAppearanceMapping(),
+      )
+      courtAppearanceRepository.save(
+        courtAppearanceMapping(whenCreated = whenCreated2023, nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_2_ID, dpsCourtAppearanceId = DPS_COURT_APPEARANCE_2_ID),
+      )
+      courtAppearanceRecallRepository.save(
+        courtAppearanceRecallMapping(),
+      )
+      courtAppearanceRecallRepository.save(
+        courtAppearanceRecallMapping(whenCreated = whenCreated2023, nomisCourtAppearanceId = NOMIS_COURT_APPEARANCE_2_ID, dpsRecallId = DPS_COURT_APPEARANCE_2_ID),
+      )
+      courtChargeRepository.save(
+        chargeMapping(),
+      )
+      courtChargeRepository.save(
+        chargeMapping(whenCreated = whenCreated2023, nomisCourtChargeId = NOMIS_COURT_CHARGE_2_ID, dpsCourtChargeId = DPS_COURT_CHARGE_2_ID),
+      )
+      sentenceRepository.save(
+        sentenceMapping(),
+      )
+      sentenceRepository.save(
+        sentenceMapping(whenCreated = whenCreated2023, nomisSentenceSequence = NOMIS_SENTENCE_SEQ_2, dpsSentenceId = DPS_SENTENCE_ID_2),
+      )
+      sentenceTermRepository.save(
+        sentenceTermMapping(),
+      )
+      sentenceTermRepository.save(
+        sentenceTermMapping(whenCreated = whenCreated2023, nomisSentenceSequence = NOMIS_SENTENCE_SEQ_2, nomisTermSequence = NOMIS_SENTENCE_TERM_SEQ, dpsTermId = DPS_TERM_ID_2),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      clearDown()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/cut-off-date/$MAPPING_DELETION_CUT_OFF")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/cut-off-date/$MAPPING_DELETION_CUT_OFF")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/cut-off-date/$MAPPING_DELETION_CUT_OFF")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 204 and mappings created after date`() = runTest {
+        assertThat(repository.count()).isEqualTo(2)
+        assertThat(courtAppearanceRepository.count()).isEqualTo(2)
+        assertThat(courtChargeRepository.count()).isEqualTo(2)
+        assertThat(sentenceRepository.count()).isEqualTo(2)
+        assertThat(sentenceTermRepository.count()).isEqualTo(2)
+        assertThat(courtAppearanceRecallRepository.count()).isEqualTo(2)
+
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/cut-off-date/$whenCreated2023")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        assertThat(repository.count()).isEqualTo(1)
+        assertThat(courtAppearanceRepository.count()).isEqualTo(1)
+        assertThat(courtChargeRepository.count()).isEqualTo(1)
+        assertThat(sentenceRepository.count()).isEqualTo(1)
+        assertThat(sentenceTermRepository.count()).isEqualTo(1)
+        assertThat(courtAppearanceRecallRepository.count()).isEqualTo(1)
+      }
+
+      @Test
+      fun `will return 204 and delete all mappings as date predates all`() = runTest {
+        assertThat(repository.count()).isEqualTo(2)
+        assertThat(courtAppearanceRepository.count()).isEqualTo(2)
+        assertThat(courtChargeRepository.count()).isEqualTo(2)
+        assertThat(sentenceRepository.count()).isEqualTo(2)
+        assertThat(sentenceTermRepository.count()).isEqualTo(2)
+        assertThat(courtAppearanceRecallRepository.count()).isEqualTo(2)
+
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/cut-off-date/${whenCreated2023.minusSeconds(1)}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        assertThat(repository.count()).isEqualTo(0)
+        assertThat(courtAppearanceRepository.count()).isEqualTo(0)
+        assertThat(courtChargeRepository.count()).isEqualTo(0)
+        assertThat(sentenceRepository.count()).isEqualTo(0)
+        assertThat(sentenceTermRepository.count()).isEqualTo(0)
+        assertThat(courtAppearanceRecallRepository.count()).isEqualTo(0)
+      }
+
+      @Test
+      fun `will return 204 and not delete mappings`() = runTest {
+        assertThat(repository.count()).isEqualTo(2)
+        assertThat(courtAppearanceRepository.count()).isEqualTo(2)
+        assertThat(courtChargeRepository.count()).isEqualTo(2)
+        assertThat(sentenceRepository.count()).isEqualTo(2)
+        assertThat(sentenceTermRepository.count()).isEqualTo(2)
+        assertThat(courtAppearanceRecallRepository.count()).isEqualTo(2)
+
+        webTestClient.delete()
+          .uri("/mapping/court-sentencing/cut-off-date/${whenCreated2023.plusYears(3)}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        assertThat(repository.count()).isEqualTo(2)
+        assertThat(courtAppearanceRepository.count()).isEqualTo(2)
+        assertThat(courtChargeRepository.count()).isEqualTo(2)
+        assertThat(sentenceRepository.count()).isEqualTo(2)
+        assertThat(sentenceTermRepository.count()).isEqualTo(2)
+        assertThat(courtAppearanceRecallRepository.count()).isEqualTo(2)
+      }
+    }
+  }
+
+  private fun chargeMapping(nomisCourtChargeId: Long = 123, dpsCourtChargeId: String = "122", whenCreated: LocalDateTime = LocalDateTime.of(2025, 1, 2, 12, 0, 0)): CourtChargeMapping = CourtChargeMapping(
+    dpsCourtChargeId = dpsCourtChargeId,
+    nomisCourtChargeId = nomisCourtChargeId,
+    mappingType = CourtChargeMappingType.MIGRATED,
+    whenCreated = whenCreated,
+  )
+
+  private fun sentenceMapping(
+    dpsSentenceId: String = DPS_SENTENCE_ID,
+    nomisSentenceSequence: Int = NOMIS_SENTENCE_SEQ,
+    whenCreated: LocalDateTime = LocalDateTime.of(2025, 1, 2, 12, 0, 0),
+  ): SentenceMapping = SentenceMapping(
+    dpsSentenceId = dpsSentenceId,
+    nomisSentenceSequence = nomisSentenceSequence,
+    nomisBookingId = NOMIS_BOOKING_ID,
+    label = "2025-01-01T12:45:12",
+    mappingType = SentenceMappingType.MIGRATED,
+    whenCreated = whenCreated,
+  )
+
+  private fun sentenceTermMapping(
+    dpsTermId: String = DPS_TERM_ID,
+    nomisSentenceSequence: Int = NOMIS_SENTENCE_SEQ,
+    nomisTermSequence: Int = NOMIS_SENTENCE_TERM_SEQ,
+    whenCreated: LocalDateTime = LocalDateTime.of(2025, 1, 2, 12, 0, 0),
+  ): SentenceTermMapping = SentenceTermMapping(
+    dpsTermId = dpsTermId,
+    nomisSentenceSequence = nomisSentenceSequence,
+    nomisTermSequence = nomisTermSequence,
+    nomisBookingId = NOMIS_BOOKING_ID,
+    label = "2025-01-01T12:45:12",
+    mappingType = SentenceTermMappingType.MIGRATED,
+    whenCreated = whenCreated,
+  )
+
+  private fun courtCaseMapping(
+    dpsCourtCaseId: String = DPS_COURT_CASE_ID,
+    nomisCourtCaseId: Long = NOMIS_COURT_CASE_ID,
+    whenCreated: LocalDateTime = LocalDateTime.of(2025, 1, 2, 12, 0, 0),
+  ): CourtCaseMapping = CourtCaseMapping(
+    dpsCourtCaseId = dpsCourtCaseId,
+    nomisCourtCaseId = nomisCourtCaseId,
+    label = "2025-01-01T12:45:12",
+    mappingType = CourtCaseMappingType.MIGRATED,
+    whenCreated = whenCreated,
+  )
+
+  private fun courtAppearanceMapping(
+    nomisCourtAppearanceId: Long = NOMIS_COURT_APPEARANCE_1_ID,
+    dpsCourtAppearanceId: String = DPS_COURT_APPEARANCE_1_ID,
+    whenCreated: LocalDateTime = LocalDateTime.of(2025, 1, 2, 12, 0, 0),
+  ): CourtAppearanceMapping = CourtAppearanceMapping(
+    nomisCourtAppearanceId = nomisCourtAppearanceId,
+    dpsCourtAppearanceId = dpsCourtAppearanceId,
+    label = "2025-01-01T12:45:12",
+    mappingType = CourtAppearanceMappingType.MIGRATED,
+    whenCreated = whenCreated,
+  )
+
+  private fun courtAppearanceRecallMapping(
+    nomisCourtAppearanceId: Long = NOMIS_COURT_APPEARANCE_1_ID,
+    dpsRecallId: String = DPS_COURT_APPEARANCE_1_ID,
+    whenCreated: LocalDateTime = LocalDateTime.of(2025, 1, 2, 12, 0, 0),
+  ): CourtAppearanceRecallMapping = CourtAppearanceRecallMapping(
+    nomisCourtAppearanceId = nomisCourtAppearanceId,
+    dpsRecallId = dpsRecallId,
+    label = "2025-01-01T12:45:12",
+    mappingType = CourtAppearanceRecallMappingType.MIGRATED,
+    whenCreated = whenCreated,
+  )
 
   @Nested
   @DisplayName("POST /mapping/court-sentencing/court-cases/nomis-case-ids/get-list")

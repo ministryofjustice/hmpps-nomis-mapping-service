@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomismappingservice.api.NomisSentenceId
 import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundException
+import java.time.LocalDateTime
 
 @Service
 @Transactional(readOnly = true)
@@ -535,6 +536,16 @@ class CourtSentencingMappingService(
     courtChargeMappingRepository.deleteAll()
     sentenceMappingRepository.deleteAll()
     sentenceTermMappingRepository.deleteAll()
+  }
+
+  @Transactional
+  suspend fun deleteAllMappingsAfterDateTime(cutoffDateTime: LocalDateTime) {
+    courtCaseMappingRepository.deleteByWhenCreatedAfter(cutoffDateTime)
+    courtAppearanceMappingRepository.deleteByWhenCreatedAfter(cutoffDateTime)
+    courtAppearanceRecallMappingRepository.deleteByWhenCreatedAfter(cutoffDateTime)
+    courtChargeMappingRepository.deleteByWhenCreatedAfter(cutoffDateTime)
+    sentenceMappingRepository.deleteByWhenCreatedAfter(cutoffDateTime)
+    sentenceTermMappingRepository.deleteByWhenCreatedAfter(cutoffDateTime)
   }
 }
 
