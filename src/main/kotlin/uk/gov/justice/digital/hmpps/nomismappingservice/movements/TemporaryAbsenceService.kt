@@ -127,8 +127,8 @@ class TemporaryAbsenceService(
   suspend fun upsertAddressMappingByDpsId(dpsAddressText: String, dpsUprn: Long? = null, dpsDescription: String? = null, dpsPostcode: String? = null, nomisOwnerClass: String, nomisAddressId: Long, nomisOffenderNo: String? = null) {
     val offenderNo = if (nomisOwnerClass == "OFF") nomisOffenderNo else null
     when (nomisOwnerClass) {
-      "OFF" -> addressRepository.findByNomisOffenderNoAndDpsUprnAndDpsAddressText(nomisOffenderNo!!, dpsUprn, dpsAddressText)
-      else -> addressRepository.findByNomisAddressOwnerClassAndDpsUprnAndDpsAddressText(nomisOwnerClass, dpsUprn, dpsAddressText)
+      "OFF" -> addressRepository.findFirstByNomisOffenderNoAndDpsUprnAndDpsAddressText(nomisOffenderNo!!, dpsUprn, dpsAddressText)
+      else -> addressRepository.findFirstByNomisAddressOwnerClassAndDpsUprnAndDpsAddressText(nomisOwnerClass, dpsUprn, dpsAddressText)
     }
       ?.also {
         it.nomisOffenderNo = offenderNo
@@ -243,8 +243,8 @@ class TemporaryAbsenceService(
 
   suspend fun findAddress(request: FindTemporaryAbsenceAddressByDpsIdRequest): TemporaryAbsenceAddressMappingResponse = with(request) {
     when (ownerClass) {
-      "OFF" -> addressRepository.findByNomisOffenderNoAndDpsUprnAndDpsAddressText(offenderNo, dpsUprn, dpsAddressText)
-      else -> addressRepository.findByNomisAddressOwnerClassAndDpsUprnAndDpsAddressText(ownerClass, dpsUprn, dpsAddressText)
+      "OFF" -> addressRepository.findFirstByNomisOffenderNoAndDpsUprnAndDpsAddressText(offenderNo, dpsUprn, dpsAddressText)
+      else -> addressRepository.findFirstByNomisAddressOwnerClassAndDpsUprnAndDpsAddressText(ownerClass, dpsUprn, dpsAddressText)
     }
       ?.toMappingDto()
       ?: throw NotFoundException("No address found for address owner class $ownerClass and offender $offenderNo with dpsUprn $dpsUprn and dpsAddressText $dpsAddressText")
