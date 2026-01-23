@@ -1245,7 +1245,7 @@ class TemporaryAbsenceResourceIntTest(
           source = "DPS",
         ).expectStatus().isOk
 
-        with(addressRepository.findByNomisAddressOwnerClassAndDpsUprnAndDpsAddressText("OFF", 888L, "some address")!!) {
+        with(addressRepository.findFirstByNomisAddressOwnerClassAndDpsUprnAndDpsAddressText("OFF", 888L, "some address")!!) {
           assertThat(nomisAddressId).isEqualTo(8888L)
           assertThat(dpsUprn).isEqualTo(888L)
         }
@@ -2464,6 +2464,18 @@ class TemporaryAbsenceResourceIntTest(
     }
 
     @Test
+    fun `should find first address found by owner class and address text`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "CORP", null, "dps address text", "corp name", "S1 1AA"))
+      addressRepository.save(anAddressMapping("A1234BC", 124L, "CORP", null, "dps address text", "corp name", "S1 1AA"))
+
+      webTestClient.findAddressOk("CORP", "ANY", null, "dps address text")
+        .apply {
+          assertThat(ownerClass).isEqualTo("CORP")
+          assertThat(addressId).isEqualTo(123L)
+        }
+    }
+
+    @Test
     fun `should find offender address by offender and uprn`() = runTest {
       addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", 456L, "dps address text", null, "S1 1AA"))
 
@@ -2477,6 +2489,18 @@ class TemporaryAbsenceResourceIntTest(
     @Test
     fun `should find offender address by offender and address text`() = runTest {
       addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", null, "dps address text", null, "S1 1AA"))
+
+      webTestClient.findAddressOk("OFF", "A1234BC", null, "dps address text")
+        .apply {
+          assertThat(ownerClass).isEqualTo("OFF")
+          assertThat(addressId).isEqualTo(123L)
+        }
+    }
+
+    @Test
+    fun `should return first offender address found if there are duplicates (created by migration)`() = runTest {
+      addressRepository.save(anAddressMapping("A1234BC", 123L, "OFF", null, "dps address text", null, "S1 1AA"))
+      addressRepository.save(anAddressMapping("A1234BC", 124L, "OFF", null, "dps address text", null, "S1 1AA"))
 
       webTestClient.findAddressOk("OFF", "A1234BC", null, "dps address text")
         .apply {
