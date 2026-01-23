@@ -34,8 +34,10 @@ class OfficialVisitsService(
   suspend fun getOfficialVisitorMappingByDpsIdOrNull(dpsId: String) = visitorMappingRepository.findOneByDpsId(dpsId)
     ?.toDto()
 
-  suspend fun getOfficialVisitMappingByDpsId(dpsId: String) = officialVisitMappingRepository.findOneByDpsId(dpsId)
-    ?.toDto()
+  suspend fun getOfficialVisitorMappingByDpsId(dpsId: String) = getOfficialVisitorMappingByDpsIdOrNull(dpsId)
+    ?: throw NotFoundException("No visitor mapping found for dpsId=$dpsId")
+
+  suspend fun getOfficialVisitMappingByDpsId(dpsId: String) = getOfficialVisitMappingByDpsIdOrNull(dpsId)
     ?: throw NotFoundException("No visit mapping found for dpsId=$dpsId")
 
   suspend fun createMappings(mappings: OfficialVisitMigrationMappingDto) {
