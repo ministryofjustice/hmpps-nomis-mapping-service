@@ -61,6 +61,22 @@ class VisitSlotsService(
     }
   }
 
+  suspend fun createVisitSlot(mapping: VisitTimeSlotMappingDto) {
+    with(mapping) {
+      visitTimeSlotMappingRepository.save(
+        VisitTimeSlotMapping(
+          dpsId = dpsId,
+          nomisPrisonId = nomisPrisonId,
+          nomisDayOfWeek = nomisDayOfWeek,
+          nomisSlotSequence = nomisSlotSequence,
+          label = label,
+          mappingType = mappingType,
+          whenCreated = whenCreated,
+        ),
+      )
+    }
+  }
+
   suspend fun getVisitTimeSlotMappingsByMigrationId(
     pageRequest: Pageable,
     migrationId: String,
