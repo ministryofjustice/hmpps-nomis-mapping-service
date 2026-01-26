@@ -146,6 +146,7 @@ class TransactionMappingResourceIntTest : IntegrationTestBase() {
         assertThat(createdMapping.nomisTransactionId).isEqualTo(mapping.nomisTransactionId)
         assertThat(createdMapping.dpsTransactionId.toString()).isEqualTo(mapping.dpsTransactionId)
         assertThat(createdMapping.mappingType).isEqualTo(mapping.mappingType)
+        assertThat(createdMapping.offenderNo).isEqualTo(mapping.offenderNo)
         assertThat(createdMapping.label).isEqualTo(mapping.label)
       }
 
@@ -157,14 +158,7 @@ class TransactionMappingResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              """
-                {
-                  "nomisTransactionId": 54321,
-                  "dpsTransactionId": "$DPS_TRANSACTION_ID",
-                  "offenderNo": "A1234AA",
-                  "nomisBookingId": 1
-                }
-              """.trimIndent(),
+              TransactionMappingDto(nomisTransactionId = 54321, dpsTransactionId = DPS_TRANSACTION_ID),
             ),
           )
           .exchange()
@@ -176,6 +170,8 @@ class TransactionMappingResourceIntTest : IntegrationTestBase() {
         assertThat(createdMapping.nomisTransactionId).isEqualTo(54321L)
         assertThat(createdMapping.dpsTransactionId).isEqualTo(UUID.fromString(DPS_TRANSACTION_ID))
         assertThat(createdMapping.mappingType).isEqualTo(TransactionMappingType.DPS_CREATED)
+        assertThat(createdMapping.offenderNo).isNull()
+        assertThat(createdMapping.nomisBookingId).isNull()
         assertThat(createdMapping.label).isNull()
       }
 
@@ -617,6 +613,7 @@ class TransactionMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("GET /mapping/transactions/nomis-transaction-id/{transactionId}")
   inner class GetMappingByNomisId {
     lateinit var mapping: TransactionMapping
+    lateinit var minimalDataMapping: TransactionMapping
 
     @BeforeEach
     fun setUp() = runTest {
@@ -628,6 +625,13 @@ class TransactionMappingResourceIntTest : IntegrationTestBase() {
           nomisBookingId = 1,
           label = "2023-01-01T12:45:12",
           mappingType = TransactionMappingType.MIGRATED,
+        ),
+      )
+      minimalDataMapping = repository.save(
+        TransactionMapping(
+          dpsTransactionId = UUID.randomUUID(),
+          nomisTransactionId = 554433L,
+          mappingType = TransactionMappingType.NOMIS_CREATED,
         ),
       )
     }
@@ -684,6 +688,25 @@ class TransactionMappingResourceIntTest : IntegrationTestBase() {
           .jsonPath("dpsTransactionId").isEqualTo(mapping.dpsTransactionId.toString())
           .jsonPath("mappingType").isEqualTo(mapping.mappingType.name)
           .jsonPath("label").isEqualTo(mapping.label!!)
+          .jsonPath("offenderNo").isEqualTo(mapping.offenderNo!!)
+          .jsonPath("whenCreated").value<String> {
+            assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+          }
+      }
+
+      @Test
+      fun `will return minimal data when mapping does exist`() {
+        webTestClient.get()
+          .uri("/mapping/transactions/nomis-transaction-id/${minimalDataMapping.nomisTransactionId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisTransactionId").isEqualTo(minimalDataMapping.nomisTransactionId)
+          .jsonPath("dpsTransactionId").isEqualTo(minimalDataMapping.dpsTransactionId.toString())
+          .jsonPath("mappingType").isEqualTo(minimalDataMapping.mappingType.name)
+          .jsonPath("label").doesNotExist()
+          .jsonPath("offenderNo").doesNotExist()
           .jsonPath("whenCreated").value<String> {
             assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
           }
@@ -805,6 +828,7 @@ class TransactionMappingResourceIntTest : IntegrationTestBase() {
   inner class GetMappingByDpsId {
     lateinit var mapping1: TransactionMapping
     lateinit var mapping2: TransactionMapping
+    lateinit var minimalDataMapping: TransactionMapping
     val dpsTransactionId1 = generateUUID(1)
     val dpsTransactionId2 = generateUUID(2)
 
@@ -829,6 +853,13 @@ class TransactionMappingResourceIntTest : IntegrationTestBase() {
             nomisBookingId = 1,
             label = "2023-06-01T12:45:12",
             mappingType = TransactionMappingType.DPS_CREATED,
+          ),
+        )
+        minimalDataMapping = repository.save(
+          TransactionMapping(
+            dpsTransactionId = UUID.randomUUID(),
+            nomisTransactionId = 554433L,
+            mappingType = TransactionMappingType.NOMIS_CREATED,
           ),
         )
       }
@@ -889,6 +920,24 @@ class TransactionMappingResourceIntTest : IntegrationTestBase() {
           .jsonPath("$.mappingType").isEqualTo(mapping1.mappingType.name)
           .jsonPath("$.label").isEqualTo(mapping1.label!!)
           .jsonPath("$.whenCreated").value<String> {
+            assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+          }
+      }
+
+      @Test
+      fun `will return minimal data when mapping does exist`() {
+        webTestClient.get()
+          .uri("/mapping/transactions/dps-transaction-id/${minimalDataMapping.dpsTransactionId}")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisTransactionId").isEqualTo(minimalDataMapping.nomisTransactionId)
+          .jsonPath("dpsTransactionId").isEqualTo(minimalDataMapping.dpsTransactionId.toString())
+          .jsonPath("mappingType").isEqualTo(minimalDataMapping.mappingType.name)
+          .jsonPath("label").doesNotExist()
+          .jsonPath("offenderNo").doesNotExist()
+          .jsonPath("whenCreated").value<String> {
             assertThat(LocalDateTime.parse(it)).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
           }
       }
