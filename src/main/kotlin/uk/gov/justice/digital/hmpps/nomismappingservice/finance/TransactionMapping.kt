@@ -14,7 +14,7 @@ data class TransactionMapping(
 
   val dpsTransactionId: UUID,
 
-  val offenderNo: String,
+  val offenderNo: String? = null,
 
   val nomisBookingId: Long? = null,
 

@@ -15,8 +15,8 @@ data class TransactionMappingDto(
   @Schema(description = "Transaction id in Nomis", required = true)
   val nomisTransactionId: Long,
 
-  @Schema(description = "Prisoner number in Nomis", required = true)
-  val offenderNo: String,
+  @Schema(description = "Prisoner number in Nomis")
+  val offenderNo: String? = null,
 
   @Schema(description = "Nomis booking id", required = true)
   val nomisBookingId: Long? = null,
