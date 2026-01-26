@@ -38,6 +38,53 @@ class VisitSlotsResource(private val visitSlotsService: VisitSlotsService) {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
+  @PostMapping("/time-slots")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates a visit time slots mapping",
+    description = "Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitTimeSlotMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mappings created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createVisitTimeSlotMapping(
+    @RequestBody @Valid
+    mapping: VisitTimeSlotMappingDto,
+  ) = try {
+    visitSlotsService.createVisitSlot(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingVisitTimeSlotMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Visit time slot mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
+
   @GetMapping("/time-slots/nomis-prison-id/{nomisPrisonId}/nomis-day-of-week/{nomisDayOfWeek}/nomis-slot-sequence/{nomisSlotSequence}")
   @Operation(
     summary = "Get visit time slot mapping by nomis prison id, day of week and sequence",
@@ -232,6 +279,18 @@ class VisitSlotsResource(private val visitSlotsService: VisitSlotsService) {
       dpsId = mapping.dpsId,
     )
   }
+
+  private suspend fun getExistingVisitTimeSlotMappingSimilarTo(mapping: VisitTimeSlotMappingDto) = runCatching {
+    visitSlotsService.getVisitTimeSlotMappingByNomisId(
+      nomisPrisonId = mapping.nomisPrisonId,
+      nomisDayOfWeek = mapping.nomisDayOfWeek,
+      nomisSlotSequence = mapping.nomisSlotSequence,
+    )
+  }.getOrElse {
+    visitSlotsService.getVisitTimeSlotMappingByDpsIdOrNull(
+      dpsId = mapping.dpsId,
+    )
+  }
 }
 
 data class VisitTimeSlotMappingDto(
@@ -241,7 +300,7 @@ data class VisitTimeSlotMappingDto(
   val nomisSlotSequence: Int,
   val label: String?,
   val mappingType: StandardMappingType,
-  val whenCreated: LocalDateTime?,
+  val whenCreated: LocalDateTime? = null,
 )
 
 data class VisitSlotMappingDto(
@@ -249,7 +308,7 @@ data class VisitSlotMappingDto(
   val nomisId: Long,
   val label: String?,
   val mappingType: StandardMappingType,
-  val whenCreated: LocalDateTime?,
+  val whenCreated: LocalDateTime? = null,
 )
 
 data class VisitTimeSlotMigrationMappingDto(
