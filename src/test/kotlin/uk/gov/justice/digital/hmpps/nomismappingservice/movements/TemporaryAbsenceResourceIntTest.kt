@@ -2800,7 +2800,9 @@ class TemporaryAbsenceResourceIntTest(
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("content[0].whenCreated").isEqualTo("$now")
+          .jsonPath("content[0].whenCreated").value<String> {
+            assertThat(LocalDateTime.parse(it)).isEqualTo(now)
+          }
       }
     }
   }
