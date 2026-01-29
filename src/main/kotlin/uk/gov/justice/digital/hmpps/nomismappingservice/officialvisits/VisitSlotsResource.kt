@@ -74,7 +74,7 @@ class VisitSlotsResource(private val visitSlotsService: VisitSlotsService) {
     @RequestBody @Valid
     mapping: VisitTimeSlotMappingDto,
   ) = try {
-    visitSlotsService.createVisitSlot(mapping)
+    visitSlotsService.createTimeSlot(mapping)
   } catch (e: DuplicateKeyException) {
     val existingMapping = getExistingVisitTimeSlotMappingSimilarTo(mapping)
     throw DuplicateMappingException(
@@ -131,6 +131,53 @@ class VisitSlotsResource(private val visitSlotsService: VisitSlotsService) {
     nomisDayOfWeek = nomisDayOfWeek,
     nomisSlotSequence = nomisSlotSequence,
   )
+
+  @PostMapping("/visit-slot")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates a visit slots mapping",
+    description = "Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = VisitSlotMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mappings created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createVisitSlotMapping(
+    @RequestBody @Valid
+    mapping: VisitSlotMappingDto,
+  ) = try {
+    visitSlotsService.createVisitSlot(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingVisitSlotMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Visit slot mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
 
   @GetMapping("/visit-slot/nomis-id/{nomisId}")
   @Operation(
@@ -288,6 +335,13 @@ class VisitSlotsResource(private val visitSlotsService: VisitSlotsService) {
     )
   }.getOrElse {
     visitSlotsService.getVisitTimeSlotMappingByDpsIdOrNull(
+      dpsId = mapping.dpsId,
+    )
+  }
+  private suspend fun getExistingVisitSlotMappingSimilarTo(mapping: VisitSlotMappingDto) = runCatching {
+    visitSlotsService.getVisitSlotMappingByNomisId(mapping.nomisId)
+  }.getOrElse {
+    visitSlotsService.getVisitSlotMappingByDpsIdOrNull(
       dpsId = mapping.dpsId,
     )
   }

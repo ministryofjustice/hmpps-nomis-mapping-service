@@ -33,6 +33,11 @@ class VisitSlotsService(
   suspend fun getVisitTimeSlotMappingByDpsIdOrNull(dpsId: String) = visitTimeSlotMappingRepository.findOneByDpsId(dpsId)
     ?.toDto()
 
+  suspend fun getVisitSlotMappingByDpsIdOrNull(dpsId: String) = visitSlotMappingRepository.findOneByDpsId(
+    dpsId = dpsId,
+  )
+    ?.toDto()
+
   suspend fun createMappings(mappings: VisitTimeSlotMigrationMappingDto) {
     with(mappings) {
       visitTimeSlotMappingRepository.save(
@@ -61,7 +66,7 @@ class VisitSlotsService(
     }
   }
 
-  suspend fun createVisitSlot(mapping: VisitTimeSlotMappingDto) {
+  suspend fun createTimeSlot(mapping: VisitTimeSlotMappingDto) {
     with(mapping) {
       visitTimeSlotMappingRepository.save(
         VisitTimeSlotMapping(
@@ -69,6 +74,19 @@ class VisitSlotsService(
           nomisPrisonId = nomisPrisonId,
           nomisDayOfWeek = nomisDayOfWeek,
           nomisSlotSequence = nomisSlotSequence,
+          label = label,
+          mappingType = mappingType,
+          whenCreated = whenCreated,
+        ),
+      )
+    }
+  }
+  suspend fun createVisitSlot(mapping: VisitSlotMappingDto) {
+    with(mapping) {
+      visitSlotMappingRepository.save(
+        VisitSlotMapping(
+          dpsId = dpsId,
+          nomisId = nomisId,
           label = label,
           mappingType = mappingType,
           whenCreated = whenCreated,
