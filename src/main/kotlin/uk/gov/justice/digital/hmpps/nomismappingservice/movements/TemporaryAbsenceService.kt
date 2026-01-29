@@ -4,6 +4,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.toList
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
@@ -23,6 +24,9 @@ class TemporaryAbsenceService(
   private val migrationRepository: TemporaryAbsenceMigrationRepository,
   private val addressRepository: TemporaryAbsenceAddressRepository,
 ) {
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
+  }
 
   @Transactional
   suspend fun createMigrationMappings(mappings: TemporaryAbsencesPrisonerMappingDto) {
@@ -167,9 +171,13 @@ class TemporaryAbsenceService(
     .also {
       if (it.nomisAddressOwnerClass != null && it.nomisAddressId != null) {
         val offenderNo = if (it.nomisAddressOwnerClass == "OFF") it.offenderNo else null
-        when (it.mappingType) {
-          DPS_CREATED -> upsertAddressMappingByDpsId(it.dpsAddressText, it.dpsUprn, it.dpsDescription, it.dpsPostcode, it.nomisAddressOwnerClass!!, it.nomisAddressId!!, offenderNo)
-          else -> upsertAddressMappingByNomisId(it.nomisAddressOwnerClass!!, it.nomisAddressId!!, it.offenderNo, it.dpsAddressText, it.dpsUprn, it.dpsDescription, it.dpsPostcode)
+        runCatching {
+          when (it.mappingType) {
+            DPS_CREATED -> upsertAddressMappingByDpsId(it.dpsAddressText, it.dpsUprn, it.dpsDescription, it.dpsPostcode, it.nomisAddressOwnerClass!!, it.nomisAddressId!!, offenderNo)
+            else -> upsertAddressMappingByNomisId(it.nomisAddressOwnerClass!!, it.nomisAddressId!!, it.offenderNo, it.dpsAddressText, it.dpsUprn, it.dpsDescription, it.dpsPostcode)
+          }
+        }.onFailure { ex ->
+          log.error("Ignoring exception upserting address mapping as this prevents mapping creation. Scheduled movement mapping=$mappingDto", ex)
         }
       }
     }
