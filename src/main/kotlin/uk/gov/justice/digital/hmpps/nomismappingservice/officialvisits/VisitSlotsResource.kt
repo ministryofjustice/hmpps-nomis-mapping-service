@@ -132,6 +132,51 @@ class VisitSlotsResource(private val visitSlotsService: VisitSlotsService) {
     nomisSlotSequence = nomisSlotSequence,
   )
 
+  @DeleteMapping("/time-slots/nomis-prison-id/{nomisPrisonId}/nomis-day-of-week/{nomisDayOfWeek}/nomis-slot-sequence/{nomisSlotSequence}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes visit time slot mapping by nomis prison id, day of week and sequence",
+    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Mapping deleted or no longer exists",
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Day of week not valid",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteVisitTimeSlotMappingByNomisIds(
+    @Schema(description = "NOMIS prison id", example = "WWI", required = true)
+    @PathVariable
+    nomisPrisonId: String,
+    @Schema(description = "NOMIS day of the week", example = "MONDAY", required = true)
+    @PathVariable
+    nomisDayOfWeek: String,
+    @Schema(description = "NOMIS slot sequence", example = "4", required = true)
+    @PathVariable
+    nomisSlotSequence: Int,
+  ) {
+    visitSlotsService.deleteVisitTimeSlotMappingByNomisId(
+      nomisPrisonId = nomisPrisonId,
+      nomisDayOfWeek = nomisDayOfWeek,
+      nomisSlotSequence = nomisSlotSequence,
+    )
+  }
+
   @PostMapping("/visit-slot")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(

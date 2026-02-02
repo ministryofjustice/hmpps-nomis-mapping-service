@@ -13,6 +13,12 @@ interface VisitTimeSlotMappingRepository : CoroutineCrudRepository<VisitTimeSlot
     nomisSlotSequence: Int,
   ): VisitTimeSlotMapping?
 
+  suspend fun deleteByNomisPrisonIdAndNomisDayOfWeekAndNomisSlotSequence(
+    nomisPrisonId: String,
+    nomisDayOfWeek: String,
+    nomisSlotSequence: Int,
+  )
+
   suspend fun findOneByDpsId(
     dpsId: String,
   ): VisitTimeSlotMapping?
