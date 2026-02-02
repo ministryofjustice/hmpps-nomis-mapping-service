@@ -13,4 +13,8 @@ interface VisitSlotMappingRepository : CoroutineCrudRepository<VisitSlotMapping,
   suspend fun findOneByNomisId(
     nomisId: Long,
   ): VisitSlotMapping?
+
+  suspend fun deleteByNomisId(
+    nomisId: Long,
+  )
 }
