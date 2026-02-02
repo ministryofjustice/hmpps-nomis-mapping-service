@@ -296,6 +296,93 @@ class VisitSlotsResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("DELETE /mapping/visit-slots/time-slots/nomis-prison-id/{nomisPrisonId}/nomis-day-of-week/{nomisDayOfWeek}/nomis-slot-sequence/{nomisSlotSequence}")
+  inner class DeleteVisitTimeSlotMappingByNomisIds {
+    val nomisPrisonId = "WWI"
+    val nomisDayOfWeek = "MON"
+    val nomisSlotSequence = 2
+    val dpsId = "123456789"
+
+    @BeforeEach
+    fun setUp() = runTest {
+      visitTimeSlotMappingRepository.save(
+        VisitTimeSlotMapping(
+          dpsId = dpsId,
+          nomisPrisonId = nomisPrisonId,
+          nomisDayOfWeek = nomisDayOfWeek,
+          nomisSlotSequence = nomisSlotSequence,
+          label = "2020-01-01T10:00",
+          mappingType = StandardMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access unauthorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/visit-slots/time-slots/nomis-prison-id/$nomisPrisonId/nomis-day-of-week/$nomisDayOfWeek/nomis-slot-sequence/$nomisSlotSequence")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/visit-slots/time-slots/nomis-prison-id/$nomisPrisonId/nomis-day-of-week/$nomisDayOfWeek/nomis-slot-sequence/$nomisSlotSequence")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/visit-slots/time-slots/nomis-prison-id/$nomisPrisonId/nomis-day-of-week/$nomisDayOfWeek/nomis-slot-sequence/$nomisSlotSequence")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `204 when mapping does not exist`() {
+        webTestClient.delete()
+          .uri("/mapping/visit-slots/time-slots/nomis-prison-id/$nomisPrisonId/nomis-day-of-week/$nomisDayOfWeek/nomis-slot-sequence/99")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNoContent
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will delete mapping`() {
+        webTestClient.get()
+          .uri("/mapping/visit-slots/time-slots/nomis-prison-id/$nomisPrisonId/nomis-day-of-week/$nomisDayOfWeek/nomis-slot-sequence/$nomisSlotSequence")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+        webTestClient.delete()
+          .uri("/mapping/visit-slots/time-slots/nomis-prison-id/$nomisPrisonId/nomis-day-of-week/$nomisDayOfWeek/nomis-slot-sequence/$nomisSlotSequence")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNoContent
+        webTestClient.get()
+          .uri("/mapping/visit-slots/time-slots/nomis-prison-id/$nomisPrisonId/nomis-day-of-week/$nomisDayOfWeek/nomis-slot-sequence/$nomisSlotSequence")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("POST /mapping/visit-slots/visit-slot")
   inner class CreateVisitSlotMapping {
     val nomisId = 9876543321
