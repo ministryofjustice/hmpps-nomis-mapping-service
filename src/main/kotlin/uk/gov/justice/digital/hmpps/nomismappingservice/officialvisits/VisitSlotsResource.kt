@@ -258,6 +258,38 @@ class VisitSlotsResource(private val visitSlotsService: VisitSlotsService) {
     nomisId = nomisId,
   )
 
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @DeleteMapping("/visit-slot/nomis-id/{nomisId}")
+  @Operation(
+    summary = "Deletes visit slot mapping by nomis visit slot id",
+    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Mapping deleted or does not exist",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteVisitSlotMappingByNomisId(
+    @Schema(description = "NOMIS visit slot id", example = "1234", required = true)
+    @PathVariable
+    nomisId: Long,
+  ) {
+    visitSlotsService.deleteVisitSlotMappingByNomisId(
+      nomisId = nomisId,
+    )
+  }
+
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(

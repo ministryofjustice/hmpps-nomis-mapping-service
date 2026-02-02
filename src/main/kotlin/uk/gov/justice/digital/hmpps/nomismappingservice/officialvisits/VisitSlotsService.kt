@@ -46,6 +46,12 @@ class VisitSlotsService(
   )
     ?.toDto()
 
+  suspend fun deleteVisitSlotMappingByNomisId(nomisId: Long) {
+    visitSlotMappingRepository.deleteByNomisId(
+      nomisId = nomisId,
+    )
+  }
+
   suspend fun createMappings(mappings: VisitTimeSlotMigrationMappingDto) {
     with(mappings) {
       visitTimeSlotMappingRepository.save(

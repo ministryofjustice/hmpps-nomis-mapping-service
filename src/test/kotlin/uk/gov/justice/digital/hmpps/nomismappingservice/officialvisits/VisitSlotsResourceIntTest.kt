@@ -546,7 +546,7 @@ class VisitSlotsResourceIntTest : IntegrationTestBase() {
 
   @Nested
   @DisplayName("GET /mapping/visit-slots/visit-slot/nomis-id/{nomisId}")
-  inner class GetVisitSlotMappingByNomisIds {
+  inner class GetVisitSlotMappingByNomisId {
     val nomisId = 9831302L
     val dpsId = "123456789"
 
@@ -618,6 +618,89 @@ class VisitSlotsResourceIntTest : IntegrationTestBase() {
           .jsonPath("nomisId").isEqualTo(nomisId)
           .jsonPath("label").isEqualTo("2020-01-01T10:00")
           .jsonPath("mappingType").isEqualTo("MIGRATED")
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/visit-slots/visit-slot/nomis-id/{nomisId}")
+  inner class DeleteVisitSlotMappingByNomisId {
+    val nomisId = 9831302L
+    val dpsId = "123456789"
+
+    @BeforeEach
+    fun setUp() = runTest {
+      visitSlotMappingRepository.save(
+        VisitSlotMapping(
+          dpsId = dpsId,
+          nomisId = nomisId,
+          label = "2020-01-01T10:00",
+          mappingType = StandardMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access unauthorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/visit-slots/visit-slot/nomis-id/$nomisId")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/visit-slots/visit-slot/nomis-id/$nomisId")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/visit-slots/visit-slot/nomis-id/$nomisId")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `204 when mapping not found`() {
+        webTestClient.delete()
+          .uri("/mapping/visit-slots/visit-slot/nomis-id/999")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNoContent
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will delete mapping`() {
+        webTestClient.get()
+          .uri("/mapping/visit-slots/visit-slot/nomis-id/$nomisId")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+        webTestClient.delete()
+          .uri("/mapping/visit-slots/visit-slot/nomis-id/$nomisId")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNoContent
+        webTestClient.get()
+          .uri("/mapping/visit-slots/visit-slot/nomis-id/$nomisId")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNotFound
       }
     }
   }
