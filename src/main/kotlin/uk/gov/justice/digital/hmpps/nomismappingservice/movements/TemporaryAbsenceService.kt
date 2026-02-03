@@ -260,8 +260,8 @@ class TemporaryAbsenceService(
 
   suspend fun findAddress(request: FindTemporaryAbsenceAddressByNomisIdRequest): TemporaryAbsenceAddressMappingResponse = with(request) {
     when (ownerClass) {
-      "OFF" -> addressRepository.findByNomisOffenderNoAndNomisAddressId(offenderNo, nomisAddressId)
-      else -> addressRepository.findByNomisAddressOwnerClassAndNomisAddressId(ownerClass, nomisAddressId)
+      "OFF" -> addressRepository.findFirstByNomisOffenderNoAndNomisAddressId(offenderNo, nomisAddressId)
+      else -> addressRepository.findFirstByNomisAddressOwnerClassAndNomisAddressId(ownerClass, nomisAddressId)
     }
       ?.toMappingDto()
       ?: throw NotFoundException("No address found for address owner class $ownerClass and offender $offenderNo with nomisAddressId $nomisAddressId")
