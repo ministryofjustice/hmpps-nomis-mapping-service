@@ -8,6 +8,6 @@ interface TemporaryAbsenceAddressRepository : CoroutineCrudRepository<TemporaryA
   suspend fun findByNomisAddressIdAndNomisAddressOwnerClassAndNomisOffenderNo(nomisAddressId: Long, nomisAddressOwnerClass: String, nomisOffenderNo: String?): TemporaryAbsenceAddressMapping?
   suspend fun findFirstByNomisOffenderNoAndDpsUprnAndDpsAddressText(offenderNo: String, dpsUprn: Long?, dpsAddressText: String): TemporaryAbsenceAddressMapping?
   suspend fun findFirstByNomisAddressOwnerClassAndDpsUprnAndDpsAddressText(ownerClass: String, dpsUprn: Long?, dpsAddressText: String): TemporaryAbsenceAddressMapping?
-  suspend fun findByNomisOffenderNoAndNomisAddressId(offenderNo: String, nomisAddressId: Long): TemporaryAbsenceAddressMapping?
-  suspend fun findByNomisAddressOwnerClassAndNomisAddressId(ownerClass: String, nomisAddressId: Long): TemporaryAbsenceAddressMapping?
+  suspend fun findFirstByNomisOffenderNoAndNomisAddressId(offenderNo: String, nomisAddressId: Long): TemporaryAbsenceAddressMapping?
+  suspend fun findFirstByNomisAddressOwnerClassAndNomisAddressId(ownerClass: String, nomisAddressId: Long): TemporaryAbsenceAddressMapping?
 }

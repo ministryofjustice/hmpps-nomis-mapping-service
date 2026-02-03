@@ -951,7 +951,7 @@ class TemporaryAbsenceResourceIntTest(
         webTestClient.createScheduledMovementSyncMapping(mapping)
           .expectStatus().isCreated
 
-        with(addressRepository.findByNomisAddressOwnerClassAndNomisAddressId("CORP", 34567L)!!) {
+        with(addressRepository.findFirstByNomisAddressOwnerClassAndNomisAddressId("CORP", 34567L)!!) {
           assertThat(nomisOffenderNo).isNull()
           assertThat(dpsUprn).isEqualTo(77L)
           assertThat(dpsAddressText).isEqualTo("some address")
@@ -965,7 +965,7 @@ class TemporaryAbsenceResourceIntTest(
         webTestClient.createScheduledMovementSyncMapping(mapping.copy(nomisAddressOwnerClass = "OFF"))
           .expectStatus().isCreated
 
-        with(addressRepository.findByNomisOffenderNoAndNomisAddressId("A1234BC", 34567L)!!) {
+        with(addressRepository.findFirstByNomisOffenderNoAndNomisAddressId("A1234BC", 34567L)!!) {
           assertThat(nomisAddressId).isEqualTo(34567L)
           assertThat(dpsUprn).isEqualTo(77L)
           assertThat(dpsAddressText).isEqualTo("some address")
@@ -1223,7 +1223,7 @@ class TemporaryAbsenceResourceIntTest(
           source = "NOMIS",
         ).expectStatus().isOk
 
-        with(addressRepository.findByNomisOffenderNoAndNomisAddressId("A1234BC", 77777L)!!) {
+        with(addressRepository.findFirstByNomisOffenderNoAndNomisAddressId("A1234BC", 77777L)!!) {
           assertThat(nomisAddressOwnerClass).isEqualTo("OFF")
           assertThat(dpsUprn).isEqualTo(777L)
           assertThat(dpsAddressText).isEqualTo("a different address")
