@@ -4,13 +4,11 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.toList
-import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.nomismappingservice.movements.MovementMappingType.DPS_CREATED
 import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundException
 import java.time.LocalDate
 import java.util.*
@@ -22,11 +20,7 @@ class TemporaryAbsenceService(
   private val scheduleRepository: TemporaryAbsenceScheduleRepository,
   private val movementRepository: TemporaryAbsenceMovementRepository,
   private val migrationRepository: TemporaryAbsenceMigrationRepository,
-  private val addressRepository: TemporaryAbsenceAddressRepository,
 ) {
-  companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
 
   @Transactional
   suspend fun createMigrationMappings(mappings: TemporaryAbsencesPrisonerMappingDto) {
@@ -75,81 +69,6 @@ class TemporaryAbsenceService(
         movement.toEntity(mappings.prisonerNumber, booking.bookingId, mappings.migrationId)
       }
     }.also { movementRepository.saveAll(it).count() }
-
-    // get all unique addresses
-    val uniqueAddresses = mutableSetOf<Address>()
-    mappings.bookings.flatMap { booking ->
-      booking.applications.flatMap { application ->
-        application.schedules.filter { it.nomisAddressOwnerClass != null && it.nomisAddressId != null }
-          .map { schedule ->
-            Address(schedule.nomisAddressId!!, schedule.nomisAddressOwnerClass!!, schedule.dpsAddressText, schedule.dpsDescription, schedule.dpsPostcode)
-          }
-      }
-    }.also { uniqueAddresses.addAll(it) }
-
-    mappings.bookings.forEach { booking ->
-      booking.applications.flatMap { application ->
-        application.movements.filter { it.nomisAddressOwnerClass != null && it.nomisAddressId != null }
-          .map { unscheduledMovement ->
-            Address(unscheduledMovement.nomisAddressId!!, unscheduledMovement.nomisAddressOwnerClass!!, unscheduledMovement.dpsAddressText, unscheduledMovement.dpsDescription, unscheduledMovement.dpsPostcode)
-          }.also { uniqueAddresses.addAll(it) }
-      }
-    }
-
-    // save or update addresses
-    uniqueAddresses.map { address ->
-      val offenderNo = if (address.nomisAddressOwnerClass == "OFF") mappings.prisonerNumber else null
-      addressRepository.findByNomisAddressIdAndNomisAddressOwnerClassAndNomisOffenderNo(address.nomisAddressId, address.nomisAddressOwnerClass, offenderNo)
-        ?.also { saved -> saved.dpsAddressText = address.dpsAddressText }
-        ?: address.toEntity(offenderNo)
-    }.also { addressRepository.saveAll(it).count() }
-  }
-
-  @Transactional
-  suspend fun upsertAddressMappingByNomisId(nomisOwnerClass: String, nomisAddressId: Long, nomisOffenderNo: String, dpsAddressText: String, dpsUprn: Long? = null, dpsDescription: String? = null, dpsPostcode: String? = null) {
-    val offenderNo = if (nomisOwnerClass == "OFF") nomisOffenderNo else null
-    addressRepository.findByNomisAddressIdAndNomisAddressOwnerClassAndNomisOffenderNo(nomisAddressId, nomisOwnerClass, offenderNo)
-      ?.also {
-        it.dpsAddressText = dpsAddressText
-        it.dpsUprn = dpsUprn
-        addressRepository.save(it)
-      }
-      ?: addressRepository.save(
-        TemporaryAbsenceAddressMapping(
-          nomisAddressId = nomisAddressId,
-          nomisAddressOwnerClass = nomisOwnerClass,
-          nomisOffenderNo = offenderNo,
-          dpsUprn = dpsUprn,
-          dpsAddressText = dpsAddressText,
-          dpsDescription = dpsDescription,
-          dpsPostcode = dpsPostcode,
-        ),
-      )
-  }
-
-  @Transactional
-  suspend fun upsertAddressMappingByDpsId(dpsAddressText: String, dpsUprn: Long? = null, dpsDescription: String? = null, dpsPostcode: String? = null, nomisOwnerClass: String, nomisAddressId: Long, nomisOffenderNo: String? = null) {
-    val offenderNo = if (nomisOwnerClass == "OFF") nomisOffenderNo else null
-    when (nomisOwnerClass) {
-      "OFF" -> addressRepository.findFirstByNomisOffenderNoAndDpsUprnAndDpsAddressText(nomisOffenderNo!!, dpsUprn, dpsAddressText)
-      else -> addressRepository.findFirstByNomisAddressOwnerClassAndDpsUprnAndDpsAddressText(nomisOwnerClass, dpsUprn, dpsAddressText)
-    }
-      ?.also {
-        it.nomisOffenderNo = offenderNo
-        it.nomisAddressId = nomisAddressId
-        addressRepository.save(it)
-      }
-      ?: addressRepository.save(
-        TemporaryAbsenceAddressMapping(
-          nomisAddressId = nomisAddressId,
-          nomisAddressOwnerClass = nomisOwnerClass,
-          nomisOffenderNo = offenderNo,
-          dpsAddressText = dpsAddressText,
-          dpsUprn = dpsUprn,
-          dpsDescription = dpsDescription,
-          dpsPostcode = dpsPostcode,
-        ),
-      )
   }
 
   @Transactional
@@ -168,19 +87,6 @@ class TemporaryAbsenceService(
 
   @Transactional
   suspend fun createScheduledMovementMapping(mappingDto: ScheduledMovementSyncMappingDto) = scheduleRepository.save(mappingDto.toMapping())
-    .also {
-      if (it.nomisAddressOwnerClass != null && it.nomisAddressId != null) {
-        val offenderNo = if (it.nomisAddressOwnerClass == "OFF") it.offenderNo else null
-        runCatching {
-          when (it.mappingType) {
-            DPS_CREATED -> upsertAddressMappingByDpsId(it.dpsAddressText, it.dpsUprn, it.dpsDescription, it.dpsPostcode, it.nomisAddressOwnerClass!!, it.nomisAddressId!!, offenderNo)
-            else -> upsertAddressMappingByNomisId(it.nomisAddressOwnerClass!!, it.nomisAddressId!!, it.offenderNo, it.dpsAddressText, it.dpsUprn, it.dpsDescription, it.dpsPostcode)
-          }
-        }.onFailure { ex ->
-          log.error("Ignoring exception upserting address mapping as this prevents mapping creation. Scheduled movement mapping=$mappingDto", ex)
-        }
-      }
-    }
     .toMappingDto()
 
   @Transactional
@@ -194,15 +100,6 @@ class TemporaryAbsenceService(
       it.dpsPostcode = mappingDto.dpsPostcode
       it.eventTime = mappingDto.eventTime
       scheduleRepository.save(it)
-    }
-    ?.also {
-      if (it.nomisAddressOwnerClass != null && it.nomisAddressId != null) {
-        val offenderNo = if (it.nomisAddressOwnerClass == "OFF") it.offenderNo else null
-        when (source) {
-          "DPS" -> upsertAddressMappingByDpsId(it.dpsAddressText, it.dpsUprn, it.dpsDescription, it.dpsPostcode, it.nomisAddressOwnerClass!!, it.nomisAddressId!!, offenderNo)
-          "NOMIS" -> upsertAddressMappingByNomisId(it.nomisAddressOwnerClass!!, it.nomisAddressId!!, it.offenderNo, it.dpsAddressText, it.dpsUprn, it.dpsDescription, it.dpsPostcode)
-        }
-      }
     }
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for DPS occurrence id ${mappingDto.dpsOccurrenceId} not found")
@@ -248,24 +145,6 @@ class TemporaryAbsenceService(
     .findByNomisAddressIdAndEventTimeIsGreaterThanEqual(nomisAddressId, fromDate.atStartOfDay())
     .map { it.toMappingDto() }
     .let { FindScheduledMovementsForAddressResponse(it) }
-
-  suspend fun findAddress(request: FindTemporaryAbsenceAddressByDpsIdRequest): TemporaryAbsenceAddressMappingResponse = with(request) {
-    when (ownerClass) {
-      "OFF" -> addressRepository.findFirstByNomisOffenderNoAndDpsUprnAndDpsAddressText(offenderNo, dpsUprn, dpsAddressText)
-      else -> addressRepository.findFirstByNomisAddressOwnerClassAndDpsUprnAndDpsAddressText(ownerClass, dpsUprn, dpsAddressText)
-    }
-      ?.toMappingDto()
-      ?: throw NotFoundException("No address found for address owner class $ownerClass and offender $offenderNo with dpsUprn $dpsUprn and dpsAddressText $dpsAddressText")
-  }
-
-  suspend fun findAddress(request: FindTemporaryAbsenceAddressByNomisIdRequest): TemporaryAbsenceAddressMappingResponse = with(request) {
-    when (ownerClass) {
-      "OFF" -> addressRepository.findFirstByNomisOffenderNoAndNomisAddressId(offenderNo, nomisAddressId)
-      else -> addressRepository.findFirstByNomisAddressOwnerClassAndNomisAddressId(ownerClass, nomisAddressId)
-    }
-      ?.toMappingDto()
-      ?: throw NotFoundException("No address found for address owner class $ownerClass and offender $offenderNo with nomisAddressId $nomisAddressId")
-  }
 
   suspend fun getCountByMigrationId(
     pageRequest: Pageable,
@@ -366,25 +245,7 @@ fun TemporaryAbsenceMovementMapping.toMappingDto(): ExternalMovementSyncMappingD
   dpsUprn,
 )
 
-fun TemporaryAbsenceAddressMapping.toMappingDto() = TemporaryAbsenceAddressMappingResponse(
-  nomisOffenderNo,
-  nomisAddressOwnerClass,
-  nomisAddressId,
-  dpsUprn,
-  dpsAddressText,
-  dpsDescription,
-  dpsPostcode,
-)
-
 fun TemporaryAbsenceMigration.toDto() = TemporaryAbsenceMigrationDto(offenderNo, label, whenCreated)
-
-private data class Address(
-  val nomisAddressId: Long,
-  val nomisAddressOwnerClass: String,
-  val dpsAddressText: String,
-  val dpsDescription: String? = null,
-  val dpsPostcode: String? = null,
-)
 
 private fun TemporaryAbsenceApplicationMappingDto.toEntity(offenderNo: String, bookingId: Long, migrationId: String) = TemporaryAbsenceApplicationMapping(
   dpsApplicationId = dpsMovementApplicationId,
@@ -424,13 +285,4 @@ private fun ExternalMovementMappingDto.toEntity(offenderNo: String, bookingId: L
   dpsDescription = dpsDescription,
   dpsPostcode = dpsPostcode,
   mappingType = MovementMappingType.MIGRATED,
-)
-
-private fun Address.toEntity(offenderNo: String?) = TemporaryAbsenceAddressMapping(
-  nomisAddressId = nomisAddressId,
-  nomisAddressOwnerClass = nomisAddressOwnerClass,
-  nomisOffenderNo = offenderNo,
-  dpsAddressText = dpsAddressText,
-  dpsDescription = dpsDescription,
-  dpsPostcode = dpsPostcode,
 )
