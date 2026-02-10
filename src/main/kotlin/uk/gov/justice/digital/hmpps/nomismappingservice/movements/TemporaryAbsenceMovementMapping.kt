@@ -16,7 +16,7 @@ data class TemporaryAbsenceMovementMapping(
 
   val nomisMovementSeq: Int,
 
-  val offenderNo: String,
+  var offenderNo: String,
 
   var nomisAddressId: Long?,
 
