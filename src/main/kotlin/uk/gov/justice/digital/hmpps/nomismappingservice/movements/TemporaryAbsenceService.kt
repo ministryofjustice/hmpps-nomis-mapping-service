@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.movements
 
+import jakarta.validation.ValidationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.count
@@ -177,6 +178,44 @@ class TemporaryAbsenceService(
       applicationIds = applications.map { TemporaryAbsenceApplicationIdMapping(it.nomisApplicationId, it.dpsApplicationId) },
       movementIds = movements.map { TemporaryAbsenceMovementIdMapping(it.nomisMovementSeq, it.dpsMovementId) },
     )
+  }
+
+  @Transactional
+  suspend fun moveMappingsForBooking(bookingId: Long, fromOffenderNo: String, toOffenderNo: String) {
+    val applications = applicationRepository.findByBookingId(bookingId)
+    val schedules = scheduleRepository.findByBookingId(bookingId)
+    val movements = movementRepository.findByNomisBookingId(bookingId)
+    val bookingOffenders = (applications.map { it.offenderNo } + schedules.map { it.offenderNo } + movements.map { it.offenderNo }).toSet()
+
+    // If we don't hold the booking ID then return not found as we probably shouldn't have made this request
+    if (applications.isEmpty() && schedules.isEmpty() && movements.isEmpty()) {
+      throw NotFoundException("No mappings found for booking $bookingId")
+    }
+
+    // The bookings are already on the to offender, so return OK as we are idempotent
+    if (bookingOffenders.all { it == toOffenderNo }) {
+      return
+    }
+
+    // If any mappings are on a different offender then reject the request - we might be in a more complicated merge + move booking scenario that needs to happen in the correct order
+    val wrongOffenders = bookingOffenders.filter { it != fromOffenderNo && it != toOffenderNo }
+    if (wrongOffenders.isNotEmpty()) {
+      throw ValidationException("Mappings exist for booking $bookingId on unexpected offender(s): $wrongOffenders")
+    }
+
+    // Move the mappings to the new offender
+    applications.forEach {
+      it.offenderNo = toOffenderNo
+      applicationRepository.save(it)
+    }
+    schedules.forEach {
+      it.offenderNo = toOffenderNo
+      scheduleRepository.save(it)
+    }
+    movements.forEach {
+      it.offenderNo = toOffenderNo
+      movementRepository.save(it)
+    }
   }
 }
 

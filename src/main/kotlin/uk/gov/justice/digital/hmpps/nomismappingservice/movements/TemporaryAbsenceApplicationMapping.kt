@@ -14,7 +14,7 @@ data class TemporaryAbsenceApplicationMapping(
 
   val nomisApplicationId: Long,
 
-  val offenderNo: String,
+  var offenderNo: String,
 
   val bookingId: Long,
 

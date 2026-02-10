@@ -7,6 +7,7 @@ import java.util.*
 
 @Repository
 interface TemporaryAbsenceScheduleRepository : CoroutineCrudRepository<TemporaryAbsenceScheduleMapping, UUID> {
+  suspend fun findByBookingId(bookingId: Long): List<TemporaryAbsenceScheduleMapping>
   suspend fun findByNomisAddressIdAndEventTimeIsGreaterThanEqual(nomisAddressId: Long, eventTime: LocalDateTime): List<TemporaryAbsenceScheduleMapping>
   suspend fun findByNomisEventId(nomisScheduleId: Long): TemporaryAbsenceScheduleMapping?
   suspend fun deleteByNomisEventId(nomisScheduleId: Long)

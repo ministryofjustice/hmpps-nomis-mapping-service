@@ -14,7 +14,7 @@ data class TemporaryAbsenceScheduleMapping(
 
   val nomisEventId: Long,
 
-  val offenderNo: String,
+  var offenderNo: String,
 
   val bookingId: Long,
 
