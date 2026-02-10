@@ -2336,4 +2336,124 @@ class TemporaryAbsenceResourceIntTest(
       }
     }
   }
+
+  @Nested
+  @DisplayName("GET /mapping/temporary-absence/move-booking/{bookingId}")
+  inner class GetMappingsForMoveBooking {
+    private val bookingId1 = 1L
+    private val bookingId2 = 2L
+    private val book1app1 = 3L
+    private val book1app2 = 4L
+    private val book1seq1 = 5
+    private val book1seq2 = 6
+    private val book2app1 = 7L
+    private val book2seq1 = 8
+    private val book1auth1 = UUID.randomUUID()
+    private val book1auth2 = UUID.randomUUID()
+    private val book1move1 = UUID.randomUUID()
+    private val book1move2 = UUID.randomUUID()
+    private val book2auth1 = UUID.randomUUID()
+    private val book2move1 = UUID.randomUUID()
+
+    @AfterEach
+    fun tearDown() = runTest {
+      applicationRepository.deleteAll()
+      movementRepository.deleteAll()
+    }
+
+    @BeforeEach
+    fun setUp() = runTest {
+      applicationRepository.save(anApplicationMapping(bookingId1, book1app1, book1auth1))
+      applicationRepository.save(anApplicationMapping(bookingId1, book1app2, book1auth2))
+      applicationRepository.save(anApplicationMapping(bookingId2, book2app1, book2auth1))
+
+      movementRepository.save(aMovementMapping(bookingId1, book1seq1, book1move1))
+      movementRepository.save(aMovementMapping(bookingId1, book1seq2, book1move2))
+      movementRepository.save(aMovementMapping(bookingId2, book2seq1, book2move1))
+    }
+
+    private fun anApplicationMapping(bookingId: Long, applicationId: Long, authorisationId: UUID) = TemporaryAbsenceApplicationMapping(
+      nomisApplicationId = applicationId,
+      dpsApplicationId = authorisationId,
+      offenderNo = "A1234AB",
+      bookingId = bookingId,
+      mappingType = MovementMappingType.NOMIS_CREATED,
+    )
+
+    private fun aMovementMapping(bookingId: Long, movementSeq: Int, movementId: UUID) = TemporaryAbsenceMovementMapping(
+      dpsMovementId = movementId,
+      nomisBookingId = bookingId,
+      nomisMovementSeq = movementSeq,
+      offenderNo = "A1234AB",
+      mappingType = MovementMappingType.NOMIS_CREATED,
+      nomisAddressId = null,
+      nomisAddressOwnerClass = null,
+      dpsAddressText = "some address",
+      dpsUprn = null,
+    )
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `should find booking IDs`() = runTest {
+        webTestClient.getMoveBookingIds(bookingId1)
+          .apply {
+            assertThat(applicationIds).containsExactlyInAnyOrder(
+              TemporaryAbsenceApplicationIdMapping(book1app1, book1auth1),
+              TemporaryAbsenceApplicationIdMapping(book1app2, book1auth2),
+            )
+            assertThat(movementIds).containsExactlyInAnyOrder(
+              TemporaryAbsenceMovementIdMapping(book1seq1, book1move1),
+              TemporaryAbsenceMovementIdMapping(book1seq2, book1move2),
+            )
+          }
+      }
+
+      @Test
+      fun `should return empty lists if there are no mappings`() = runTest {
+        webTestClient.getMoveBookingIds(99)
+          .apply {
+            assertThat(applicationIds).isEmpty()
+            assertThat(movementIds).isEmpty()
+          }
+      }
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/temporary-absence/move-booking/1")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/temporary-absence/move-booking/1")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/temporary-absence/move-booking/1")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.getMoveBookingIds(bookingId: Long = 1L) = get()
+      .uri("/mapping/temporary-absence/move-booking/$bookingId")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .exchange()
+      .expectStatus().isOk
+      .expectBody<TemporaryAbsenceMoveBookingMappingDto>()
+      .returnResult().responseBody!!
+  }
 }

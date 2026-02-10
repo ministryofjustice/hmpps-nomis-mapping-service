@@ -169,6 +169,15 @@ class TemporaryAbsenceService(
       count.await(),
     )
   }
+
+  suspend fun getMappingsForMoveBooking(bookingId: Long): TemporaryAbsenceMoveBookingMappingDto {
+    val applications = applicationRepository.findByBookingId(bookingId)
+    val movements = movementRepository.findByNomisBookingId(bookingId)
+    return TemporaryAbsenceMoveBookingMappingDto(
+      applicationIds = applications.map { TemporaryAbsenceApplicationIdMapping(it.nomisApplicationId, it.dpsApplicationId) },
+      movementIds = movements.map { TemporaryAbsenceMovementIdMapping(it.nomisMovementSeq, it.dpsMovementId) },
+    )
+  }
 }
 
 fun TemporaryAbsenceApplicationSyncMappingDto.toMapping(): TemporaryAbsenceApplicationMapping = TemporaryAbsenceApplicationMapping(
