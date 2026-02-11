@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.casenotes
+package uk.gov.justice.digital.hmpps.nomismappingservice.csra
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
@@ -6,36 +6,36 @@ import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Case note mapping")
-data class CaseNoteMappingDto(
+@Schema(description = "CSRA mapping")
+data class CsraMappingDto(
 
-  @Schema(description = "Case note id in DPS", required = true)
-  val dpsCaseNoteId: String,
-
-  @Schema(description = "Case note id in Nomis", required = true)
-  val nomisCaseNoteId: Long,
-
-  @Schema(description = "Prisoner number in Nomis", required = true)
-  val offenderNo: String,
+  @Schema(description = "CSRA id in DPS", required = true)
+  val dpsCsraId: String,
 
   @Schema(description = "Nomis booking id", required = true)
   val nomisBookingId: Long,
+
+  @Schema(description = "Nomis sequence within booking", required = true)
+  val nomisSequence: Int,
+
+  @Schema(description = "Prisoner number in Nomis", required = true)
+  val offenderNo: String,
 
   @Schema(description = "Label (a timestamp for migrated ids)")
   @field:Size(max = 20)
   val label: String? = null,
 
   @Schema(description = "Mapping type")
-  val mappingType: CaseNoteMappingType = CaseNoteMappingType.DPS_CREATED,
+  val mappingType: CsraMappingType = CsraMappingType.DPS_CREATED,
 
   @Schema(description = "Date-time the mapping was created")
   val whenCreated: LocalDateTime? = null,
 ) {
-  constructor(mapping: CaseNoteMapping) : this(
-    dpsCaseNoteId = mapping.dpsCaseNoteId.toString(),
-    nomisCaseNoteId = mapping.nomisCaseNoteId,
-    offenderNo = mapping.offenderNo,
+  constructor(mapping: CsraMapping) : this(
+    dpsCsraId = mapping.dpsCsraId.toString(),
     nomisBookingId = mapping.nomisBookingId,
+    nomisSequence = mapping.nomisSequence,
+    offenderNo = mapping.offenderNo,
     label = mapping.label,
     mappingType = mapping.mappingType,
     whenCreated = mapping.whenCreated,
@@ -43,7 +43,7 @@ data class CaseNoteMappingDto(
 }
 
 @Schema(description = "All mappings for a prisoner created either via migration or synchronisation")
-data class AllPrisonerCaseNoteMappingsDto(
+data class AllPrisonerCsraMappingsDto(
   @Schema(description = "Mappings")
-  val mappings: List<CaseNoteMappingDto>,
+  val mappings: List<CsraMappingDto>,
 )

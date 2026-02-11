@@ -73,6 +73,7 @@ management:
         time-to-live: 2000ms
 
 casenotes.average-case-notes-per-prisoner: 134
+csras.average-per-prisoner: 4
 transactions.average-transactions-per-prisoner: 850
 
 visit-balance-adjustment.expiry:
