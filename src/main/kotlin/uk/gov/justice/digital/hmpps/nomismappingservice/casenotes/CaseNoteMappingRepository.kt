@@ -17,9 +17,6 @@ interface CaseNoteMappingRepository : CoroutineCrudRepository<CaseNoteMapping, L
   // plain count(*) 108976723 takes 38s
 
   @Modifying
-  suspend fun deleteByMappingTypeEquals(mappingType: CaseNoteMappingType): CaseNoteMapping?
-
-  @Modifying
   suspend fun deleteByDpsCaseNoteId(dpsCaseNoteId: UUID)
 
   suspend fun findAllByOffenderNoOrderByNomisBookingIdAscNomisCaseNoteIdAsc(offenderNo: String): List<CaseNoteMapping>
