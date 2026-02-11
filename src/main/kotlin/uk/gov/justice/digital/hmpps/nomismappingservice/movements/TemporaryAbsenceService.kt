@@ -73,7 +73,9 @@ class TemporaryAbsenceService(
   }
 
   @Transactional
-  suspend fun createApplicationMapping(mappingDto: TemporaryAbsenceApplicationSyncMappingDto) = applicationRepository.save(mappingDto.toMapping()).toMappingDto()
+  suspend fun createApplicationMapping(mappingDto: TemporaryAbsenceApplicationSyncMappingDto) {
+    applicationRepository.save(mappingDto.toMapping())
+  }
 
   suspend fun getApplicationMappingByNomisId(nomisApplicationId: Long) = applicationRepository.findByNomisApplicationId(nomisApplicationId)
     ?.toMappingDto()
@@ -87,23 +89,25 @@ class TemporaryAbsenceService(
   suspend fun deleteApplicationMappingByNomisId(nomisApplicationId: Long) = applicationRepository.deleteByNomisApplicationId(nomisApplicationId)
 
   @Transactional
-  suspend fun createScheduledMovementMapping(mappingDto: ScheduledMovementSyncMappingDto) = scheduleRepository.save(mappingDto.toMapping())
-    .toMappingDto()
+  suspend fun createScheduledMovementMapping(mappingDto: ScheduledMovementSyncMappingDto) {
+    scheduleRepository.save(mappingDto.toMapping())
+  }
 
   @Transactional
-  suspend fun updateScheduledMovementMapping(mappingDto: ScheduledMovementSyncMappingDto, source: String) = scheduleRepository.findById(mappingDto.dpsOccurrenceId)
-    ?.let {
-      it.nomisAddressId = mappingDto.nomisAddressId
-      it.nomisAddressOwnerClass = mappingDto.nomisAddressOwnerClass
-      it.dpsUprn = mappingDto.dpsUprn
-      it.dpsAddressText = mappingDto.dpsAddressText
-      it.dpsDescription = mappingDto.dpsDescription
-      it.dpsPostcode = mappingDto.dpsPostcode
-      it.eventTime = mappingDto.eventTime
-      scheduleRepository.save(it)
-    }
-    ?.toMappingDto()
-    ?: throw NotFoundException("Mapping for DPS occurrence id ${mappingDto.dpsOccurrenceId} not found")
+  suspend fun updateScheduledMovementMapping(mappingDto: ScheduledMovementSyncMappingDto, source: String) {
+    scheduleRepository.findById(mappingDto.dpsOccurrenceId)
+      ?.let {
+        it.nomisAddressId = mappingDto.nomisAddressId
+        it.nomisAddressOwnerClass = mappingDto.nomisAddressOwnerClass
+        it.dpsUprn = mappingDto.dpsUprn
+        it.dpsAddressText = mappingDto.dpsAddressText
+        it.dpsDescription = mappingDto.dpsDescription
+        it.dpsPostcode = mappingDto.dpsPostcode
+        it.eventTime = mappingDto.eventTime
+        scheduleRepository.save(it)
+      }
+      ?: throw NotFoundException("Mapping for DPS occurrence id ${mappingDto.dpsOccurrenceId} not found")
+  }
 
   suspend fun getScheduledMovementMappingByNomisId(nomisEventId: Long) = scheduleRepository.findByNomisEventId(nomisEventId)
     ?.toMappingDto()
@@ -117,19 +121,23 @@ class TemporaryAbsenceService(
   suspend fun deleteScheduledMovementMappingByNomisId(nomisEventId: Long) = scheduleRepository.deleteByNomisEventId(nomisEventId)
 
   @Transactional
-  suspend fun createExternalMovementMapping(mappingDto: ExternalMovementSyncMappingDto) = movementRepository.save(mappingDto.toMapping()).toMappingDto()
+  suspend fun createExternalMovementMapping(mappingDto: ExternalMovementSyncMappingDto) {
+    movementRepository.save(mappingDto.toMapping())
+  }
 
   @Transactional
-  suspend fun updateExternalMovementMapping(mappingDto: ExternalMovementSyncMappingDto) = movementRepository.findById(mappingDto.dpsMovementId)
-    ?.let {
-      it.nomisAddressId = mappingDto.nomisAddressId
-      it.nomisAddressOwnerClass = mappingDto.nomisAddressOwnerClass
-      it.dpsAddressText = mappingDto.dpsAddressText
-      it.dpsDescription = mappingDto.dpsDescription
-      it.dpsPostcode = mappingDto.dpsPostcode
-      movementRepository.save(it).toMappingDto()
-    }
-    ?: throw NotFoundException("Mapping for DPS movement id ${mappingDto.dpsMovementId} not found")
+  suspend fun updateExternalMovementMapping(mappingDto: ExternalMovementSyncMappingDto) {
+    movementRepository.findById(mappingDto.dpsMovementId)
+      ?.let {
+        it.nomisAddressId = mappingDto.nomisAddressId
+        it.nomisAddressOwnerClass = mappingDto.nomisAddressOwnerClass
+        it.dpsAddressText = mappingDto.dpsAddressText
+        it.dpsDescription = mappingDto.dpsDescription
+        it.dpsPostcode = mappingDto.dpsPostcode
+        movementRepository.save(it)
+      }
+      ?: throw NotFoundException("Mapping for DPS movement id ${mappingDto.dpsMovementId} not found")
+  }
 
   suspend fun getExternalMovementMappingByNomisId(bookingId: Long, movementSeq: Int) = movementRepository.findByNomisBookingIdAndNomisMovementSeq(bookingId, movementSeq)
     ?.toMappingDto()
