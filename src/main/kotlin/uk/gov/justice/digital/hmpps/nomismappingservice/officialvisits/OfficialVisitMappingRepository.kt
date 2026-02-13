@@ -17,4 +17,5 @@ interface OfficialVisitMappingRepository : CoroutineCrudRepository<OfficialVisit
 
   suspend fun countAllByLabel(migrationId: String): Long
   suspend fun findAllByLabelOrderByLabelDesc(label: String, pageRequest: Pageable): Flow<OfficialVisitMapping>
+  suspend fun deleteByNomisId(nomisId: Long)
 }

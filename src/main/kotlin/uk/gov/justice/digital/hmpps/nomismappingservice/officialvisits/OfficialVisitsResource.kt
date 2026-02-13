@@ -338,6 +338,34 @@ class OfficialVisitsResource(private val officialVisitsService: OfficialVisitsSe
     migrationId: String,
   ): Page<OfficialVisitMappingDto> = officialVisitsService.getOfficialVisitMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
 
+  @DeleteMapping("/visit/nomis-id/{nomisVisitId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete an official visit mapping by NOMIS ID",
+    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Official visit mapping deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteOfficialVisitMapping(
+    @Schema(description = "NOMIS visit id", example = "123", required = true)
+    @PathVariable
+    nomisVisitId: Long,
+  ): Unit = officialVisitsService.deleteOfficialVisitMappingByNomisId(nomisVisitId)
+
   @DeleteMapping("/all")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
