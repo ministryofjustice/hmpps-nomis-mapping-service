@@ -42,6 +42,35 @@ data class CsraMappingDto(
   )
 }
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Mappings for a prisoner created during migration")
+data class PrisonerCsraMappingsDto(
+  @Schema(description = "Label (a timestamp for migrated ids)")
+  val label: String? = null,
+
+  @Schema(description = "Mapping type")
+  val mappingType: CsraMappingType = CsraMappingType.DPS_CREATED,
+
+  @Schema(description = "Date time the mapping was created")
+  val whenCreated: LocalDateTime? = null,
+
+  @Schema(description = "Mapping IDs")
+  val mappings: List<CsraMappingIdDto>,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "NOMIS to Case note mapping IDs")
+data class CsraMappingIdDto(
+  @Schema(description = "DPS case note id")
+  val dpsCsraId: String,
+
+  @Schema(description = "NOMIS booking id")
+  val nomisBookingId: Long,
+
+  @Schema(description = "NOMIS sequence within booking")
+  val nomisSequence: Int,
+)
+
 @Schema(description = "All mappings for a prisoner created either via migration or synchronisation")
 data class AllPrisonerCsraMappingsDto(
   @Schema(description = "Mappings")

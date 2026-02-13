@@ -71,7 +71,7 @@ class CsraMappingResource(private val mappingService: CsraMappingService) {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a batch of new CSRA mappings",
-    description = "Creates a mapping between a batch of nomis CSRA ids and dps CSRA id. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    description = "Creates a mapping between a batch of nomis CSRA ids and dps CSRA ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(
@@ -105,6 +105,60 @@ class CsraMappingResource(private val mappingService: CsraMappingService) {
       throw DuplicateMappingException(
         messageIn = "CSRA mapping already exists",
         duplicate = duplicateMapping,
+        existing = getExistingMappingSimilarTo(duplicateMapping),
+        cause = e,
+      )
+    }
+    throw e
+  }
+
+  @PostMapping("{offenderNo}/all")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates a set of new CSRA mappings for a prisoner",
+    description = "Creates a mapping between all the nomis CSRA ids and dps CSRA ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(mediaType = "application/json", schema = Schema(implementation = PrisonerCsraMappingsDto::class)),
+      ],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping created"),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createMappingsForPrisoner(
+    @Schema(description = "NOMIS offender no", example = "A1234KT", required = true)
+    @PathVariable
+    offenderNo: String,
+    @RequestBody @Valid
+    prisonerMapping: PrisonerCsraMappingsDto,
+  ) = try {
+    mappingService.createMappings(offenderNo, prisonerMapping)
+  } catch (e: DuplicateKeyException) {
+    val duplicateMapping = getMappingIdThatIsDuplicate(prisonerMapping.mappings)
+    if (duplicateMapping != null) {
+      throw DuplicateMappingException(
+        messageIn = "Csra mapping already exists",
+        duplicate = duplicateMapping.let {
+          CsraMappingDto(
+            dpsCsraId = it.dpsCsraId,
+            nomisBookingId = it.nomisBookingId,
+            nomisSequence = it.nomisSequence,
+            offenderNo = offenderNo,
+            label = prisonerMapping.label,
+            mappingType = prisonerMapping.mappingType,
+          )
+        },
         existing = getExistingMappingSimilarTo(duplicateMapping),
         cause = e,
       )
@@ -159,7 +213,7 @@ class CsraMappingResource(private val mappingService: CsraMappingService) {
 
   @GetMapping("/dps-csra-id/{dpsCsraId}")
   @Operation(
-    summary = "get multiple mappings",
+    summary = "get mapping given DPS id",
     description = "Retrieves mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
@@ -173,7 +227,7 @@ class CsraMappingResource(private val mappingService: CsraMappingService) {
       ),
     ],
   )
-  suspend fun getMappingsByDpsId(
+  suspend fun getMappingByDpsId(
     @Schema(description = "DPS CSRA id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
     dpsCsraId: String,
@@ -294,10 +348,21 @@ class CsraMappingResource(private val mappingService: CsraMappingService) {
     newOffenderNo: String,
   ): List<CsraMappingDto> = mappingService.updateMappingsByBookingId(bookingId, newOffenderNo)
 
+  private suspend fun getExistingMappingSimilarTo(mapping: CsraMappingIdDto) = runCatching {
+    mappingService.getMappingByNomisId(mapping.nomisBookingId, mapping.nomisSequence)
+  }.getOrElse {
+    mappingService.getMappingByDpsId(mapping.dpsCsraId)
+  }
+
   private suspend fun getExistingMappingSimilarTo(mapping: CsraMappingDto) = runCatching {
     mappingService.getMappingByNomisId(mapping.nomisBookingId, mapping.nomisSequence)
   }.getOrElse {
     mappingService.getMappingByDpsId(mapping.dpsCsraId)
+  }
+
+  private suspend fun getMappingIdThatIsDuplicate(mappings: List<CsraMappingIdDto>): CsraMappingIdDto? = mappings.find {
+    // look for each mapping until I find one (i.e. that is there is no exception thrown)
+    kotlin.runCatching { getExistingMappingSimilarTo(it) }.map { true }.getOrElse { false }
   }
 
   private suspend fun getMappingThatIsDuplicate(mappings: List<CsraMappingDto>): CsraMappingDto? = mappings.find {

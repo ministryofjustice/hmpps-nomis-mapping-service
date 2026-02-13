@@ -14,6 +14,8 @@ interface CsraMappingRepository : CoroutineCrudRepository<CsraMapping, UUID> {
   @Modifying
   suspend fun deleteByNomisBookingIdAndNomisSequence(nomisBookingId: Long, sequence: Int): Int
 
+  suspend fun deleteAllByOffenderNo(offenderNo: String)
+
   suspend fun findAllByOffenderNoOrderByNomisBookingIdAscNomisSequenceAsc(offenderNo: String): List<CsraMapping>
 
   @Modifying
