@@ -75,6 +75,23 @@ class CsraMappingService(
     repository.saveAll(mappings.map { it.fromDto() }).collect()
   }
 
+  @Transactional
+  suspend fun createMappings(offenderNo: String, prisonerMapping: PrisonerCsraMappingsDto) {
+    repository.deleteAllByOffenderNo(offenderNo)
+    repository.saveAll(
+      prisonerMapping.mappings.map {
+        CsraMapping(
+          dpsCsraId = UUID.fromString(it.dpsCsraId),
+          nomisBookingId = it.nomisBookingId,
+          nomisSequence = it.nomisSequence,
+          offenderNo = offenderNo,
+          label = prisonerMapping.label,
+          mappingType = prisonerMapping.mappingType,
+        )
+      },
+    ).collect()
+  }
+
   suspend fun getMappingByNomisId(nomisBookingId: Long, sequence: Int): CsraMappingDto = repository
     .findOneByNomisBookingIdAndNomisSequence(nomisBookingId, sequence)
     ?.let { CsraMappingDto(it) }

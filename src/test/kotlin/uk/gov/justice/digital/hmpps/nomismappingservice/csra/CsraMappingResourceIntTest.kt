@@ -325,6 +325,174 @@ class CsraMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("POST /mapping/csras/{offenderNo}/all")
+  inner class CreateMappingsForPrisoner {
+    private var existingMapping: CsraMapping = CsraMapping(
+      dpsCsraId = generateUUID(1),
+      nomisBookingId = 50001L,
+      nomisSequence = 1,
+      offenderNo = "B5678BB",
+      label = "2023-01-01T12:45:12",
+      mappingType = CsraMappingType.MIGRATED,
+    )
+    private val mappings = PrisonerCsraMappingsDto(
+      mappings = listOf(
+        CsraMappingIdDto(
+          dpsCsraId = "e52d7268-6e10-41a8-a0b9-000000000002",
+          nomisBookingId = 50002L,
+          nomisSequence = 1,
+        ),
+        CsraMappingIdDto(
+          dpsCsraId = "fd4e55a8-0805-439b-9e27-000000000003",
+          nomisBookingId = 50003L,
+          nomisSequence = 1,
+        ),
+      ),
+    )
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/csras/A1111AA/all")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mappings))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/csras/A1111AA/all")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mappings))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/csras/A1111AA/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mappings))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `returns 201 when mappings created`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/csras/$OFFENDER_NO/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mappings))
+          .exchange()
+          .expectStatus().isCreated
+
+        with(mappings) {
+          repository.findById(UUID.fromString(mappings[0].dpsCsraId))!!.let {
+            assertThat(it.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+            assertThat(it.nomisBookingId).isEqualTo(mappings[0].nomisBookingId)
+            assertThat(it.nomisSequence).isEqualTo(mappings[0].nomisSequence)
+            assertThat(it.dpsCsraId.toString()).isEqualTo(mappings[0].dpsCsraId)
+            assertThat(it.offenderNo).isEqualTo(OFFENDER_NO)
+            assertThat(it.mappingType).isEqualTo(mappingType)
+            assertThat(it.label).isEqualTo(label)
+          }
+
+          repository.findById(UUID.fromString(mappings[1].dpsCsraId))!!.let {
+            assertThat(it.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+            assertThat(it.nomisBookingId).isEqualTo(mappings[1].nomisBookingId)
+            assertThat(it.nomisSequence).isEqualTo(mappings[1].nomisSequence)
+            assertThat(it.dpsCsraId.toString()).isEqualTo(mappings[1].dpsCsraId)
+            assertThat(it.offenderNo).isEqualTo(OFFENDER_NO)
+            assertThat(it.mappingType).isEqualTo(mappingType)
+            assertThat(it.label).isEqualTo(label)
+          }
+        }
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `returns 400 when mapping type is invalid`() {
+        webTestClient.post()
+          .uri("/mapping/csras/$OFFENDER_NO/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              """
+                {
+                "mappingType": "INVALID_TYPE",
+                "mappings": [
+                    {
+                      "nomisBookingId": $BOOKING_ID,
+                      "nomisSequence": 54321,
+                      "dpsCsraId": "$DPS_CSRA_ID"
+                    }
+                  ]
+                }
+              """.trimIndent(),
+            ),
+          )
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+
+      @Test
+      fun `will return 409 if nomis ids already exist`() = runTest {
+        existingMapping = repository.save(existingMapping)
+
+        val dpsCsraId = UUID.randomUUID().toString()
+        val duplicateResponse = webTestClient.post()
+          .uri("/mapping/csras/$OFFENDER_NO/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              PrisonerCsraMappingsDto(
+                mappings = mappings.mappings + CsraMappingIdDto(
+                  dpsCsraId = dpsCsraId,
+                  nomisBookingId = existingMapping.nomisBookingId,
+                  nomisSequence = existingMapping.nomisSequence,
+                ),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isEqualTo(409)
+          .expectBody(
+            object :
+              ParameterizedTypeReference<TestDuplicateErrorResponse>() {},
+          )
+          .returnResult().responseBody
+
+        with(duplicateResponse!!) {
+          // since this is an untyped map an int will be assumed for such small numbers
+          assertThat(this.moreInfo.existing)
+            .containsEntry("nomisBookingId", existingMapping.nomisBookingId.toInt())
+            .containsEntry("nomisSequence", existingMapping.nomisSequence)
+            .containsEntry("dpsCsraId", existingMapping.dpsCsraId.toString())
+          assertThat(this.moreInfo.duplicate)
+            .containsEntry("nomisBookingId", existingMapping.nomisBookingId.toInt())
+            .containsEntry("nomisSequence", existingMapping.nomisSequence)
+            .containsEntry("dpsCsraId", dpsCsraId)
+        }
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("POST /mapping/csras/batch")
   inner class CreateMappings {
     private var existingMapping: CsraMapping = CsraMapping(
