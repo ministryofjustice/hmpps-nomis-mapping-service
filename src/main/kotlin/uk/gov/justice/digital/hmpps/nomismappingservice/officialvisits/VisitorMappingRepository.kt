@@ -13,4 +13,6 @@ interface VisitorMappingRepository : CoroutineCrudRepository<VisitorMapping, Str
   suspend fun findOneByNomisId(
     nomisId: Long,
   ): VisitorMapping?
+
+  suspend fun deleteByNomisId(nomisId: Long)
 }
