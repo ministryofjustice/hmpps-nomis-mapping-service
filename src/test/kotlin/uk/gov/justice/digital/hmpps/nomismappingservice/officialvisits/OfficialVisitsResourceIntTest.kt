@@ -1048,6 +1048,78 @@ class OfficialVisitsResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("DELETE /mapping/official-visits/visitor/nomis-id/{nomisVisitorId}")
+  inner class DeleteVisitorMappingByNomisId {
+
+    @BeforeEach
+    fun setUp() = runTest {
+      visitorMappingRepository.save(
+        VisitorMapping(
+          dpsId = "123456789",
+          nomisId = 123,
+          label = "2020-01-01T10:00",
+          mappingType = StandardMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access unauthorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/official-visits/visitor/nomis-id/123")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/official-visits/visitor/nomis-id/123")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/official-visits/visitor/nomis-id/123")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will delete the mapping`() = runTest {
+        assertThat(visitorMappingRepository.findOneByNomisId(123)).isNotNull
+
+        webTestClient.delete()
+          .uri("/mapping/official-visits/visitor/nomis-id/123")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        assertThat(visitorMappingRepository.findOneByNomisId(123)).isNull()
+      }
+
+      @Test
+      fun `will return 204 even if mapping does not exist`() = runTest {
+        webTestClient.delete()
+          .uri("/mapping/official-visits/visitor/nomis-id/456")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNoContent
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("DELETE /mapping/official-visits/all")
   inner class DeleteAllMappings {
 

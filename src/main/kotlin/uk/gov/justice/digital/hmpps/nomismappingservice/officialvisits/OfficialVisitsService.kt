@@ -122,6 +122,8 @@ class OfficialVisitsService(
   }
 
   suspend fun deleteOfficialVisitMappingByNomisId(nomisId: Long) = officialVisitMappingRepository.deleteByNomisId(nomisId)
+
+  suspend fun deleteOfficialVisitorMappingByNomisId(nomisId: Long) = visitorMappingRepository.deleteByNomisId(nomisId)
 }
 
 private fun OfficialVisitMapping.toDto() = OfficialVisitMappingDto(

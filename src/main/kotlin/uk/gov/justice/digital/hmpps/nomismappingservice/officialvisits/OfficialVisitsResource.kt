@@ -366,6 +366,34 @@ class OfficialVisitsResource(private val officialVisitsService: OfficialVisitsSe
     nomisVisitId: Long,
   ): Unit = officialVisitsService.deleteOfficialVisitMappingByNomisId(nomisVisitId)
 
+  @DeleteMapping("/visitor/nomis-id/{nomisVisitorId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete an official visitor mapping by NOMIS ID",
+    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Official visitor mapping deleted",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteOfficialVisitorMapping(
+    @Schema(description = "NOMIS visitor id", example = "123", required = true)
+    @PathVariable
+    nomisVisitorId: Long,
+  ): Unit = officialVisitsService.deleteOfficialVisitorMappingByNomisId(nomisVisitorId)
+
   @DeleteMapping("/all")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
