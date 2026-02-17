@@ -132,6 +132,38 @@ class VisitSlotsResource(private val visitSlotsService: VisitSlotsService) {
     nomisSlotSequence = nomisSlotSequence,
   )
 
+  @GetMapping("/time-slots/dps-id/{dpsId}")
+  @Operation(
+    summary = "Get visit time slot mapping by DPS id",
+    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping data",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getVisitTimeSlotMappingByDpsId(
+    @Schema(description = "DPS id", example = "1234", required = true)
+    @PathVariable
+    dpsId: String,
+  ): VisitTimeSlotMappingDto = visitSlotsService.getVisitTimeSlotMappingByDpsId(dpsId)
+
   @DeleteMapping("/time-slots/nomis-prison-id/{nomisPrisonId}/nomis-day-of-week/{nomisDayOfWeek}/nomis-slot-sequence/{nomisSlotSequence}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(

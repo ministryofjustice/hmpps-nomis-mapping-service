@@ -296,6 +296,90 @@ class VisitSlotsResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("GET /mapping/visit-slots/time-slots/dps-id/{dpsId}")
+  inner class GetVisitTimeSlotMappingByDpsId {
+    val nomisPrisonId = "WWI"
+    val nomisDayOfWeek = "MON"
+    val nomisSlotSequence = 2
+    val dpsId = "123456789"
+
+    @BeforeEach
+    fun setUp() = runTest {
+      visitTimeSlotMappingRepository.save(
+        VisitTimeSlotMapping(
+          dpsId = dpsId,
+          nomisPrisonId = nomisPrisonId,
+          nomisDayOfWeek = nomisDayOfWeek,
+          nomisSlotSequence = nomisSlotSequence,
+          label = "2020-01-01T10:00",
+          mappingType = StandardMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access unauthorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/visit-slots/time-slots/dps-id/$dpsId")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/visit-slots/time-slots/dps-id/$dpsId")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/visit-slots/time-slots/dps-id/$dpsId")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `404 when mapping not found`() {
+        webTestClient.get()
+          .uri("/mapping/visit-slots/time-slots/dps-id/999")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will retrieve mapping by dpsId`() {
+        webTestClient.get()
+          .uri("/mapping/visit-slots/time-slots/dps-id/$dpsId")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("dpsId").isEqualTo(dpsId)
+          .jsonPath("nomisPrisonId").isEqualTo(nomisPrisonId)
+          .jsonPath("nomisDayOfWeek").isEqualTo("MON")
+          .jsonPath("nomisSlotSequence").isEqualTo(nomisSlotSequence)
+          .jsonPath("label").isEqualTo("2020-01-01T10:00")
+          .jsonPath("mappingType").isEqualTo("MIGRATED")
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("DELETE /mapping/visit-slots/time-slots/nomis-prison-id/{nomisPrisonId}/nomis-day-of-week/{nomisDayOfWeek}/nomis-slot-sequence/{nomisSlotSequence}")
   inner class DeleteVisitTimeSlotMappingByNomisIds {
     val nomisPrisonId = "WWI"

@@ -24,6 +24,10 @@ class VisitSlotsService(
     ?.toDto()
     ?: throw NotFoundException("No visit time slot mapping found for nomisPrisonId=$nomisPrisonId,nomisDayOfWeek=$nomisDayOfWeek,nomisSlotSequence=$nomisSlotSequence")
 
+  suspend fun getVisitTimeSlotMappingByDpsId(dpsId: String) = visitTimeSlotMappingRepository.findOneByDpsId(dpsId)
+    ?.toDto()
+    ?: throw NotFoundException("No visit time slot mapping found for dpsId=$dpsId")
+
   suspend fun deleteVisitTimeSlotMappingByNomisId(nomisPrisonId: String, nomisDayOfWeek: String, nomisSlotSequence: Int) {
     visitTimeSlotMappingRepository.deleteByNomisPrisonIdAndNomisDayOfWeekAndNomisSlotSequence(
       nomisPrisonId = nomisPrisonId,
