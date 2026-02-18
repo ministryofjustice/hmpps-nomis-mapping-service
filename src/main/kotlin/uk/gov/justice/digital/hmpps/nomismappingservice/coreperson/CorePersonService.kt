@@ -20,6 +20,7 @@ class CorePersonService(
   private val corePersonPhoneMappingRepository: CorePersonPhoneMappingRepository,
   private val corePersonEmailMappingRepository: CorePersonEmailAddressMappingRepository,
   private val profileMappingRepository: ProfileMappingRepository,
+  private val corePersonBeliefMappingRepository: CorePersonBeliefMappingRepository,
 ) {
   @Transactional
   suspend fun createMappings(mappings: CorePersonMappingsDto) {
@@ -36,6 +37,9 @@ class CorePersonService(
       }
       profileMappings.forEach {
         profileMappingRepository.save(toMapping(it))
+      }
+      beliefMappings.forEach {
+        corePersonBeliefMappingRepository.save(toBeliefMapping(it))
       }
     }
   }
@@ -81,6 +85,7 @@ class CorePersonService(
     corePersonAddressMappingRepository.deleteAll()
     corePersonMappingRepository.deleteAll()
     profileMappingRepository.deleteAll()
+    corePersonBeliefMappingRepository.deleteAll()
   }
 
   suspend fun getAddressMappingByNomisId(nomisId: Long) = corePersonAddressMappingRepository.findOneByNomisId(nomisId = nomisId)
@@ -109,6 +114,16 @@ class CorePersonService(
     .findById(dpsId)
     ?.toDto()
     ?: throw NotFoundException("No profile mapping found for dpsId=$dpsId")
+
+  suspend fun getBeliefMappingByNomisId(nomisId: Long) = corePersonBeliefMappingRepository
+    .findOneByNomisId(nomisId)
+    ?.toDto()
+    ?: throw NotFoundException("No belief mapping found for nomisId=$nomisId")
+
+  suspend fun getBeliefMappingByCprId(cprId: String) = corePersonBeliefMappingRepository
+    .findById(cprId)
+    ?.toDto()
+    ?: throw NotFoundException("No belief mapping found for cprId=$cprId")
 
   @Transactional
   suspend fun createProfileMapping(profileMappingDto: ProfileMappingIdDto) = profileMappingRepository
@@ -168,6 +183,14 @@ private fun CorePersonMappingsDto.toMapping(mapping: CorePersonPhoneMappingIdDto
   whenCreated = whenCreated,
 )
 
+private fun CorePersonMappingsDto.toBeliefMapping(mapping: CorePersonSimpleMappingIdDto) = CorePersonBeliefMapping(
+  nomisId = mapping.nomisId,
+  cprId = mapping.cprId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
 private fun ProfileMappingIdDto.toMapping() = ProfileMapping(
   cprId = UUID.fromString(cprId),
   nomisBookingId = nomisBookingId,
@@ -215,6 +238,21 @@ private fun ProfileMapping.toDto() = ProfileMappingDto(
   nomisBookingId = nomisBookingId,
   nomisProfileType = nomisProfileType,
   nomisPrisonNumber = nomisPrisonNumber,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private fun CorePersonBeliefMappingDto.toMapping() = CorePersonBeliefMapping(
+  cprId = cprId,
+  nomisId = nomisId,
+  label = null,
+  mappingType = mappingType,
+)
+
+private fun CorePersonBeliefMapping.toDto() = CorePersonBeliefMappingDto(
+  cprId = cprId,
+  nomisId = nomisId,
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,
