@@ -42,6 +42,12 @@ class VisitSlotsService(
     ?.toDto()
     ?: throw NotFoundException("No visit slot mapping found for nomisVisitSlotId=$nomisId")
 
+  suspend fun getVisitSlotMappingByDpsId(dpsId: String) = visitSlotMappingRepository.findOneByDpsId(
+    dpsId = dpsId,
+  )
+    ?.toDto()
+    ?: throw NotFoundException("No visit slot mapping found for dpsId=$dpsId")
+
   suspend fun getVisitTimeSlotMappingByDpsIdOrNull(dpsId: String) = visitTimeSlotMappingRepository.findOneByDpsId(dpsId)
     ?.toDto()
 
