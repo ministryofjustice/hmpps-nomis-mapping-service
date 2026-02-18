@@ -707,6 +707,84 @@ class VisitSlotsResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("GET /mapping/visit-slots/visit-slot/dps-id/{dpsId}")
+  inner class GetVisitSlotMappingByDpsId {
+    private val nomisId = 9831302L
+    private val dpsId = "123456789"
+
+    @BeforeEach
+    fun setUp() = runTest {
+      visitSlotMappingRepository.save(
+        VisitSlotMapping(
+          dpsId = dpsId,
+          nomisId = nomisId,
+          label = "2020-01-01T10:00",
+          mappingType = StandardMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access unauthorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/visit-slots/visit-slot/dps-id/$dpsId")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/visit-slots/visit-slot/dps-id/$dpsId")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/visit-slots/visit-slot/dps-id/$dpsId")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `404 when mapping not found`() {
+        webTestClient.get()
+          .uri("/mapping/visit-slots/visit-slot/dps-id/999")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will retrieve mapping by dpsId`() {
+        webTestClient.get()
+          .uri("/mapping/visit-slots/visit-slot/dps-id/$dpsId")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("dpsId").isEqualTo(dpsId)
+          .jsonPath("nomisId").isEqualTo(nomisId)
+          .jsonPath("label").isEqualTo("2020-01-01T10:00")
+          .jsonPath("mappingType").isEqualTo("MIGRATED")
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("GET /mapping/visit-slots/visit-slot/nomis-id/{nomisId}")
   inner class DeleteVisitSlotMappingByNomisId {
     val nomisId = 9831302L
