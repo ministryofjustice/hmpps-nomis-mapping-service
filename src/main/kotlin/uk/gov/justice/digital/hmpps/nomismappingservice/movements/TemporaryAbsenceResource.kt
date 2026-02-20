@@ -67,7 +67,7 @@ class TemporaryAbsenceResource(
     summary = "Gets all mappings for prisoner temporary absences",
     description = "Gets mappings for prisoner temporary absences including movement applications, scheduled movements and movements. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = TemporaryAbsencesPrisonerMappingDto::class))],
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = TemporaryAbsencesPrisonerMappingIdsDto::class))],
     ),
     responses = [
       ApiResponse(
@@ -283,7 +283,6 @@ class TemporaryAbsenceResource(
   )
   suspend fun updateScheduledMovementSyncMapping(
     @RequestBody mapping: ScheduledMovementSyncMappingDto,
-    @RequestParam(value = "source", required = false) source: String? = "NOMIS",
   ) = service.updateScheduledMovementMapping(mapping)
 
   private suspend fun getExistingScheduledMovementMappingSimilarTo(mapping: ScheduledMovementSyncMappingDto) = runCatching {
