@@ -283,7 +283,6 @@ class TemporaryAbsenceResource(
   )
   suspend fun updateScheduledMovementSyncMapping(
     @RequestBody mapping: ScheduledMovementSyncMappingDto,
-    @RequestParam(value = "source", required = false) source: String? = "NOMIS",
   ) = service.updateScheduledMovementMapping(mapping)
 
   private suspend fun getExistingScheduledMovementMappingSimilarTo(mapping: ScheduledMovementSyncMappingDto) = runCatching {
