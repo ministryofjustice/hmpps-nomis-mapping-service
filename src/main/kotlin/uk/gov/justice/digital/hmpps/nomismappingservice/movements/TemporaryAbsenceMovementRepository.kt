@@ -8,6 +8,7 @@ import java.util.*
 interface TemporaryAbsenceMovementRepository : CoroutineCrudRepository<TemporaryAbsenceMovementMapping, UUID> {
   suspend fun findByNomisBookingIdAndNomisMovementSeq(nomisBookingId: Long, nomisMovementSeq: Int): TemporaryAbsenceMovementMapping?
   suspend fun findByNomisBookingId(nomisBookingId: Long): List<TemporaryAbsenceMovementMapping>
+  suspend fun findByOffenderNo(offenderNO: String): List<TemporaryAbsenceMovementMapping>
   suspend fun deleteByNomisBookingIdAndNomisMovementSeq(nomisBookingId: Long, nomisMovementSeq: Int)
   suspend fun deleteByOffenderNo(offenderNo: String)
 }

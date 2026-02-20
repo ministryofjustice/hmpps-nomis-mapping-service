@@ -62,6 +62,30 @@ class TemporaryAbsenceResource(
     @RequestBody mappings: TemporaryAbsencesPrisonerMappingDto,
   ) = service.createMigrationMappings(mappings)
 
+  @GetMapping("/{prisonerNumber}/ids")
+  @Operation(
+    summary = "Gets all mappings for prisoner temporary absences",
+    description = "Gets mappings for prisoner temporary absences including movement applications, scheduled movements and movements. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = TemporaryAbsencesPrisonerMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getMappings(
+    @PathVariable prisonerNumber: String,
+  ): TemporaryAbsencesPrisonerMappingIdsDto = service.getAllMappings(prisonerNumber)
+
   @PostMapping("/application")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -260,7 +284,7 @@ class TemporaryAbsenceResource(
   suspend fun updateScheduledMovementSyncMapping(
     @RequestBody mapping: ScheduledMovementSyncMappingDto,
     @RequestParam(value = "source", required = false) source: String? = "NOMIS",
-  ) = service.updateScheduledMovementMapping(mapping, source!!)
+  ) = service.updateScheduledMovementMapping(mapping)
 
   private suspend fun getExistingScheduledMovementMappingSimilarTo(mapping: ScheduledMovementSyncMappingDto) = runCatching {
     service.getScheduledMovementMappingByNomisId(mapping.nomisEventId)

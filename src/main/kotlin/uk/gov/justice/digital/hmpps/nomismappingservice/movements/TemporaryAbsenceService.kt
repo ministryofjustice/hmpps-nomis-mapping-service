@@ -77,6 +77,13 @@ class TemporaryAbsenceService(
     applicationRepository.save(mappingDto.toMapping())
   }
 
+  suspend fun getAllMappings(prisonerNumber: String) = TemporaryAbsencesPrisonerMappingIdsDto(
+    prisonerNumber = prisonerNumber,
+    applications = applicationRepository.findByOffenderNo(prisonerNumber).map { TemporaryAbsenceApplicationMappingIdsDto(it.nomisApplicationId, it.dpsApplicationId) },
+    schedules = scheduleRepository.findByOffenderNo(prisonerNumber).map { ScheduledMovementMappingIdsDto(it.nomisEventId, it.dpsOccurrenceId) },
+    movements = movementRepository.findByOffenderNo(prisonerNumber).map { ExternalMovementMappingIdsDto(it.nomisBookingId, it.nomisMovementSeq, it.dpsMovementId) },
+  )
+
   suspend fun getApplicationMappingByNomisId(nomisApplicationId: Long) = applicationRepository.findByNomisApplicationId(nomisApplicationId)
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for NOMIS application id $nomisApplicationId not found")
@@ -94,7 +101,7 @@ class TemporaryAbsenceService(
   }
 
   @Transactional
-  suspend fun updateScheduledMovementMapping(mappingDto: ScheduledMovementSyncMappingDto, source: String) {
+  suspend fun updateScheduledMovementMapping(mappingDto: ScheduledMovementSyncMappingDto) {
     scheduleRepository.findById(mappingDto.dpsOccurrenceId)
       ?.let {
         it.nomisAddressId = mappingDto.nomisAddressId
