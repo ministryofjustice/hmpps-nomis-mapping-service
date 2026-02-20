@@ -378,6 +378,229 @@ class TemporaryAbsenceResourceIntTest(
   }
 
   @Nested
+  @DisplayName("GET /mapping/temporary-absence/{prisonerNumber}/ids")
+  @Suppress("ktlint:standard:property-naming")
+  inner class GetAllPrisonerMappingIds {
+
+    private val MIGRATION_ID = "2025-08-13T13:44:55"
+    private val NOMIS_OFFENDER_NO = "A1234BC"
+    private val NOMIS_BOOKING_ID = 1L
+    private val NOMIS_APPLICATION_ID = 2L
+    private val NOMIS_SCHEDULED_OUT_EVENT_ID = 4L
+    private val NOMIS_SCHEDULED_IN_EVENT_ID = 5L
+    private val NOMIS_MOVEMENT_OUT_SEQ = 1
+    private val NOMIS_MOVEMENT_IN_SEQ = 2
+    private val NOMIS_UNSCHEDULED_MOVEMENT_OUT_SEQ = 3
+    private val NOMIS_UNSCHEDULED_MOVEMENT_IN_SEQ = 4
+    private val EVENT_TIME = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS)
+    private val DPS_APPLICATION_ID = UUID.randomUUID()
+    private val DPS_SCHEDULED_OUT_ID = UUID.randomUUID()
+    private val DPS_SCHEDULED_IN_ID = UUID.randomUUID()
+    private val DPS_MOVEMENT_OUT_ID = UUID.randomUUID()
+    private val DPS_MOVEMENT_IN_ID = UUID.randomUUID()
+    private val DPS_UNSCHEDULED_MOVEMENT_OUT_ID = UUID.randomUUID()
+    private val DPS_UNSCHEDULED_MOVEMENT_IN_ID = UUID.randomUUID()
+
+    @BeforeEach
+    fun setUp() {
+      saveMappings()
+    }
+
+    @AfterEach
+    fun clearDatabase() = runTest {
+      movementRepository.deleteAll()
+      scheduleRepository.deleteAll()
+      applicationRepository.deleteAll()
+      addressRepository.deleteAll()
+    }
+
+    fun saveMappings(mappings: TemporaryAbsencesPrisonerMappingDto = mappingsRequest()) {
+      webTestClient.put()
+        .uri("/mapping/temporary-absence/migrate")
+        .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(mappings))
+        .exchange()
+        .expectStatus().isCreated
+    }
+
+    fun mappingsRequest(
+      dpsApplicationId: UUID = DPS_APPLICATION_ID,
+      dpsScheduledOutId: UUID = DPS_SCHEDULED_OUT_ID,
+      dpsScheduledInId: UUID = DPS_SCHEDULED_IN_ID,
+      dpsMovementOutId: UUID = DPS_MOVEMENT_OUT_ID,
+      dpsMovementInId: UUID = DPS_MOVEMENT_IN_ID,
+      dpsUnscheduledMovementOutId: UUID = DPS_UNSCHEDULED_MOVEMENT_OUT_ID,
+      dpsUnscheduledMovementInId: UUID = DPS_UNSCHEDULED_MOVEMENT_IN_ID,
+      migrationId: String = MIGRATION_ID,
+    ) = TemporaryAbsencesPrisonerMappingDto(
+      prisonerNumber = NOMIS_OFFENDER_NO,
+      migrationId = migrationId,
+      bookings = listOf(
+        TemporaryAbsenceBookingMappingDto(
+          bookingId = NOMIS_BOOKING_ID,
+          applications = listOf(
+            TemporaryAbsenceApplicationMappingDto(
+              nomisMovementApplicationId = NOMIS_APPLICATION_ID,
+              dpsMovementApplicationId = dpsApplicationId,
+              schedules = listOf(
+                ScheduledMovementMappingDto(
+                  nomisEventId = NOMIS_SCHEDULED_OUT_EVENT_ID,
+                  dpsOccurrenceId = dpsScheduledOutId,
+                  nomisAddressId = null,
+                  nomisAddressOwnerClass = null,
+                  dpsAddressText = "",
+                  dpsDescription = null,
+                  dpsPostcode = null,
+                  eventTime = EVENT_TIME,
+                ),
+                ScheduledMovementMappingDto(
+                  nomisEventId = NOMIS_SCHEDULED_IN_EVENT_ID,
+                  dpsOccurrenceId = dpsScheduledInId,
+                  nomisAddressId = null,
+                  nomisAddressOwnerClass = null,
+                  dpsAddressText = "",
+                  dpsDescription = null,
+                  dpsPostcode = null,
+                  eventTime = EVENT_TIME,
+                ),
+              ),
+              movements = listOf(
+                ExternalMovementMappingDto(
+                  nomisMovementSeq = NOMIS_MOVEMENT_OUT_SEQ,
+                  dpsMovementId = dpsMovementOutId,
+                  nomisAddressId = null,
+                  nomisAddressOwnerClass = null,
+                  dpsAddressText = "",
+                  dpsDescription = null,
+                  dpsPostcode = null,
+                ),
+                ExternalMovementMappingDto(
+                  nomisMovementSeq = NOMIS_MOVEMENT_IN_SEQ,
+                  dpsMovementId = dpsMovementInId,
+                  nomisAddressId = null,
+                  nomisAddressOwnerClass = null,
+                  dpsAddressText = "",
+                  dpsDescription = null,
+                  dpsPostcode = null,
+                ),
+              ),
+            ),
+          ),
+          unscheduledMovements = listOf(
+            ExternalMovementMappingDto(
+              nomisMovementSeq = NOMIS_UNSCHEDULED_MOVEMENT_OUT_SEQ,
+              dpsMovementId = dpsUnscheduledMovementOutId,
+              nomisAddressId = null,
+              nomisAddressOwnerClass = null,
+              dpsAddressText = "",
+              dpsDescription = null,
+              dpsPostcode = null,
+            ),
+            ExternalMovementMappingDto(
+              nomisMovementSeq = NOMIS_UNSCHEDULED_MOVEMENT_IN_SEQ,
+              dpsMovementId = dpsUnscheduledMovementInId,
+              nomisAddressId = null,
+              nomisAddressOwnerClass = null,
+              dpsAddressText = "",
+              dpsDescription = null,
+              dpsPostcode = null,
+            ),
+          ),
+        ),
+      ),
+    )
+
+    @Nested
+    @Suppress("ktlint:standard:property-naming")
+    inner class HappyPath {
+      private lateinit var allMappings: TemporaryAbsencesPrisonerMappingIdsDto
+
+      @BeforeEach
+      fun setUp() {
+        saveMappings()
+
+        allMappings = webTestClient.get()
+          .uri("/mapping/temporary-absence/$NOMIS_OFFENDER_NO/ids")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody<TemporaryAbsencesPrisonerMappingIdsDto>()
+          .returnResult().responseBody!!
+      }
+
+      @Test
+      fun `should get application mappings`() = runTest {
+        assertThat(allMappings.applications[0].nomisMovementApplicationId).isEqualTo(NOMIS_APPLICATION_ID)
+        assertThat(allMappings.applications[0].dpsMovementApplicationId).isEqualTo(DPS_APPLICATION_ID)
+      }
+
+      @Test
+      fun `should get schedule mappings`() = runTest {
+        assertThat(allMappings.schedules[0].nomisEventId).isEqualTo(NOMIS_SCHEDULED_OUT_EVENT_ID)
+        assertThat(allMappings.schedules[0].dpsOccurrenceId).isEqualTo(DPS_SCHEDULED_OUT_ID)
+        assertThat(allMappings.schedules[1].nomisEventId).isEqualTo(NOMIS_SCHEDULED_IN_EVENT_ID)
+        assertThat(allMappings.schedules[1].dpsOccurrenceId).isEqualTo(DPS_SCHEDULED_IN_ID)
+      }
+
+      @Test
+      fun `should get application movement mappings`() = runTest {
+        assertThat(allMappings.movements[0].nomisMovementSeq).isEqualTo(NOMIS_MOVEMENT_OUT_SEQ)
+        assertThat(allMappings.movements[0].dpsMovementId).isEqualTo(DPS_MOVEMENT_OUT_ID)
+        assertThat(allMappings.movements[1].nomisMovementSeq).isEqualTo(NOMIS_MOVEMENT_IN_SEQ)
+        assertThat(allMappings.movements[1].dpsMovementId).isEqualTo(DPS_MOVEMENT_IN_ID)
+        assertThat(allMappings.movements[2].nomisMovementSeq).isEqualTo(NOMIS_UNSCHEDULED_MOVEMENT_OUT_SEQ)
+        assertThat(allMappings.movements[2].dpsMovementId).isEqualTo(DPS_UNSCHEDULED_MOVEMENT_OUT_ID)
+      }
+
+      @Test
+      fun `should return nothing if none found`() = runTest {
+        webTestClient.get()
+          .uri("/mapping/temporary-absence/UNKNOWN/ids")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody<TemporaryAbsencesPrisonerMappingIdsDto>()
+          .returnResult().responseBody!!
+          .apply {
+            assertThat(applications).isEmpty()
+            assertThat(schedules).isEmpty()
+            assertThat(movements).isEmpty()
+          }
+      }
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/temporary-absence/$NOMIS_OFFENDER_NO/ids")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/temporary-absence/$NOMIS_OFFENDER_NO/ids")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/temporary-absence/$NOMIS_OFFENDER_NO/ids")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("POST /mapping/temporary-absence/application")
   inner class CreateApplicationMapping {
 
