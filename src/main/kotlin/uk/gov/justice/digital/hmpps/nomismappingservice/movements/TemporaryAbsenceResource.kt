@@ -67,6 +67,7 @@ class TemporaryAbsenceResource(
     summary = "Gets all mappings for prisoner temporary absences",
     description = "Gets mappings for prisoner temporary absences including movement applications, scheduled movements and movements. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
+      ApiResponse(responseCode = "200", description = "Prisoner mapping IDs returned"),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
