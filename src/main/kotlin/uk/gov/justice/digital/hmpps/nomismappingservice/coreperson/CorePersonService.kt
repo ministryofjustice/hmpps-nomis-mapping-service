@@ -20,6 +20,7 @@ class CorePersonService(
   private val corePersonPhoneMappingRepository: CorePersonPhoneMappingRepository,
   private val corePersonEmailMappingRepository: CorePersonEmailAddressMappingRepository,
   private val profileMappingRepository: ProfileMappingRepository,
+  private val corePersonReligionMappingRepository: CorePersonReligionMappingRepository,
 ) {
   @Transactional
   suspend fun createMappings(mappings: CorePersonMappingsDto) {
@@ -122,6 +123,13 @@ class CorePersonService(
     .findOneByNomisBookingIdAndNomisProfileType(nomisBookingId, nomisProfileType)
     ?.toDto()
     ?: throw NotFoundException("No profile mapping found for nomisBookingId=$nomisBookingId and nomisProfileType = $nomisProfileType")
+
+  suspend fun getReligionMappingByNomisId(nomisId: Long) = corePersonReligionMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
+    ?: throw NotFoundException("No core person religion mapping found for nomisId=$nomisId")
+
+  suspend fun getReligionMappingByCprId(cprId: String) = corePersonReligionMappingRepository.findOneByCprId(cprId = cprId)
+    ?.toDto()
+    ?: throw NotFoundException("No core person religion mapping found for cprId=$cprId")
 }
 
 private fun CorePersonMappingsDto.toCorePersonMapping() = CorePersonMapping(
@@ -215,6 +223,14 @@ private fun ProfileMapping.toDto() = ProfileMappingDto(
   nomisBookingId = nomisBookingId,
   nomisProfileType = nomisProfileType,
   nomisPrisonNumber = nomisPrisonNumber,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private fun CorePersonReligionMapping.toDto() = CorePersonReligionMappingDto(
+  nomisId = nomisId,
+  cprId = cprId,
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,
