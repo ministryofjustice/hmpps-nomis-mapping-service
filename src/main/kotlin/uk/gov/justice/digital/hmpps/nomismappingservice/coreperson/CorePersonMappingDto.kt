@@ -27,6 +27,19 @@ data class CorePersonMappingsDto(
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Religion mappings for a Core Person")
+data class CorePersonReligionMappingsDto(
+  @Schema(description = "Label (a timestamp for migrated ids)")
+  val label: String? = null,
+  @Schema(description = "Mapping type")
+  val mappingType: CorePersonMappingType = CorePersonMappingType.CPR_CREATED,
+  @Schema(description = "Date time the mapping was created")
+  val whenCreated: LocalDateTime? = null,
+  @Schema(description = "Core Person religion mappings")
+  val religionMappings: List<CorePersonSimpleMappingIdDto>,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "NOMIS to CPR core person mapping IDs")
 data class CorePersonMappingIdDto(
   @Schema(description = "CPR id")
@@ -118,6 +131,16 @@ class ProfileMappingDto(
   val nomisProfileType: String,
   @Schema(description = "NOMIS Prison number aka Offender number")
   val nomisPrisonNumber: String,
+  label: String?,
+  mappingType: CorePersonMappingType,
+  whenCreated: LocalDateTime?,
+) : AbstractCorePersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
+
+class CorePersonReligionMappingDto(
+  @Schema(description = "CPR id")
+  val cprId: String,
+  @Schema(description = "NOMIS id")
+  val nomisId: Long,
   label: String?,
   mappingType: CorePersonMappingType,
   whenCreated: LocalDateTime?,
