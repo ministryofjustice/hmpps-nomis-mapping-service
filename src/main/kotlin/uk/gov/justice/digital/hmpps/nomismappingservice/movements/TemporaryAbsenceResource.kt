@@ -648,6 +648,32 @@ class TemporaryAbsenceResource(
     @PathVariable fromOffenderNo: String,
     @PathVariable toOffenderNo: String,
   ) = service.moveMappingsForBooking(bookingId, fromOffenderNo, toOffenderNo)
+
+  @PutMapping("/merge/from/{fromOffenderNo}/to/{toOffenderNo}")
+  @Operation(
+    summary = "Move all mappings from one offender to another",
+    description = "Used for update after a prisoner merge. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mappings moved, or not present in table",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun moveMergeMappings(
+    @PathVariable fromOffenderNo: String,
+    @PathVariable toOffenderNo: String,
+  ) = service.moveMappingsForMerge(fromOffenderNo, toOffenderNo)
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

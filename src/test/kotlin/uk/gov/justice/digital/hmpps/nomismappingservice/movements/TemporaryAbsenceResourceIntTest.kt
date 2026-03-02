@@ -2853,4 +2853,190 @@ class TemporaryAbsenceResourceIntTest(
     private fun WebTestClient.moveBookingIdsOk(bookingId: Long = 1L, from: String = "A1234AB", to: String = "A9876BA") = moveBookingIds(bookingId, from, to)
       .expectStatus().isOk
   }
+
+  @Nested
+  @DisplayName("PUT /mapping/temporary-absence/merge/from/{fromOffenderNo}/to/{toOffenderNo}")
+  inner class UpdateMappingsForMerge {
+    private val fromOffenderNo = "A1234AB"
+    private val toOffenderNo = "A9876BA"
+
+    private val bookingId1 = 1L
+    private val bookingId2 = 2L
+    private val book1app1 = 3L
+    private val book1app2 = 4L
+    private val book1event1 = 5L
+    private val book1event2 = 6L
+    private val book1seq1 = 7
+    private val book1seq2 = 8
+    private val book2app1 = 9L
+    private val book2seq1 = 10
+    private val book2event1 = 11L
+    private val book1auth1 = UUID.randomUUID()
+    private val book1auth2 = UUID.randomUUID()
+    private val book1occ1 = UUID.randomUUID()
+    private val book1occ2 = UUID.randomUUID()
+    private val book1move1 = UUID.randomUUID()
+    private val book1move2 = UUID.randomUUID()
+    private val book2auth1 = UUID.randomUUID()
+    private val book2occ1 = UUID.randomUUID()
+    private val book2move1 = UUID.randomUUID()
+
+    @AfterEach
+    fun tearDown() = runTest {
+      applicationRepository.deleteAll()
+      scheduleRepository.deleteAll()
+      movementRepository.deleteAll()
+    }
+
+    @BeforeEach
+    fun setUp() = runTest {
+      applicationRepository.save(anApplicationMapping(fromOffenderNo, bookingId1, book1app1, book1auth1))
+      applicationRepository.save(anApplicationMapping(fromOffenderNo, bookingId1, book1app2, book1auth2))
+      applicationRepository.save(anApplicationMapping(toOffenderNo, bookingId2, book2app1, book2auth1))
+
+      scheduleRepository.save(aScheduleMapping(fromOffenderNo, bookingId1, book1event1, book1occ1))
+      scheduleRepository.save(aScheduleMapping(fromOffenderNo, bookingId1, book1event2, book1occ2))
+      scheduleRepository.save(aScheduleMapping(toOffenderNo, bookingId2, book2event1, book2occ1))
+
+      movementRepository.save(aMovementMapping(fromOffenderNo, bookingId1, book1seq1, book1move1))
+      movementRepository.save(aMovementMapping(fromOffenderNo, bookingId1, book1seq2, book1move2))
+      movementRepository.save(aMovementMapping(toOffenderNo, bookingId2, book2seq1, book2move1))
+    }
+
+    private fun anApplicationMapping(offenderNo: String = "A1234AB", bookingId: Long, applicationId: Long, authorisationId: UUID) = TemporaryAbsenceApplicationMapping(
+      nomisApplicationId = applicationId,
+      dpsApplicationId = authorisationId,
+      offenderNo = offenderNo,
+      bookingId = bookingId,
+      mappingType = MovementMappingType.NOMIS_CREATED,
+    )
+
+    private fun aScheduleMapping(offenderNo: String = "A1234AB", bookingId: Long, eventId: Long, occurrenceId: UUID) = TemporaryAbsenceScheduleMapping(
+      dpsOccurrenceId = occurrenceId,
+      nomisEventId = eventId,
+      offenderNo = offenderNo,
+      bookingId = bookingId,
+      mappingType = MovementMappingType.NOMIS_CREATED,
+      nomisAddressId = null,
+      nomisAddressOwnerClass = null,
+      dpsAddressText = "some address",
+      dpsUprn = null,
+      eventTime = LocalDateTime.now(),
+    )
+
+    private fun aMovementMapping(offenderNo: String = "A1234AB", bookingId: Long, movementSeq: Int, movementId: UUID) = TemporaryAbsenceMovementMapping(
+      dpsMovementId = movementId,
+      nomisBookingId = bookingId,
+      nomisMovementSeq = movementSeq,
+      offenderNo = offenderNo,
+      mappingType = MovementMappingType.NOMIS_CREATED,
+      nomisAddressId = null,
+      nomisAddressOwnerClass = null,
+      dpsAddressText = "some address",
+      dpsUprn = null,
+    )
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `should move all application mappings to new offender`() = runTest {
+        webTestClient.mergePrisonerMappingsOk(fromOffenderNo, toOffenderNo)
+
+        // nothing on the from offender
+        with(applicationRepository.findByOffenderNo(fromOffenderNo)) {
+          assertThat(this).isEmpty()
+        }
+
+        // everything is on the to offender
+        with(applicationRepository.findByOffenderNo(toOffenderNo)) {
+          assertThat(this.size).isEqualTo(3)
+        }
+      }
+
+      @Test
+      fun `should move all schedule mappings to new offender`() = runTest {
+        webTestClient.mergePrisonerMappingsOk(fromOffenderNo, toOffenderNo)
+
+        // nothing on the from offender
+        with(scheduleRepository.findByOffenderNo(fromOffenderNo)) {
+          assertThat(this).isEmpty()
+        }
+
+        // everything is on the to offender
+        with(scheduleRepository.findByOffenderNo(toOffenderNo)) {
+          assertThat(this.size).isEqualTo(3)
+        }
+      }
+
+      @Test
+      fun `should move all movement mappings to new offender`() = runTest {
+        webTestClient.mergePrisonerMappingsOk(fromOffenderNo, toOffenderNo)
+
+        // nothing on the from offender
+        with(movementRepository.findByOffenderNo(fromOffenderNo)) {
+          assertThat(this).isEmpty()
+        }
+
+        // everything is on the to offender
+        with(movementRepository.findByOffenderNo(toOffenderNo)) {
+          assertThat(this.size).isEqualTo(3)
+        }
+      }
+
+      @Test
+      fun `should return OK if all bookings already on the to offender`() = runTest {
+        webTestClient.mergePrisonerMappingsOk(fromOffenderNo, toOffenderNo)
+
+        // A 2nd call is idempotent
+        webTestClient.mergePrisonerMappingsOk(fromOffenderNo, toOffenderNo)
+      }
+
+      @Test
+      fun `should return OK if from offender not found`() = runTest {
+        webTestClient.mergePrisonerMappingsOk("any", toOffenderNo)
+      }
+
+      @Test
+      fun `should return OK if to offender not found`() = runTest {
+        webTestClient.mergePrisonerMappingsOk(fromOffenderNo, "any")
+      }
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.put()
+          .uri("/mapping/temporary-absence/merge/from/A1234AB/to/A9876BA")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.put()
+          .uri("/mapping/temporary-absence/merge/from/A1234AB/to/A9876BA")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.put()
+          .uri("/mapping/temporary-absence/merge/from/A1234AB/to/A9876BA")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.mergePrisonerMappings(from: String = "A1234AB", to: String = "A9876BA") = put()
+      .uri("/mapping/temporary-absence/merge/from/$from/to/$to")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .exchange()
+
+    private fun WebTestClient.mergePrisonerMappingsOk(from: String = "A1234AB", to: String = "A9876BA") = mergePrisonerMappings(from, to)
+      .expectStatus().isOk
+  }
 }

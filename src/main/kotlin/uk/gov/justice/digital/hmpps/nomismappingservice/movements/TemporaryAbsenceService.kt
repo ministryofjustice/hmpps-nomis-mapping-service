@@ -232,6 +232,22 @@ class TemporaryAbsenceService(
       movementRepository.save(it)
     }
   }
+
+  @Transactional
+  suspend fun moveMappingsForMerge(fromOffenderNo: String, toOffenderNo: String) {
+    applicationRepository.findByOffenderNo(fromOffenderNo).forEach {
+      it.offenderNo = toOffenderNo
+      applicationRepository.save(it)
+    }
+    scheduleRepository.findByOffenderNo(fromOffenderNo).forEach {
+      it.offenderNo = toOffenderNo
+      scheduleRepository.save(it)
+    }
+    movementRepository.findByOffenderNo(fromOffenderNo).forEach {
+      it.offenderNo = toOffenderNo
+      movementRepository.save(it)
+    }
+  }
 }
 
 fun TemporaryAbsenceApplicationSyncMappingDto.toMapping(): TemporaryAbsenceApplicationMapping = TemporaryAbsenceApplicationMapping(
