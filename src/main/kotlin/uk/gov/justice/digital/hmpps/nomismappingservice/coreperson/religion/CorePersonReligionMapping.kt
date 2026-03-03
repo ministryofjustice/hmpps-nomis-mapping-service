@@ -1,17 +1,19 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson
+package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.religion
 
 import org.springframework.data.annotation.Id
+import uk.gov.justice.digital.hmpps.nomismappingservice.jpa.AbstractMappingTyped
+import uk.gov.justice.digital.hmpps.nomismappingservice.jpa.StandardMappingType
 import java.time.LocalDateTime
 
 class CorePersonReligionMapping(
-  nomisPrisonNumber: String,
   @Id
   val cprId: String,
   val nomisId: Long,
+  val nomisPrisonNumber: String,
   label: String? = null,
-  mappingType: CorePersonMappingType,
+  mappingType: StandardMappingType,
   whenCreated: LocalDateTime? = null,
-) : AbstractCorePersonMapping(nomisPrisonNumber = nomisPrisonNumber, label = label, mappingType = mappingType, whenCreated = whenCreated) {
+) : AbstractMappingTyped<String>(label = label, mappingType = mappingType, whenCreated = whenCreated) {
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
