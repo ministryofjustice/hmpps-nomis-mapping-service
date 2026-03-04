@@ -32,6 +32,84 @@ class ReligionResourceIntTest(
   }
 
   @Nested
+  @DisplayName("GET /mapping/core-person-religion/religions/nomis-prison-number/{nomisPrisonNumber}")
+  inner class GetReligionsMappingByNomisPrisonNumber {
+    val nomisPrisonNumber = "A1234BC"
+    val cprId = "123456789"
+
+    @BeforeEach
+    fun setUp() = runTest {
+      religionsMappingRepository.save(
+        CorePersonReligionsMapping(
+          cprId = cprId,
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2020-01-01T10:00",
+          mappingType = StandardMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access unauthorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/core-person-religion/religions/nomis-prison-number/$nomisPrisonNumber")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/core-person-religion/religions/nomis-prison-number/$nomisPrisonNumber")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/core-person-religion/religions/nomis-prison-number/$nomisPrisonNumber")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `404 when mapping not found`() {
+        webTestClient.get()
+          .uri("/mapping/core-person-religion/religions/nomis-prison-number/A2345BC")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will retrieve mapping`() {
+        webTestClient.get()
+          .uri("/mapping/core-person-religion/religions/nomis-prison-number/$nomisPrisonNumber")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("cprId").isEqualTo(cprId)
+          .jsonPath("nomisPrisonNumber").isEqualTo(nomisPrisonNumber)
+          .jsonPath("label").isEqualTo("2020-01-01T10:00")
+          .jsonPath("mappingType").isEqualTo("MIGRATED")
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("POST /mapping/core-person-religion/religion")
   inner class CreateReligionMapping {
     val nomisId = 9876543321

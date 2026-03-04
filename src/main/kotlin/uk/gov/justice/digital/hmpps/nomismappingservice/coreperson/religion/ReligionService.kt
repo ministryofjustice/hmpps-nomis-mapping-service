@@ -13,20 +13,20 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundExceptio
 @Service
 @Transactional
 class ReligionService(
-  private val prisonerReligionMappingRepository: ReligionsMappingRepository,
+  private val religionsMappingRepository: ReligionsMappingRepository,
   private val religionMappingRepository: ReligionMappingRepository,
 ) {
-  suspend fun getReligionsMappingByNomisId(nomisPrisonNumber: String) = prisonerReligionMappingRepository
+  suspend fun getReligionsMappingByNomisId(nomisPrisonNumber: String) = religionsMappingRepository
     .findOneByNomisPrisonNumber(nomisPrisonNumber)
     ?.toDto()
     ?: throw NotFoundException("No religions mapping found for nomisPrisonNumber=$nomisPrisonNumber")
 
-  suspend fun getReligionsMappingByCprId(cprId: String) = prisonerReligionMappingRepository.findOneByCprId(cprId)
+  suspend fun getReligionsMappingByCprId(cprId: String) = religionsMappingRepository.findOneByCprId(cprId)
     ?.toDto()
     ?: throw NotFoundException("No religions mapping found for cprId=$cprId")
 
   suspend fun deleteReligionsMappingByNomisId(nomisPrisonNumber: String) {
-    prisonerReligionMappingRepository.deleteByNomisPrisonNumber(nomisPrisonNumber = nomisPrisonNumber)
+    religionsMappingRepository.deleteByNomisPrisonNumber(nomisPrisonNumber = nomisPrisonNumber)
   }
 
   suspend fun getReligionMappingByNomisId(nomisId: Long) = religionMappingRepository.findOneByNomisId(
@@ -41,7 +41,7 @@ class ReligionService(
     ?.toDto()
     ?: throw NotFoundException("No religion mapping found for cprId=$cprId")
 
-  suspend fun getReligionsMappingByCprIdOrNull(cprId: String) = prisonerReligionMappingRepository.findOneByCprId(cprId)
+  suspend fun getReligionsMappingByCprIdOrNull(cprId: String) = religionsMappingRepository.findOneByCprId(cprId)
     ?.toDto()
 
   suspend fun getReligionMappingByCprIdOrNull(cprId: String) = religionMappingRepository.findOneByCprId(
@@ -57,7 +57,7 @@ class ReligionService(
 
   suspend fun createMappings(mappings: ReligionsMigrationMappingDto) {
     with(mappings) {
-      prisonerReligionMappingRepository.save(
+      religionsMappingRepository.save(
         CorePersonReligionsMapping(
           cprId = cprId,
           nomisPrisonNumber = nomisPrisonNumber,
@@ -84,7 +84,7 @@ class ReligionService(
 
   suspend fun createReligions(mapping: ReligionsMappingDto) {
     with(mapping) {
-      prisonerReligionMappingRepository.save(
+      religionsMappingRepository.save(
         CorePersonReligionsMapping(
           cprId = cprId,
           nomisPrisonNumber = nomisPrisonNumber,
@@ -115,14 +115,14 @@ class ReligionService(
     migrationId: String,
   ): Page<ReligionsMappingDto> = coroutineScope {
     val mappings = async {
-      prisonerReligionMappingRepository.findAllByLabelOrderByLabelDesc(
+      religionsMappingRepository.findAllByLabelOrderByLabelDesc(
         label = migrationId,
         pageRequest = pageRequest,
       )
     }
 
     val count = async {
-      prisonerReligionMappingRepository.countAllByLabel(
+      religionsMappingRepository.countAllByLabel(
         migrationId = migrationId,
       )
     }
@@ -135,7 +135,7 @@ class ReligionService(
   }
 
   suspend fun deleteAllMappings() {
-    prisonerReligionMappingRepository.deleteAll()
+    religionsMappingRepository.deleteAll()
     religionMappingRepository.deleteAll()
   }
 }

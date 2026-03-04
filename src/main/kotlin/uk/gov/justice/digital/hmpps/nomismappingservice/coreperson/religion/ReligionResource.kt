@@ -38,6 +38,45 @@ class ReligionResource(private val religionService: ReligionService) {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
+  @GetMapping("/religions/nomis-prison-number/{nomisPrisonNumber}")
+  @Operation(
+    summary = "Get religions mapping by nomis prison number",
+    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping data",
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Day of week not valid",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getReligionsMappingByNomisPrisonNumber(
+    @Schema(description = "NOMIS prison number", example = "A1234BC", required = true)
+    @PathVariable
+    nomisPrisonNumber: String,
+  ): ReligionsMappingDto = religionService.getReligionsMappingByNomisId(
+    nomisPrisonNumber = nomisPrisonNumber,
+  )
+
   @PostMapping("/religion")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
