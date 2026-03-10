@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.religion
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -87,7 +88,7 @@ class ReligionService(
             whenCreated = whenCreated,
           )
         },
-      )
+      ).collect()
     }
   }
 

@@ -943,7 +943,6 @@ class ReligionResourceIntTest(
 
       @Test
       fun `will delete any religion mappings persisted before the replace`() = runTest {
-        // then replace
         webTestClient.post()
           .uri("/mapping/core-person-religion/replace")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
