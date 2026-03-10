@@ -57,6 +57,9 @@ class ReligionService(
 
   suspend fun createMappings(mappings: ReligionsMigrationMappingDto) {
     with(mappings) {
+      // delete any dangling child mappings before we start
+      religionMappingRepository.deleteAllByNomisPrisonNumber(nomisPrisonNumber)
+
       religionsMappingRepository.save(
         CorePersonReligionsMapping(
           cprId = cprId,

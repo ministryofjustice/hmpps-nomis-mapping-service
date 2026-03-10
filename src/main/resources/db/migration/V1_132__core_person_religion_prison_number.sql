@@ -1,0 +1,1 @@
+create index core_person_religion_mapping_nomis_prison_number_index ON core_person_religion_mapping (nomis_prison_number);

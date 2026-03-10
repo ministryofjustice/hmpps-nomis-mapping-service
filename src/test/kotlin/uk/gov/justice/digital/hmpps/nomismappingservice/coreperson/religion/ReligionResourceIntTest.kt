@@ -713,6 +713,50 @@ class ReligionResourceIntTest(
           assertThat(this.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         }
       }
+
+      @Test
+      fun `will delete any religion mappings before the migration`() = runTest {
+        val individualMapping = ReligionMappingDto(
+          cprId = "tobedeleted",
+          nomisId = 99999L,
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2026-01-01T10:00",
+          mappingType = StandardMappingType.NOMIS_CREATED,
+        )
+        // insert an individual religion
+        webTestClient.post()
+          .uri("/mapping/core-person-religion/religion")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(individualMapping))
+          .exchange()
+          .expectStatus().isCreated
+
+        // then migrate
+        webTestClient.post()
+          .uri("/mapping/core-person-religion")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+
+        with(religionsMappingRepository.findOneByCprId(cprId)!!) {
+          assertThat(cprId).isEqualTo(mapping.cprId)
+          assertThat(nomisPrisonNumber).isEqualTo(mapping.nomisPrisonNumber)
+          assertThat(label).isEqualTo(mapping.label)
+          assertThat(mappingType).isEqualTo(mapping.mappingType)
+          assertThat(whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        }
+
+        with(religionMappingRepository.findOneByCprId("99999")!!) {
+          assertThat(this.cprId).isEqualTo("99999")
+          assertThat(this.nomisId).isEqualTo(99999)
+          assertThat(this.label).isEqualTo(mapping.label)
+          assertThat(this.mappingType).isEqualTo(mapping.mappingType)
+          assertThat(this.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        }
+      }
     }
   }
 
