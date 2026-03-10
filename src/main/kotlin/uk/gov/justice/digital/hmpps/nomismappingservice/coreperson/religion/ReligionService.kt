@@ -57,8 +57,8 @@ class ReligionService(
 
   suspend fun createMappings(mappings: ReligionsMigrationMappingDto) {
     with(mappings) {
-      // delete any dangling child mappings before we start
-      religionMappingRepository.deleteAllByNomisPrisonNumber(nomisPrisonNumber)
+      // delete any dangling child mappings before we adding new children
+      replaceMappings(this)
 
       religionsMappingRepository.save(
         CorePersonReligionsMapping(
@@ -69,6 +69,12 @@ class ReligionService(
           whenCreated = whenCreated,
         ),
       )
+    }
+  }
+
+  suspend fun replaceMappings(mappings: ReligionsMigrationMappingDto) {
+    with(mappings) {
+      religionMappingRepository.deleteAllByNomisPrisonNumber(nomisPrisonNumber)
 
       religions.forEach {
         religionMappingRepository.save(
@@ -111,6 +117,12 @@ class ReligionService(
         ),
       )
     }
+  }
+
+  @Transactional
+  suspend fun replaceReligionMappings(offenderNo: String, mappings: ReligionsMappingDto) {
+    religionsMappingRepository.deleteByNomisPrisonNumber(offenderNo)
+    createReligions(mappings)
   }
 
   suspend fun getReligionsMappingsByMigrationId(
