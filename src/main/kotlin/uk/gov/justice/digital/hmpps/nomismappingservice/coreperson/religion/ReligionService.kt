@@ -76,8 +76,8 @@ class ReligionService(
     with(mappings) {
       religionMappingRepository.deleteAllByNomisPrisonNumber(nomisPrisonNumber)
 
-      religions.forEach {
-        religionMappingRepository.save(
+      religionMappingRepository.saveAll(
+        religions.map {
           CorePersonReligionMapping(
             cprId = it.cprId,
             nomisId = it.nomisId,
@@ -85,9 +85,9 @@ class ReligionService(
             label = label,
             mappingType = mappingType,
             whenCreated = whenCreated,
-          ),
-        )
-      }
+          )
+        },
+      )
     }
   }
 
