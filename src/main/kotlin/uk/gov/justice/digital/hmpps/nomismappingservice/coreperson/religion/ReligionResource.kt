@@ -48,11 +48,6 @@ class ReligionResource(private val religionService: ReligionService) {
         description = "Mapping data",
       ),
       ApiResponse(
-        responseCode = "400",
-        description = "Day of week not valid",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
