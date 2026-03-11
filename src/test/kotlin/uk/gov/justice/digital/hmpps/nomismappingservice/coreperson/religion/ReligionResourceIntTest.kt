@@ -291,7 +291,7 @@ class ReligionResourceIntTest(
           nomisId = nomisId,
           nomisPrisonNumber = nomisPrisonNumber,
           label = "2020-01-01T10:00",
-          mappingType = StandardMappingType.MIGRATED,
+          mappingType = StandardMappingType.NOMIS_CREATED,
           whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
         ),
       )
@@ -351,7 +351,7 @@ class ReligionResourceIntTest(
           .jsonPath("cprId").isEqualTo(cprId)
           .jsonPath("nomisId").isEqualTo(nomisId)
           .jsonPath("label").isEqualTo("2020-01-01T10:00")
-          .jsonPath("mappingType").isEqualTo("MIGRATED")
+          .jsonPath("mappingType").isEqualTo("NOMIS_CREATED")
       }
     }
   }
@@ -756,6 +756,203 @@ class ReligionResourceIntTest(
           assertThat(this.mappingType).isEqualTo(mapping.mappingType)
           assertThat(this.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         }
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("POST /mapping/core-person-religion/replace")
+  inner class ReplaceReligionMappings {
+    val nomisPrisonNumber = "A1234BC"
+    val cprId = "123456789"
+
+    @Nested
+    inner class Security {
+      val mapping = ReligionsMigrationMappingDto(
+        cprId = cprId,
+        nomisPrisonNumber = nomisPrisonNumber,
+        label = "2020-01-01T10:00",
+        religions = listOf(),
+        mappingType = StandardMappingType.NOMIS_CREATED,
+        whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/core-person-religion/replace")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/core-person-religion/replace")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/core-person-religion/replace")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      val mapping = ReligionsMigrationMappingDto(
+        cprId = cprId,
+        nomisPrisonNumber = nomisPrisonNumber,
+        label = "2020-01-01T10:00",
+        religions = listOf(),
+        mappingType = StandardMappingType.NOMIS_CREATED,
+        whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+      )
+
+      val individualMapping = CorePersonReligionMapping(
+        cprId = "tobereplaced",
+        nomisId = 99991L,
+        nomisPrisonNumber = nomisPrisonNumber,
+        label = "2026-01-01T10:00",
+        mappingType = StandardMappingType.NOMIS_CREATED,
+      )
+
+      @BeforeEach
+      fun setUp() = runTest {
+        religionMappingRepository.save(individualMapping)
+      }
+
+      @Test
+      fun `will save individual religion mappings even if top-level mapping does not exist and mappings are empty`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/core-person-religion/replace")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping.copy(cprId = "96969")))
+          .exchange()
+          .expectStatus().isOk
+
+        assertThat(religionMappingRepository.findByNomisPrisonNumber(nomisPrisonNumber)).isEmpty()
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = ReligionsMigrationMappingDto(
+        cprId = cprId,
+        nomisPrisonNumber = nomisPrisonNumber,
+        label = "2020-01-01T10:00",
+        religions = listOf(
+          ReligionMigrationMappingDto(cprId = "99999", nomisId = 99999, nomisPrisonNumber = nomisPrisonNumber),
+          ReligionMigrationMappingDto(cprId = "99998", nomisId = 99998, nomisPrisonNumber = nomisPrisonNumber),
+        ),
+        mappingType = StandardMappingType.NOMIS_CREATED,
+      )
+
+      val existingMapping = CorePersonReligionsMapping(
+        cprId = cprId,
+        nomisPrisonNumber = nomisPrisonNumber,
+        label = "2019-01-01T10:00",
+        mappingType = StandardMappingType.NOMIS_CREATED,
+        whenCreated = LocalDateTime.parse("2019-01-01T10:14"),
+      )
+
+      val individualMapping = CorePersonReligionMapping(
+        cprId = "tobereplaced",
+        nomisId = 99991L,
+        nomisPrisonNumber = nomisPrisonNumber,
+        label = "2026-01-01T10:00",
+        mappingType = StandardMappingType.NOMIS_CREATED,
+      )
+
+      @BeforeEach
+      fun setUp() = runTest {
+        religionsMappingRepository.save(existingMapping)
+        religionMappingRepository.save(individualMapping)
+      }
+
+      @Test
+      fun `returns 200 when mappings replaced`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/core-person-religion/replace")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isOk
+      }
+
+      @Test
+      fun `will not re-persist the religions mappings`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/core-person-religion/replace")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isOk
+
+        val religionsMapping = religionsMappingRepository.findOneByCprId(cprId)!!
+
+        assertThat(religionsMapping.cprId).isEqualTo(existingMapping.cprId)
+        assertThat(religionsMapping.nomisPrisonNumber).isEqualTo(existingMapping.nomisPrisonNumber)
+        assertThat(religionsMapping.label).isEqualTo(existingMapping.label)
+        assertThat(religionsMapping.mappingType).isEqualTo(existingMapping.mappingType)
+        assertThat(religionsMapping.whenCreated).isEqualTo(existingMapping.whenCreated)
+      }
+
+      @Test
+      fun `will persist the religion mappings`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/core-person-religion/replace")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isOk
+
+        assertThat(religionsMappingRepository.findOneByCprId(cprId)).isNotNull()
+
+        with(religionMappingRepository.findOneByCprId("99999")!!) {
+          assertThat(this.cprId).isEqualTo("99999")
+          assertThat(this.nomisId).isEqualTo(99999)
+          assertThat(this.label).isEqualTo(mapping.label)
+          assertThat(this.mappingType).isEqualTo(mapping.mappingType)
+          assertThat(this.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        }
+        with(religionMappingRepository.findOneByCprId("99998")!!) {
+          assertThat(this.cprId).isEqualTo("99998")
+          assertThat(this.nomisId).isEqualTo(99998)
+          assertThat(this.label).isEqualTo(mapping.label)
+          assertThat(this.mappingType).isEqualTo(mapping.mappingType)
+          assertThat(this.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        }
+      }
+
+      @Test
+      fun `will delete any religion mappings persisted before the replace`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/core-person-religion/replace")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isOk
+
+        assertThat(religionMappingRepository.findByNomisPrisonNumber(nomisPrisonNumber)).size().isEqualTo(2)
+        assertThat(religionMappingRepository.findOneByCprId(individualMapping.cprId)).isNull()
       }
     }
   }

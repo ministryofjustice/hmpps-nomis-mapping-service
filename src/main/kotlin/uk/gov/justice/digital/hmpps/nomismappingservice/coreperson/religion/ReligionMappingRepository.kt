@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository
 interface ReligionMappingRepository : CoroutineCrudRepository<CorePersonReligionMapping, String> {
   suspend fun findOneByCprId(cprId: String): CorePersonReligionMapping?
   suspend fun findOneByNomisId(nomisId: Long): CorePersonReligionMapping?
+  suspend fun findByNomisPrisonNumber(prisonNumber: String): List<CorePersonReligionMapping>
   suspend fun deleteByNomisId(nomisId: Long)
   suspend fun deleteAllByNomisPrisonNumber(nomisPrisonNumber: String)
 }

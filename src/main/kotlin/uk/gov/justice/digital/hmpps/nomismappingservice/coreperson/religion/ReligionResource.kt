@@ -121,6 +121,33 @@ class ReligionResource(private val religionService: ReligionService) {
     )
   }
 
+  @PostMapping("/replace")
+  @Operation(
+    summary = "Replaces a list of religion mappings.",
+    description = """Creates a list of religion mappings and removes the previous supplied set.
+      This does not add or remove any data from any associated parent CorePersonReligionMapping entry. 
+      Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
+    responses = [
+      ApiResponse(responseCode = "200", description = "Mappings replaced"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun replaceMappings(
+    @RequestBody @Valid
+    mappings: ReligionsMigrationMappingDto,
+  ) = religionService.replaceMappings(mappings).also {
+    log.info("Replaced mappings for nomis prisoner number ${mappings.nomisPrisonNumber}")
+  }
+
   @GetMapping("/religion/nomis-id/{nomisId}")
   @Operation(
     summary = "Get religion mapping by nomis religion id",

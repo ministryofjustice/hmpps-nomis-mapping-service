@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.religion
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -57,8 +58,8 @@ class ReligionService(
 
   suspend fun createMappings(mappings: ReligionsMigrationMappingDto) {
     with(mappings) {
-      // delete any dangling child mappings before we start
-      religionMappingRepository.deleteAllByNomisPrisonNumber(nomisPrisonNumber)
+      // delete any dangling child mappings before we adding new children
+      replaceMappings(this)
 
       religionsMappingRepository.save(
         CorePersonReligionsMapping(
@@ -69,9 +70,15 @@ class ReligionService(
           whenCreated = whenCreated,
         ),
       )
+    }
+  }
 
-      religions.forEach {
-        religionMappingRepository.save(
+  suspend fun replaceMappings(mappings: ReligionsMigrationMappingDto) {
+    with(mappings) {
+      religionMappingRepository.deleteAllByNomisPrisonNumber(nomisPrisonNumber)
+
+      religionMappingRepository.saveAll(
+        religions.map {
           CorePersonReligionMapping(
             cprId = it.cprId,
             nomisId = it.nomisId,
@@ -79,9 +86,9 @@ class ReligionService(
             label = label,
             mappingType = mappingType,
             whenCreated = whenCreated,
-          ),
-        )
-      }
+          )
+        },
+      ).collect()
     }
   }
 
@@ -111,6 +118,12 @@ class ReligionService(
         ),
       )
     }
+  }
+
+  @Transactional
+  suspend fun replaceReligionMappings(offenderNo: String, mappings: ReligionsMappingDto) {
+    religionsMappingRepository.deleteByNomisPrisonNumber(offenderNo)
+    createReligions(mappings)
   }
 
   suspend fun getReligionsMappingsByMigrationId(
