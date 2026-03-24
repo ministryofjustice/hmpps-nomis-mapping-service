@@ -4,16 +4,14 @@ import io.swagger.v3.parser.OpenAPIV3Parser
 import net.minidev.json.JSONArray
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.http.MediaType
-import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
+@AutoConfigureWebTestClient(timeout = "20000")
 class OpenApiDocsTest : IntegrationTestBase() {
   @LocalServerPort
   private var port: Int = 0
