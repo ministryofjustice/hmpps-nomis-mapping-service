@@ -101,7 +101,7 @@ class CSIPReviewMappingResource(
       ),
     ],
   )
-  suspend fun getMappingByNomisId(
+  suspend fun getCSIPReviewMappingByNomisId(
     @Schema(description = "NOMIS CSIP Review id", example = "12345", required = true)
     @PathVariable
     nomisCSIPReviewId: Long,

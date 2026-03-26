@@ -101,7 +101,7 @@ class CSIPInterviewMappingResource(
       ),
     ],
   )
-  suspend fun getMappingByNomisId(
+  suspend fun getCSIPInterviewMappingByNomisId(
     @Schema(description = "NOMIS CSIP Interview id", example = "12345", required = true)
     @PathVariable
     nomisCSIPInterviewId: Long,

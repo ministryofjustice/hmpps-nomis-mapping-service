@@ -95,7 +95,7 @@ class HearingsMappingResource(private val mappingService: AdjudicationMappingSer
       ),
     ],
   )
-  suspend fun getMappingGivenNomisId(
+  suspend fun getHearingsMappingGivenNomisId(
     @Schema(description = "NOMIS hearing id", example = "123", required = true)
     @PathVariable
     id: Long,
@@ -126,7 +126,7 @@ class HearingsMappingResource(private val mappingService: AdjudicationMappingSer
       ),
     ],
   )
-  suspend fun getMappingGivenDpsId(
+  suspend fun getHearingsMappingGivenDpsId(
     @Schema(description = "DPS hearing Id", example = "AB345", required = true)
     @PathVariable
     id: String,
@@ -150,7 +150,7 @@ class HearingsMappingResource(private val mappingService: AdjudicationMappingSer
       ),
     ],
   )
-  suspend fun deleteMapping(
+  suspend fun deleteHearingsMapping(
     @Schema(description = "DPS Hearing id", example = "AB345", required = true)
     @PathVariable
     id: String,

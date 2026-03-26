@@ -101,7 +101,7 @@ class CSIPFactorMappingResource(
       ),
     ],
   )
-  suspend fun getMappingByNomisId(
+  suspend fun getCSIPFactorMappingByNomisId(
     @Schema(description = "NOMIS CSIP Factor id", example = "12345", required = true)
     @PathVariable
     nomisCSIPFactorId: Long,

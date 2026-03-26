@@ -184,7 +184,7 @@ class OfficialVisitsResource(private val officialVisitsService: OfficialVisitsSe
       ),
     ],
   )
-  suspend fun createVisitMapping(
+  suspend fun createOfficialVisitMapping(
     @RequestBody @Valid
     mapping: OfficialVisitMappingDto,
   ): Unit = try {

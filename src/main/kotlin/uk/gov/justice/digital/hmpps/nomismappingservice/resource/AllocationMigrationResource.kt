@@ -123,7 +123,7 @@ class AllocationMigrationResource(private val mappingService: AllocationMigratio
       ),
     ],
   )
-  suspend fun getLatestMigratedMapping(): AllocationMigrationMappingDto = mappingService.getLatestMigrated()
+  suspend fun getAllocationLatestMigratedMapping(): AllocationMigrationMappingDto = mappingService.getLatestMigrated()
 
   @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/allocations/migration/migration-id/{migrationId}")

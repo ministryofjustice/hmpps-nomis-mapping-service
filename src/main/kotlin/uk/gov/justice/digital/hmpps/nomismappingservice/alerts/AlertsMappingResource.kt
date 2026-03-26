@@ -56,7 +56,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
       ),
     ],
   )
-  suspend fun getMappingByNomisId(
+  suspend fun getAlertsMappingByNomisId(
     @Schema(description = "NOMIS booking id", example = "12345", required = true)
     @PathVariable
     bookingId: Long,
@@ -89,7 +89,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
       ),
     ],
   )
-  suspend fun getMappingByDpsId(
+  suspend fun getAlertsMappingByDpsId(
     @Schema(description = "DPS alert id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
     dpsAlertId: String,
@@ -117,7 +117,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
     ],
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  suspend fun deleteMappingByDpsId(
+  suspend fun deleteAlertsMappingByDpsId(
     @Schema(description = "DPS alert id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
     dpsAlertId: String,
@@ -380,7 +380,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
       ),
     ],
   )
-  suspend fun getMappingsForPrisoner(
+  suspend fun getAlertsMappingsForPrisoner(
     @Schema(description = "NOMIS offender no", example = "A1234KT", required = true)
     @PathVariable
     offenderNo: String,
@@ -428,7 +428,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
       ),
     ],
   )
-  suspend fun getMappingsByMigrationId(
+  suspend fun getAlertsMappingsByMigrationId(
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
@@ -481,7 +481,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
       ),
     ],
   )
-  suspend fun getMappingsByMigrationIdGroupByPrisoner(
+  suspend fun getAlertsMappingsByMigrationIdGroupByPrisoner(
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable

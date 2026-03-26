@@ -53,7 +53,7 @@ class ActivityMigrationResource(private val mappingService: ActivityMigrationSer
       ),
     ],
   )
-  suspend fun createActivityMapping(
+  suspend fun createActivityMigrationMapping(
     @RequestBody @Valid
     createMappingRequest: ActivityMigrationMappingDto,
   ) = try {
@@ -125,7 +125,7 @@ class ActivityMigrationResource(private val mappingService: ActivityMigrationSer
       ),
     ],
   )
-  suspend fun getLatestMigratedMapping(): ActivityMigrationMappingDto = mappingService.getLatestMigrated()
+  suspend fun getActivityLatestMigratedMapping(): ActivityMigrationMappingDto = mappingService.getLatestMigrated()
 
   @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/mapping/activities/migration/migration-id/{migrationId}")

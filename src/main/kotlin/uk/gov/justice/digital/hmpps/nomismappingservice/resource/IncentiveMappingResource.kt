@@ -261,7 +261,7 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
       ),
     ],
   )
-  suspend fun getMigratedVisitMappingsByMigrationId(
+  suspend fun getIncentiveMigratedVisitMappingsByMigrationId(
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable

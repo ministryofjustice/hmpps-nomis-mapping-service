@@ -140,7 +140,7 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
       ),
     ],
   )
-  suspend fun getMappingGivenNomisId(
+  suspend fun getAdjudicationsMappingGivenNomisId(
     @Schema(description = "DPS Charge number", example = "12345/1", required = true)
     @PathVariable
     chargeNumber: String,
@@ -171,7 +171,7 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
       ),
     ],
   )
-  suspend fun getMappingGivenDpsId(
+  suspend fun getAdjudicationsMappingGivenDpsId(
     @Schema(description = "Adjudication number", example = "12345", required = true)
     @PathVariable
     adjudicationNumber: Long,
@@ -228,7 +228,7 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
       ),
     ],
   )
-  suspend fun deleteMapping(
+  suspend fun deleteAdjudicationsMapping(
     @Schema(description = "Adjudication number", example = "12345", required = true)
     @PathVariable
     chargeNumber: String,

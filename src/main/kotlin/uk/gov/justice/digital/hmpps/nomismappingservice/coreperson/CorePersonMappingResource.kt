@@ -232,7 +232,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
       ),
     ],
   )
-  suspend fun getAddressMappingByNomisId(
+  suspend fun getCorePersonAddressMappingByNomisId(
     @Schema(description = "NOMIS address id", example = "12345", required = true)
     @PathVariable
     nomisAddressId: Long,
@@ -296,7 +296,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
       ),
     ],
   )
-  suspend fun getPhoneMappingByNomisId(
+  suspend fun getCorePersonPhoneMappingByNomisId(
     @Schema(description = "NOMIS phone id", example = "12345", required = true)
     @PathVariable
     nomisPhoneId: Long,

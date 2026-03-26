@@ -102,7 +102,7 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
       ),
     ],
   )
-  suspend fun getMappingByNomisId(
+  suspend fun getIncidentMappingByNomisId(
     @Schema(description = "Nomis Incident Id", required = true)
     @PathVariable
     nomisIncidentId: Long,
@@ -132,7 +132,7 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
       ),
     ],
   )
-  suspend fun getMappingByDPSId(
+  suspend fun getIncidentMappingByDPSId(
     @Schema(description = "DPS Incident id", example = "12345", required = true)
     @PathVariable
     dpsIncidentId: String,
@@ -157,7 +157,7 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
       ),
     ],
   )
-  suspend fun getMappingsByNomisId(
+  suspend fun getIncidentMappingsByNomisId(
     @RequestParam(name = "nomisIncidentId")
     @Parameter(required = true, description = "Nomis Incident Id", example = "345")
     nomisIncidentIds: List<Long>,
@@ -180,7 +180,7 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
       ),
     ],
   )
-  suspend fun deleteMapping(
+  suspend fun deleteIncidentMapping(
     @Schema(description = "DPS Incident Id", example = "4321", required = true)
     @PathVariable
     dpsIncidentId: String,
@@ -203,7 +203,7 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
       ),
     ],
   )
-  suspend fun deleteMappings(
+  suspend fun deleteIncidentMappings(
     @RequestParam(value = "onlyMigrated", required = false, defaultValue = "false")
     @Parameter(
       description = "if true delete mapping entries created by the migration process only (synchronisation records are unaffected)",

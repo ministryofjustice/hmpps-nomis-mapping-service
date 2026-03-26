@@ -108,7 +108,7 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
       ),
     ],
   )
-  suspend fun getMappingGivenId(
+  suspend fun getAppointmentMappingGivenId(
     @Schema(description = "Appointment instance Id", example = "12345", required = true)
     @PathVariable
     appointmentInstanceId: Long,
@@ -193,7 +193,7 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
       ),
     ],
   )
-  suspend fun deleteMapping(
+  suspend fun deleteAppointmentMapping(
     @Schema(description = "Appointment instance Id", example = "12345", required = true)
     @PathVariable
     id: Long,

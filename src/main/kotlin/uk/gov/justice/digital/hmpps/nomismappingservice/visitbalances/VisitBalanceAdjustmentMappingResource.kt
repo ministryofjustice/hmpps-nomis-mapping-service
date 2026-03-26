@@ -104,7 +104,7 @@ class VisitBalanceAdjustmentMappingResource(private val service: VisitBalanceAdj
       ),
     ],
   )
-  suspend fun getMappingByNomisId(
+  suspend fun getVisitBalanceAdjustmentMappingByNomisId(
     @Schema(description = "NOMIS visit balance adjustment id.", example = "1", required = true)
     @PathVariable
     nomisVisitBalanceAdjustmentId: Long,
@@ -136,7 +136,7 @@ class VisitBalanceAdjustmentMappingResource(private val service: VisitBalanceAdj
       ),
     ],
   )
-  suspend fun getMappingsByDpsId(
+  suspend fun getVisitBalanceAdjustmentMappingsByDpsId(
     @Schema(description = "DPS id", example = "A1234BC", required = true)
     @PathVariable
     dpsId: String,
@@ -164,7 +164,7 @@ class VisitBalanceAdjustmentMappingResource(private val service: VisitBalanceAdj
     ],
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  suspend fun deleteMappingsByDpsId(
+  suspend fun deleteVisitBalanceAdjustmentMappingsByDpsId(
     @Schema(description = "DPS id", example = "A1234BC", required = true)
     @PathVariable
     dpsId: String,

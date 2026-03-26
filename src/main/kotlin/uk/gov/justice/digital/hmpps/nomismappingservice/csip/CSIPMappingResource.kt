@@ -198,7 +198,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
       ),
     ],
   )
-  suspend fun getMappingByNomisId(
+  suspend fun getCSIPMappingByNomisId(
     @Schema(description = "Nomis CSIP Id", required = true)
     @PathVariable
     nomisCSIPId: Long,
@@ -258,7 +258,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
       ),
     ],
   )
-  suspend fun getMappingByDPSId(
+  suspend fun getCSIPMappingByDPSId(
     @Schema(description = "DPS CSIP Id", example = "12345", required = true)
     @PathVariable
     csipId: String,
@@ -283,7 +283,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
       ),
     ],
   )
-  suspend fun getMappingsByNomisId(
+  suspend fun getCSIPMappingsByNomisId(
     @RequestParam(name = "nomisCSIPId", required = true)
     @Parameter(required = true, description = "Nomis CSIP Id", example = "345")
     nomisCSIPReportIds: List<Long>,
@@ -306,7 +306,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
       ),
     ],
   )
-  suspend fun deleteMapping(
+  suspend fun deleteCSIPMapping(
     @Schema(description = "DPS CSIP Id", example = "4321", required = true)
     @PathVariable
     dpsCSIPId: String,
@@ -384,7 +384,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
       ),
     ],
   )
-  suspend fun getMappingsByMigrationId(
+  suspend fun getCSIPMappingsByMigrationId(
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable

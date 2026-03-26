@@ -153,7 +153,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
       ),
     ],
   )
-  suspend fun getMappingsForPrisoner(
+  suspend fun getCaseNotesMappingsForPrisoner(
     @Schema(description = "NOMIS offender no", example = "A1234KT", required = true)
     @PathVariable
     offenderNo: String,
@@ -183,7 +183,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
       ),
     ],
   )
-  suspend fun getMappingByNomisId(
+  suspend fun getCaseNotesMappingByNomisId(
     @Schema(description = "NOMIS case note id", example = "23456789", required = true)
     @PathVariable
     caseNoteId: Long,
@@ -210,7 +210,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
       ),
     ],
   )
-  suspend fun getMappingsByNomisId(
+  suspend fun getCaseNotesMappingsByNomisId(
     @Schema(description = "NOMIS case note ids", required = true)
     @RequestBody
     caseNoteIds: List<Long>,
@@ -237,7 +237,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
       ),
     ],
   )
-  suspend fun getMappingsByDpsId(
+  suspend fun getCaseNotesMappingsByDpsId(
     @Schema(description = "DPS casenote id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
     dpsCaseNoteId: String,
@@ -291,7 +291,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
       ),
     ],
   )
-  suspend fun getMappingsByMigrationIdGroupByPrisoner(
+  suspend fun getCaseNotesMappingsByMigrationIdGroupByPrisoner(
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
@@ -317,7 +317,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     ],
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  suspend fun deleteMappingByNomisId(
+  suspend fun deleteCaseNotesMappingByNomisId(
     @Schema(description = "Nomis casenote id", example = "3344556677", required = true)
     @PathVariable
     nomisCaseNoteId: Long,
@@ -342,7 +342,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     ],
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  suspend fun deleteMappingsByDpsId(
+  suspend fun deleteCaseNotesMappingsByDpsId(
     @Schema(description = "DPS casenote id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
     dpsCaseNoteId: String,
