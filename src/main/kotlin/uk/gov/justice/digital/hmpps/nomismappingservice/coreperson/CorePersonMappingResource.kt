@@ -73,7 +73,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
       ),
     ],
   )
-  suspend fun createMappings(
+  suspend fun createCorePersonMappings(
     @RequestBody @Valid
     mappings: CorePersonMappingsDto,
   ) = try {
@@ -204,7 +204,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
       ),
     ],
   )
-  suspend fun deleteAllMappings() = service.deleteAllMappings()
+  suspend fun deleteAllCorePersonMappings() = service.deleteAllMappings()
 
   @GetMapping("/address/nomis-address-id/{nomisAddressId}")
   @Operation(

@@ -72,7 +72,7 @@ class SentencingMappingResource(private val mappingService: SentencingMappingSer
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createSentencingMapping(
     @RequestBody @Valid
     createMappingRequest: SentencingAdjustmentMappingDto,
   ) = try {

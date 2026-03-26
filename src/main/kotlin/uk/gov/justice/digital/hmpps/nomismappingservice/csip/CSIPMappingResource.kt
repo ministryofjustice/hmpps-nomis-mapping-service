@@ -65,7 +65,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createCSIPMapping(
     @RequestBody @Valid
     createMappingRequest: CSIPReportMappingDto,
   ) = try {
@@ -352,7 +352,7 @@ class CSIPMappingResource(private val mappingService: CSIPMappingService) {
       ),
     ],
   )
-  suspend fun deleteAllMappings(
+  suspend fun deleteAllCSIPMappings(
     @RequestParam(value = "onlyMigrated", required = false, defaultValue = "false")
     @Parameter(
       description = "if true delete mapping entries created by the migration process only (synchronisation records are unaffected)",

@@ -72,7 +72,7 @@ class LocationMappingResource(private val mappingService: LocationMappingService
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createLocationMapping(
     @RequestBody @Valid
     createMappingRequest: LocationMappingDto,
   ) = try {

@@ -64,7 +64,7 @@ class VisitBalanceAdjustmentMappingResource(private val service: VisitBalanceAdj
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createVisitBalanceAdjustmentMapping(
     @RequestBody @Valid
     mapping: VisitBalanceAdjustmentMappingDto,
   ) = try {
@@ -190,7 +190,7 @@ class VisitBalanceAdjustmentMappingResource(private val service: VisitBalanceAdj
       ),
     ],
   )
-  suspend fun deleteAllMappings() = service.deleteAllMappings()
+  suspend fun deleteAllVisitBalanceAdjustmentMappings() = service.deleteAllMappings()
   private suspend fun getExistingMappingSimilarTo(mapping: VisitBalanceAdjustmentMappingDto) = runCatching {
     service.getMappingByNomisId(
       nomisVisitBalanceAdjustmentId = mapping.nomisVisitBalanceAdjustmentId,

@@ -61,7 +61,7 @@ class AdjudicationsMappingResource(private val mappingService: AdjudicationMappi
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createAdjudicationsMapping(
     @RequestBody @Valid
     createMappingRequest: AdjudicationMappingDto,
   ) = try {

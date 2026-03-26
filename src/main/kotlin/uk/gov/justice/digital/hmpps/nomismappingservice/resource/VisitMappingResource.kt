@@ -69,7 +69,7 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createVisitMapping(
     @RequestBody @Valid
     createMappingRequest: VisitMappingDto,
   ) = try {

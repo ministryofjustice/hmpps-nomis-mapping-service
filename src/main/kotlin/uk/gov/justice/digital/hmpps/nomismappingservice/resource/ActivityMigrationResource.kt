@@ -53,7 +53,7 @@ class ActivityMigrationResource(private val mappingService: ActivityMigrationSer
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createActivityMapping(
     @RequestBody @Valid
     createMappingRequest: ActivityMigrationMappingDto,
   ) = try {
@@ -91,7 +91,7 @@ class ActivityMigrationResource(private val mappingService: ActivityMigrationSer
       ),
     ],
   )
-  suspend fun getMapping(
+  suspend fun getActivityMapping(
     @Schema(description = "Course activity Id", example = "12345", required = true)
     @PathVariable
     courseActivityId: Long,

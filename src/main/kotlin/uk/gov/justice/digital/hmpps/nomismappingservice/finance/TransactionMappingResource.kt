@@ -63,7 +63,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createTransactionMapping(
     @RequestBody @Valid
     mapping: TransactionMappingDto,
   ) = try {
@@ -114,7 +114,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
       ),
     ],
   )
-  suspend fun createMappings(
+  suspend fun createTransactionMappings(
     @RequestBody @Valid
     mappings: List<TransactionMappingDto>,
   ) = try {
@@ -336,7 +336,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
       ),
     ],
   )
-  suspend fun updateMappingsByNomisId(
+  suspend fun updateTransactionMappingsByNomisId(
     @Schema(description = "Old prisoner number to replace", example = "A3456KM", required = true)
     @PathVariable
     oldOffenderNo: String,
@@ -360,7 +360,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
       ),
     ],
   )
-  suspend fun updateMappingsByBookingId(
+  suspend fun updateTransactionMappingsByBookingId(
     @Schema(description = "The booking id", example = "1234567", required = true)
     @PathVariable
     bookingId: Long,

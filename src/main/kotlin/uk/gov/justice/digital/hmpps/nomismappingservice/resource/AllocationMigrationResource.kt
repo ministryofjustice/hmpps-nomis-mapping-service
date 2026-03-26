@@ -53,7 +53,7 @@ class AllocationMigrationResource(private val mappingService: AllocationMigratio
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createAllocationMapping(
     @RequestBody @Valid
     createMappingRequest: AllocationMigrationMappingDto,
   ) = try {
@@ -91,7 +91,7 @@ class AllocationMigrationResource(private val mappingService: AllocationMigratio
       ),
     ],
   )
-  suspend fun getMapping(
+  suspend fun getAllocationMapping(
     @Schema(description = "Nomis allocation Id", example = "12345", required = true) @PathVariable nomisAllocationId: Long,
   ): AllocationMigrationMappingDto = mappingService.getMapping(nomisAllocationId)
 
