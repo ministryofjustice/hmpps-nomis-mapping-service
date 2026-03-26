@@ -177,7 +177,7 @@ class CsraMappingResource(private val mappingService: CsraMappingService) {
       ),
     ],
   )
-  suspend fun getMappingsForPrisoner(
+  suspend fun getCsraMappingsForPrisoner(
     @Schema(description = "NOMIS offender no", example = "A1234KT", required = true)
     @PathVariable
     offenderNo: String,
@@ -202,7 +202,7 @@ class CsraMappingResource(private val mappingService: CsraMappingService) {
       ),
     ],
   )
-  suspend fun getMappingByNomisId(
+  suspend fun getCsraMappingByNomisId(
     @Schema(description = "NOMIS booking id", example = "23456789", required = true)
     @PathVariable
     bookingId: Long,
@@ -227,7 +227,7 @@ class CsraMappingResource(private val mappingService: CsraMappingService) {
       ),
     ],
   )
-  suspend fun getMappingByDpsId(
+  suspend fun getCsraMappingByDpsId(
     @Schema(description = "DPS CSRA id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
     dpsCsraId: String,
@@ -266,7 +266,7 @@ class CsraMappingResource(private val mappingService: CsraMappingService) {
       ),
     ],
   )
-  suspend fun getMappingsByMigrationIdGroupByPrisoner(
+  suspend fun getCsraMappingsByMigrationIdGroupByPrisoner(
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
@@ -280,7 +280,7 @@ class CsraMappingResource(private val mappingService: CsraMappingService) {
     responses = [ApiResponse(responseCode = "204", description = "Mapping Deleted")],
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  suspend fun deleteMappingByNomisId(
+  suspend fun deleteCsraMappingByNomisId(
     @Schema(description = "NOMIS booking id", example = "23456789", required = true)
     @PathVariable
     bookingId: Long,
@@ -296,7 +296,7 @@ class CsraMappingResource(private val mappingService: CsraMappingService) {
     responses = [ApiResponse(responseCode = "204", description = "Mapping Deleted")],
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  suspend fun deleteMappingByDpsId(
+  suspend fun deleteCsraMappingByDpsId(
     @Schema(description = "DPS CSRA id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
     dpsCsraId: String,

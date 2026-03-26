@@ -135,7 +135,7 @@ class PunishmentsMappingResource(private val mappingService: AdjudicationMapping
       ),
     ],
   )
-  suspend fun getMappingGivenDpsId(
+  suspend fun getPunishmentsMappingGivenDpsId(
     @Schema(description = "DPS Punishment Id", example = "12345", required = true)
     @PathVariable
     dpsPunishmentId: String,
@@ -166,7 +166,7 @@ class PunishmentsMappingResource(private val mappingService: AdjudicationMapping
       ),
     ],
   )
-  suspend fun getMappingGivenNomisId(
+  suspend fun getPunishmentsMappingGivenNomisId(
     @Schema(description = "NOMIS Booking Id", example = "12345", required = true)
     @PathVariable
     nomisBookingId: Long,
@@ -198,7 +198,7 @@ class PunishmentsMappingResource(private val mappingService: AdjudicationMapping
       ),
     ],
   )
-  suspend fun deleteMappingByDpsId(
+  suspend fun deletePunishmentsMappingByDpsId(
     @Schema(description = "DPS Punishment Id", example = "12345", required = true)
     @PathVariable
     dpsPunishmentId: String,

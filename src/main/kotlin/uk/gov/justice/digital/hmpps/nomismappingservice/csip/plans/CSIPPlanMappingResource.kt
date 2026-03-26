@@ -101,7 +101,7 @@ class CSIPPlanMappingResource(
       ),
     ],
   )
-  suspend fun getMappingByNomisId(
+  suspend fun getCSIPPlanMappingByNomisId(
     @Schema(description = "NOMIS CSIP Plan id", example = "12345", required = true)
     @PathVariable
     nomisCSIPPlanId: Long,

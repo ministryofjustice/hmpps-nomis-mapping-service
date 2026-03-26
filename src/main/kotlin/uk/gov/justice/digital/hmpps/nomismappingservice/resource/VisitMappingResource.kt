@@ -362,7 +362,7 @@ class VisitMappingResource(private val mappingService: VisitMappingService) {
       ),
     ],
   )
-  suspend fun getMigratedVisitMappingsByMigrationId(
+  suspend fun getVisitMigratedVisitMappingsByMigrationId(
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable

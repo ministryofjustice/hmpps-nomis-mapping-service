@@ -150,7 +150,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
       ),
     ],
   )
-  suspend fun getMappingsForPrisoner(
+  suspend fun getTransactionMappingsForPrisoner(
     @Schema(description = "NOMIS offender no", example = "A1234KT", required = true)
     @PathVariable
     offenderNo: String,
@@ -174,7 +174,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
       ),
     ],
   )
-  suspend fun getMappingByNomisId(
+  suspend fun getTransactionMappingByNomisId(
     @Schema(description = "NOMIS transaction id", example = "23456789", required = true)
     @PathVariable
     transactionId: Long,
@@ -198,7 +198,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
       ),
     ],
   )
-  suspend fun getMappingsByNomisId(
+  suspend fun getTransactionMappingsByNomisId(
     @Schema(description = "NOMIS transaction ids", required = true)
     @RequestBody
     transactionIds: List<Long>,
@@ -222,7 +222,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
       ),
     ],
   )
-  suspend fun getMappingByDpsId(
+  suspend fun getTransactionMappingByDpsId(
     @Schema(description = "DPS transaction id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
     dpsTransactionId: String,
@@ -266,7 +266,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
       ),
     ],
   )
-  suspend fun getMappingsByMigrationIdGroupByPrisoner(
+  suspend fun getTransactionMappingsByMigrationIdGroupByPrisoner(
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
@@ -292,7 +292,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
     ],
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  suspend fun deleteMappingByNomisId(
+  suspend fun deleteTransactionMappingByNomisId(
     @Schema(description = "Nomis transaction id", example = "3344556677", required = true)
     @PathVariable
     nomisTransactionId: Long,
@@ -317,7 +317,7 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
     ],
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  suspend fun deleteMappingByDpsId(
+  suspend fun deleteTransactionMappingByDpsId(
     @Schema(description = "DPS transaction id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
     dpsTransactionId: String,

@@ -110,7 +110,7 @@ class LocationMappingResource(private val mappingService: LocationMappingService
       ),
     ],
   )
-  suspend fun getMappingGivenNomisId(
+  suspend fun getLocationMappingGivenNomisId(
     @Schema(description = "Nomis location id", example = "12345678", required = true)
     @PathVariable
     nomisLocationId: Long,
@@ -141,7 +141,7 @@ class LocationMappingResource(private val mappingService: LocationMappingService
       ),
     ],
   )
-  suspend fun getMappingGivenDpsId(
+  suspend fun getLocationMappingGivenDpsId(
     @Schema(description = "DPS Location id", example = "22345678", required = true)
     @PathVariable
     dpsLocationId: String,
@@ -171,7 +171,7 @@ class LocationMappingResource(private val mappingService: LocationMappingService
       ),
     ],
   )
-  suspend fun getMappingsByMigrationId(
+  suspend fun getLocationMappingsByMigrationId(
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
@@ -206,7 +206,7 @@ class LocationMappingResource(private val mappingService: LocationMappingService
       ),
     ],
   )
-  suspend fun getLatestMigratedMapping(): LocationMappingDto = mappingService.getMappingForLatestMigrated()
+  suspend fun getLocationLatestMigratedMapping(): LocationMappingDto = mappingService.getMappingForLatestMigrated()
 
   @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @DeleteMapping("/mapping/locations/dps/{locationId}")
@@ -274,7 +274,7 @@ class LocationMappingResource(private val mappingService: LocationMappingService
       ),
     ],
   )
-  suspend fun deleteMappings(
+  suspend fun deleteLocationMappings(
     @RequestParam(value = "onlyMigrated", required = false, defaultValue = "false")
     @Parameter(
       description = "if true delete mapping entries created by the migration process only (synchronisation records are unaffected)",

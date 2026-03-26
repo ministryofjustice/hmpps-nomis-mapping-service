@@ -68,7 +68,7 @@ class CourtSentencingMappingResource(
       ),
     ],
   )
-  suspend fun getMappingByDpsId(
+  suspend fun getCourtSentencingMappingByDpsId(
     @Schema(description = "DPS court case id", example = "D123", required = true)
     @PathVariable
     courtCaseId: String,
@@ -100,7 +100,7 @@ class CourtSentencingMappingResource(
       ),
     ],
   )
-  suspend fun getMappingByNomisId(
+  suspend fun getCourtSentencingMappingByNomisId(
     @Schema(description = "NOMIS court case id", example = "123", required = true)
     @PathVariable
     courtCaseId: Long,
@@ -299,7 +299,7 @@ class CourtSentencingMappingResource(
     ],
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  suspend fun deleteMappingByDpsId(
+  suspend fun deleteAllCourtSentencingMappingByDpsId(
     @RequestBody @Valid
     mapping: DpsCourtCaseBatchMappingDto,
   ) = mappingService.deleteAllMappingsByDpsIds(mapping)
@@ -440,7 +440,7 @@ class CourtSentencingMappingResource(
     ],
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  suspend fun deleteMappingByDpsId(
+  suspend fun deleteCourtSentencingMappingByDpsId(
     @Schema(description = "DPS court case id", example = "edcd118c-41ba-42ea-b5c4-404b453ad58b", required = true)
     @PathVariable
     dpsCourtCaseId: String,
@@ -468,7 +468,7 @@ class CourtSentencingMappingResource(
     ],
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  suspend fun deleteMappingByNomisId(
+  suspend fun deleteCourtSentencingMappingByNomisId(
     @Schema(description = "NOMIS court case id", example = "33", required = true)
     @PathVariable
     nomisCourtCaseId: Long,
@@ -495,7 +495,7 @@ class CourtSentencingMappingResource(
       ),
     ],
   )
-  suspend fun getMappingsByMigrationId(
+  suspend fun getCourtSentencingMappingsByMigrationId(
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
@@ -979,7 +979,7 @@ class CourtSentencingMappingResource(
       ),
     ],
   )
-  suspend fun getSentenceMappingByNomisId(
+  suspend fun getCourtSentenceMappingByNomisId(
     @Schema(description = "NOMIS booking id", example = "123432", required = true)
     @PathVariable
     bookingId: Long,

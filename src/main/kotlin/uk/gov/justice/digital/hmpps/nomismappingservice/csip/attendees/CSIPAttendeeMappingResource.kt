@@ -101,7 +101,7 @@ class CSIPAttendeeMappingResource(
       ),
     ],
   )
-  suspend fun getMappingByNomisId(
+  suspend fun getCSIPAttendeeMappingByNomisId(
     @Schema(description = "NOMIS CSIP Attendee id", example = "12345", required = true)
     @PathVariable
     nomisCSIPAttendeeId: Long,

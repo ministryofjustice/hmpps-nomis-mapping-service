@@ -128,7 +128,7 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
       ),
     ],
   )
-  suspend fun getMappingGivenId(
+  suspend fun getActivityMappingGivenId(
     @Schema(description = "Activity schedule Id", example = "12345", required = true)
     @PathVariable
     activityScheduleId: Long,

@@ -304,7 +304,7 @@ class CorporateMappingResource(private val service: CorporateService) {
       ),
     ],
   )
-  suspend fun getAddressMappingByNomisId(
+  suspend fun getCorporateAddressMappingByNomisId(
     @Schema(description = "NOMIS address id", example = "12345", required = true)
     @PathVariable
     nomisAddressId: Long,
@@ -650,7 +650,7 @@ class CorporateMappingResource(private val service: CorporateService) {
       ),
     ],
   )
-  suspend fun getPhoneMappingByNomisId(
+  suspend fun getCorporatePhoneMappingByNomisId(
     @Schema(description = "NOMIS phone id", example = "12345", required = true)
     @PathVariable
     nomisPhoneId: Long,
