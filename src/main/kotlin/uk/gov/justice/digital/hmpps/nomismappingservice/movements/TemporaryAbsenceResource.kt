@@ -58,7 +58,7 @@ class TemporaryAbsenceResource(
       ),
     ],
   )
-  suspend fun createMappings(
+  suspend fun createTemporaryAbsenceMappings(
     @RequestBody mappings: TemporaryAbsencesPrisonerMappingDto,
   ) = service.createMigrationMappings(mappings)
 
@@ -80,7 +80,7 @@ class TemporaryAbsenceResource(
       ),
     ],
   )
-  suspend fun getMappings(
+  suspend fun getTemporaryAbsenceMappings(
     @PathVariable prisonerNumber: String,
   ): TemporaryAbsencesPrisonerMappingIdsDto = service.getAllMappings(prisonerNumber)
 

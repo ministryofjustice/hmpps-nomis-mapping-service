@@ -53,7 +53,7 @@ class CsraMappingResource(private val mappingService: CsraMappingService) {
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createCsraMapping(
     @RequestBody @Valid
     mapping: CsraMappingDto,
   ) = try {
@@ -94,7 +94,7 @@ class CsraMappingResource(private val mappingService: CsraMappingService) {
       ),
     ],
   )
-  suspend fun createMappings(
+  suspend fun createCsraMappings(
     @RequestBody @Valid
     mappings: List<CsraMappingDto>,
   ) = try {
@@ -136,7 +136,7 @@ class CsraMappingResource(private val mappingService: CsraMappingService) {
       ),
     ],
   )
-  suspend fun createMappingsForPrisoner(
+  suspend fun createCsraMappingsForPrisoner(
     @Schema(description = "NOMIS offender no", example = "A1234KT", required = true)
     @PathVariable
     offenderNo: String,
@@ -315,7 +315,7 @@ class CsraMappingResource(private val mappingService: CsraMappingService) {
       ),
     ],
   )
-  suspend fun updateMappingsByNomisId(
+  suspend fun updateCsraMappingsByNomisId(
     @Schema(description = "Old prisoner number to replace", example = "A3456KM", required = true)
     @PathVariable
     oldOffenderNo: String,
@@ -339,7 +339,7 @@ class CsraMappingResource(private val mappingService: CsraMappingService) {
       ),
     ],
   )
-  suspend fun updateMappingsByBookingId(
+  suspend fun updateCsraMappingsByBookingId(
     @Schema(description = "The booking id", example = "1234567", required = true)
     @PathVariable
     bookingId: Long,

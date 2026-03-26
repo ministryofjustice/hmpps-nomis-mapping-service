@@ -53,7 +53,7 @@ class ActivityMappingResource(private val mappingService: ActivityMappingService
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createActivityMapping(
     @RequestBody @Valid
     createMappingRequest: ActivityMappingDto,
   ) = try {

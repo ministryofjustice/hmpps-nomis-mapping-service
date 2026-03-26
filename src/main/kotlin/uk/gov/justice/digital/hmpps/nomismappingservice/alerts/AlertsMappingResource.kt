@@ -155,7 +155,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createAlertsMapping(
     @RequestBody @Valid
     mapping: AlertMappingDto,
   ) = try {
@@ -201,7 +201,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
       ),
     ],
   )
-  suspend fun createMappings(
+  suspend fun createAlertsMappings(
     @RequestBody @Valid
     mappings: List<AlertMappingDto>,
   ) = try {
@@ -256,7 +256,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
       ),
     ],
   )
-  suspend fun createMappingsForPrisoner(
+  suspend fun createAlertsMappingsForPrisoner(
     @Schema(description = "NOMIS offender no", example = "A1234KT", required = true)
     @PathVariable
     offenderNo: String,
@@ -405,7 +405,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
       ),
     ],
   )
-  suspend fun deleteAllMappings() = mappingService.deleteAllMappings()
+  suspend fun deleteAllAlertsMappings() = mappingService.deleteAllMappings()
 
   @GetMapping("/migration-id/{migrationId}")
   @Operation(
@@ -456,7 +456,7 @@ class AlertsMappingResource(private val mappingService: AlertMappingService) {
       ),
     ],
   )
-  suspend fun getMappings(
+  suspend fun getAlertsMappings(
     @PageableDefault pageRequest: Pageable,
   ): Page<AlertMappingDto> = mappingService.getMappings(pageRequest = pageRequest)
 

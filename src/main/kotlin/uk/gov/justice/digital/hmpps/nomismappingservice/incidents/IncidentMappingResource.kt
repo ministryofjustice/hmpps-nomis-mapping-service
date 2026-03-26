@@ -65,7 +65,7 @@ class IncidentMappingResource(private val mappingService: IncidentMappingService
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createIncidentMapping(
     @RequestBody @Valid
     createMappingRequest: IncidentMappingDto,
   ) = try {

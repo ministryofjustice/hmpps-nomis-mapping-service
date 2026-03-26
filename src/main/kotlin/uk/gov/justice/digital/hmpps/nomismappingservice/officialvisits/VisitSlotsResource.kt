@@ -388,7 +388,7 @@ class VisitSlotsResource(private val visitSlotsService: VisitSlotsService) {
       ),
     ],
   )
-  suspend fun createMigrationMappings(
+  suspend fun createVisitSlotsMigrationMappings(
     @RequestBody @Valid
     mappings: VisitTimeSlotMigrationMappingDto,
   ) = try {
@@ -456,7 +456,7 @@ class VisitSlotsResource(private val visitSlotsService: VisitSlotsService) {
       ),
     ],
   )
-  suspend fun deleteAllMappings() = visitSlotsService.deleteAllMappings()
+  suspend fun deleteAllVisitSlotsMappings() = visitSlotsService.deleteAllMappings()
 
   private suspend fun getExistingVisitTimeSlotMappingSimilarTo(mapping: VisitTimeSlotMigrationMappingDto) = runCatching {
     visitSlotsService.getVisitTimeSlotMappingByNomisId(

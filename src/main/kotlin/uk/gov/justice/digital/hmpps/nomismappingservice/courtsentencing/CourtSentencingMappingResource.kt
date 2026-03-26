@@ -191,7 +191,7 @@ class CourtSentencingMappingResource(
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createCourtSentencingMapping(
     @RequestBody @Valid
     mapping: CourtCaseAllMappingDto,
   ) = try {
@@ -1123,7 +1123,7 @@ class CourtSentencingMappingResource(
     ],
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  suspend fun deleteAllMappings() = mappingService.deleteAllMappings()
+  suspend fun deleteAllCourtSentencingMappings() = mappingService.deleteAllMappings()
 
   @DeleteMapping("/cut-off-date/{cutoffDateTime}")
   @Operation(

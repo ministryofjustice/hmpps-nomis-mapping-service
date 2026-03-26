@@ -268,7 +268,7 @@ class ReligionResource(private val religionService: ReligionService) {
       ),
     ],
   )
-  suspend fun createMigrationMappings(
+  suspend fun createReligionMigrationMappings(
     @RequestBody @Valid
     mappings: ReligionsMigrationMappingDto,
   ) = try {
@@ -336,7 +336,7 @@ class ReligionResource(private val religionService: ReligionService) {
       ),
     ],
   )
-  suspend fun deleteAllMappings() = religionService.deleteAllMappings()
+  suspend fun deleteAllReligionMappings() = religionService.deleteAllMappings()
 
   private suspend fun getExistingReligionsMappingSimilarTo(mapping: ReligionsMigrationMappingDto) = runCatching {
     religionService.getReligionsMappingByNomisId(

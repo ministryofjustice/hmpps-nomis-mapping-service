@@ -67,7 +67,7 @@ class IncentiveMappingResource(private val mappingService: IncentiveMappingServi
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createIncentiveMapping(
     @RequestBody @Valid
     createMappingRequest: IncentiveMappingDto,
   ) = try {

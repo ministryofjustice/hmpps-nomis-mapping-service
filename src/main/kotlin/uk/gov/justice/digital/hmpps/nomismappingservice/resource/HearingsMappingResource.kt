@@ -57,7 +57,7 @@ class HearingsMappingResource(private val mappingService: AdjudicationMappingSer
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createHearingsMapping(
     @RequestBody @Valid
     createMappingRequest: AdjudicationHearingMappingDto,
   ) = try {

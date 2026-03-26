@@ -71,7 +71,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createNonAssociationsMapping(
     @RequestBody @Valid
     createMappingRequest: NonAssociationMappingDto,
   ) = try {
@@ -210,7 +210,7 @@ class NonAssociationsMappingResource(private val mappingService: NonAssociationM
       ),
     ],
   )
-  suspend fun updateMappingsByNomisId(
+  suspend fun updateNonAssociationMappingsByNomisId(
     @Schema(description = "Old prisoner number to replace", example = "A3456KM", required = true)
     @PathVariable
     oldOffenderNo: String,

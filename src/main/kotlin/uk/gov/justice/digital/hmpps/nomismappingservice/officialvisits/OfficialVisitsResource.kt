@@ -134,7 +134,7 @@ class OfficialVisitsResource(private val officialVisitsService: OfficialVisitsSe
       ),
     ],
   )
-  suspend fun createMigrationMappings(
+  suspend fun createOfficialVisitsMigrationMappings(
     @RequestBody @Valid
     mappings: OfficialVisitMigrationMappingDto,
   ): Unit = try {
@@ -416,7 +416,7 @@ class OfficialVisitsResource(private val officialVisitsService: OfficialVisitsSe
       ),
     ],
   )
-  suspend fun deleteAllMappings(): Unit = officialVisitsService.deleteAllMappings()
+  suspend fun deleteAllOfficialVisitsMappings(): Unit = officialVisitsService.deleteAllMappings()
 
   private suspend fun getExistingVisitMappingSimilarTo(mapping: OfficialVisitMigrationMappingDto): OfficialVisitMappingDto? = runCatching {
     officialVisitsService.getOfficialVisitMappingByNomisId(nomisId = mapping.nomisId)

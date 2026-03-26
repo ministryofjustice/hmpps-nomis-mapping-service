@@ -70,7 +70,7 @@ class AppointmentMappingResource(private val mappingService: AppointmentMappingS
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createAppointmentMapping(
     @RequestBody @Valid
     createMappingRequest: AppointmentMappingDto,
   ) = try {

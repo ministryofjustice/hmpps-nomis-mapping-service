@@ -63,7 +63,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
       ),
     ],
   )
-  suspend fun createMapping(
+  suspend fun createCaseNotesMapping(
     @RequestBody @Valid
     mapping: CaseNoteMappingDto,
   ) = try {
@@ -114,7 +114,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
       ),
     ],
   )
-  suspend fun createMappings(
+  suspend fun createCaseNotesMappings(
     @RequestBody @Valid
     mappings: List<CaseNoteMappingDto>,
   ) = try {
@@ -361,7 +361,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
       ),
     ],
   )
-  suspend fun updateMappingsByNomisId(
+  suspend fun updateCaseNoteMappingsByNomisId(
     @Schema(description = "Old prisoner number to replace", example = "A3456KM", required = true)
     @PathVariable
     oldOffenderNo: String,
@@ -385,7 +385,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
       ),
     ],
   )
-  suspend fun updateMappingsByBookingId(
+  suspend fun updateCaseNotesMappingsByBookingId(
     @Schema(description = "The booking id", example = "1234567", required = true)
     @PathVariable
     bookingId: Long,
