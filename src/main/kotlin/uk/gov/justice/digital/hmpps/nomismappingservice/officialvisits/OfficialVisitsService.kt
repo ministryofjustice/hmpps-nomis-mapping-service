@@ -65,6 +65,16 @@ class OfficialVisitsService(
       }
     }
   }
+  suspend fun recreateMappings(prisonerMappings: OfficialVisitReplaceMappingDto) {
+    prisonerMappings.mappings.forEach {
+      deleteOfficialVisitMappingByNomisId(it.nomisId)
+      it.visitors.forEach { visitorMapping ->
+        deleteOfficialVisitorMappingByNomisId(visitorMapping.nomisId)
+      }
+      createMappings(it)
+    }
+  }
+
   suspend fun createVisitMapping(mapping: OfficialVisitMappingDto) {
     officialVisitMappingRepository.save(
       with(mapping) {
