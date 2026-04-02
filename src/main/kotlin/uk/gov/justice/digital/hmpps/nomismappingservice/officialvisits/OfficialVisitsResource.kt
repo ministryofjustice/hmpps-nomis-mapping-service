@@ -152,6 +152,30 @@ class OfficialVisitsResource(private val officialVisitsService: OfficialVisitsSe
     )
   }
 
+  @PostMapping("/replace-by-nomis-ids")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates a mini tree of visit mappings typically for a repair. Any existing mappings for the supplied NOMIS Ids will be deleted first, so this assumes the DPS Ids are all new",
+    description = "Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mappings created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun recreateOfficialVisitsByNomisIdMappings(
+    @RequestBody @Valid
+    prisonerMappings: OfficialVisitReplaceMappingDto,
+  ): Unit = officialVisitsService.recreateMappings(prisonerMappings)
+
   @PostMapping("/visit")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -463,6 +487,10 @@ data class OfficialVisitMigrationMappingDto(
 data class VisitorMigrationMappingDto(
   val dpsId: String,
   val nomisId: Long,
+)
+
+data class OfficialVisitReplaceMappingDto(
+  val mappings: List<OfficialVisitMigrationMappingDto>,
 )
 
 private fun OfficialVisitMappingDto.asOfficialVisitMigrationMappingDto() = OfficialVisitMigrationMappingDto(
