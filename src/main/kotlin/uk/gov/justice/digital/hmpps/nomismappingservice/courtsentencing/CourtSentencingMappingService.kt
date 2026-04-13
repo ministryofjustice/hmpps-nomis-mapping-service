@@ -242,9 +242,6 @@ class CourtSentencingMappingService(
   suspend fun getCourtCaseMappingByNomisIds(nomisCourtCaseIds: List<Long>): Flow<CourtCaseMappingDto> = courtCaseMappingRepository.findAllByNomisCourtCaseIdIn(nomisCourtCaseIds)
     .map { it.toCourtCaseMappingDto() }
 
-  suspend fun getCourtCaseAllMappingByDpsId(courtCaseId: String): CourtCaseAllMappingDto = courtCaseMappingRepository.findById(courtCaseId)?.toCourtCaseAllMappingDto()
-    ?: throw NotFoundException("DPS Court case Id =$courtCaseId")
-
   suspend fun getCourtCaseAllMappingByDpsIdOrNull(courtCaseId: String): CourtCaseAllMappingDto? = courtCaseMappingRepository.findByDpsCourtCaseId(courtCaseId)?.toCourtCaseAllMappingDto()
 
   suspend fun getCourtCaseAllMappingByNomisId(courtCaseId: Long): CourtCaseAllMappingDto = courtCaseMappingRepository.findByNomisCourtCaseId(courtCaseId)?.toCourtCaseAllMappingDto()
@@ -421,13 +418,7 @@ class CourtSentencingMappingService(
   suspend fun getCourtAppearanceMappingByDpsId(courtAppearanceId: String): CourtAppearanceMappingDto = courtAppearanceMappingRepository.findById(courtAppearanceId)?.toCourtAppearanceMappingDto()
     ?: throw NotFoundException("DPS Court appearance Id =$courtAppearanceId")
 
-  suspend fun getCourtAppearanceAllMappingByDpsId(courtAppearanceId: String): CourtAppearanceAllMappingDto = courtAppearanceMappingRepository.findById(courtAppearanceId)?.toCourtAppearanceAllMappingDto()
-    ?: throw NotFoundException("DPS Court appearance Id =$courtAppearanceId")
-
   suspend fun getCourtAppearanceMappingByNomisId(courtAppearanceId: Long): CourtAppearanceMappingDto = courtAppearanceMappingRepository.findByNomisCourtAppearanceId(courtAppearanceId)?.toCourtAppearanceMappingDto()
-    ?: throw NotFoundException("Nomis Court appearance Id =$courtAppearanceId")
-
-  suspend fun getCourtAppearanceAllMappingByNomisId(courtAppearanceId: Long): CourtAppearanceAllMappingDto = courtAppearanceMappingRepository.findByNomisCourtAppearanceId(courtAppearanceId)?.toCourtAppearanceAllMappingDto()
     ?: throw NotFoundException("Nomis Court appearance Id =$courtAppearanceId")
 
   suspend fun getCourtChargeMappingByDpsId(courtChargeId: String): CourtChargeMappingDto = courtChargeMappingRepository.findById(courtChargeId)?.toCourtChargeMappingDto()
@@ -459,7 +450,7 @@ class CourtSentencingMappingService(
     sentenceMappingRepository.findById(dpsSentenceId)?.toSentenceAllMappingDto()
   }
 
-  fun getSentenceMappingsByNomisIds(nomisSentenceIds: List<NomisSentenceId>): Flow<SentenceMappingDto> = getSentencesByNomisIds(nomisSentenceIds).mapNotNull { sentenceMapping ->
+  fun getSentenceMappingsByNomisIds(nomisSentenceIds: List<NomisSentenceId>): Flow<SentenceMappingDto> = getSentencesByNomisIds(nomisSentenceIds).map { sentenceMapping ->
     sentenceMapping.toSentenceAllMappingDto()
   }
 
@@ -588,23 +579,7 @@ fun CourtAppearanceMapping.toCourtAppearanceMappingDto(): CourtAppearanceMapping
   whenCreated = this.whenCreated,
 )
 
-// on duplicate the calling service are expecting CourtAppearanceAllMappingDto to be returned, child entities are NOT populated
-fun CourtAppearanceMapping.toCourtAppearanceAllMappingDto(): CourtAppearanceAllMappingDto = CourtAppearanceAllMappingDto(
-  dpsCourtAppearanceId = this.dpsCourtAppearanceId,
-  nomisCourtAppearanceId = this.nomisCourtAppearanceId,
-  label = this.label,
-  mappingType = this.mappingType,
-  whenCreated = this.whenCreated,
-)
-
 fun CourtAppearanceMappingDto.toCourtAppearanceMapping(): CourtAppearanceMapping = CourtAppearanceMapping(
-  dpsCourtAppearanceId = this.dpsCourtAppearanceId,
-  nomisCourtAppearanceId = this.nomisCourtAppearanceId,
-  label = this.label,
-  mappingType = mappingType ?: CourtAppearanceMappingType.DPS_CREATED,
-)
-
-fun CourtAppearanceAllMappingDto.toCourtAppearanceMapping(): CourtAppearanceMapping = CourtAppearanceMapping(
   dpsCourtAppearanceId = this.dpsCourtAppearanceId,
   nomisCourtAppearanceId = this.nomisCourtAppearanceId,
   label = this.label,

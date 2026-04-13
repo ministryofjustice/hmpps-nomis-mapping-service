@@ -429,7 +429,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CourtAppearanceAllMappingDto(
+              CourtAppearanceMappingDto(
                 nomisCourtAppearanceId = existingMapping.nomisCourtAppearanceId,
                 dpsCourtAppearanceId = "DPS888",
               ),
@@ -462,7 +462,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CourtAppearanceAllMappingDto(
+              CourtAppearanceMappingDto(
                 nomisCourtAppearanceId = 8877,
                 dpsCourtAppearanceId = existingMapping.dpsCourtAppearanceId,
               ),
