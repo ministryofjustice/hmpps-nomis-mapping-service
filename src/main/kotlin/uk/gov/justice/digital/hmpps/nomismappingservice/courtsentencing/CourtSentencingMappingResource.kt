@@ -513,7 +513,7 @@ class CourtSentencingMappingResource(
         content = [
           Content(
             mediaType = "application/json",
-            schema = Schema(implementation = CourtAppearanceAllMappingDto::class),
+            schema = Schema(implementation = CourtAppearanceMappingDto::class),
           ),
         ],
       ),
