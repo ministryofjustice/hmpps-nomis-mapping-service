@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.1.2"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.2.1"
   kotlin("plugin.spring") version "2.3.20"
   kotlin("plugin.jpa") version "2.3.20"
   idea
@@ -19,6 +19,9 @@ dependencies {
   implementation("org.springframework.security:spring-security-access")
   implementation("org.springframework.boot:spring-boot-starter-flyway")
   implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.0.2")
+  constraints {
+    implementation("org.webjars:swagger-ui:5.32.2")
+  }
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.10.2")
