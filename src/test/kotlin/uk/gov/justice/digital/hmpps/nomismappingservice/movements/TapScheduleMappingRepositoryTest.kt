@@ -7,19 +7,28 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.r2dbc.test.autoconfigure.DataR2dbcTest
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestBase
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.application.MovementMappingType
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.schedule.TapScheduleMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.schedule.TapScheduleRepository
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
+import java.time.LocalDateTime
 import java.util.*
 
 @DataR2dbcTest
 @WithMockAuthUser
-class TemporaryAbsenceMappingRepositoryTest(
-  @Autowired private val repository: TemporaryAbsenceApplicationRepository,
+class TapScheduleMappingRepositoryTest(
+  @Autowired private val repository: TapScheduleRepository,
 ) : TestBase() {
 
   private val dpsId = UUID.randomUUID()
   private val nomisId = 123456L
   private val offenderNo = "A1234BC"
   private val bookingId = 54321L
+  private val addressId = 987654L
+  private val addressOwnerClass = "CORP"
+  private val dpsAddressText = "house, 1 street, town S1 1AA"
+  private val dpsUprn = 77L
+  private val eventTime = LocalDateTime.now()
 
   @AfterEach
   fun tearDown() = runTest {
@@ -29,30 +38,44 @@ class TemporaryAbsenceMappingRepositoryTest(
   @Test
   fun `should save and load mapping`() = runTest {
     repository.save(
-      TemporaryAbsenceApplicationMapping(
+      TapScheduleMapping(
         dpsId,
         nomisId,
         offenderNo,
         bookingId,
+        addressId,
+        addressOwnerClass,
+        dpsAddressText,
+        dpsUprn,
+        null,
+        null,
+        eventTime,
         "some_label",
         MovementMappingType.MIGRATED,
       ),
     )
 
     with(repository.findById(dpsId)!!) {
-      assertThat(dpsApplicationId).isEqualTo(dpsId)
-      assertThat(nomisApplicationId).isEqualTo(nomisId)
+      assertThat(dpsOccurrenceId).isEqualTo(dpsId)
+      assertThat(nomisEventId).isEqualTo(nomisId)
       assertThat(offenderNo).isEqualTo(offenderNo)
       assertThat(bookingId).isEqualTo(bookingId)
+      assertThat(nomisAddressId).isEqualTo(addressId)
+      assertThat(nomisAddressOwnerClass).isEqualTo(addressOwnerClass)
+      assertThat(dpsAddressText).isEqualTo(dpsAddressText)
+      assertThat(eventTime).isEqualTo(eventTime)
       assertThat(label).isEqualTo("some_label")
       assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
     }
 
-    with(repository.findByNomisApplicationId(nomisId)!!) {
-      assertThat(dpsApplicationId).isEqualTo(dpsId)
-      assertThat(nomisApplicationId).isEqualTo(nomisId)
+    with(repository.findByNomisEventId(nomisId)!!) {
+      assertThat(dpsOccurrenceId).isEqualTo(dpsId)
+      assertThat(nomisEventId).isEqualTo(nomisId)
       assertThat(offenderNo).isEqualTo(offenderNo)
       assertThat(bookingId).isEqualTo(bookingId)
+      assertThat(nomisAddressId).isEqualTo(addressId)
+      assertThat(nomisAddressOwnerClass).isEqualTo(addressOwnerClass)
+      assertThat(dpsAddressText).isEqualTo(dpsAddressText)
       assertThat(label).isEqualTo("some_label")
       assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
     }

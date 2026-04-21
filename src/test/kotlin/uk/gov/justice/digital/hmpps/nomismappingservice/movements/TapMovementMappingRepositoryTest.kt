@@ -7,13 +7,16 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.r2dbc.test.autoconfigure.DataR2dbcTest
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestBase
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.application.MovementMappingType
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.movement.TapMovementMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.movement.TapMovementRepository
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 import java.util.*
 
 @DataR2dbcTest
 @WithMockAuthUser
-class TemporaryAbsenceMovementMappingRepositoryTest(
-  @Autowired private val repository: TemporaryAbsenceMovementRepository,
+class TapMovementMappingRepositoryTest(
+  @Autowired private val repository: TapMovementRepository,
 ) : TestBase() {
 
   private val dpsId = UUID.randomUUID()
@@ -33,7 +36,7 @@ class TemporaryAbsenceMovementMappingRepositoryTest(
   @Test
   fun `should save and load mapping`() = runTest {
     repository.save(
-      TemporaryAbsenceMovementMapping(
+      TapMovementMapping(
         dpsId,
         nomisBookingId,
         nomisMovementSeq,

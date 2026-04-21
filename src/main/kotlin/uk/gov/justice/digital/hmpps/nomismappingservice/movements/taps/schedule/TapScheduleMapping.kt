@@ -1,13 +1,14 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.movements
+package uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.schedule
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.application.MovementMappingType
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
-data class TemporaryAbsenceScheduleMapping(
+data class TapScheduleMapping(
 
   @Id
   val dpsOccurrenceId: UUID,
@@ -51,7 +52,7 @@ data class TemporaryAbsenceScheduleMapping(
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is TemporaryAbsenceScheduleMapping) return false
+    if (other !is TapScheduleMapping) return false
 
     return dpsOccurrenceId != other.dpsOccurrenceId
   }

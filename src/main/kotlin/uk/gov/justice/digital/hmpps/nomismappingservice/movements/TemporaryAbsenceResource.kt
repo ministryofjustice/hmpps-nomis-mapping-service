@@ -24,6 +24,13 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingException
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.application.TemporaryAbsenceApplicationSyncMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.migration.TemporaryAbsenceMigrationDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.movement.ExternalMovementSyncMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.TemporaryAbsenceMoveBookingMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.TemporaryAbsencesPrisonerMappingIdsDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.schedule.ScheduledMovementSyncMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.schedule.TemporaryAbsencesPrisonerMappingDto
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.time.LocalDate
 import java.util.UUID
