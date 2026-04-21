@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import java.util.UUID
 
+@Deprecated("use TapApplicationMappingDto instead")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Mappings for a single temporary absence application")
 data class TemporaryAbsenceApplicationSyncMappingDto(

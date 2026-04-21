@@ -28,9 +28,9 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.applicati
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.migration.TemporaryAbsenceMigrationDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.movement.ExternalMovementSyncMappingDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.TemporaryAbsenceMoveBookingMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.TemporaryAbsencesPrisonerMappingDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.TemporaryAbsencesPrisonerMappingIdsDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.schedule.ScheduledMovementSyncMappingDto
-import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.schedule.TemporaryAbsencesPrisonerMappingDto
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.time.LocalDate
 import java.util.UUID

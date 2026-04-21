@@ -6,10 +6,9 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.applicati
 import java.time.LocalDateTime
 import java.util.UUID
 
-@Deprecated("use TapScheduleMappingDto instead")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Mapping for a single scheduled movement")
-data class ScheduledMovementSyncMappingDto(
+data class TapScheduleMappingDto(
   @Schema(description = "The NOMIS offender number", example = "A1234BC")
   val prisonerNumber: String,
   @Schema(description = "The NOMIS ID of the booking", example = "12345")
