@@ -17,17 +17,37 @@ import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.isDuplicateMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.application.MovementMappingType
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.application.TapApplicationMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.application.TapApplicationRepository
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.application.TemporaryAbsenceApplicationSyncMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.migration.TapMigration
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.migration.TapMigrationRepository
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.movement.ExternalMovementSyncMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.movement.TapMovementMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.movement.TapMovementRepository
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.ExternalMovementMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.ScheduledMovementMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.TemporaryAbsenceApplicationIdMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.TemporaryAbsenceApplicationMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.TemporaryAbsenceBookingMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.TemporaryAbsenceMoveBookingMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.TemporaryAbsenceMovementIdMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.TemporaryAbsencesPrisonerMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.TemporaryAbsencesPrisonerMappingIdsDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.schedule.ScheduledMovementSyncMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.schedule.TapScheduleMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.schedule.TapScheduleRepository
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
-class TemporaryAbsenceResourceIntTest(
-  @Autowired private val applicationRepository: TemporaryAbsenceApplicationRepository,
-  @Autowired private val scheduleRepository: TemporaryAbsenceScheduleRepository,
-  @Autowired private val movementRepository: TemporaryAbsenceMovementRepository,
-  @Autowired private val migrationRepository: TemporaryAbsenceMigrationRepository,
-  @Autowired private val addressRepository: TemporaryAbsenceAddressRepository,
+class TapResourceIntTest(
+  @Autowired private val applicationRepository: TapApplicationRepository,
+  @Autowired private val scheduleRepository: TapScheduleRepository,
+  @Autowired private val movementRepository: TapMovementRepository,
+  @Autowired private val migrationRepository: TapMigrationRepository,
 ) : IntegrationTestBase() {
 
   @Nested
@@ -64,7 +84,6 @@ class TemporaryAbsenceResourceIntTest(
       movementRepository.deleteAll()
       scheduleRepository.deleteAll()
       applicationRepository.deleteAll()
-      addressRepository.deleteAll()
     }
 
     fun saveMappings(mappings: TemporaryAbsencesPrisonerMappingDto = mappingsRequest()) {
@@ -193,7 +212,7 @@ class TemporaryAbsenceResourceIntTest(
           assertThat(bookingId).isEqualTo(NOMIS_BOOKING_ID)
           assertThat(whenCreated?.toLocalDate()).isEqualTo(LocalDate.now())
           assertThat(nomisApplicationId).isEqualTo(NOMIS_APPLICATION_ID)
-          assertThat(dpsApplicationId).isEqualTo(DPS_APPLICATION_ID)
+          assertThat(dpsAuthorisationId).isEqualTo(DPS_APPLICATION_ID)
           assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
         }
       }
@@ -411,7 +430,6 @@ class TemporaryAbsenceResourceIntTest(
       movementRepository.deleteAll()
       scheduleRepository.deleteAll()
       applicationRepository.deleteAll()
-      addressRepository.deleteAll()
     }
 
     fun saveMappings(mappings: TemporaryAbsencesPrisonerMappingDto = mappingsRequest()) {
@@ -627,7 +645,7 @@ class TemporaryAbsenceResourceIntTest(
         with(applicationRepository.findByNomisApplicationId(23456L)!!) {
           assertThat(offenderNo).isEqualTo("A1234BC")
           assertThat(bookingId).isEqualTo(12345L)
-          assertThat(dpsApplicationId).isEqualTo(mapping.dpsMovementApplicationId)
+          assertThat(dpsAuthorisationId).isEqualTo(mapping.dpsMovementApplicationId)
           assertThat(mappingType).isEqualTo(MovementMappingType.NOMIS_CREATED)
         }
       }
@@ -770,7 +788,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Nested
     inner class HappyPath {
-      val mapping = TemporaryAbsenceApplicationMapping(
+      val mapping = TapApplicationMapping(
         UUID.randomUUID(),
         23456L,
         "A1234BC",
@@ -788,7 +806,7 @@ class TemporaryAbsenceResourceIntTest(
           .returnResult().responseBody!!
           .apply {
             assertThat(nomisMovementApplicationId).isEqualTo(mapping.nomisApplicationId)
-            assertThat(dpsMovementApplicationId).isEqualTo(mapping.dpsApplicationId)
+            assertThat(dpsMovementApplicationId).isEqualTo(mapping.dpsAuthorisationId)
             assertThat(prisonerNumber).isEqualTo(mapping.offenderNo)
             assertThat(bookingId).isEqualTo(mapping.bookingId)
             assertThat(mappingType).isEqualTo(mapping.mappingType)
@@ -859,7 +877,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Nested
     inner class HappyPath {
-      val mapping = TemporaryAbsenceApplicationMapping(
+      val mapping = TapApplicationMapping(
         UUID.randomUUID(),
         23456L,
         "A1234BC",
@@ -871,13 +889,13 @@ class TemporaryAbsenceResourceIntTest(
       fun `should get application mapping by DPS ID`() = runTest {
         applicationRepository.save(mapping)
 
-        webTestClient.getApplicationSyncMapping(mapping.dpsApplicationId)
+        webTestClient.getApplicationSyncMapping(mapping.dpsAuthorisationId)
           .expectStatus().isOk
           .expectBody(object : ParameterizedTypeReference<TemporaryAbsenceApplicationSyncMappingDto>() {})
           .returnResult().responseBody!!
           .apply {
             assertThat(nomisMovementApplicationId).isEqualTo(mapping.nomisApplicationId)
-            assertThat(dpsMovementApplicationId).isEqualTo(mapping.dpsApplicationId)
+            assertThat(dpsMovementApplicationId).isEqualTo(mapping.dpsAuthorisationId)
             assertThat(prisonerNumber).isEqualTo(mapping.offenderNo)
             assertThat(bookingId).isEqualTo(mapping.bookingId)
             assertThat(mappingType).isEqualTo(mapping.mappingType)
@@ -949,14 +967,14 @@ class TemporaryAbsenceResourceIntTest(
 
     @Nested
     inner class HappyPath {
-      val mapping1 = TemporaryAbsenceApplicationMapping(
+      val mapping1 = TapApplicationMapping(
         UUID.randomUUID(),
         23456L,
         "A1234BC",
         12345L,
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
-      val mapping2 = TemporaryAbsenceApplicationMapping(
+      val mapping2 = TapApplicationMapping(
         UUID.randomUUID(),
         65432L,
         "A1234BC",
@@ -1028,7 +1046,6 @@ class TemporaryAbsenceResourceIntTest(
     @AfterEach
     fun tearDown() = runTest {
       scheduleRepository.deleteAll()
-      addressRepository.deleteAll()
     }
 
     @Nested
@@ -1240,7 +1257,6 @@ class TemporaryAbsenceResourceIntTest(
     @AfterEach
     fun tearDown() = runTest {
       scheduleRepository.deleteAll()
-      addressRepository.deleteAll()
     }
 
     @Nested
@@ -1399,7 +1415,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Nested
     inner class HappyPath {
-      val mapping = TemporaryAbsenceScheduleMapping(
+      val mapping = TapScheduleMapping(
         UUID.randomUUID(),
         23456L,
         "A1234BC",
@@ -1508,7 +1524,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Nested
     inner class HappyPath {
-      val mapping = TemporaryAbsenceScheduleMapping(
+      val mapping = TapScheduleMapping(
         UUID.randomUUID(),
         23456L,
         "A1234BC",
@@ -1617,7 +1633,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Nested
     inner class HappyPath {
-      val mapping1 = TemporaryAbsenceScheduleMapping(
+      val mapping1 = TapScheduleMapping(
         UUID.randomUUID(),
         23456L,
         "A1234BC",
@@ -1631,7 +1647,7 @@ class TemporaryAbsenceResourceIntTest(
         LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
-      val mapping2 = TemporaryAbsenceScheduleMapping(
+      val mapping2 = TapScheduleMapping(
         UUID.randomUUID(),
         65432L,
         "A1234BC",
@@ -2063,7 +2079,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Nested
     inner class HappyPath {
-      val mapping = TemporaryAbsenceMovementMapping(
+      val mapping = TapMovementMapping(
         UUID.randomUUID(),
         12345L,
         12,
@@ -2151,7 +2167,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Nested
     inner class HappyPath {
-      val mapping = TemporaryAbsenceMovementMapping(
+      val mapping = TapMovementMapping(
         UUID.randomUUID(),
         12345L,
         12,
@@ -2239,7 +2255,7 @@ class TemporaryAbsenceResourceIntTest(
 
     @Nested
     inner class HappyPath {
-      val mapping1 = TemporaryAbsenceMovementMapping(
+      val mapping1 = TapMovementMapping(
         UUID.randomUUID(),
         12345L,
         12,
@@ -2250,7 +2266,7 @@ class TemporaryAbsenceResourceIntTest(
         dpsUprn = 77L,
         mappingType = MovementMappingType.NOMIS_CREATED,
       )
-      val mapping2 = TemporaryAbsenceMovementMapping(
+      val mapping2 = TapMovementMapping(
         UUID.randomUUID(),
         12345L,
         13,
@@ -2351,7 +2367,7 @@ class TemporaryAbsenceResourceIntTest(
     private val startOfToday = now.truncatedTo(ChronoUnit.DAYS)
     private val tomorrow = now.plusDays(1)
 
-    private fun aMapping(eventId: Long, addressId: Long?, eventTime: LocalDateTime) = TemporaryAbsenceScheduleMapping(
+    private fun aMapping(eventId: Long, addressId: Long?, eventTime: LocalDateTime) = TapScheduleMapping(
       dpsOccurrenceId = UUID.randomUUID(),
       nomisEventId = eventId,
       offenderNo = "A1234AA",
@@ -2515,7 +2531,7 @@ class TemporaryAbsenceResourceIntTest(
       fun `can retrieve mappings count by migration Id`() = runTest {
         (1L..4).forEach {
           migrationRepository.save(
-            TemporaryAbsenceMigration(
+            TapMigration(
               offenderNo = "any$it",
               label = "2023-01-01T12:45:12",
             ),
@@ -2523,7 +2539,7 @@ class TemporaryAbsenceResourceIntTest(
         }
 
         migrationRepository.save(
-          TemporaryAbsenceMigration(
+          TapMigration(
             offenderNo = "different",
             label = "2022-02-02T12:45:12",
           ),
@@ -2541,7 +2557,7 @@ class TemporaryAbsenceResourceIntTest(
       fun `should return when created as mandatory in migration service`() = runTest {
         val now = LocalDateTime.now().withNano(0)
         migrationRepository.save(
-          TemporaryAbsenceMigration(
+          TapMigration(
             offenderNo = "any",
             label = "2023-01-01T12:45:12",
             whenCreated = now,
@@ -2595,15 +2611,15 @@ class TemporaryAbsenceResourceIntTest(
       movementRepository.save(aMovementMapping(bookingId2, book2seq1, book2move1))
     }
 
-    private fun anApplicationMapping(bookingId: Long, applicationId: Long, authorisationId: UUID) = TemporaryAbsenceApplicationMapping(
+    private fun anApplicationMapping(bookingId: Long, applicationId: Long, authorisationId: UUID) = TapApplicationMapping(
       nomisApplicationId = applicationId,
-      dpsApplicationId = authorisationId,
+      dpsAuthorisationId = authorisationId,
       offenderNo = "A1234AB",
       bookingId = bookingId,
       mappingType = MovementMappingType.NOMIS_CREATED,
     )
 
-    private fun aMovementMapping(bookingId: Long, movementSeq: Int, movementId: UUID) = TemporaryAbsenceMovementMapping(
+    private fun aMovementMapping(bookingId: Long, movementSeq: Int, movementId: UUID) = TapMovementMapping(
       dpsMovementId = movementId,
       nomisBookingId = bookingId,
       nomisMovementSeq = movementSeq,
@@ -2729,15 +2745,15 @@ class TemporaryAbsenceResourceIntTest(
       movementRepository.save(aMovementMapping(bookingId2, book2seq1, book2move1))
     }
 
-    private fun anApplicationMapping(bookingId: Long, applicationId: Long, authorisationId: UUID) = TemporaryAbsenceApplicationMapping(
+    private fun anApplicationMapping(bookingId: Long, applicationId: Long, authorisationId: UUID) = TapApplicationMapping(
       nomisApplicationId = applicationId,
-      dpsApplicationId = authorisationId,
+      dpsAuthorisationId = authorisationId,
       offenderNo = "A1234AB",
       bookingId = bookingId,
       mappingType = MovementMappingType.NOMIS_CREATED,
     )
 
-    private fun aScheduleMapping(bookingId: Long, eventId: Long, occurrenceId: UUID) = TemporaryAbsenceScheduleMapping(
+    private fun aScheduleMapping(bookingId: Long, eventId: Long, occurrenceId: UUID) = TapScheduleMapping(
       dpsOccurrenceId = occurrenceId,
       nomisEventId = eventId,
       offenderNo = "A1234AB",
@@ -2750,7 +2766,7 @@ class TemporaryAbsenceResourceIntTest(
       eventTime = LocalDateTime.now(),
     )
 
-    private fun aMovementMapping(bookingId: Long, movementSeq: Int, movementId: UUID) = TemporaryAbsenceMovementMapping(
+    private fun aMovementMapping(bookingId: Long, movementSeq: Int, movementId: UUID) = TapMovementMapping(
       dpsMovementId = movementId,
       nomisBookingId = bookingId,
       nomisMovementSeq = movementSeq,
@@ -2903,15 +2919,15 @@ class TemporaryAbsenceResourceIntTest(
       movementRepository.save(aMovementMapping(toOffenderNo, bookingId2, book2seq1, book2move1))
     }
 
-    private fun anApplicationMapping(offenderNo: String = "A1234AB", bookingId: Long, applicationId: Long, authorisationId: UUID) = TemporaryAbsenceApplicationMapping(
+    private fun anApplicationMapping(offenderNo: String = "A1234AB", bookingId: Long, applicationId: Long, authorisationId: UUID) = TapApplicationMapping(
       nomisApplicationId = applicationId,
-      dpsApplicationId = authorisationId,
+      dpsAuthorisationId = authorisationId,
       offenderNo = offenderNo,
       bookingId = bookingId,
       mappingType = MovementMappingType.NOMIS_CREATED,
     )
 
-    private fun aScheduleMapping(offenderNo: String = "A1234AB", bookingId: Long, eventId: Long, occurrenceId: UUID) = TemporaryAbsenceScheduleMapping(
+    private fun aScheduleMapping(offenderNo: String = "A1234AB", bookingId: Long, eventId: Long, occurrenceId: UUID) = TapScheduleMapping(
       dpsOccurrenceId = occurrenceId,
       nomisEventId = eventId,
       offenderNo = offenderNo,
@@ -2924,7 +2940,7 @@ class TemporaryAbsenceResourceIntTest(
       eventTime = LocalDateTime.now(),
     )
 
-    private fun aMovementMapping(offenderNo: String = "A1234AB", bookingId: Long, movementSeq: Int, movementId: UUID) = TemporaryAbsenceMovementMapping(
+    private fun aMovementMapping(offenderNo: String = "A1234AB", bookingId: Long, movementSeq: Int, movementId: UUID) = TapMovementMapping(
       dpsMovementId = movementId,
       nomisBookingId = bookingId,
       nomisMovementSeq = movementSeq,

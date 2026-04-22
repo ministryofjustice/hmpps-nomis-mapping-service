@@ -1,0 +1,8 @@
+drop table temporary_absence_address_mapping;
+
+alter table temporary_absence_application_mapping rename to tap_application_mapping;
+alter table temporary_absence_schedule_mapping rename to tap_schedule_mapping;
+alter table temporary_absence_movement_mapping rename to tap_movement_mapping;
+alter table temporary_absence_migration rename to tap_migration;
+
+alter table tap_application_mapping rename column dps_application_id to dps_authorisation_id;

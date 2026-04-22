@@ -1,12 +1,13 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.movements
+package uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.migration
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.application.TapApplicationMapping
 import java.time.LocalDateTime
 
-data class TemporaryAbsenceMigration(
+data class TapMigration(
 
   @Id
   val offenderNo: String,
@@ -25,7 +26,7 @@ data class TemporaryAbsenceMigration(
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is TemporaryAbsenceApplicationMapping) return false
+    if (other !is TapApplicationMapping) return false
 
     return offenderNo != other.offenderNo
   }

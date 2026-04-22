@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.movements
+package uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.application
 
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
@@ -8,12 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.r2dbc.test.autoconfigure.DataR2dbcTest
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestBase
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
-import java.util.*
+import java.util.UUID
 
 @DataR2dbcTest
 @WithMockAuthUser
-class TemporaryAbsenceMappingRepositoryTest(
-  @Autowired private val repository: TemporaryAbsenceApplicationRepository,
+class TapApplicationMappingRepositoryTest(
+  @Autowired private val repository: TapApplicationRepository,
 ) : TestBase() {
 
   private val dpsId = UUID.randomUUID()
@@ -29,7 +29,7 @@ class TemporaryAbsenceMappingRepositoryTest(
   @Test
   fun `should save and load mapping`() = runTest {
     repository.save(
-      TemporaryAbsenceApplicationMapping(
+      TapApplicationMapping(
         dpsId,
         nomisId,
         offenderNo,
@@ -40,7 +40,7 @@ class TemporaryAbsenceMappingRepositoryTest(
     )
 
     with(repository.findById(dpsId)!!) {
-      assertThat(dpsApplicationId).isEqualTo(dpsId)
+      assertThat(dpsAuthorisationId).isEqualTo(dpsId)
       assertThat(nomisApplicationId).isEqualTo(nomisId)
       assertThat(offenderNo).isEqualTo(offenderNo)
       assertThat(bookingId).isEqualTo(bookingId)
@@ -49,7 +49,7 @@ class TemporaryAbsenceMappingRepositoryTest(
     }
 
     with(repository.findByNomisApplicationId(nomisId)!!) {
-      assertThat(dpsApplicationId).isEqualTo(dpsId)
+      assertThat(dpsAuthorisationId).isEqualTo(dpsId)
       assertThat(nomisApplicationId).isEqualTo(nomisId)
       assertThat(offenderNo).isEqualTo(offenderNo)
       assertThat(bookingId).isEqualTo(bookingId)

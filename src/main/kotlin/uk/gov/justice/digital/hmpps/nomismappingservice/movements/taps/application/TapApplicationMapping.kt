@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.movements
+package uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.application
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.annotation.Id
@@ -7,33 +7,21 @@ import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 import java.util.*
 
-data class TemporaryAbsenceMovementMapping(
+data class TapApplicationMapping(
 
   @Id
-  val dpsMovementId: UUID,
+  val dpsAuthorisationId: UUID,
 
-  val nomisBookingId: Long,
-
-  val nomisMovementSeq: Int,
+  val nomisApplicationId: Long,
 
   var offenderNo: String,
 
-  var nomisAddressId: Long?,
-
-  var nomisAddressOwnerClass: String?,
-
-  var dpsAddressText: String,
+  val bookingId: Long,
 
   /**
    * ISO timestamp of batch job if a migration
    */
   val label: String? = null,
-
-  var dpsUprn: Long?,
-
-  var dpsDescription: String? = null,
-
-  var dpsPostcode: String? = null,
 
   val mappingType: MovementMappingType,
 
@@ -43,20 +31,24 @@ data class TemporaryAbsenceMovementMapping(
 
   val whenCreated: LocalDateTime? = null,
 
-  val whenUpdated: LocalDateTime? = null,
-
 ) : Persistable<UUID> {
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is TemporaryAbsenceMovementMapping) return false
+    if (other !is TapApplicationMapping) return false
 
-    return dpsMovementId != other.dpsMovementId
+    return dpsAuthorisationId != other.dpsAuthorisationId
   }
 
-  override fun hashCode(): Int = dpsMovementId.hashCode()
+  override fun hashCode(): Int = dpsAuthorisationId.hashCode()
 
   override fun isNew(): Boolean = new
 
-  override fun getId(): UUID = dpsMovementId
+  override fun getId(): UUID = dpsAuthorisationId
+}
+
+enum class MovementMappingType {
+  MIGRATED,
+  NOMIS_CREATED,
+  DPS_CREATED,
 }

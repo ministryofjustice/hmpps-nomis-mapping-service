@@ -10,6 +10,30 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.application.MovementMappingType
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.application.TapApplicationMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.application.TapApplicationRepository
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.application.TemporaryAbsenceApplicationSyncMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.migration.TapMigration
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.migration.TapMigrationRepository
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.migration.TemporaryAbsenceMigrationDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.movement.ExternalMovementSyncMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.movement.TapMovementMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.movement.TapMovementRepository
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.ExternalMovementMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.ExternalMovementMappingIdsDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.ScheduledMovementMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.ScheduledMovementMappingIdsDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.TemporaryAbsenceApplicationIdMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.TemporaryAbsenceApplicationMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.TemporaryAbsenceApplicationMappingIdsDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.TemporaryAbsenceMoveBookingMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.TemporaryAbsenceMovementIdMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.TemporaryAbsencesPrisonerMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.offender.TemporaryAbsencesPrisonerMappingIdsDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.schedule.ScheduledMovementSyncMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.schedule.TapScheduleMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.schedule.TapScheduleRepository
 import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundException
 import java.time.LocalDate
 import java.util.*
@@ -17,17 +41,17 @@ import java.util.*
 @Service
 @Transactional(readOnly = true)
 class TemporaryAbsenceService(
-  private val applicationRepository: TemporaryAbsenceApplicationRepository,
-  private val scheduleRepository: TemporaryAbsenceScheduleRepository,
-  private val movementRepository: TemporaryAbsenceMovementRepository,
-  private val migrationRepository: TemporaryAbsenceMigrationRepository,
+  private val applicationRepository: TapApplicationRepository,
+  private val scheduleRepository: TapScheduleRepository,
+  private val movementRepository: TapMovementRepository,
+  private val migrationRepository: TapMigrationRepository,
 ) {
 
   @Transactional
   suspend fun createMigrationMappings(mappings: TemporaryAbsencesPrisonerMappingDto) {
     createMappings(mappings).also {
       migrationRepository.deleteById(mappings.prisonerNumber)
-      migrationRepository.save(TemporaryAbsenceMigration(mappings.prisonerNumber, mappings.migrationId))
+      migrationRepository.save(TapMigration(mappings.prisonerNumber, mappings.migrationId))
     }
   }
 
@@ -79,9 +103,12 @@ class TemporaryAbsenceService(
 
   suspend fun getAllMappings(prisonerNumber: String) = TemporaryAbsencesPrisonerMappingIdsDto(
     prisonerNumber = prisonerNumber,
-    applications = applicationRepository.findByOffenderNo(prisonerNumber).map { TemporaryAbsenceApplicationMappingIdsDto(it.nomisApplicationId, it.dpsApplicationId) },
-    schedules = scheduleRepository.findByOffenderNo(prisonerNumber).map { ScheduledMovementMappingIdsDto(it.nomisEventId, it.dpsOccurrenceId) },
-    movements = movementRepository.findByOffenderNo(prisonerNumber).map { ExternalMovementMappingIdsDto(it.nomisBookingId, it.nomisMovementSeq, it.dpsMovementId) },
+    applications = applicationRepository.findByOffenderNo(prisonerNumber)
+      .map { TemporaryAbsenceApplicationMappingIdsDto(it.nomisApplicationId, it.dpsAuthorisationId) },
+    schedules = scheduleRepository.findByOffenderNo(prisonerNumber)
+      .map { ScheduledMovementMappingIdsDto(it.nomisEventId, it.dpsOccurrenceId) },
+    movements = movementRepository.findByOffenderNo(prisonerNumber)
+      .map { ExternalMovementMappingIdsDto(it.nomisBookingId, it.nomisMovementSeq, it.dpsMovementId) },
   )
 
   suspend fun getApplicationMappingByNomisId(nomisApplicationId: Long) = applicationRepository.findByNomisApplicationId(nomisApplicationId)
@@ -190,7 +217,12 @@ class TemporaryAbsenceService(
     val applications = applicationRepository.findByBookingId(bookingId)
     val movements = movementRepository.findByNomisBookingId(bookingId)
     return TemporaryAbsenceMoveBookingMappingDto(
-      applicationIds = applications.map { TemporaryAbsenceApplicationIdMapping(it.nomisApplicationId, it.dpsApplicationId) },
+      applicationIds = applications.map {
+        TemporaryAbsenceApplicationIdMapping(
+          it.nomisApplicationId,
+          it.dpsAuthorisationId,
+        )
+      },
       movementIds = movements.map { TemporaryAbsenceMovementIdMapping(it.nomisMovementSeq, it.dpsMovementId) },
     )
   }
@@ -250,7 +282,7 @@ class TemporaryAbsenceService(
   }
 }
 
-fun TemporaryAbsenceApplicationSyncMappingDto.toMapping(): TemporaryAbsenceApplicationMapping = TemporaryAbsenceApplicationMapping(
+fun TemporaryAbsenceApplicationSyncMappingDto.toMapping(): TapApplicationMapping = TapApplicationMapping(
   dpsMovementApplicationId,
   nomisMovementApplicationId,
   prisonerNumber,
@@ -258,15 +290,15 @@ fun TemporaryAbsenceApplicationSyncMappingDto.toMapping(): TemporaryAbsenceAppli
   mappingType = mappingType,
 )
 
-fun TemporaryAbsenceApplicationMapping.toMappingDto(): TemporaryAbsenceApplicationSyncMappingDto = TemporaryAbsenceApplicationSyncMappingDto(
+fun TapApplicationMapping.toMappingDto(): TemporaryAbsenceApplicationSyncMappingDto = TemporaryAbsenceApplicationSyncMappingDto(
   offenderNo,
   bookingId,
   nomisApplicationId,
-  dpsApplicationId,
+  dpsAuthorisationId,
   mappingType = mappingType,
 )
 
-fun ScheduledMovementSyncMappingDto.toMapping(): TemporaryAbsenceScheduleMapping = TemporaryAbsenceScheduleMapping(
+fun ScheduledMovementSyncMappingDto.toMapping(): TapScheduleMapping = TapScheduleMapping(
   dpsOccurrenceId,
   nomisEventId,
   prisonerNumber,
@@ -281,7 +313,7 @@ fun ScheduledMovementSyncMappingDto.toMapping(): TemporaryAbsenceScheduleMapping
   mappingType = mappingType,
 )
 
-fun TemporaryAbsenceScheduleMapping.toMappingDto(): ScheduledMovementSyncMappingDto = ScheduledMovementSyncMappingDto(
+fun TapScheduleMapping.toMappingDto(): ScheduledMovementSyncMappingDto = ScheduledMovementSyncMappingDto(
   offenderNo,
   bookingId,
   nomisEventId,
@@ -296,7 +328,7 @@ fun TemporaryAbsenceScheduleMapping.toMappingDto(): ScheduledMovementSyncMapping
   eventTime,
 )
 
-fun ExternalMovementSyncMappingDto.toMapping(): TemporaryAbsenceMovementMapping = TemporaryAbsenceMovementMapping(
+fun ExternalMovementSyncMappingDto.toMapping(): TapMovementMapping = TapMovementMapping(
   dpsMovementId,
   bookingId,
   nomisMovementSeq,
@@ -310,7 +342,7 @@ fun ExternalMovementSyncMappingDto.toMapping(): TemporaryAbsenceMovementMapping 
   mappingType = mappingType,
 )
 
-fun TemporaryAbsenceMovementMapping.toMappingDto(): ExternalMovementSyncMappingDto = ExternalMovementSyncMappingDto(
+fun TapMovementMapping.toMappingDto(): ExternalMovementSyncMappingDto = ExternalMovementSyncMappingDto(
   offenderNo,
   nomisBookingId,
   nomisMovementSeq,
@@ -324,10 +356,10 @@ fun TemporaryAbsenceMovementMapping.toMappingDto(): ExternalMovementSyncMappingD
   dpsUprn,
 )
 
-fun TemporaryAbsenceMigration.toDto() = TemporaryAbsenceMigrationDto(offenderNo, label, whenCreated)
+fun TapMigration.toDto() = TemporaryAbsenceMigrationDto(offenderNo, label, whenCreated)
 
-private fun TemporaryAbsenceApplicationMappingDto.toEntity(offenderNo: String, bookingId: Long, migrationId: String) = TemporaryAbsenceApplicationMapping(
-  dpsApplicationId = dpsMovementApplicationId,
+private fun TemporaryAbsenceApplicationMappingDto.toEntity(offenderNo: String, bookingId: Long, migrationId: String) = TapApplicationMapping(
+  dpsAuthorisationId = dpsMovementApplicationId,
   nomisApplicationId = nomisMovementApplicationId,
   offenderNo = offenderNo,
   bookingId = bookingId,
@@ -335,7 +367,7 @@ private fun TemporaryAbsenceApplicationMappingDto.toEntity(offenderNo: String, b
   mappingType = MovementMappingType.MIGRATED,
 )
 
-private fun ScheduledMovementMappingDto.toEntity(offenderNo: String, bookingId: Long, migrationId: String) = TemporaryAbsenceScheduleMapping(
+private fun ScheduledMovementMappingDto.toEntity(offenderNo: String, bookingId: Long, migrationId: String) = TapScheduleMapping(
   dpsOccurrenceId = dpsOccurrenceId,
   nomisEventId = nomisEventId,
   offenderNo = offenderNo,
@@ -351,7 +383,7 @@ private fun ScheduledMovementMappingDto.toEntity(offenderNo: String, bookingId: 
   mappingType = MovementMappingType.MIGRATED,
 )
 
-private fun ExternalMovementMappingDto.toEntity(offenderNo: String, bookingId: Long, migrationId: String) = TemporaryAbsenceMovementMapping(
+private fun ExternalMovementMappingDto.toEntity(offenderNo: String, bookingId: Long, migrationId: String) = TapMovementMapping(
   dpsMovementId = dpsMovementId,
   nomisBookingId = bookingId,
   nomisMovementSeq = nomisMovementSeq,
