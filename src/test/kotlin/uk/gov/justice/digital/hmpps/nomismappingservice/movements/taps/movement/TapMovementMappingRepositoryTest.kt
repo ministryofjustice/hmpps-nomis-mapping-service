@@ -1,17 +1,15 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.movements
+package uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.movement
 
 import kotlinx.coroutines.test.runTest
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.r2dbc.test.autoconfigure.DataR2dbcTest
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestBase
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.application.MovementMappingType
-import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.movement.TapMovementMapping
-import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.movement.TapMovementRepository
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
-import java.util.*
+import java.util.UUID
 
 @DataR2dbcTest
 @WithMockAuthUser
@@ -53,29 +51,29 @@ class TapMovementMappingRepositoryTest(
     )
 
     with(repository.findById(dpsId)!!) {
-      assertThat(dpsMovementId).isEqualTo(dpsId)
-      assertThat(nomisBookingId).isEqualTo(nomisBookingId)
-      assertThat(nomisMovementSeq).isEqualTo(nomisMovementSeq)
-      assertThat(offenderNo).isEqualTo(offenderNo)
-      assertThat(nomisAddressId).isEqualTo(addressId)
-      assertThat(nomisAddressOwnerClass).isEqualTo(addressOwnerClass)
-      assertThat(dpsAddressText).isEqualTo("house, 1 street, town S1 1AA")
-      assertThat(dpsUprn).isEqualTo(77L)
-      assertThat(label).isEqualTo("some_label")
-      assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
+      Assertions.assertThat(dpsMovementId).isEqualTo(dpsId)
+      Assertions.assertThat(nomisBookingId).isEqualTo(nomisBookingId)
+      Assertions.assertThat(nomisMovementSeq).isEqualTo(nomisMovementSeq)
+      Assertions.assertThat(offenderNo).isEqualTo(offenderNo)
+      Assertions.assertThat(nomisAddressId).isEqualTo(addressId)
+      Assertions.assertThat(nomisAddressOwnerClass).isEqualTo(addressOwnerClass)
+      Assertions.assertThat(dpsAddressText).isEqualTo("house, 1 street, town S1 1AA")
+      Assertions.assertThat(dpsUprn).isEqualTo(77L)
+      Assertions.assertThat(label).isEqualTo("some_label")
+      Assertions.assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
     }
 
     with(repository.findByNomisBookingIdAndNomisMovementSeq(nomisBookingId, nomisMovementSeq)!!) {
-      assertThat(dpsMovementId).isEqualTo(dpsId)
-      assertThat(nomisBookingId).isEqualTo(nomisBookingId)
-      assertThat(nomisMovementSeq).isEqualTo(nomisMovementSeq)
-      assertThat(offenderNo).isEqualTo(offenderNo)
-      assertThat(nomisAddressId).isEqualTo(addressId)
-      assertThat(nomisAddressOwnerClass).isEqualTo(addressOwnerClass)
-      assertThat(dpsAddressText).isEqualTo("house, 1 street, town S1 1AA")
-      assertThat(dpsUprn).isEqualTo(77L)
-      assertThat(label).isEqualTo("some_label")
-      assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
+      Assertions.assertThat(dpsMovementId).isEqualTo(dpsId)
+      Assertions.assertThat(nomisBookingId).isEqualTo(nomisBookingId)
+      Assertions.assertThat(nomisMovementSeq).isEqualTo(nomisMovementSeq)
+      Assertions.assertThat(offenderNo).isEqualTo(offenderNo)
+      Assertions.assertThat(nomisAddressId).isEqualTo(addressId)
+      Assertions.assertThat(nomisAddressOwnerClass).isEqualTo(addressOwnerClass)
+      Assertions.assertThat(dpsAddressText).isEqualTo("house, 1 street, town S1 1AA")
+      Assertions.assertThat(dpsUprn).isEqualTo(77L)
+      Assertions.assertThat(label).isEqualTo("some_label")
+      Assertions.assertThat(mappingType).isEqualTo(MovementMappingType.MIGRATED)
     }
   }
 }
