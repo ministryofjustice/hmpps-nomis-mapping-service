@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.movements
+package uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.schedule
 
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
@@ -8,11 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.r2dbc.test.autoconfigure.DataR2dbcTest
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestBase
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.application.MovementMappingType
-import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.schedule.TapScheduleMapping
-import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.schedule.TapScheduleRepository
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @DataR2dbcTest
 @WithMockAuthUser
