@@ -18,10 +18,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
   implementation("org.springframework.security:spring-security-access")
   implementation("org.springframework.boot:spring-boot-starter-flyway")
-  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.0.2")
-  constraints {
-    implementation("org.webjars:swagger-ui:5.32.2")
-  }
+  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.0.3")
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.10.2")
