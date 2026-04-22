@@ -5,10 +5,9 @@ import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.application.MovementMappingType
 import java.util.UUID
 
-@Deprecated("Use TapMovementMappingDto instead")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Mappings for a single external movement")
-data class ExternalMovementSyncMappingDto(
+data class TapMovementMappingDto(
   @Schema(description = "The NOMIS offender number", example = "A1234BC")
   val prisonerNumber: String,
   @Schema(description = "The NOMIS ID of the booking", example = "12345")
