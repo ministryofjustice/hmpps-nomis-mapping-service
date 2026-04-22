@@ -34,3 +34,10 @@ data class TapScheduleMappingDto(
   @Schema(description = "The DPS address")
   val eventTime: LocalDateTime,
 )
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Tap schedule mappings affected by a change of address")
+data class FindTapScheduleMappingsForAddressResponse(
+  @Schema(description = "All tap schedule mappings related to the passed NOMIS address ID and date. Note historical sync mappings are not included by default.")
+  val scheduleMappings: List<TapScheduleMappingDto>,
+)
