@@ -4,19 +4,18 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import java.util.UUID
 
-@Deprecated("use TapMoveBookingMappingDto instead")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Mappings for a prisoner's entire temporary absence history")
-data class TemporaryAbsenceMoveBookingMappingDto(
+data class TapMoveBookingMappingDto(
   @Schema(description = "A list mapping NOMIS application IDs to DPS authorisation IDs")
-  val applicationIds: List<TemporaryAbsenceApplicationIdMapping>,
+  val applicationIds: List<TapApplicationIdMapping>,
   @Schema(description = "A list mapping NOMIS movement sequence numbers to DPS movement IDs")
-  val movementIds: List<TemporaryAbsenceMovementIdMapping>,
+  val movementIds: List<TapMovementIdMapping>,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Mappings for a prisoner booking's applications")
-data class TemporaryAbsenceApplicationIdMapping(
+data class TapApplicationIdMapping(
   @Schema(description = "The NOMIS application ID", example = "12345")
   val applicationId: Long,
   @Schema(description = "The DPS authorisation ID")
@@ -25,7 +24,7 @@ data class TemporaryAbsenceApplicationIdMapping(
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Mappings for a prisoner booking's movements")
-data class TemporaryAbsenceMovementIdMapping(
+data class TapMovementIdMapping(
   @Schema(description = "The movement's movement sequence")
   val movementSeq: Int,
   @Schema(description = "The DPS movement ID")

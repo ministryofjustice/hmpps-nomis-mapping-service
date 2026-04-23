@@ -19,9 +19,9 @@ class TapApplicationService(
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for NOMIS application id $nomisApplicationId not found")
 
-  suspend fun getApplicationMappingByDpsId(dpsApplicationId: UUID) = applicationRepository.findById(dpsApplicationId)
+  suspend fun getApplicationMappingByDpsId(dpsAuthorisationId: UUID) = applicationRepository.findById(dpsAuthorisationId)
     ?.toMappingDto()
-    ?: throw NotFoundException("Mapping for DPS application id $dpsApplicationId not found")
+    ?: throw NotFoundException("Mapping for DPS application id $dpsAuthorisationId not found")
 
   @Transactional
   suspend fun deleteApplicationMappingByNomisId(nomisApplicationId: Long) = applicationRepository.deleteByNomisApplicationId(nomisApplicationId)
