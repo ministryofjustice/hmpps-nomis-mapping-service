@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundException
+import java.time.LocalDate
 import java.util.UUID
 
 @Service
@@ -42,6 +43,11 @@ class TapScheduleService(
 
   @Transactional
   suspend fun deleteScheduleMappingByNomisId(nomisEventId: Long) = scheduleRepository.deleteByNomisEventId(nomisEventId)
+
+  suspend fun findTapScheduleMappingsByNomisAddressId(nomisAddressId: Long, fromDate: LocalDate) = scheduleRepository
+    .findByNomisAddressIdAndEventTimeIsGreaterThanEqual(nomisAddressId, fromDate.atStartOfDay())
+    .map { it.toMappingDto() }
+    .let { FindTapScheduleMappingsForAddressResponse(it) }
 }
 
 fun TapScheduleMappingDto.toMapping(): TapScheduleMapping = TapScheduleMapping(

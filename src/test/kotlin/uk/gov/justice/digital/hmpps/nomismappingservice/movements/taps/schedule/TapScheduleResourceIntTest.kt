@@ -12,11 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.isDuplicateMapping
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.taps.application.MovementMappingType
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -703,5 +705,159 @@ class TapScheduleResourceIntTest(
       .uri("/mapping/taps/schedule/nomis-id/$nomisEventId")
       .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/taps/schedule/nomis-address-id/{nomisAddressId}")
+  inner class FindFutureScheduleMappingsByAddressId {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      scheduleRepository.deleteAll()
+    }
+
+    @BeforeEach
+    fun setUp() = runTest {
+      scheduleRepository.save(aMapping(eventIdYesterday, addressIdUpdated, yesterday))
+      scheduleRepository.save(aMapping(eventIdEarlierToday, addressIdUpdated, startOfToday))
+      scheduleRepository.save(aMapping(eventIdLaterToday, addressIdUpdated, now.plusHours(1)))
+      scheduleRepository.save(aMapping(eventIdTomorrow, addressIdUpdated, tomorrow))
+      scheduleRepository.save(aMapping(eventIdWrongAddress, addressIdNotUpdated, tomorrow))
+      scheduleRepository.save(aMapping(eventIdMissingAddress, null, tomorrow))
+    }
+
+    private val eventIdYesterday = 1L
+    private val eventIdEarlierToday = 2L
+    private val eventIdLaterToday = 3L
+    private val eventIdTomorrow = 4L
+    private val eventIdWrongAddress = 5L
+    private val eventIdMissingAddress = 6L
+    private val addressIdUpdated = 11L
+    private val addressIdNotUpdated = 12L
+    private val now = LocalDateTime.now()
+    private val yesterday = now.minusDays(1)
+    private val startOfToday = now.truncatedTo(ChronoUnit.DAYS)
+    private val tomorrow = now.plusDays(1)
+
+    private fun aMapping(eventId: Long, addressId: Long?, eventTime: LocalDateTime) = TapScheduleMapping(
+      dpsOccurrenceId = UUID.randomUUID(),
+      nomisEventId = eventId,
+      offenderNo = "A1234AA",
+      bookingId = 12345L,
+      nomisAddressId = addressId,
+      nomisAddressOwnerClass = "CORP",
+      dpsAddressText = "some address",
+      eventTime = eventTime,
+      dpsUprn = 77L,
+      mappingType = MovementMappingType.NOMIS_CREATED,
+    )
+
+    @Nested
+    inner class EventSelection {
+      @Test
+      fun `should find events from later today`() = runTest {
+        webTestClient.findTapScheduleMappingsForAddress(addressIdUpdated)
+          .apply {
+            assertThat(scheduleMappings.map { it.nomisEventId }).contains(eventIdLaterToday)
+          }
+      }
+
+      @Test
+      fun `should find events from earlier today`() = runTest {
+        webTestClient.findTapScheduleMappingsForAddress(addressIdUpdated)
+          .apply {
+            assertThat(scheduleMappings.map { it.nomisEventId }).contains(eventIdEarlierToday)
+          }
+      }
+
+      @Test
+      fun `should find events from tomorrow`() = runTest {
+        webTestClient.findTapScheduleMappingsForAddress(addressIdUpdated)
+          .apply {
+            assertThat(scheduleMappings.map { it.nomisEventId }).contains(eventIdTomorrow)
+          }
+      }
+
+      @Test
+      fun `should find handle different date`() = runTest {
+        webTestClient.findTapScheduleMappingsForAddress(addressIdUpdated)
+          .apply {
+            assertThat(scheduleMappings.map { it.nomisEventId }).contains(eventIdTomorrow)
+          }
+      }
+
+      @Test
+      fun `should not find events from yesterday`() = runTest {
+        webTestClient.findTapScheduleMappingsForAddress(addressIdUpdated)
+          .apply {
+            assertThat(scheduleMappings.map { it.nomisEventId }).doesNotContain(eventIdYesterday)
+          }
+      }
+
+      @Test
+      fun `should not find events with a different address`() = runTest {
+        webTestClient.findTapScheduleMappingsForAddress(addressIdUpdated)
+          .apply {
+            assertThat(scheduleMappings.map { it.nomisEventId }).doesNotContain(eventIdWrongAddress)
+          }
+      }
+
+      @Test
+      fun `should not find events without an address`() = runTest {
+        webTestClient.findTapScheduleMappingsForAddress(addressIdUpdated)
+          .apply {
+            assertThat(scheduleMappings.map { it.nomisEventId }).doesNotContain(eventIdMissingAddress)
+          }
+      }
+
+      @Test
+      fun `should find events from a different date`() = runTest {
+        webTestClient.findTapScheduleMappingsForAddress(addressIdUpdated, fromDate = yesterday.toLocalDate())
+          .apply {
+            assertThat(scheduleMappings.map { it.nomisEventId }).contains(eventIdYesterday)
+          }
+      }
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/taps/schedule/nomis-address-id/12345")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/taps/schedule/nomis-address-id/12345")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/taps/schedule/nomis-address-id/12345")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.findTapScheduleMappingsForAddress(nomisAddressId: Long, fromDate: LocalDate? = null) = get()
+      .uri {
+        it.path("/mapping/taps/schedule/nomis-address-id/{nomisAddressId}")
+          .apply { fromDate?.let { queryParam("fromDate", fromDate) } }
+          .build(nomisAddressId)
+      }
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .exchange()
+      .expectStatus().isOk
+      .expectBody<FindTapScheduleMappingsForAddressResponse>()
+      .returnResult().responseBody!!
   }
 }
