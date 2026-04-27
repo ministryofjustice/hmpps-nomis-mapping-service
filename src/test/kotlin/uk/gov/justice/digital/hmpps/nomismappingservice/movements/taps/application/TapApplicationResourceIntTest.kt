@@ -227,7 +227,7 @@ class TapApplicationResourceIntTest(
 
     @Nested
     inner class Security {
-      val mapping = TemporaryAbsenceApplicationSyncMappingDto(
+      val mapping = TapApplicationMappingDto(
         "A1234BC",
         12345L,
         23456L,
