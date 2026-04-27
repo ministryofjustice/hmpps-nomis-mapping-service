@@ -136,7 +136,7 @@ class TapApplicationResource(
     summary = "Deletes a mapping for a single tap application by NOMIS ID",
     description = "Deletes a mapping for a single tap application by NOMIS ID. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = TemporaryAbsenceApplicationSyncMappingDto::class))],
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = TapApplicationMappingDto::class))],
     ),
     responses = [
       ApiResponse(responseCode = "204", description = "Application does not exist"),
