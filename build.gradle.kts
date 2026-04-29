@@ -25,6 +25,10 @@ dependencies {
 
   implementation("net.javacrumbs.shedlock:shedlock-spring:7.7.0")
 
+  val appinsightsCore = "core:2.6.4"
+  implementation("io.micrometer:micrometer-registry-azure-monitor:1.16.5")
+  implementation("com.microsoft.azure:applicationinsights-$appinsightsCore")
+
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
   runtimeOnly("org.postgresql:r2dbc-postgresql:1.1.1.RELEASE")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
