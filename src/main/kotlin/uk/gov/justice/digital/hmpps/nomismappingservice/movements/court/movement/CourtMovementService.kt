@@ -22,6 +22,9 @@ class CourtMovementService(
   suspend fun getMovementMappingByDpsId(dpsCourtMovementId: UUID) = movementRepository.findById(dpsCourtMovementId)
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for DPS court movement id $dpsCourtMovementId not found")
+
+  @Transactional
+  suspend fun deleteCourtMovementMappingByNomisId(bookingId: Long, movementSeq: Int) = movementRepository.deleteByNomisBookingIdAndNomisMovementSeq(bookingId, movementSeq)
 }
 
 fun CourtMovementMappingDto.toMapping(): CourtMovementMapping = CourtMovementMapping(
