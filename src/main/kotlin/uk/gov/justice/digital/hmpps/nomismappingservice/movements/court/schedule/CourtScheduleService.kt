@@ -22,6 +22,9 @@ class CourtScheduleService(
   suspend fun getScheduleMappingByDpsId(dpsCourtScheduleId: UUID) = scheduleRepository.findById(dpsCourtScheduleId)
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for DPS court schedule id $dpsCourtScheduleId not found")
+
+  @Transactional
+  suspend fun deleteScheduleMappingByNomisId(nomisEventId: Long) = scheduleRepository.deleteByNomisEventId(nomisEventId)
 }
 
 fun CourtScheduleMappingDto.toMapping(): CourtScheduleMapping = CourtScheduleMapping(

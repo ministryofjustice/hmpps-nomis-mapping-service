@@ -169,9 +169,6 @@ class TapScheduleResource(
   @Operation(
     summary = "Deletes a mapping for a single scheduled tap by NOMIS event ID",
     description = "Deletes a mapping for a single scheduled tap by NOMIS event ID. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = TapScheduleMappingDto::class))],
-    ),
     responses = [
       ApiResponse(responseCode = "204", description = "Scheduled tap mapping deleted"),
       ApiResponse(
