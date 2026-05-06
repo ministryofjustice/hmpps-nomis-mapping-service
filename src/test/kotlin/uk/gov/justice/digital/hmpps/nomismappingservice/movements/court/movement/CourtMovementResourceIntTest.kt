@@ -267,4 +267,87 @@ class CourtMovementResourceIntTest(
       .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
   }
+
+  @Nested
+  @DisplayName("DELETE /mapping/court/movement/nomis-id/{bookingId}/{movementSeq}")
+  inner class DeleteCourtMovementMapping {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      movementRepository.deleteAll()
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping1 = CourtMovementMapping(
+        UUID.randomUUID(),
+        12345L,
+        12,
+        "A1234BC",
+        mappingType = CourtMappingType.NOMIS_CREATED,
+      )
+      val mapping2 = CourtMovementMapping(
+        UUID.randomUUID(),
+        12345L,
+        13,
+        "A1234BC",
+        mappingType = CourtMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `should delete court movement mapping by NOMIS booking ID and movement sequence`() = runTest {
+        movementRepository.save(mapping1)
+        movementRepository.save(mapping2)
+
+        webTestClient.deleteCourtMovementMapping(mapping1.nomisBookingId, mapping1.nomisMovementSeq)
+          .expectStatus().isNoContent
+
+        assertThat(movementRepository.findByNomisBookingIdAndNomisMovementSeq(mapping1.nomisBookingId, mapping1.nomisMovementSeq)).isNull()
+        assertThat(movementRepository.findByNomisBookingIdAndNomisMovementSeq(mapping2.nomisBookingId, mapping2.nomisMovementSeq)).isNotNull
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `delete endpoint should be idempotent`() = runTest {
+        webTestClient.deleteCourtMovementMapping(12345L, 12)
+          .expectStatus().isNoContent
+      }
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/court/movement/nomis-id/12345/12")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/court/movement/nomis-id/12345/12")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/court/movement/nomis-id/12345/12")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.deleteCourtMovementMapping(bookingId: Long, movementSeq: Int) = delete()
+      .uri("/mapping/court/movement/nomis-id/$bookingId/$movementSeq")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .exchange()
+  }
 }
