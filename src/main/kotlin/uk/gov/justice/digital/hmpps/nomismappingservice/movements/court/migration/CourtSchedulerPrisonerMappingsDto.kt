@@ -8,7 +8,7 @@ import java.util.*
 @Schema(description = "Mappings for a prisoner's entire court movement history")
 class CourtSchedulerPrisonerMappingsDto(
   @Schema(description = "The NOMIS offender number", example = "A1234BC")
-  val prisonerNumber: String,
+  val offenderNo: String,
   @Schema(description = "The mappings for each booking")
   val bookings: List<CourtSchedulerBookingMappingsDto>,
   @Schema(description = "The migration unique identifier", example = "2025-08-11T15:34:43")
