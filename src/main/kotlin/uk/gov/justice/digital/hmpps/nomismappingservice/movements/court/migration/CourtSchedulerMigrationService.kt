@@ -1,6 +1,12 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.movements.court.migration
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.toList
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.court.movement.CourtMovementMapping
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.court.movement.CourtMovementRepository
@@ -56,6 +62,31 @@ class CourtSchedulerMigrationService(
     scheduleRepository.deleteByOffenderNo(offenderNo)
     movementRepository.deleteByOffenderNo(offenderNo)
   }
+  suspend fun getCountByMigrationId(
+    pageRequest: Pageable,
+    migrationId: String,
+  ): Page<CourtSchedulerMigrationDto> = coroutineScope {
+    val mappings = async {
+      migrationRepository.findAllByLabelOrderByLabelDesc(
+        label = migrationId,
+        pageRequest = pageRequest,
+      )
+    }
+
+    val count = async {
+      migrationRepository.countAllByLabel(
+        migrationId = migrationId,
+      )
+    }
+
+    PageImpl(
+      mappings.await().toList().map { it.toDto() },
+      pageRequest,
+      count.await(),
+    )
+  }
+
+  fun CourtSchedulerMigration.toDto() = CourtSchedulerMigrationDto(offenderNo, label, whenCreated)
 }
 
 private fun BookingCourtScheduleMappingsDto.toEntity(prisonerNumber: String, bookingId: Long, migrationId: String) = CourtScheduleMapping(
