@@ -572,6 +572,52 @@ class CourtSentencingMappingResource(
     courtAppearanceId = courtAppearanceId,
   )
 
+  @PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
+  @PostMapping("/court-appearances/nomis-court-appearance-ids/get-list")
+  @Tag(name = "Multiple Court appearance mappings lookup")
+  @Operation(
+    summary = "Retrieves list of the court appearance mappings using the supplied NOMIS case ids",
+    description = "Requires role <b>NOMIS_MAPPING_API__SYNCHRONISATION__RW</b>",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [
+        Content(
+          mediaType = "application/json",
+          array = ArraySchema(schema = Schema(implementation = Long::class)),
+        ),
+      ],
+    ),
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "List of NOMIS to DPS Mappings Information Returned",
+        content = [
+          Content(
+            mediaType = "application/json",
+            array = ArraySchema(schema = Schema(implementation = CourtCaseMappingDto::class)),
+          ),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "The request is invalid, see response for details",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden to this endpoint. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getCourtAppearanceMappingsByNomisIn(
+    @RequestBody nomisCourtAppearanceIds: List<Long>,
+  ): Flow<CourtAppearanceMappingDto> = mappingService.getCourtAppearanceMappingsByNomisIds(nomisCourtAppearanceIds)
+
   @DeleteMapping("/court-appearances/dps-court-appearance-id/{dpsCourtAppearanceId}")
   @Operation(
     summary = "Deletes court appearances mapping",
