@@ -435,6 +435,9 @@ class CourtSentencingMappingService(
   suspend fun getCourtAppearanceMappingByNomisId(courtAppearanceId: Long): CourtAppearanceMappingDto = courtAppearanceMappingRepository.findByNomisCourtAppearanceId(courtAppearanceId)?.toCourtAppearanceMappingDto()
     ?: throw NotFoundException("Nomis Court appearance Id =$courtAppearanceId")
 
+  suspend fun getCourtAppearanceMappingsByNomisIds(nomisCourtAppearanceIds: List<Long>): Flow<CourtAppearanceMappingDto> = courtAppearanceMappingRepository.findAllByNomisCourtAppearanceIdIn(nomisCourtAppearanceIds)
+    .map { it.toCourtAppearanceMappingDto() }
+
   suspend fun getCourtChargeMappingByDpsId(courtChargeId: String): CourtChargeMappingDto = courtChargeMappingRepository.findById(courtChargeId)?.toCourtChargeMappingDto()
     ?: throw NotFoundException("DPS Court charge Id =$courtChargeId")
 
