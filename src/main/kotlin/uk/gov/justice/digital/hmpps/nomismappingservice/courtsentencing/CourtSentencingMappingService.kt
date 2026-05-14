@@ -191,30 +191,44 @@ class CourtSentencingMappingService(
   @Transactional
   suspend fun updateAllMappingsByNomisId(updateMappingRequest: CourtCaseBatchUpdateMappingDto) {
     updateMappingRequest.courtCases.map {
-      courtCaseMappingRepository.save(courtCaseMappingRepository.findByNomisCourtCaseId(it.fromNomisId)!!.copy(nomisCourtCaseId = it.toNomisId))
+      courtCaseMappingRepository.findByNomisCourtCaseId(it.fromNomisId)?.also { mapping ->
+        courtCaseMappingRepository.save(mapping.copy(nomisCourtCaseId = it.toNomisId))
+      }
     }
     updateMappingRequest.courtAppearances.forEach {
-      courtAppearanceMappingRepository.save(courtAppearanceMappingRepository.findByNomisCourtAppearanceId(it.fromNomisId)!!.copy(nomisCourtAppearanceId = it.toNomisId))
+      courtAppearanceMappingRepository.findByNomisCourtAppearanceId(it.fromNomisId)?.also { mapping ->
+        courtAppearanceMappingRepository.save(mapping.copy(nomisCourtAppearanceId = it.toNomisId))
+      }
     }
     updateMappingRequest.courtCharges.forEach {
-      courtChargeMappingRepository.save(courtChargeMappingRepository.findByNomisCourtChargeId(it.fromNomisId)!!.copy(nomisCourtChargeId = it.toNomisId))
+      courtChargeMappingRepository.findByNomisCourtChargeId(it.fromNomisId)?.also { mapping ->
+        courtChargeMappingRepository.save(mapping.copy(nomisCourtChargeId = it.toNomisId))
+      }
     }
     updateMappingRequest.sentences.forEach {
-      sentenceMappingRepository.save(
-        sentenceMappingRepository.findByNomisBookingIdAndNomisSentenceSequence(
-          nomisBookingId = it.fromNomisId.nomisBookingId,
-          nomisSentenceSeq = it.fromNomisId.nomisSequence,
-        )!!.copy(nomisBookingId = it.toNomisId.nomisBookingId, nomisSentenceSequence = it.toNomisId.nomisSequence),
-      )
+      sentenceMappingRepository.findByNomisBookingIdAndNomisSentenceSequence(
+        nomisBookingId = it.fromNomisId.nomisBookingId,
+        nomisSentenceSeq = it.fromNomisId.nomisSequence,
+      )?.also { mapping ->
+        sentenceMappingRepository.save(
+          mapping.copy(nomisBookingId = it.toNomisId.nomisBookingId, nomisSentenceSequence = it.toNomisId.nomisSequence),
+        )
+      }
     }
     return updateMappingRequest.sentenceTerms.forEach {
-      sentenceTermMappingRepository.save(
-        sentenceTermMappingRepository.findByNomisBookingIdAndNomisSentenceSequenceAndNomisTermSequence(
-          nomisBookingId = it.fromNomisId.nomisSentenceId.nomisBookingId,
-          nomisSentenceSeq = it.fromNomisId.nomisSentenceId.nomisSequence,
-          nomisTermSeq = it.fromNomisId.nomisSequence,
-        )!!.copy(nomisSentenceSequence = it.toNomisId.nomisSentenceId.nomisSequence, nomisBookingId = it.toNomisId.nomisSentenceId.nomisBookingId, nomisTermSequence = it.toNomisId.nomisSequence),
-      )
+      sentenceTermMappingRepository.findByNomisBookingIdAndNomisSentenceSequenceAndNomisTermSequence(
+        nomisBookingId = it.fromNomisId.nomisSentenceId.nomisBookingId,
+        nomisSentenceSeq = it.fromNomisId.nomisSentenceId.nomisSequence,
+        nomisTermSeq = it.fromNomisId.nomisSequence,
+      )?.also { mapping ->
+        sentenceTermMappingRepository.save(
+          mapping.copy(
+            nomisSentenceSequence = it.toNomisId.nomisSentenceId.nomisSequence,
+            nomisBookingId = it.toNomisId.nomisSentenceId.nomisBookingId,
+            nomisTermSequence = it.toNomisId.nomisSequence,
+          ),
+        )
+      }
     }
   }
 
