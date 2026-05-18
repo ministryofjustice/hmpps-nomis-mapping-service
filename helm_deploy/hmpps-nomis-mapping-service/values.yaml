@@ -24,8 +24,6 @@ generic-service:
     host: app-hostname.local # override per environment
     tlsSecretName: hmpps-nomis-mapping-service-cert
 
-  serviceAccountName: hmpps-nomis-mapping-service
-
   # Environment variables to load into the deployment
   env:
     SERVER_PORT: "8080"
