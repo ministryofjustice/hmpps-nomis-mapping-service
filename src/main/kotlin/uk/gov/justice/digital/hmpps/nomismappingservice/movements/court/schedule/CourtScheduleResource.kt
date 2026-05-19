@@ -23,7 +23,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RestController
 @Validated
 @PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
-@RequestMapping("/mapping/court/schedule", produces = [MediaType.APPLICATION_JSON_VALUE])
+@RequestMapping("/mapping/court-scheduler/schedule", produces = [MediaType.APPLICATION_JSON_VALUE])
 class CourtScheduleResource(
   private val service: CourtScheduleService,
 ) {
