@@ -26,7 +26,7 @@ class CourtSchedulerPrisonerResourceIntTest(
 ) : IntegrationTestBase() {
 
   @Nested
-  @DisplayName("GET /mapping/court/{prisonerNumber}/ids")
+  @DisplayName("GET /mapping/court-scheduler/{prisonerNumber}/ids")
   @Suppress("ktlint:standard:property-naming")
   inner class GetAllPrisonerMappingIds {
 
@@ -57,7 +57,7 @@ class CourtSchedulerPrisonerResourceIntTest(
 
     fun saveMappings(mappings: CourtSchedulerPrisonerMappingsDto = mappingsRequest()) {
       webTestClient.put()
-        .uri("/mapping/court/migrate")
+        .uri("/mapping/court-scheduler/migrate")
         .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(mappings))
@@ -118,7 +118,7 @@ class CourtSchedulerPrisonerResourceIntTest(
         saveMappings()
 
         allMappings = webTestClient.get()
-          .uri("/mapping/court/$NOMIS_OFFENDER_NO/ids")
+          .uri("/mapping/court-scheduler/$NOMIS_OFFENDER_NO/ids")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
@@ -147,7 +147,7 @@ class CourtSchedulerPrisonerResourceIntTest(
       @Test
       fun `should return nothing if none found`() = runTest {
         webTestClient.get()
-          .uri("/mapping/court/UNKNOWN/ids")
+          .uri("/mapping/court-scheduler/UNKNOWN/ids")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
@@ -165,7 +165,7 @@ class CourtSchedulerPrisonerResourceIntTest(
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.get()
-          .uri("/mapping/court/$NOMIS_OFFENDER_NO/ids")
+          .uri("/mapping/court-scheduler/$NOMIS_OFFENDER_NO/ids")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -173,7 +173,7 @@ class CourtSchedulerPrisonerResourceIntTest(
       @Test
       fun `access forbidden when no role`() {
         webTestClient.get()
-          .uri("/mapping/court/$NOMIS_OFFENDER_NO/ids")
+          .uri("/mapping/court-scheduler/$NOMIS_OFFENDER_NO/ids")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -182,7 +182,7 @@ class CourtSchedulerPrisonerResourceIntTest(
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/mapping/court/$NOMIS_OFFENDER_NO/ids")
+          .uri("/mapping/court-scheduler/$NOMIS_OFFENDER_NO/ids")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden

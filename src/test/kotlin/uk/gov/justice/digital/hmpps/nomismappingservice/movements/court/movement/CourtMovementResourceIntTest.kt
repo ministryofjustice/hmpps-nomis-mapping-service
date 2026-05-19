@@ -22,7 +22,7 @@ class CourtMovementResourceIntTest(
 ) : IntegrationTestBase() {
 
   @Nested
-  @DisplayName("POST /mapping/court/movement")
+  @DisplayName("POST /mapping/court-scheduler/movement")
   inner class CreateCourtMovementMapping {
 
     @AfterEach
@@ -141,7 +141,7 @@ class CourtMovementResourceIntTest(
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.post()
-          .uri("/mapping/court/movement")
+          .uri("/mapping/court-scheduler/movement")
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -151,7 +151,7 @@ class CourtMovementResourceIntTest(
       @Test
       fun `access forbidden when no role`() {
         webTestClient.post()
-          .uri("/mapping/court/movement")
+          .uri("/mapping/court-scheduler/movement")
           .headers(setAuthorisation(roles = listOf()))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
@@ -162,7 +162,7 @@ class CourtMovementResourceIntTest(
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.post()
-          .uri("/mapping/court/movement")
+          .uri("/mapping/court-scheduler/movement")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
@@ -172,7 +172,7 @@ class CourtMovementResourceIntTest(
     }
 
     private fun WebTestClient.createCourtMovementMapping(mapping: CourtMovementMappingDto) = post()
-      .uri("/mapping/court/movement")
+      .uri("/mapping/court-scheduler/movement")
       .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(BodyInserters.fromValue(mapping))
@@ -180,7 +180,7 @@ class CourtMovementResourceIntTest(
   }
 
   @Nested
-  @DisplayName("GET /mapping/court/movement/nomis-id/{nomisBookingId}/{nomisMovementSeq}")
+  @DisplayName("GET /mapping/court-scheduler/movement/nomis-id/{nomisBookingId}/{nomisMovementSeq}")
   inner class GetCourtMovementMappingByNomisId {
 
     @AfterEach
@@ -238,7 +238,7 @@ class CourtMovementResourceIntTest(
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.get()
-          .uri("/mapping/court/movement/nomis-id/12345/3")
+          .uri("/mapping/court-scheduler/movement/nomis-id/12345/3")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -246,7 +246,7 @@ class CourtMovementResourceIntTest(
       @Test
       fun `access forbidden when no role`() {
         webTestClient.get()
-          .uri("/mapping/court/movement/nomis-id/12345/3")
+          .uri("/mapping/court-scheduler/movement/nomis-id/12345/3")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -255,7 +255,7 @@ class CourtMovementResourceIntTest(
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/mapping/court/movement/nomis-id/12345/3")
+          .uri("/mapping/court-scheduler/movement/nomis-id/12345/3")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -263,13 +263,13 @@ class CourtMovementResourceIntTest(
     }
 
     private fun WebTestClient.getCourtMovementMapping(nomisBookingId: Long, nomisMovementSeq: Int) = get()
-      .uri("/mapping/court/movement/nomis-id/$nomisBookingId/$nomisMovementSeq")
+      .uri("/mapping/court-scheduler/movement/nomis-id/$nomisBookingId/$nomisMovementSeq")
       .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
   }
 
   @Nested
-  @DisplayName("DELETE /mapping/court/movement/nomis-id/{bookingId}/{movementSeq}")
+  @DisplayName("DELETE /mapping/court-scheduler/movement/nomis-id/{bookingId}/{movementSeq}")
   inner class DeleteCourtMovementMapping {
 
     @AfterEach
@@ -321,7 +321,7 @@ class CourtMovementResourceIntTest(
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.delete()
-          .uri("/mapping/court/movement/nomis-id/12345/12")
+          .uri("/mapping/court-scheduler/movement/nomis-id/12345/12")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -329,7 +329,7 @@ class CourtMovementResourceIntTest(
       @Test
       fun `access forbidden when no role`() {
         webTestClient.delete()
-          .uri("/mapping/court/movement/nomis-id/12345/12")
+          .uri("/mapping/court-scheduler/movement/nomis-id/12345/12")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -338,7 +338,7 @@ class CourtMovementResourceIntTest(
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.delete()
-          .uri("/mapping/court/movement/nomis-id/12345/12")
+          .uri("/mapping/court-scheduler/movement/nomis-id/12345/12")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -346,7 +346,7 @@ class CourtMovementResourceIntTest(
     }
 
     private fun WebTestClient.deleteCourtMovementMapping(bookingId: Long, movementSeq: Int) = delete()
-      .uri("/mapping/court/movement/nomis-id/$bookingId/$movementSeq")
+      .uri("/mapping/court-scheduler/movement/nomis-id/$bookingId/$movementSeq")
       .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
   }

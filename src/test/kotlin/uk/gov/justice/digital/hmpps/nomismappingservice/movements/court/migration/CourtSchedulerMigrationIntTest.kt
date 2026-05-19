@@ -25,7 +25,7 @@ class CourtSchedulerMigrationIntTest(
 ) : IntegrationTestBase() {
 
   @Nested
-  @DisplayName("PUT /mapping/court/migrate")
+  @DisplayName("PUT /mapping/court-scheduler/migrate")
   inner class Migrate {
     private val MIGRATION_ID = "some_migration_id"
     private val NOMIS_OFFENDER_NO = "A1234BC"
@@ -86,7 +86,7 @@ class CourtSchedulerMigrationIntTest(
 
     fun WebTestClient.saveMappings(mappings: CourtSchedulerPrisonerMappingsDto = mappingsRequest()) {
       put()
-        .uri("/mapping/court/migrate")
+        .uri("/mapping/court-scheduler/migrate")
         .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(mappings))
@@ -200,7 +200,7 @@ class CourtSchedulerMigrationIntTest(
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.put()
-          .uri("/mapping/court/migrate")
+          .uri("/mapping/court-scheduler/migrate")
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -210,7 +210,7 @@ class CourtSchedulerMigrationIntTest(
       @Test
       fun `access forbidden when no role`() {
         webTestClient.put()
-          .uri("/mapping/court/migrate")
+          .uri("/mapping/court-scheduler/migrate")
           .headers(setAuthorisation(roles = listOf()))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
@@ -221,7 +221,7 @@ class CourtSchedulerMigrationIntTest(
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.put()
-          .uri("/mapping/court/migrate")
+          .uri("/mapping/court-scheduler/migrate")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
@@ -231,7 +231,7 @@ class CourtSchedulerMigrationIntTest(
     }
   }
 
-  @DisplayName("GET /mapping/court/migration-id/{migrationId}")
+  @DisplayName("GET /mapping/court-scheduler/migration-id/{migrationId}")
   @Nested
   inner class GetMappingsCountByMigrationId {
 
@@ -244,14 +244,14 @@ class CourtSchedulerMigrationIntTest(
     inner class Security {
       @Test
       fun `access not authorised when no authority`() {
-        webTestClient.get().uri("/mapping/court/migration-id/2022-01-01T00:00:00")
+        webTestClient.get().uri("/mapping/court-scheduler/migration-id/2022-01-01T00:00:00")
           .exchange()
           .expectStatus().isUnauthorized
       }
 
       @Test
       fun `access forbidden when no role`() {
-        webTestClient.get().uri("/mapping/court/migration-id/2022-01-01T00:00:00")
+        webTestClient.get().uri("/mapping/court-scheduler/migration-id/2022-01-01T00:00:00")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -259,7 +259,7 @@ class CourtSchedulerMigrationIntTest(
 
       @Test
       fun `access forbidden with wrong role`() {
-        webTestClient.get().uri("/mapping/court/migration-id/2022-01-01T00:00:00")
+        webTestClient.get().uri("/mapping/court-scheduler/migration-id/2022-01-01T00:00:00")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -287,7 +287,7 @@ class CourtSchedulerMigrationIntTest(
           ),
         )
 
-        webTestClient.get().uri("/mapping/court/migration-id/2023-01-01T12:45:12")
+        webTestClient.get().uri("/mapping/court-scheduler/migration-id/2023-01-01T12:45:12")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
@@ -306,7 +306,7 @@ class CourtSchedulerMigrationIntTest(
           ),
         )
 
-        webTestClient.get().uri("/mapping/court/migration-id/2023-01-01T12:45:12")
+        webTestClient.get().uri("/mapping/court-scheduler/migration-id/2023-01-01T12:45:12")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
