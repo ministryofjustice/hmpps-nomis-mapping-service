@@ -39,6 +39,9 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var courtCaseMappingRepository: CourtCaseMappingRepository
 
+  @Autowired
+  private lateinit var courtAppearanceRecallMappingRepository: CourtAppearanceRecallMappingRepository
+
   @Nested
   @DisplayName("GET /mapping/court-sentencing/court-appearances/dps-court-appearance-id/{courtAppearanceId}")
   inner class GetCourtAppearanceMappingByDpsId {
@@ -1186,6 +1189,103 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
           )
           .exchange()
           .expectStatus().isBadRequest
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("PUT /mapping/court-sentencing/court-appearances/recall/{recall-id}")
+  inner class UpdateCourtAppearanceRecallMapping {
+    val dpsRecallId = "f6ec6d17-a062-4272-9c21-1017b06d556c"
+
+    private val mapping = CourtAppearanceRecallMappingsUpdateDto(
+      nomisCourtAppearanceIds = listOf(NOMIS_COURT_APPEARANCE_ID, NOMIS_COURT_APPEARANCE_2_ID),
+    )
+
+    @BeforeEach
+    fun setUp() = runTest {
+      courtAppearanceRecallMappingRepository.save(
+        CourtAppearanceRecallMapping(
+          nomisCourtAppearanceId = 99,
+          dpsRecallId = dpsRecallId,
+          mappingType = CourtAppearanceRecallMappingType.DPS_CREATED,
+        ),
+      )
+    }
+
+    @AfterEach
+    fun tearDown() = runTest {
+      courtCaseMappingRepository.deleteAll()
+      repository.deleteAll()
+      courtAppearanceRecallRepository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.put()
+          .uri("/mapping/court-sentencing/court-appearances/recall/$dpsRecallId")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.put()
+          .uri("/mapping/court-sentencing/court-appearances/recall/$dpsRecallId")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.put()
+          .uri("/mapping/court-sentencing/court-appearances/recall/$dpsRecallId")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `returns 200 when mapping created`() = runTest {
+        val existingMappings = courtAppearanceRecallRepository.findAllByDpsRecallId(dpsRecallId)
+        assertThat(existingMappings).hasSize(1)
+        with(existingMappings.first()) {
+          assertThat(this.nomisCourtAppearanceId).isEqualTo(99L)
+          assertThat(this.dpsRecallId).isEqualTo(dpsRecallId)
+        }
+
+        webTestClient.put()
+          .uri("/mapping/court-sentencing/court-appearances/recall/$dpsRecallId")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isOk
+
+        val createdMappings = courtAppearanceRecallRepository.findAllByDpsRecallId(dpsRecallId)
+        assertThat(createdMappings).hasSize(2)
+
+        val firstMapping = createdMappings.find { it.nomisCourtAppearanceId == NOMIS_COURT_APPEARANCE_ID }!!
+        assertThat(firstMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        assertThat(firstMapping.nomisCourtAppearanceId).isEqualTo(NOMIS_COURT_APPEARANCE_ID)
+        assertThat(firstMapping.dpsRecallId).isEqualTo(dpsRecallId)
+
+        val secondMapping = createdMappings.find { it.nomisCourtAppearanceId == NOMIS_COURT_APPEARANCE_2_ID }!!
+        assertThat(secondMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        assertThat(secondMapping.nomisCourtAppearanceId).isEqualTo(NOMIS_COURT_APPEARANCE_2_ID)
+        assertThat(secondMapping.dpsRecallId).isEqualTo(dpsRecallId)
       }
     }
   }
