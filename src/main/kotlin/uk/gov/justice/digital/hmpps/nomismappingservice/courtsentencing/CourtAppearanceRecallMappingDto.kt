@@ -55,3 +55,13 @@ data class CourtAppearanceRecallMappingsDto(
   @Schema(description = "Mappings that need updating")
   val mappingsToUpdate: CourtCaseBatchUpdateMappingDto = CourtCaseBatchUpdateMappingDto(),
 )
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Court appearance recall mappings")
+data class CourtAppearanceRecallMappingsUpdateDto(
+
+  @Schema(description = "List of NOMIS court appearance ids", example = "[123456, 789012]")
+  @field:NotEmpty(message = "NOMIS court appearance ids must be supplied")
+  val nomisCourtAppearanceIds: List<Long>,
+
+)
