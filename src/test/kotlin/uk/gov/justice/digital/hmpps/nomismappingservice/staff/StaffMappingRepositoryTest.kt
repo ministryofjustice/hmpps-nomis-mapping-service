@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.users
+package uk.gov.justice.digital.hmpps.nomismappingservice.staff
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -13,9 +13,9 @@ import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 
 @DataR2dbcTest
 @WithMockAuthUser
-class UserMappingRepositoryTest : TestBase() {
+class StaffMappingRepositoryTest : TestBase() {
   @Autowired
-  private lateinit var repository: UserMappingRepository
+  private lateinit var repository: StaffMappingRepository
 
   @AfterEach
   fun tearDown() = runTest {
@@ -25,7 +25,7 @@ class UserMappingRepositoryTest : TestBase() {
   @Test
   fun saveMappingByNomisId(): Unit = runBlocking {
     repository.save(
-      UserMapping(
+      StaffMapping(
         dpsId = "123",
         nomisId = 456,
         label = "TIMESTAMP",

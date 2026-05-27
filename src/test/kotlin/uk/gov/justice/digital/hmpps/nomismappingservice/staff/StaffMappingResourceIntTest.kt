@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.users
+package uk.gov.justice.digital.hmpps.nomismappingservice.staff
 
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
@@ -20,19 +20,19 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
-class UserMappingResourceIntTest : IntegrationTestBase() {
+class StaffMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
-  private lateinit var repository: UserMappingRepository
+  private lateinit var repository: StaffMappingRepository
 
   @Nested
-  @DisplayName("GET /mapping/users/nomis-id/{nomisUserId}")
+  @DisplayName("GET /mapping/staff/nomis-id/{nomisStaffId}")
   inner class GetMappingByNomisId {
-    lateinit var mapping: UserMapping
+    lateinit var mapping: StaffMapping
 
     @BeforeEach
     fun setUp() = runTest {
       mapping = repository.save(
-        UserMapping(
+        StaffMapping(
           dpsId = "A1234KT",
           nomisId = 12345,
           label = "2023-01-01T12:45:12",
@@ -51,7 +51,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.get()
-          .uri("/mapping/users/nomis-id/${mapping.nomisId}")
+          .uri("/mapping/staff/nomis-id/${mapping.nomisId}")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -59,7 +59,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.get()
-          .uri("/mapping/users/nomis-id/${mapping.nomisId}")
+          .uri("/mapping/staff/nomis-id/${mapping.nomisId}")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -68,7 +68,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/mapping/users/nomis-id/${mapping.nomisId}")
+          .uri("/mapping/staff/nomis-id/${mapping.nomisId}")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -80,7 +80,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 404 when mapping does not exist`() {
         webTestClient.get()
-          .uri("/mapping/users/nomis-id/9999")
+          .uri("/mapping/staff/nomis-id/9999")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
@@ -89,7 +89,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 200 when mapping does exist`() {
         webTestClient.get()
-          .uri("/mapping/users/nomis-id/${mapping.nomisId}")
+          .uri("/mapping/staff/nomis-id/${mapping.nomisId}")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
@@ -106,14 +106,14 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("GET /mapping/users/dps-id/{dpsId}")
+  @DisplayName("GET /mapping/staff/dps-id/{dpsId}")
   inner class GetMappingByDpsId {
-    lateinit var mapping: UserMapping
+    lateinit var mapping: StaffMapping
 
     @BeforeEach
     fun setUp() = runTest {
       mapping = repository.save(
-        UserMapping(
+        StaffMapping(
           dpsId = "A1234KT",
           nomisId = 12345,
           label = "2023-01-01T12:45:12",
@@ -132,7 +132,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.get()
-          .uri("/mapping/users/dps-id/${mapping.dpsId}")
+          .uri("/mapping/staff/dps-id/${mapping.dpsId}")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -140,7 +140,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.get()
-          .uri("/mapping/users/dps-id/${mapping.dpsId}")
+          .uri("/mapping/staff/dps-id/${mapping.dpsId}")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -149,7 +149,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/mapping/users/dps-id/${mapping.dpsId}")
+          .uri("/mapping/staff/dps-id/${mapping.dpsId}")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -161,7 +161,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 404 when mapping does not exist`() {
         webTestClient.get()
-          .uri("/mapping/users/dps-id/DOESNOTEXIST")
+          .uri("/mapping/staff/dps-id/DOESNOTEXIST")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
@@ -170,7 +170,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 200 when mapping does exist`() {
         webTestClient.get()
-          .uri("/mapping/users/dps-id/${mapping.dpsId}")
+          .uri("/mapping/staff/dps-id/${mapping.dpsId}")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
@@ -187,14 +187,14 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("DELETE /mapping/users/dps-id/{dpsId}")
+  @DisplayName("DELETE /mapping/staff/dps-id/{dpsId}")
   inner class DeleteMappingsByDpsId {
-    lateinit var mapping: UserMapping
+    lateinit var mapping: StaffMapping
 
     @BeforeEach
     fun setUp() = runTest {
       mapping = repository.save(
-        UserMapping(
+        StaffMapping(
           dpsId = "A1234KT",
           nomisId = 12345,
           label = "2023-01-01T12:45:12",
@@ -213,7 +213,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.delete()
-          .uri("/mapping/users/dps-id/${mapping.dpsId}")
+          .uri("/mapping/staff/dps-id/${mapping.dpsId}")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -221,7 +221,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.delete()
-          .uri("/mapping/users/dps-id/${mapping.dpsId}")
+          .uri("/mapping/staff/dps-id/${mapping.dpsId}")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -230,7 +230,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.delete()
-          .uri("/mapping/users/dps-id/${mapping.dpsId}")
+          .uri("/mapping/staff/dps-id/${mapping.dpsId}")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -242,7 +242,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 204 even when mapping does not exist`() {
         webTestClient.delete()
-          .uri("/mapping/users/dps-id/DOESNOTEXIST")
+          .uri("/mapping/staff/dps-id/DOESNOTEXIST")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
@@ -251,19 +251,19 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return 204 when mapping does exist and is deleted`() {
         webTestClient.get()
-          .uri("/mapping/users/dps-id/${mapping.dpsId}")
+          .uri("/mapping/staff/dps-id/${mapping.dpsId}")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
 
         webTestClient.delete()
-          .uri("/mapping/users/dps-id/${mapping.dpsId}")
+          .uri("/mapping/staff/dps-id/${mapping.dpsId}")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
         webTestClient.get()
-          .uri("/mapping/users/dps-id/${mapping.dpsId}")
+          .uri("/mapping/staff/dps-id/${mapping.dpsId}")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
@@ -272,10 +272,10 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("POST /mapping/users")
+  @DisplayName("POST /mapping/staff")
   inner class CreateMapping {
-    private lateinit var existingMapping: UserMapping
-    private val mapping = UserMappingDto(
+    private lateinit var existingMapping: StaffMapping
+    private val mapping = StaffMappingDto(
       dpsId = "A1234KU",
       nomisId = 12346,
       label = "2023-01-01T12:45:12",
@@ -285,7 +285,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
     @BeforeEach
     fun setUp() = runTest {
       existingMapping = repository.save(
-        UserMapping(
+        StaffMapping(
           dpsId = "A1234KT",
           nomisId = 12345,
           label = "2023-01-01T12:45:12",
@@ -304,7 +304,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.post()
-          .uri("/mapping/users")
+          .uri("/mapping/staff")
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -314,7 +314,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.post()
-          .uri("/mapping/users")
+          .uri("/mapping/staff")
           .headers(setAuthorisation(roles = listOf()))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
@@ -325,7 +325,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.post()
-          .uri("/mapping/users")
+          .uri("/mapping/staff")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
@@ -339,7 +339,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 201 when mapping created`() = runTest {
         webTestClient.post()
-          .uri("/mapping/users")
+          .uri("/mapping/staff")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
@@ -348,7 +348,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
 
         val createdMapping =
           repository.findOneByNomisId(
-            nomisId = mapping.nomisId,
+            nomisStaffId = mapping.nomisId,
           )!!
 
         assertThat(createdMapping.whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
@@ -363,7 +363,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 400 when mapping type is invalid`() {
         webTestClient.post()
-          .uri("/mapping/users")
+          .uri("/mapping/staff")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -371,7 +371,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "nomisUserId": "A1234BC",
+                  "nomisStaffId": "A1234BC",
                   "dpsId": "e52d7268-6e10-41a8-a0b9-2319b32520d6",
                   "mappingType": "INVALID_TYPE"
                 }
@@ -385,7 +385,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 400 when DPS id is missing`() {
         webTestClient.post()
-          .uri("/mapping/users")
+          .uri("/mapping/staff")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -393,7 +393,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
               //language=JSON
               """
                 {
-                  "nomisUserId": "A1234BC"
+                  "nomisStaffId": "A1234BC"
                 }
               """.trimIndent(),
             ),
@@ -405,7 +405,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 400 when NOMIS id is missing`() {
         webTestClient.post()
-          .uri("/mapping/users")
+          .uri("/mapping/staff")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -426,12 +426,12 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 409 if nomis id already exists`() {
         val dpsId = UUID.randomUUID().toString()
         val duplicateResponse = webTestClient.post()
-          .uri("/mapping/users")
+          .uri("/mapping/staff")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              UserMappingDto(
+              StaffMappingDto(
                 dpsId = dpsId,
                 nomisId = existingMapping.nomisId,
               ),
@@ -457,16 +457,16 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
 
       @Test
       fun `Returns 409 if dps id already exists`() {
-        val nomisUserId = -1L
+        val nomisStaffId = -1L
         val duplicateResponse = webTestClient.post()
-          .uri("/mapping/users")
+          .uri("/mapping/staff")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              UserMappingDto(
+              StaffMappingDto(
                 dpsId = existingMapping.dpsId,
-                nomisId = nomisUserId,
+                nomisId = nomisStaffId,
               ),
             ),
           )
@@ -483,7 +483,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
             .containsEntry("nomisId", existingMapping.nomisId.toInt())
             .containsEntry("dpsId", existingMapping.dpsId)
           assertThat(this.moreInfo.duplicate)
-            .containsEntry("nomisId", nomisUserId.toInt())
+            .containsEntry("nomisId", nomisStaffId.toInt())
             .containsEntry("dpsId", existingMapping.dpsId)
         }
       }
@@ -491,15 +491,15 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("DELETE /mapping/users")
+  @DisplayName("DELETE /mapping/staff")
   inner class DeleteAllMappings {
-    private lateinit var existingMapping1: UserMapping
-    private lateinit var existingMapping2: UserMapping
+    private lateinit var existingMapping1: StaffMapping
+    private lateinit var existingMapping2: StaffMapping
 
     @BeforeEach
     fun setUp() = runTest {
       existingMapping1 = repository.save(
-        UserMapping(
+        StaffMapping(
           dpsId = "A1234KU",
           nomisId = 12345,
           label = "2023-01-01T12:45:12",
@@ -507,7 +507,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
         ),
       )
       existingMapping2 = repository.save(
-        UserMapping(
+        StaffMapping(
           dpsId = "A1234KT",
           nomisId = 12346,
           mappingType = NOMIS_CREATED,
@@ -525,7 +525,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.delete()
-          .uri("/mapping/users")
+          .uri("/mapping/staff")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -533,7 +533,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.delete()
-          .uri("/mapping/users")
+          .uri("/mapping/staff")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -542,7 +542,7 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.delete()
-          .uri("/mapping/users")
+          .uri("/mapping/staff")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -555,29 +555,29 @@ class UserMappingResourceIntTest : IntegrationTestBase() {
       fun `returns 204 when all mappings are deleted`() = runTest {
         assertThat(
           repository.findOneByNomisId(
-            nomisId = existingMapping1.nomisId,
+            nomisStaffId = existingMapping1.nomisId,
           ),
         ).isNotNull
         assertThat(
           repository.findOneByNomisId(
-            nomisId = existingMapping2.nomisId,
+            nomisStaffId = existingMapping2.nomisId,
           ),
         ).isNotNull
 
         webTestClient.delete()
-          .uri("/mapping/users")
+          .uri("/mapping/staff")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
 
         assertThat(
           repository.findOneByNomisId(
-            nomisId = existingMapping1.nomisId,
+            nomisStaffId = existingMapping1.nomisId,
           ),
         ).isNull()
         assertThat(
           repository.findOneByNomisId(
-            nomisId = existingMapping2.nomisId,
+            nomisStaffId = existingMapping2.nomisId,
           ),
         ).isNull()
       }

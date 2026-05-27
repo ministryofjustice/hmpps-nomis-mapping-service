@@ -1,11 +1,11 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.users
+package uk.gov.justice.digital.hmpps.nomismappingservice.staff
 
 import org.springframework.data.annotation.Id
 import uk.gov.justice.digital.hmpps.nomismappingservice.jpa.AbstractMappingTyped
 import uk.gov.justice.digital.hmpps.nomismappingservice.jpa.StandardMappingType
 import java.time.LocalDateTime
 
-class UserMapping(
+class StaffMapping(
   @Id
   val dpsId: String,
   val nomisId: Long,
@@ -16,7 +16,7 @@ class UserMapping(
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is UserMapping) return false
+    if (other !is StaffMapping) return false
     if (dpsId != other.dpsId) return false
     return true
   }

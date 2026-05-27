@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.users
+package uk.gov.justice.digital.hmpps.nomismappingservice.staff
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.Operation
@@ -29,8 +29,8 @@ import java.time.LocalDateTime
 @RestController
 @Validated
 @PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
-@RequestMapping("/mapping/users", produces = [MediaType.APPLICATION_JSON_VALUE])
-class UserMappingResource(private val service: UserService) {
+@RequestMapping("/mapping/staff", produces = [MediaType.APPLICATION_JSON_VALUE])
+class StaffMappingResource(private val service: StaffService) {
 
   @GetMapping("/nomis-id/{nomisId}")
   @Operation(
@@ -58,11 +58,11 @@ class UserMappingResource(private val service: UserService) {
       ),
     ],
   )
-  suspend fun getUserMappingByNomisId(
+  suspend fun getStaffMappingByNomisId(
     @Schema(description = "NOMIS staff user id", example = "123", required = true)
     @PathVariable
     nomisId: Long,
-  ): UserMappingDto = service.getMappingByNomisId(nomisId = nomisId)
+  ): StaffMappingDto = service.getMappingByNomisId(nomisId = nomisId)
 
   @GetMapping("/dps-id/{dpsId}")
   @Operation(
@@ -90,11 +90,11 @@ class UserMappingResource(private val service: UserService) {
       ),
     ],
   )
-  suspend fun getUserMappingByDpsId(
+  suspend fun getStaffMappingByDpsId(
     @Schema(description = "DPS staff user id", example = "123", required = true)
     @PathVariable
     dpsId: String,
-  ): UserMappingDto = service.getMappingByDpsId(dpsId = dpsId)
+  ): StaffMappingDto = service.getMappingByDpsId(dpsId = dpsId)
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
@@ -102,7 +102,7 @@ class UserMappingResource(private val service: UserService) {
     summary = "Creates a staff user mapping",
     description = "Creates a staff user mapping. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = UserMappingDto::class))],
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = StaffMappingDto::class))],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Mappings created"),
@@ -128,9 +128,9 @@ class UserMappingResource(private val service: UserService) {
       ),
     ],
   )
-  suspend fun createUserMapping(
+  suspend fun createStaffMapping(
     @RequestBody @Valid
-    mapping: UserMappingDto,
+    mapping: StaffMappingDto,
   ): Unit = try {
     service.createMapping(mapping)
   } catch (e: DuplicateKeyException) {
@@ -150,7 +150,7 @@ class UserMappingResource(private val service: UserService) {
     responses = [
       ApiResponse(
         responseCode = "204",
-        description = "User mapping deleted",
+        description = "Staff mapping deleted",
       ),
       ApiResponse(
         responseCode = "401",
@@ -191,9 +191,9 @@ class UserMappingResource(private val service: UserService) {
       ),
     ],
   )
-  suspend fun deleteAllUserMappings() = service.deleteAllMappings()
+  suspend fun deleteAllStaffMappings() = service.deleteAllMappings()
 
-  private suspend fun getExistingMappingSimilarTo(mapping: UserMappingDto) = runCatching {
+  private suspend fun getExistingMappingSimilarTo(mapping: StaffMappingDto) = runCatching {
     service.getMappingByNomisId(
       nomisId = mapping.nomisId,
     )
@@ -205,13 +205,13 @@ class UserMappingResource(private val service: UserService) {
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Staff User mapping")
-data class UserMappingDto(
+@Schema(description = "Staff mapping")
+data class StaffMappingDto(
 
-  @Schema(description = "NOMIS Staff User ID", required = true)
+  @Schema(description = "NOMIS Staff ID", required = true)
   val nomisId: Long,
 
-  @Schema(description = "DPS representation of the staff user", required = true)
+  @Schema(description = "DPS representation of the staff", required = true)
   val dpsId: String,
 
   @Schema(description = "Label (a timestamp for migrated ids)")
