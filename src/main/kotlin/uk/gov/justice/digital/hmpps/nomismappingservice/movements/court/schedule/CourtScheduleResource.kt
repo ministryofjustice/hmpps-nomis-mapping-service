@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
+import java.util.UUID
 
 @RestController
 @Validated
@@ -125,4 +126,31 @@ class CourtScheduleResource(
   suspend fun deleteCourtScheduleMappingByNomisId(
     @PathVariable nomisEventId: Long,
   ) = service.deleteScheduleMappingByNomisId(nomisEventId)
+
+  @GetMapping("/dps-id/{dpsId}")
+  @Operation(
+    summary = "Gets a mapping for a single court schedule by DPS event ID",
+    description = "Gets a mapping for a single court schedule by DPS event ID. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(responseCode = "200", description = "Court schedule mapping returned"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "The mapping does not exist.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getCourtScheduleMappingByDpsId(
+    @PathVariable dpsId: UUID,
+  ) = service.getScheduleMappingByDpsId(dpsId)
 }
