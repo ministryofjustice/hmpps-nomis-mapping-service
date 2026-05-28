@@ -350,4 +350,93 @@ class CourtScheduleResourceIntTest(
       .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
   }
+
+  @Nested
+  @DisplayName("GET /mapping/court-scheduler/schedule/dps-id/{dpsId}")
+  inner class GetDpsCourtScheduleSyncMapping {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      scheduleRepository.deleteAll()
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = CourtScheduleMapping(
+        dpsCourtAppearanceId = UUID.randomUUID(),
+        nomisEventId = 23456L,
+        offenderNo = "A1234BC",
+        bookingId = 12345L,
+        mappingType = CourtMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `should get court schedule mapping by DPS ID`() = runTest {
+        scheduleRepository.save(mapping)
+
+        webTestClient.getCourtScheduleSyncMapping(mapping.dpsCourtAppearanceId)
+          .expectStatus().isOk
+          .expectBody(object : ParameterizedTypeReference<CourtScheduleMappingDto>() {})
+          .returnResult().responseBody!!
+          .apply {
+            assertThat(nomisEventId).isEqualTo(mapping.nomisEventId)
+            assertThat(dpsCourtAppearanceId).isEqualTo(mapping.dpsCourtAppearanceId)
+            assertThat(prisonerNumber).isEqualTo(mapping.offenderNo)
+            assertThat(bookingId).isEqualTo(mapping.bookingId)
+            assertThat(mappingType).isEqualTo(mapping.mappingType)
+          }
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `should return not found when mapping does not exist`() = runTest {
+        webTestClient.getCourtScheduleSyncMapping(UUID.randomUUID())
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class Security {
+      val mapping = CourtScheduleMappingDto(
+        prisonerNumber = "A1234BC",
+        bookingId = 12345L,
+        nomisEventId = 23456L,
+        dpsCourtAppearanceId = UUID.randomUUID(),
+        mappingType = CourtMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/court-scheduler/schedule/dps-id/${mapping.dpsCourtAppearanceId}")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/court-scheduler/schedule/dps-id/${mapping.dpsCourtAppearanceId}")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/court-scheduler/schedule/dps-id/${mapping.dpsCourtAppearanceId}")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.getCourtScheduleSyncMapping(dpsId: UUID) = get()
+      .uri("/mapping/court-scheduler/schedule/dps-id/$dpsId")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .exchange()
+  }
 }
