@@ -562,7 +562,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
           .returnResult().responseBody
 
         with(duplicateResponse!!) {
-          // since this is an untyped map an int will be assumed for such small numbers
+          // since this is an untyped map, an int will be assumed for such small numbers
           assertThat(this.moreInfo.existing)
             .containsEntry("nomisCourtAppearanceId", existingMapping.nomisCourtAppearanceId.toInt())
             .containsEntry("dpsCourtAppearanceId", existingMapping.dpsCourtAppearanceId)
@@ -595,7 +595,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
           .returnResult().responseBody
 
         with(duplicateResponse!!) {
-          // since this is an untyped map an int will be assumed for such small numbers
+          // since this is an untyped map, an int will be assumed for such small numbers
           assertThat(this.moreInfo.existing)
             .containsEntry("nomisCourtAppearanceId", existingMapping.nomisCourtAppearanceId.toInt())
             .containsEntry("dpsCourtAppearanceId", existingMapping.dpsCourtAppearanceId)
@@ -1001,6 +1001,10 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
     val fromNomisId = 99L
     val toNomisId = 100L
     val dpsId = UUID.randomUUID().toString()
+    val oldDpsBreachHearingId = UUID.randomUUID().toString()
+    val oldDpsRecallId = UUID.randomUUID().toString()
+    val oldFromBreachHearingNomisId = 97L
+    val oldToBreachHearingNomisId = 98L
 
     private val mapping = CourtAppearanceRecallMappingsDto(
       nomisCourtAppearanceIds = listOf(NOMIS_COURT_APPEARANCE_ID, NOMIS_COURT_APPEARANCE_2_ID),
@@ -1009,7 +1013,7 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       mappingType = CourtAppearanceRecallMappingType.DPS_CREATED,
       mappingsToUpdate = CourtCaseBatchUpdateMappingDto(
         courtCases = listOf(SimpleCourtSentencingIdPair(fromNomisId, toNomisId)),
-        courtAppearances = listOf(SimpleCourtSentencingIdPair(fromNomisId, toNomisId)),
+        courtAppearances = listOf(SimpleCourtSentencingIdPair(fromNomisId, toNomisId), SimpleCourtSentencingIdPair(oldFromBreachHearingNomisId, oldToBreachHearingNomisId)),
       ),
     )
 
@@ -1027,6 +1031,21 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
           nomisCourtAppearanceId = fromNomisId,
           dpsCourtAppearanceId = dpsId,
           mappingType = CourtAppearanceMappingType.NOMIS_CREATED,
+        ),
+      )
+      repository.save(
+        CourtAppearanceMapping(
+          nomisCourtAppearanceId = oldFromBreachHearingNomisId,
+          dpsCourtAppearanceId = oldDpsBreachHearingId,
+          mappingType = CourtAppearanceMappingType.DPS_CREATED,
+        ),
+      )
+
+      courtAppearanceRecallRepository.save(
+        CourtAppearanceRecallMapping(
+          nomisCourtAppearanceId = oldFromBreachHearingNomisId,
+          dpsRecallId = oldDpsRecallId,
+          mappingType = CourtAppearanceRecallMappingType.DPS_CREATED,
         ),
       )
     }
@@ -1104,7 +1123,9 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will also update any of the other supplied mappings`() = runTest {
         assertThat(repository.findById(dpsId)?.nomisCourtAppearanceId).isEqualTo(fromNomisId)
+        assertThat(repository.findById(oldDpsBreachHearingId)?.nomisCourtAppearanceId).isEqualTo(oldFromBreachHearingNomisId)
         assertThat(courtCaseMappingRepository.findById(dpsId)?.nomisCourtCaseId).isEqualTo(fromNomisId)
+        assertThat(courtAppearanceRecallRepository.findAllByDpsRecallId(oldDpsRecallId).first().nomisCourtAppearanceId).isEqualTo(oldFromBreachHearingNomisId)
 
         webTestClient.post()
           .uri("/mapping/court-sentencing/court-appearances/recall")
@@ -1115,7 +1136,9 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
           .expectStatus().isCreated
 
         assertThat(repository.findById(dpsId)?.nomisCourtAppearanceId).isEqualTo(toNomisId)
+        assertThat(repository.findById(oldDpsBreachHearingId)?.nomisCourtAppearanceId).isEqualTo(oldToBreachHearingNomisId)
         assertThat(courtCaseMappingRepository.findById(dpsId)?.nomisCourtCaseId).isEqualTo(toNomisId)
+        assertThat(courtAppearanceRecallRepository.findAllByDpsRecallId(oldDpsRecallId).first().nomisCourtAppearanceId).isEqualTo(oldToBreachHearingNomisId)
       }
 
       @Test
