@@ -98,7 +98,7 @@ class CourtSentencingMappingService(
 
   @Transactional
   suspend fun replaceAndCreateAllMappings(createMappingRequest: CourtCaseBatchMappingDto) {
-    createMappingRequest.courtCases.map { courtCaseMappingRequest ->
+    createMappingRequest.courtCases.forEach { courtCaseMappingRequest ->
       try {
         deleteCourtCaseMappingByNomisId(courtCaseMappingRequest.nomisCourtCaseId)
         deleteCourtCaseMappingByDpsId(courtCaseMappingRequest.dpsCourtCaseId)
@@ -190,7 +190,7 @@ class CourtSentencingMappingService(
 
   @Transactional
   suspend fun updateAllMappingsByNomisId(updateMappingRequest: CourtCaseBatchUpdateMappingDto) {
-    updateMappingRequest.courtCases.map {
+    updateMappingRequest.courtCases.forEach {
       courtCaseMappingRepository.findByNomisCourtCaseId(it.fromNomisId)?.also { mapping ->
         courtCaseMappingRepository.save(mapping.copy(nomisCourtCaseId = it.toNomisId))
       }
@@ -198,6 +198,12 @@ class CourtSentencingMappingService(
     updateMappingRequest.courtAppearances.forEach {
       courtAppearanceMappingRepository.findByNomisCourtAppearanceId(it.fromNomisId)?.also { mapping ->
         courtAppearanceMappingRepository.save(mapping.copy(nomisCourtAppearanceId = it.toNomisId))
+      }
+
+      courtAppearanceRecallMappingRepository.findByNomisCourtAppearanceId(it.fromNomisId)?.also { mapping ->
+        // nomisCourtAppearanceId is PK, so need to delete and re-insert rather than update
+        courtAppearanceRecallMappingRepository.deleteByNomisCourtAppearanceId(mapping.nomisCourtAppearanceId)
+        courtAppearanceRecallMappingRepository.save(mapping.copy(nomisCourtAppearanceId = it.toNomisId, new = true))
       }
     }
     updateMappingRequest.courtCharges.forEach {
@@ -512,11 +518,11 @@ class CourtSentencingMappingService(
   suspend fun createCourtAppearanceRecallMapping(createMappingRequest: CourtAppearanceRecallMappingsDto): Unit = with(createMappingRequest) {
     updateAllMappingsByNomisId(createMappingRequest.mappingsToUpdate)
 
-    courtAppearanceRecallMappingRepository.saveAll(this.toCourtAppearanceRecallMappings()).also {
+    courtAppearanceRecallMappingRepository.saveAll(this.toCourtAppearanceRecallMappings()).also { appearances ->
       telemetryClient.trackEvent(
         "court-appearance-recall-mapping-created",
         mapOf(
-          "nomisCourtAppearanceId" to it.toList().map { it.nomisCourtAppearanceId }.joinToString(","),
+          "nomisCourtAppearanceId" to appearances.toList().map { it.nomisCourtAppearanceId }.joinToString(","),
           "dpsRecallId" to dpsRecallId,
           "mappingType" to mappingType.toString(),
         ),
@@ -528,11 +534,11 @@ class CourtSentencingMappingService(
   @Transactional
   suspend fun replaceCourtAppearanceRecallMapping(dpsRecallId: String, updateMappingRequest: CourtAppearanceRecallMappingsUpdateDto) {
     courtAppearanceRecallMappingRepository.deleteAllByDpsRecallId(dpsRecallId)
-    courtAppearanceRecallMappingRepository.saveAll(updateMappingRequest.toCourtAppearanceRecallMappings(dpsRecallId)).also {
+    courtAppearanceRecallMappingRepository.saveAll(updateMappingRequest.toCourtAppearanceRecallMappings(dpsRecallId)).also { appearances ->
       telemetryClient.trackEvent(
         "court-appearance-recall-mapping-replaced",
         mapOf(
-          "nomisCourtAppearanceId" to it.toList().map { it.nomisCourtAppearanceId }.joinToString(","),
+          "nomisCourtAppearanceId" to appearances.toList().map { it.nomisCourtAppearanceId }.joinToString(","),
           "dpsRecallId" to dpsRecallId,
         ),
         null,
@@ -543,12 +549,7 @@ class CourtSentencingMappingService(
   @Transactional
   suspend fun deleteCourtAppearanceRecallMappingByDpsId(dpsRecallId: String) = courtAppearanceRecallMappingRepository.deleteAllByDpsRecallId(dpsRecallId)
 
-  @Transactional
-  suspend fun deleteCourtAppearanceRecallMappingByNomisId(courtAppearanceId: Long) = courtAppearanceRecallMappingRepository.deleteByNomisCourtAppearanceId(courtAppearanceId)
-
   suspend fun getCourtAppearanceRecallMappingsByDpsId(dpsRecallId: String): List<CourtAppearanceRecallMappingDto> = courtAppearanceRecallMappingRepository.findAllByDpsRecallId(dpsRecallId).map { it.toCourtAppearanceRecallMappingDto() }
-  suspend fun getCourtAppearanceRecallMappingByNomisId(courtAppearanceId: Long): CourtAppearanceRecallMappingDto = courtAppearanceRecallMappingRepository.findById(courtAppearanceId)?.toCourtAppearanceRecallMappingDto()
-    ?: throw NotFoundException("Nomis Court appearance Id =$courtAppearanceId")
 
   @Transactional
   suspend fun deleteAllMappings() {
@@ -684,12 +685,6 @@ fun CourtAppearanceRecallMapping.toCourtAppearanceRecallMappingDto(): CourtAppea
   whenCreated = this.whenCreated,
 )
 
-fun CourtAppearanceRecallMappingDto.toCourtAppearanceRecallMapping(): CourtAppearanceRecallMapping = CourtAppearanceRecallMapping(
-  nomisCourtAppearanceId = this.nomisCourtAppearanceId,
-  dpsRecallId = this.dpsRecallId,
-  label = this.label,
-  mappingType = mappingType ?: CourtAppearanceRecallMappingType.DPS_CREATED,
-)
 fun CourtAppearanceRecallMappingsDto.toCourtAppearanceRecallMappings(): List<CourtAppearanceRecallMapping> = this.nomisCourtAppearanceIds.map {
   CourtAppearanceRecallMapping(
     nomisCourtAppearanceId = it,

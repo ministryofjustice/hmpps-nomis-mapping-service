@@ -7,6 +7,7 @@ import java.time.LocalDateTime
 @Repository
 interface CourtAppearanceRecallMappingRepository : CoroutineCrudRepository<CourtAppearanceRecallMapping, Long> {
   suspend fun findAllByDpsRecallId(dpsRecallId: String): List<CourtAppearanceRecallMapping>
+  suspend fun findByNomisCourtAppearanceId(nomisId: Long): CourtAppearanceRecallMapping?
   suspend fun deleteByNomisCourtAppearanceId(nomisId: Long)
   suspend fun deleteAllByDpsRecallId(dpsRecallId: String)
   suspend fun deleteByWhenCreatedAfter(dateTime: LocalDateTime)
