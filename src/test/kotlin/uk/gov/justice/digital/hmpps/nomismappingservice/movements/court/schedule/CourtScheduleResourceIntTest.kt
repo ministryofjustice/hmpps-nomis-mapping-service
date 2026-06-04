@@ -352,6 +352,89 @@ class CourtScheduleResourceIntTest(
   }
 
   @Nested
+  @DisplayName("DELETE /mapping/court-scheduler/schedule/dps-id/{dpdsEventId}")
+  inner class DeleteCourtScheduleMappingByDpsId {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      scheduleRepository.deleteAll()
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping1 = CourtScheduleMapping(
+        UUID.randomUUID(),
+        23456L,
+        "A1234BC",
+        12345L,
+        mappingType = CourtMappingType.NOMIS_CREATED,
+      )
+      val mapping2 = CourtScheduleMapping(
+        UUID.randomUUID(),
+        65432L,
+        "A1234BC",
+        12345L,
+        mappingType = CourtMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `should delete court schedule mapping by NOMIS ID`() = runTest {
+        scheduleRepository.save(mapping1)
+        scheduleRepository.save(mapping2)
+
+        webTestClient.deleteCourtScheduleMapping(mapping1.dpsCourtAppearanceId)
+          .expectStatus().isNoContent
+
+        assertThat(scheduleRepository.findByDpsCourtAppearanceId(mapping1.dpsCourtAppearanceId)).isNull()
+        assertThat(scheduleRepository.findByDpsCourtAppearanceId(mapping2.dpsCourtAppearanceId)).isNotNull
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `delete endpoint should be idempotent`() = runTest {
+        webTestClient.deleteCourtScheduleMapping(UUID.randomUUID())
+          .expectStatus().isNoContent
+      }
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/court-scheduler/schedule/dps-id/${UUID.randomUUID()}")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/court-scheduler/schedule/dps-id/${UUID.randomUUID()}")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/court-scheduler/schedule/dps-id/${UUID.randomUUID()}")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.deleteCourtScheduleMapping(dpsId: UUID) = delete()
+      .uri("/mapping/court-scheduler/schedule/dps-id/$dpsId")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .exchange()
+  }
+
+  @Nested
   @DisplayName("GET /mapping/court-scheduler/schedule/dps-id/{dpsId}")
   inner class GetDpsCourtScheduleSyncMapping {
 
