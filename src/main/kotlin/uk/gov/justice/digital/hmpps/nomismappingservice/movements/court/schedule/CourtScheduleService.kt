@@ -25,6 +25,9 @@ class CourtScheduleService(
 
   @Transactional
   suspend fun deleteScheduleMappingByNomisId(nomisEventId: Long) = scheduleRepository.deleteByNomisEventId(nomisEventId)
+
+  @Transactional
+  suspend fun deleteScheduleMappingByDpsId(dpsId: UUID) = scheduleRepository.deleteByDpsCourtAppearanceId(dpsId)
 }
 
 fun CourtScheduleMappingDto.toMapping(): CourtScheduleMapping = CourtScheduleMapping(
