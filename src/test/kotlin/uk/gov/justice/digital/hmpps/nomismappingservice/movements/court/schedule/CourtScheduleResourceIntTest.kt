@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.movements.court.schedul
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -10,14 +11,21 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.isDuplicateMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.court.movement.CourtMovementMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.court.movement.CourtMovementRepository
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.court.offender.CourtMovementIdMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.court.offender.CourtScheduleIdMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.court.offender.CourtSchedulerMoveBookingMappingDto
 import java.util.UUID
 
 class CourtScheduleResourceIntTest(
   @Autowired private val scheduleRepository: CourtScheduleRepository,
+  @Autowired private val movementRepository: CourtMovementRepository,
 ) : IntegrationTestBase() {
 
   @Nested
@@ -521,5 +529,121 @@ class CourtScheduleResourceIntTest(
       .uri("/mapping/court-scheduler/schedule/dps-id/$dpsId")
       .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/court-scheduler/move-booking/{bookingId}")
+  inner class GetMappingsForMoveBooking {
+    private val bookingId1 = 1L
+    private val bookingId2 = 2L
+    private val book1event1 = 3L
+    private val book1event2 = 4L
+    private val book1seq1 = 5
+    private val book1seq2 = 6
+    private val book2event1 = 7L
+    private val book2seq1 = 8
+    private val book1sched1 = UUID.randomUUID()
+    private val book1sched2 = UUID.randomUUID()
+    private val book1move1 = UUID.randomUUID()
+    private val book1move2 = UUID.randomUUID()
+    private val book2sched1 = UUID.randomUUID()
+    private val book2move1 = UUID.randomUUID()
+
+    @AfterEach
+    fun tearDown() = runTest {
+      scheduleRepository.deleteAll()
+      movementRepository.deleteAll()
+    }
+
+    @BeforeEach
+    fun setUp() = runTest {
+      scheduleRepository.save(aScheduleMapping(bookingId1, book1event1, book1sched1))
+      scheduleRepository.save(aScheduleMapping(bookingId1, book1event2, book1sched2))
+      scheduleRepository.save(aScheduleMapping(bookingId2, book2event1, book2sched1))
+
+      movementRepository.save(aMovementMapping(bookingId1, book1seq1, book1move1))
+      movementRepository.save(aMovementMapping(bookingId1, book1seq2, book1move2))
+      movementRepository.save(aMovementMapping(bookingId2, book2seq1, book2move1))
+    }
+
+    private fun aScheduleMapping(bookingId: Long, nomisEventId: Long, dpsScheduleId: UUID) = CourtScheduleMapping(
+      nomisEventId = nomisEventId,
+      dpsCourtAppearanceId = dpsScheduleId,
+      offenderNo = "A1234AB",
+      bookingId = bookingId,
+      mappingType = CourtMappingType.NOMIS_CREATED,
+    )
+
+    private fun aMovementMapping(bookingId: Long, movementSeq: Int, movementId: UUID) = CourtMovementMapping(
+      dpsCourtMovementId = movementId,
+      nomisBookingId = bookingId,
+      nomisMovementSeq = movementSeq,
+      offenderNo = "A1234AB",
+      mappingType = CourtMappingType.NOMIS_CREATED,
+    )
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `should find booking IDs`() = runTest {
+        webTestClient.getMoveBookingIds(bookingId1)
+          .apply {
+            assertThat(scheduleIds).containsExactlyInAnyOrder(
+              CourtScheduleIdMapping(book1event1, book1sched1),
+              CourtScheduleIdMapping(book1event2, book1sched2),
+            )
+            assertThat(movementIds).containsExactlyInAnyOrder(
+              CourtMovementIdMapping(book1seq1, book1move1),
+              CourtMovementIdMapping(book1seq2, book1move2),
+            )
+          }
+      }
+
+      @Test
+      fun `should return empty lists if there are no mappings`() = runTest {
+        webTestClient.getMoveBookingIds(99)
+          .apply {
+            assertThat(scheduleIds).isEmpty()
+            assertThat(movementIds).isEmpty()
+          }
+      }
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/court-scheduler/move-booking/1")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/court-scheduler/move-booking/1")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/court-scheduler/move-booking/1")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.getMoveBookingIds(bookingId: Long = 1L) = get()
+      .uri("/mapping/court-scheduler/move-booking/$bookingId")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .exchange()
+      .expectStatus().isOk
+      .expectBody<CourtSchedulerMoveBookingMappingDto>()
+      .returnResult().responseBody!!
   }
 }

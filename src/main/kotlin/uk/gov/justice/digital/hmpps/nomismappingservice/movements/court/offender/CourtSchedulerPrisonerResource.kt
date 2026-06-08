@@ -42,4 +42,30 @@ class CourtSchedulerPrisonerResource(
   suspend fun getAllCourtSchedulerPrisonerMappingIds(
     @PathVariable prisonerNumber: String,
   ): CourtSchedulerPrisonerMappingIdsDto = service.getAllMappingIds(prisonerNumber)
+
+  @GetMapping("/move-booking/{bookingId}")
+  @Operation(
+    summary = "Get all mappings for a booking",
+    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Court scheduler mapping page returned",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getCourtSchedulerBookingMappings(
+    @PathVariable
+    bookingId: Long,
+  ): CourtSchedulerMoveBookingMappingDto = service.getMappingsForMoveBooking(bookingId)
 }

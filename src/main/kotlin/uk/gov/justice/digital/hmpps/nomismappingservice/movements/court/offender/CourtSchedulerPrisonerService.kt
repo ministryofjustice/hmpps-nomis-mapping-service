@@ -17,4 +17,18 @@ class CourtSchedulerPrisonerService(
     movements = movementRepository.findByOffenderNo(prisonerNumber)
       .map { CourtMovementMappingIdsDto(it.nomisBookingId, it.nomisMovementSeq, it.dpsCourtMovementId) },
   )
+
+  suspend fun getMappingsForMoveBooking(bookingId: Long): CourtSchedulerMoveBookingMappingDto {
+    val courtAppearances = scheduleRepository.findByBookingId(bookingId)
+    val movements = movementRepository.findByNomisBookingId(bookingId)
+    return CourtSchedulerMoveBookingMappingDto(
+      scheduleIds = courtAppearances.map {
+        CourtScheduleIdMapping(
+          it.nomisEventId,
+          it.dpsCourtAppearanceId,
+        )
+      },
+      movementIds = movements.map { CourtMovementIdMapping(it.nomisMovementSeq, it.dpsCourtMovementId) },
+    )
+  }
 }
