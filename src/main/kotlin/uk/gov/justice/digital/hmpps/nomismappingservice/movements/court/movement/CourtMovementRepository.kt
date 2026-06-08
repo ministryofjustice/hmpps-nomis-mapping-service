@@ -6,6 +6,7 @@ import java.util.*
 
 @Repository
 interface CourtMovementRepository : CoroutineCrudRepository<CourtMovementMapping, UUID> {
+  suspend fun findByNomisBookingId(nomisBookingId: Long): List<CourtMovementMapping>
   suspend fun findByNomisBookingIdAndNomisMovementSeq(nomisBookingId: Long, nomisMovementSeq: Int): CourtMovementMapping?
   suspend fun findByOffenderNo(offenderNo: String): List<CourtMovementMapping>
   suspend fun deleteByNomisBookingIdAndNomisMovementSeq(nomisBookingId: Long, nomisMovementSeq: Int)
