@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
@@ -68,4 +69,41 @@ class CourtSchedulerPrisonerResource(
     @PathVariable
     bookingId: Long,
   ): CourtSchedulerMoveBookingMappingDto = service.getMappingsForMoveBooking(bookingId)
+
+  @PutMapping("/move-booking/{bookingId}/from/{fromOffenderNo}/to/{toOffenderNo}")
+  @Operation(
+    summary = "Move all mappings for a booking from one offender to another",
+    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Bookings moved",
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "We were unable to move the bookings",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "There are no mappings for the booking",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun moveCourtSchedulerBookingMappings(
+    @PathVariable bookingId: Long,
+    @PathVariable fromOffenderNo: String,
+    @PathVariable toOffenderNo: String,
+  ) = service.moveMappingsForBooking(bookingId, fromOffenderNo, toOffenderNo)
 }
