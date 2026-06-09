@@ -646,4 +646,144 @@ class CourtScheduleResourceIntTest(
       .expectBody<CourtSchedulerMoveBookingMappingDto>()
       .returnResult().responseBody!!
   }
+
+  @Nested
+  @DisplayName("PUT /mapping/court-scheduler/move-booking/{bookingId}/from/{fromOffenderNo}/to/{toOffenderNo}")
+  inner class UpdateMappingsForMoveBooking {
+    private val fromOffenderNo = "A1234AB"
+    private val toOffenderNo = "A9876BA"
+
+    private val bookingId1 = 1L
+    private val bookingId2 = 2L
+    private val book1event1 = 3L
+    private val book1event2 = 4L
+    private val book1seq1 = 5
+    private val book1seq2 = 6
+    private val book2event1 = 7L
+    private val book2seq1 = 8
+    private val book1sched1 = UUID.randomUUID()
+    private val book1sched2 = UUID.randomUUID()
+    private val book1move1 = UUID.randomUUID()
+    private val book1move2 = UUID.randomUUID()
+    private val book2sched1 = UUID.randomUUID()
+    private val book2move1 = UUID.randomUUID()
+
+    @AfterEach
+    fun tearDown() = runTest {
+      scheduleRepository.deleteAll()
+      movementRepository.deleteAll()
+    }
+
+    @BeforeEach
+    fun setUp() = runTest {
+      scheduleRepository.save(aScheduleMapping(bookingId1, book1event1, book1sched1))
+      scheduleRepository.save(aScheduleMapping(bookingId1, book1event2, book1sched2))
+      scheduleRepository.save(aScheduleMapping(bookingId2, book2event1, book2sched1))
+
+      movementRepository.save(aMovementMapping(bookingId1, book1seq1, book1move1))
+      movementRepository.save(aMovementMapping(bookingId1, book1seq2, book1move2))
+      movementRepository.save(aMovementMapping(bookingId2, book2seq1, book2move1))
+    }
+
+    private fun aScheduleMapping(bookingId: Long, nomisEventId: Long, dpsScheduleId: UUID) = CourtScheduleMapping(
+      nomisEventId = nomisEventId,
+      dpsCourtAppearanceId = dpsScheduleId,
+      offenderNo = "A1234AB",
+      bookingId = bookingId,
+      mappingType = CourtMappingType.NOMIS_CREATED,
+    )
+
+    private fun aMovementMapping(bookingId: Long, movementSeq: Int, movementId: UUID) = CourtMovementMapping(
+      dpsCourtMovementId = movementId,
+      nomisBookingId = bookingId,
+      nomisMovementSeq = movementSeq,
+      offenderNo = "A1234AB",
+      mappingType = CourtMappingType.NOMIS_CREATED,
+    )
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `should move all mappings to new booking`() = runTest {
+        webTestClient.moveBookingIdsOk(bookingId1, fromOffenderNo, toOffenderNo)
+
+        with(scheduleRepository.findByBookingId(1)) {
+          forEach { assertThat(it.offenderNo).isEqualTo(toOffenderNo) }
+        }
+        with(movementRepository.findByNomisBookingId(1)) {
+          forEach { assertThat(it.offenderNo).isEqualTo(toOffenderNo) }
+        }
+      }
+
+      @Test
+      fun `should leave other bookings alone`() = runTest {
+        webTestClient.moveBookingIdsOk(bookingId1, fromOffenderNo, toOffenderNo)
+
+        with(scheduleRepository.findByBookingId(2)) {
+          forEach { assertThat(it.offenderNo).isEqualTo(fromOffenderNo) }
+        }
+        with(movementRepository.findByNomisBookingId(2)) {
+          forEach { assertThat(it.offenderNo).isEqualTo(fromOffenderNo) }
+        }
+      }
+
+      @Test
+      fun `should return OK if all bookings already on the to offender`() = runTest {
+        webTestClient.moveBookingIdsOk(bookingId1, "any", fromOffenderNo)
+      }
+    }
+
+    @Nested
+    inner class Validation {
+
+      @Test
+      fun `should return not found if booking not mapped`() {
+        webTestClient.moveBookingIds(9999, fromOffenderNo, toOffenderNo)
+          .expectStatus().isNotFound
+      }
+
+      @Test
+      fun `should return bad request if bookings exist for a different offender`() {
+        webTestClient.moveBookingIds(bookingId1, "A8888AA", toOffenderNo)
+          .expectStatus().isBadRequest
+      }
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.put()
+          .uri("/mapping/court-scheduler/move-booking/1/from/A1234AB/to/A9876BA")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.put()
+          .uri("/mapping/court-scheduler/move-booking/1/from/A1234AB/to/A9876BA")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.put()
+          .uri("/mapping/court-scheduler/move-booking/1/from/A1234AB/to/A9876BA")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.moveBookingIds(bookingId: Long = 1L, from: String = "A1234AB", to: String = "A9876BA") = put()
+      .uri("/mapping/court-scheduler/move-booking/$bookingId/from/$from/to/$to")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .exchange()
+
+    private fun WebTestClient.moveBookingIdsOk(bookingId: Long = 1L, from: String = "A1234AB", to: String = "A9876BA") = moveBookingIds(bookingId, from, to)
+      .expectStatus().isOk
+  }
 }
