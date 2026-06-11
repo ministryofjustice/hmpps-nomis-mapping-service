@@ -26,6 +26,11 @@ class StaffMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var repository: StaffMappingRepository
 
+  @AfterEach
+  fun tearDown() = runTest {
+    repository.deleteAll()
+  }
+
   @Nested
   @DisplayName("GET /mapping/staff/nomis-id/{nomisStaffId}")
   inner class GetMappingByNomisId {
@@ -41,11 +46,6 @@ class StaffMappingResourceIntTest : IntegrationTestBase() {
           mappingType = DPS_CREATED,
         ),
       )
-    }
-
-    @AfterEach
-    fun tearDown() = runTest {
-      repository.deleteAll()
     }
 
     @Nested
@@ -124,11 +124,6 @@ class StaffMappingResourceIntTest : IntegrationTestBase() {
       )
     }
 
-    @AfterEach
-    fun tearDown() = runTest {
-      repository.deleteAll()
-    }
-
     @Nested
     inner class Security {
       @Test
@@ -203,11 +198,6 @@ class StaffMappingResourceIntTest : IntegrationTestBase() {
           mappingType = DPS_CREATED,
         ),
       )
-    }
-
-    @AfterEach
-    fun tearDown() = runTest {
-      repository.deleteAll()
     }
 
     @Nested
@@ -294,11 +284,6 @@ class StaffMappingResourceIntTest : IntegrationTestBase() {
           mappingType = DPS_CREATED,
         ),
       )
-    }
-
-    @AfterEach
-    fun tearDown() = runTest {
-      repository.deleteAll()
     }
 
     @Nested
@@ -517,11 +502,6 @@ class StaffMappingResourceIntTest : IntegrationTestBase() {
       )
     }
 
-    @AfterEach
-    fun tearDown() = runTest {
-      repository.deleteAll()
-    }
-
     @Nested
     inner class Security {
       @Test
@@ -619,7 +599,6 @@ class StaffMappingResourceIntTest : IntegrationTestBase() {
 
     @Nested
     inner class HappyPath {
-
       @Test
       fun `can retrieve all mappings by migration Id`() = runTest {
         (1L..4).forEach {
