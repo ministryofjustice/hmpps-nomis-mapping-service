@@ -15,6 +15,14 @@ class CourtScheduleService(
     scheduleRepository.save(mappingDto.toMapping())
   }
 
+  @Transactional
+  suspend fun updateNomisEventId(dpsCourtAppearanceId: UUID, newNomisEventId: Long) {
+    val savedMapping = scheduleRepository.findByDpsCourtAppearanceId(dpsCourtAppearanceId)!!
+    val newMapping = savedMapping.copy(nomisEventId = newNomisEventId)
+    scheduleRepository.save(newMapping)
+    scheduleRepository.delete(savedMapping)
+  }
+
   suspend fun getScheduleMappingByNomisId(nomisEventId: Long) = scheduleRepository.findByNomisEventId(nomisEventId)
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for NOMIS event id $nomisEventId not found")

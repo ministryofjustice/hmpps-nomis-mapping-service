@@ -18,3 +18,14 @@ data class CourtScheduleMappingDto(
   @Schema(description = "The source of the mapping", example = "NOMIS_CREATED")
   val mappingType: CourtMappingType,
 )
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Mapping for a single court schedule")
+data class CourtScheduleMappingUpsertByDpsIdResponse(
+  @Schema(description = "The NOMIS event id that was replaced by the upserted event")
+  val replacedNomisEventId: Long? = null,
+) {
+  companion object {
+    val EVENT_ID_NOT_REPLACED = CourtScheduleMappingUpsertByDpsIdResponse()
+  }
+}
