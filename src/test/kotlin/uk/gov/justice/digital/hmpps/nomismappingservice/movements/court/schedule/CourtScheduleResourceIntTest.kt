@@ -217,6 +217,28 @@ class CourtScheduleResourceIntTest(
           assertThat(mappingType).isEqualTo(CourtMappingType.NOMIS_CREATED)
         }
       }
+
+      @Test
+      fun `should do nothing if we receive the same create request twice (endpoint is idempotent)`() = runTest {
+        webTestClient.upsertCourtScheduleMappingByDpsId(mapping)
+          .expectStatus().isOk
+
+        webTestClient.upsertCourtScheduleMappingByDpsId(mapping)
+          .expectStatus().isOk
+          .expectBody<CourtScheduleMappingUpsertByDpsIdResponse>()
+          .returnResult().responseBody!!
+          .apply {
+            // We didn't replace the event ID so returns null
+            assertThat(replacedNomisEventId).isNull()
+          }
+
+        with(scheduleRepository.findByNomisEventId(mapping.nomisEventId)!!) {
+          assertThat(offenderNo).isEqualTo("A1234BC")
+          assertThat(bookingId).isEqualTo(12345L)
+          assertThat(dpsCourtAppearanceId).isEqualTo(mapping.dpsCourtAppearanceId)
+          assertThat(mappingType).isEqualTo(CourtMappingType.NOMIS_CREATED)
+        }
+      }
     }
 
     @Nested

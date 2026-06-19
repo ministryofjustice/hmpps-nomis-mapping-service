@@ -103,9 +103,18 @@ class CourtScheduleResource(
     CourtScheduleMappingUpsertByDpsIdResponse.EVENT_ID_NOT_REPLACED
   } catch (dke: DuplicateKeyException) {
     val existing = getExistingCourtScheduleMappingSimilarTo(mapping)
+    // The duplicate is for an existing DPS ID
     if (existing.dpsCourtAppearanceId == mapping.dpsCourtAppearanceId) {
-      service.updateNomisEventId(mapping.dpsCourtAppearanceId, mapping.nomisEventId)
-      CourtScheduleMappingUpsertByDpsIdResponse(replacedNomisEventId = existing.nomisEventId)
+      // The requested NOMIS ID is different so we need to update it
+      if (existing.nomisEventId != mapping.nomisEventId) {
+        service.updateNomisEventId(mapping.dpsCourtAppearanceId, mapping.nomisEventId)
+        CourtScheduleMappingUpsertByDpsIdResponse(replacedNomisEventId = existing.nomisEventId)
+      }
+      // We already know about this mapping, so this is a no-op to maintain idempotency
+      else {
+        CourtScheduleMappingUpsertByDpsIdResponse.EVENT_ID_NOT_REPLACED
+      }
+      // The duplicate is for an existing NOMIS ID but we weren't expecting that, so it appears to be a genuine duplicate
     } else {
       throw DuplicateMappingException(
         messageIn = "Court schedule mapping already exists",
