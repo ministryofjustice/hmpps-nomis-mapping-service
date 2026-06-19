@@ -79,6 +79,7 @@ class CourtScheduleResource(
       content = [Content(mediaType = "application/json", schema = Schema(implementation = CourtScheduleMappingDto::class))],
     ),
     responses = [
+      ApiResponse(responseCode = "200", description = "Court schedule mapping upserted or exists"),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
