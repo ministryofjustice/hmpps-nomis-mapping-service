@@ -251,14 +251,14 @@ class CourtScheduleResourceIntTest(
         CourtMappingType.NOMIS_CREATED,
       )
       val duplicateMappingDps = CourtScheduleMappingDto(
-        "B2345CD",
+        "A1234BC",
         56789L,
         34567L,
         mapping.dpsCourtAppearanceId,
         CourtMappingType.MIGRATED,
       )
       val duplicateMappingNomis = CourtScheduleMappingDto(
-        "C3456DE",
+        "A1234BC",
         9101112L,
         mapping.nomisEventId,
         UUID.randomUUID(),
@@ -276,6 +276,12 @@ class CourtScheduleResourceIntTest(
           .returnResult().responseBody!!
           .apply {
             assertThat(replacedNomisEventId).isEqualTo(mapping.nomisEventId)
+          }
+
+        assertThat(scheduleRepository.findByNomisEventId(mapping.nomisEventId)).isNull()
+        scheduleRepository.findByNomisEventId(duplicateMappingDps.nomisEventId)!!
+          .apply {
+            assertThat(dpsCourtAppearanceId).isEqualTo(duplicateMappingDps.dpsCourtAppearanceId)
           }
       }
 
