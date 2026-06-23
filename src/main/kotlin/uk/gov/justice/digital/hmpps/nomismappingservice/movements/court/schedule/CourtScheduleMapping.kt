@@ -16,7 +16,7 @@ data class CourtScheduleMapping(
 
   var offenderNo: String,
 
-  val bookingId: Long,
+  var bookingId: Long,
 
   /**
    * ISO timestamp of batch job if a migration

@@ -62,7 +62,7 @@ class CourtScheduleResource(
   ) = try {
     service.createScheduleMapping(mapping)
   } catch (dke: DuplicateKeyException) {
-    val existing = getExistingCourtScheduleMappingSimilarTo(mapping)
+    val existing = service.getExistingCourtScheduleMappingSimilarTo(mapping)
     throw DuplicateMappingException(
       messageIn = "Court schedule mapping already exists",
       duplicate = mapping,
@@ -103,35 +103,8 @@ class CourtScheduleResource(
     service.createScheduleMapping(mapping)
     CourtScheduleMappingUpsertByDpsIdResponse.EVENT_ID_NOT_REPLACED
   } catch (dke: DuplicateKeyException) {
-    val existing = getExistingCourtScheduleMappingSimilarTo(mapping)
-    // The duplicate is for an existing DPS ID
-    if (existing.dpsCourtAppearanceId == mapping.dpsCourtAppearanceId) {
-      // The requested NOMIS ID is different so we need to update it
-      if (existing.nomisEventId != mapping.nomisEventId) {
-        service.updateNomisEventId(mapping.dpsCourtAppearanceId, mapping.nomisEventId)
-        CourtScheduleMappingUpsertByDpsIdResponse(replacedNomisEventId = existing.nomisEventId)
-      }
-      // We already know about this mapping, so this is a no-op to maintain idempotency
-      else {
-        CourtScheduleMappingUpsertByDpsIdResponse.EVENT_ID_NOT_REPLACED
-      }
-      // The duplicate is for an existing NOMIS ID but we weren't expecting that, so it appears to be a genuine duplicate
-    } else {
-      throw DuplicateMappingException(
-        messageIn = "Court schedule mapping already exists",
-        duplicate = mapping,
-        existing = existing,
-        cause = dke,
-      )
-    }
+    service.handleUpsertDuplicateMapping(mapping, dke)
   }
-
-  private suspend fun getExistingCourtScheduleMappingSimilarTo(mapping: CourtScheduleMappingDto) = runCatching {
-    service.getScheduleMappingByNomisId(mapping.nomisEventId)
-  }
-    .getOrElse {
-      service.getScheduleMappingByDpsId(mapping.dpsCourtAppearanceId)
-    }
 
   @GetMapping("/nomis-id/{nomisEventId}")
   @Operation(

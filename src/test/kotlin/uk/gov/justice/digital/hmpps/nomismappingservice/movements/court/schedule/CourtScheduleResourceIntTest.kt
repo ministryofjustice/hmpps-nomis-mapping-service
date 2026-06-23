@@ -282,6 +282,7 @@ class CourtScheduleResourceIntTest(
         scheduleRepository.findByNomisEventId(duplicateMappingDps.nomisEventId)!!
           .apply {
             assertThat(dpsCourtAppearanceId).isEqualTo(duplicateMappingDps.dpsCourtAppearanceId)
+            assertThat(bookingId).isEqualTo(duplicateMappingDps.bookingId)
           }
       }
 
