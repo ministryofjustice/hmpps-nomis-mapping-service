@@ -16,12 +16,9 @@ class CourtScheduleService(
   }
 
   @Transactional
-  suspend fun updateNomisEventId(dpsCourtAppearanceId: UUID, newNomisEventId: Long) {
-    val savedMapping = scheduleRepository.findByDpsCourtAppearanceId(dpsCourtAppearanceId)!!
-    val newMapping = savedMapping.copy(nomisEventId = newNomisEventId)
-    scheduleRepository.save(newMapping)
-    scheduleRepository.delete(savedMapping)
-  }
+  suspend fun updateNomisEventId(dpsCourtAppearanceId: UUID, newNomisEventId: Long) = scheduleRepository.findByDpsCourtAppearanceId(dpsCourtAppearanceId)!!
+    .apply { nomisEventId = newNomisEventId }
+    .also { scheduleRepository.save(it) }
 
   suspend fun getScheduleMappingByNomisId(nomisEventId: Long) = scheduleRepository.findByNomisEventId(nomisEventId)
     ?.toMappingDto()

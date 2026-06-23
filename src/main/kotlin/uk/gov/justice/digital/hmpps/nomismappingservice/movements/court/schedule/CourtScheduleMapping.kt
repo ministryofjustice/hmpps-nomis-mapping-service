@@ -12,7 +12,7 @@ data class CourtScheduleMapping(
   @Id
   val dpsCourtAppearanceId: UUID,
 
-  val nomisEventId: Long,
+  var nomisEventId: Long,
 
   var offenderNo: String,
 
