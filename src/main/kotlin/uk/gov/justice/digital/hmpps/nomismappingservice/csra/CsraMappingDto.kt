@@ -59,9 +59,9 @@ data class PrisonerCsraMappingsDto(
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "NOMIS to Case note mapping IDs")
+@Schema(description = "NOMIS to DPS mapping IDs")
 data class CsraMappingIdDto(
-  @Schema(description = "DPS case note id")
+  @Schema(description = "DPS CSRA id")
   val dpsCsraId: String,
 
   @Schema(description = "NOMIS booking id")
