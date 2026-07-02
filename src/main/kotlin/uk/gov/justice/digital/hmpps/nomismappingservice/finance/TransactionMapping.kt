@@ -36,7 +36,7 @@ data class TransactionMapping(
     if (this === other) return true
     if (other !is TransactionMapping) return false
 
-    return nomisTransactionId != other.nomisTransactionId
+    return nomisTransactionId == other.nomisTransactionId
   }
 
   override fun hashCode(): Int = nomisTransactionId.hashCode()

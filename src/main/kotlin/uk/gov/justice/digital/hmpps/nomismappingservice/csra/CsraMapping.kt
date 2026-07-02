@@ -35,7 +35,7 @@ data class CsraMapping(
     if (this === other) return true
     if (other !is CsraMapping) return false
 
-    return dpsCsraId != other.dpsCsraId
+    return dpsCsraId == other.dpsCsraId
   }
 
   override fun hashCode(): Int = dpsCsraId.hashCode()

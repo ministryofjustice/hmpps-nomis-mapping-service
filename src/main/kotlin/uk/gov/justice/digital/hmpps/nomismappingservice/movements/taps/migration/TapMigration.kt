@@ -28,7 +28,7 @@ data class TapMigration(
     if (this === other) return true
     if (other !is TapApplicationMapping) return false
 
-    return offenderNo != other.offenderNo
+    return offenderNo == other.offenderNo
   }
 
   override fun hashCode(): Int = offenderNo.hashCode()

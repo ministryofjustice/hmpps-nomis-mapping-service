@@ -35,7 +35,7 @@ data class CSIPFactorMapping(
     if (this === other) return true
     if (other !is CSIPFactorMapping) return false
 
-    return dpsCSIPFactorId != other.dpsCSIPFactorId
+    return dpsCSIPFactorId == other.dpsCSIPFactorId
   }
 
   override fun hashCode(): Int = dpsCSIPFactorId.hashCode()

@@ -32,7 +32,7 @@ data class ProfileMapping(
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other !is ProfileMapping) return false
-    return cprId != other.cprId
+    return cprId == other.cprId
   }
 
   override fun hashCode(): Int = cprId.hashCode()

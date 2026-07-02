@@ -35,7 +35,7 @@ data class CSIPReviewMapping(
     if (this === other) return true
     if (other !is CSIPReviewMapping) return false
 
-    return dpsCSIPReviewId != other.dpsCSIPReviewId
+    return dpsCSIPReviewId == other.dpsCSIPReviewId
   }
 
   override fun hashCode(): Int = dpsCSIPReviewId.hashCode()

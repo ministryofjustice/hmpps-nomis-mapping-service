@@ -35,7 +35,7 @@ data class CSIPPlanMapping(
     if (this === other) return true
     if (other !is CSIPPlanMapping) return false
 
-    return dpsCSIPPlanId != other.dpsCSIPPlanId
+    return dpsCSIPPlanId == other.dpsCSIPPlanId
   }
 
   override fun hashCode(): Int = dpsCSIPPlanId.hashCode()
