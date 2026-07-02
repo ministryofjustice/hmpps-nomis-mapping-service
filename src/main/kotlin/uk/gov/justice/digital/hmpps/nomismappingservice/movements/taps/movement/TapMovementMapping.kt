@@ -52,7 +52,7 @@ data class TapMovementMapping(
     if (this === other) return true
     if (other !is TapMovementMapping) return false
 
-    return dpsMovementId != other.dpsMovementId
+    return dpsMovementId == other.dpsMovementId
   }
 
   override fun hashCode(): Int = dpsMovementId.hashCode()

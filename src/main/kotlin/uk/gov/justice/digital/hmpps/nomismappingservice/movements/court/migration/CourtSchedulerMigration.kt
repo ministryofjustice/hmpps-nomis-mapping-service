@@ -27,7 +27,7 @@ data class CourtSchedulerMigration(
     if (this === other) return true
     if (other !is CourtSchedulerMigration) return false
 
-    return offenderNo != other.offenderNo
+    return offenderNo == other.offenderNo
   }
 
   override fun hashCode(): Int = offenderNo.hashCode()

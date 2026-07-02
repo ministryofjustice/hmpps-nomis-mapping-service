@@ -39,7 +39,7 @@ data class CourtScheduleMapping(
     if (this === other) return true
     if (other !is CourtScheduleMapping) return false
 
-    return dpsCourtAppearanceId != other.dpsCourtAppearanceId
+    return dpsCourtAppearanceId == other.dpsCourtAppearanceId
   }
 
   override fun hashCode(): Int = dpsCourtAppearanceId.hashCode()
