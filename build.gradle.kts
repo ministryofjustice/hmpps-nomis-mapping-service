@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.5.2"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.5.6"
   kotlin("plugin.spring") version "2.4.0"
   kotlin("plugin.jpa") version "2.4.0"
   idea
@@ -10,10 +10,6 @@ configurations {
     exclude(module = "spring-boot-starter-web")
     exclude(module = "spring-boot-starter-tomcat")
   }
-}
-
-dependencyCheck {
-  suppressionFiles.add("azure-dependency-check-suppress.xml")
 }
 
 dependencies {
@@ -28,14 +24,10 @@ dependencies {
 
   implementation("net.javacrumbs.shedlock:shedlock-spring:7.7.0")
 
-  val appinsightsCore = "core:2.6.4"
-  implementation("io.micrometer:micrometer-registry-azure-monitor:1.17.0")
-  implementation("com.microsoft.azure:applicationinsights-$appinsightsCore")
-
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
-  runtimeOnly("org.postgresql:r2dbc-postgresql:1.1.1.RELEASE")
+  runtimeOnly("org.postgresql:r2dbc-postgresql:1.1.2.RELEASE")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
-  runtimeOnly("org.postgresql:postgresql:42.7.11")
+  runtimeOnly("org.postgresql:postgresql:42.7.13")
 
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.5.0")
   testImplementation("org.springframework.boot:spring-boot-test-autoconfigure")
@@ -43,7 +35,7 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-webflux-test")
 
   testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
-  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.42") {
+  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.45") {
     exclude(group = "io.swagger.core.v3")
   }
   testImplementation("org.testcontainers:testcontainers-postgresql:2.0.5")
