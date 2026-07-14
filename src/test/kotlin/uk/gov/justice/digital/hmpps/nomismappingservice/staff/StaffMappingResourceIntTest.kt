@@ -622,11 +622,11 @@ class StaffMappingResourceIntTest : IntegrationTestBase() {
         )
 
         webTestClient.get().uri("/mapping/staff/migration-id/2023-01-01T12:45:12")
-          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("totalElements").isEqualTo(4)
+          .jsonPath("page.totalElements").isEqualTo(4)
           .jsonPath("$.content..nomisId").value<JSONArray> {
             assertThat(it).contains(
               1,
@@ -645,7 +645,7 @@ class StaffMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("totalElements").isEqualTo(0)
+          .jsonPath("page.totalElements").isEqualTo(0)
           .jsonPath("content").isEmpty
       }
 
@@ -671,11 +671,10 @@ class StaffMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isOk
           .expectBody()
-          .jsonPath("totalElements").isEqualTo(6)
-          .jsonPath("numberOfElements").isEqualTo(2)
-          .jsonPath("number").isEqualTo(0)
-          .jsonPath("totalPages").isEqualTo(3)
-          .jsonPath("size").isEqualTo(2)
+          .jsonPath("page.totalElements").isEqualTo(6)
+          .jsonPath("page.number").isEqualTo(0)
+          .jsonPath("page.totalPages").isEqualTo(3)
+          .jsonPath("page.size").isEqualTo(2)
       }
     }
   }

@@ -3,9 +3,9 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.staff
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PagedModel
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundException
@@ -36,7 +36,7 @@ class StaffService(
     repository.deleteAll()
   }
 
-  suspend fun getMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<StaffMappingDto> = coroutineScope {
+  suspend fun getMappingsByMigrationId(pageRequest: Pageable, migrationId: String): PagedModel<StaffMappingDto> = coroutineScope {
     val mappings = async {
       repository.findAllByLabelOrderByLabelDesc(
         label = migrationId,
@@ -49,10 +49,12 @@ class StaffService(
         migrationId = migrationId,
       )
     }
-    PageImpl(
-      mappings.await().toList().map { it.toDto() },
-      pageRequest,
-      count.await(),
+    PagedModel(
+      PageImpl(
+        mappings.await().toList().map { it.toDto() },
+        pageRequest,
+        count.await(),
+      ),
     )
   }
 }
