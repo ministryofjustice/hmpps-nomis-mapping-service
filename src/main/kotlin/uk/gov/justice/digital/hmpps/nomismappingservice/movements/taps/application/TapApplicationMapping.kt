@@ -37,7 +37,7 @@ data class TapApplicationMapping(
     if (this === other) return true
     if (other !is TapApplicationMapping) return false
 
-    return dpsAuthorisationId != other.dpsAuthorisationId
+    return dpsAuthorisationId == other.dpsAuthorisationId
   }
 
   override fun hashCode(): Int = dpsAuthorisationId.hashCode()

@@ -12,11 +12,11 @@ data class CourtScheduleMapping(
   @Id
   val dpsCourtAppearanceId: UUID,
 
-  val nomisEventId: Long,
+  var nomisEventId: Long,
 
   var offenderNo: String,
 
-  val bookingId: Long,
+  var bookingId: Long,
 
   /**
    * ISO timestamp of batch job if a migration
@@ -39,7 +39,7 @@ data class CourtScheduleMapping(
     if (this === other) return true
     if (other !is CourtScheduleMapping) return false
 
-    return dpsCourtAppearanceId != other.dpsCourtAppearanceId
+    return dpsCourtAppearanceId == other.dpsCourtAppearanceId
   }
 
   override fun hashCode(): Int = dpsCourtAppearanceId.hashCode()

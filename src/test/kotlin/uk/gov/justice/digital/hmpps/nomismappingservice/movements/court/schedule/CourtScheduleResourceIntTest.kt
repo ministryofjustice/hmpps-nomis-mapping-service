@@ -178,9 +178,185 @@ class CourtScheduleResourceIntTest(
           .expectStatus().isForbidden
       }
     }
+  }
 
-    private fun WebTestClient.createCourtScheduleMapping(mapping: CourtScheduleMappingDto) = post()
-      .uri("/mapping/court-scheduler/schedule")
+  @Nested
+  @DisplayName("PUT /mapping/court-scheduler/schedule/dps-id")
+  inner class UpsertCourtScheduleMappingByDpsId {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      scheduleRepository.deleteAll()
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = CourtScheduleMappingDto(
+        "A1234BC",
+        12345L,
+        23456L,
+        UUID.randomUUID(),
+        CourtMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `should create mapping`() = runTest {
+        webTestClient.upsertCourtScheduleMappingByDpsId(mapping)
+          .expectStatus().isOk
+          .expectBody<CourtScheduleMappingUpsertByDpsIdResponse>()
+          .returnResult().responseBody!!
+          .apply {
+            // We didn't replace the event ID so returns null
+            assertThat(replacedNomisEventId).isNull()
+          }
+
+        with(scheduleRepository.findByNomisEventId(mapping.nomisEventId)!!) {
+          assertThat(offenderNo).isEqualTo("A1234BC")
+          assertThat(bookingId).isEqualTo(12345L)
+          assertThat(dpsCourtAppearanceId).isEqualTo(mapping.dpsCourtAppearanceId)
+          assertThat(mappingType).isEqualTo(CourtMappingType.NOMIS_CREATED)
+        }
+      }
+
+      @Test
+      fun `should do nothing if we receive the same create request twice (endpoint is idempotent)`() = runTest {
+        webTestClient.upsertCourtScheduleMappingByDpsId(mapping)
+          .expectStatus().isOk
+
+        webTestClient.upsertCourtScheduleMappingByDpsId(mapping)
+          .expectStatus().isOk
+          .expectBody<CourtScheduleMappingUpsertByDpsIdResponse>()
+          .returnResult().responseBody!!
+          .apply {
+            // We didn't replace the event ID so returns null
+            assertThat(replacedNomisEventId).isNull()
+          }
+
+        with(scheduleRepository.findByNomisEventId(mapping.nomisEventId)!!) {
+          assertThat(offenderNo).isEqualTo("A1234BC")
+          assertThat(bookingId).isEqualTo(12345L)
+          assertThat(dpsCourtAppearanceId).isEqualTo(mapping.dpsCourtAppearanceId)
+          assertThat(mappingType).isEqualTo(CourtMappingType.NOMIS_CREATED)
+        }
+      }
+    }
+
+    @Nested
+    inner class Upsert {
+      val mapping = CourtScheduleMappingDto(
+        "A1234BC",
+        12345L,
+        23456L,
+        UUID.randomUUID(),
+        CourtMappingType.NOMIS_CREATED,
+      )
+      val duplicateMappingDps = CourtScheduleMappingDto(
+        "A1234BC",
+        56789L,
+        34567L,
+        mapping.dpsCourtAppearanceId,
+        CourtMappingType.MIGRATED,
+      )
+      val duplicateMappingNomis = CourtScheduleMappingDto(
+        "A1234BC",
+        9101112L,
+        mapping.nomisEventId,
+        UUID.randomUUID(),
+        CourtMappingType.MIGRATED,
+      )
+
+      @Test
+      fun `should replace duplicate DPS ID mapping and return old nomis ID`() = runTest {
+        webTestClient.upsertCourtScheduleMappingByDpsId(mapping)
+          .expectStatus().isOk
+
+        webTestClient.upsertCourtScheduleMappingByDpsId(duplicateMappingDps)
+          .expectStatus().isOk
+          .expectBody<CourtScheduleMappingUpsertByDpsIdResponse>()
+          .returnResult().responseBody!!
+          .apply {
+            assertThat(replacedNomisEventId).isEqualTo(mapping.nomisEventId)
+          }
+
+        assertThat(scheduleRepository.findByNomisEventId(mapping.nomisEventId)).isNull()
+        scheduleRepository.findByNomisEventId(duplicateMappingDps.nomisEventId)!!
+          .apply {
+            assertThat(dpsCourtAppearanceId).isEqualTo(duplicateMappingDps.dpsCourtAppearanceId)
+            assertThat(bookingId).isEqualTo(duplicateMappingDps.bookingId)
+          }
+      }
+
+      @Test
+      fun `should reject duplicate NOMIS ID mapping`() = runTest {
+        webTestClient.upsertCourtScheduleMappingByDpsId(mapping)
+          .expectStatus().isOk
+
+        webTestClient.upsertCourtScheduleMappingByDpsId(duplicateMappingNomis)
+          .expectStatus().isDuplicateMapping
+          .expectBody(object : ParameterizedTypeReference<TestDuplicateErrorResponse>() {})
+          .returnResult().responseBody!!
+          .apply {
+            assertThat(moreInfo.existing)
+              .containsEntry("prisonerNumber", mapping.prisonerNumber)
+              .containsEntry("bookingId", mapping.bookingId.toInt())
+              .containsEntry("dpsCourtAppearanceId", mapping.dpsCourtAppearanceId.toString())
+              .containsEntry("nomisEventId", mapping.nomisEventId.toInt())
+              .containsEntry("mappingType", mapping.mappingType.toString())
+            assertThat(moreInfo.duplicate)
+              .containsEntry("prisonerNumber", duplicateMappingNomis.prisonerNumber)
+              .containsEntry("bookingId", duplicateMappingNomis.bookingId.toInt())
+              .containsEntry("dpsCourtAppearanceId", duplicateMappingNomis.dpsCourtAppearanceId.toString())
+              .containsEntry("nomisEventId", duplicateMappingNomis.nomisEventId.toInt())
+              .containsEntry("mappingType", duplicateMappingNomis.mappingType.toString())
+          }
+      }
+    }
+
+    @Nested
+    inner class Security {
+      val mapping = CourtScheduleMappingDto(
+        "A1234BC",
+        12345L,
+        23456L,
+        UUID.randomUUID(),
+        mappingType = CourtMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.put()
+          .uri("/mapping/court-scheduler/schedule/dps-id")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.put()
+          .uri("/mapping/court-scheduler/schedule/dps-id")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.put()
+          .uri("/mapping/court-scheduler/schedule/dps-id")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.upsertCourtScheduleMappingByDpsId(mapping: CourtScheduleMappingDto) = put()
+      .uri("/mapping/court-scheduler/schedule/dps-id")
       .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .contentType(MediaType.APPLICATION_JSON)
       .body(BodyInserters.fromValue(mapping))
@@ -786,4 +962,11 @@ class CourtScheduleResourceIntTest(
     private fun WebTestClient.moveBookingIdsOk(bookingId: Long = 1L, from: String = "A1234AB", to: String = "A9876BA") = moveBookingIds(bookingId, from, to)
       .expectStatus().isOk
   }
+
+  private fun WebTestClient.createCourtScheduleMapping(mapping: CourtScheduleMappingDto) = post()
+    .uri("/mapping/court-scheduler/schedule")
+    .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+    .contentType(MediaType.APPLICATION_JSON)
+    .body(BodyInserters.fromValue(mapping))
+    .exchange()
 }

@@ -54,7 +54,7 @@ data class TapScheduleMapping(
     if (this === other) return true
     if (other !is TapScheduleMapping) return false
 
-    return dpsOccurrenceId != other.dpsOccurrenceId
+    return dpsOccurrenceId == other.dpsOccurrenceId
   }
 
   override fun hashCode(): Int = dpsOccurrenceId.hashCode()

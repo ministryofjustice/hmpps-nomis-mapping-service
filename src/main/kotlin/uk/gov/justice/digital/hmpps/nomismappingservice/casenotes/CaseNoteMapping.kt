@@ -36,7 +36,7 @@ data class CaseNoteMapping(
     if (this === other) return true
     if (other !is CaseNoteMapping) return false
 
-    return nomisCaseNoteId != other.nomisCaseNoteId
+    return nomisCaseNoteId == other.nomisCaseNoteId
   }
 
   override fun hashCode(): Int = nomisCaseNoteId.hashCode()

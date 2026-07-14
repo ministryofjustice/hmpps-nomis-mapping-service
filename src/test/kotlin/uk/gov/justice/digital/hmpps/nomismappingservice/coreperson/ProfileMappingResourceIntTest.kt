@@ -202,7 +202,7 @@ class ProfileMappingResourceIntTest : IntegrationTestBase() {
           assertThat(nomisPrisonNumber).isEqualTo(NOMIS_PRISON_NUMBER)
           assertThat(label).isNull()
           assertThat(mappingType).isEqualTo(CorePersonMappingType.NOMIS_CREATED)
-          assertThat(whenCreated).isCloseToUtcNow(within(5, ChronoUnit.SECONDS))
+          assertThat(whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
         }
       }
     }

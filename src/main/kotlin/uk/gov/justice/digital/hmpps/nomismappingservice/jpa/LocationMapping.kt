@@ -31,7 +31,7 @@ data class LocationMapping(
     if (this === other) return true
     if (other !is LocationMapping) return false
 
-    return dpsLocationId != other.dpsLocationId
+    return dpsLocationId == other.dpsLocationId
   }
 
   override fun hashCode(): Int = dpsLocationId.hashCode()

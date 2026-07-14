@@ -35,7 +35,7 @@ data class CSIPAttendeeMapping(
     if (this === other) return true
     if (other !is CSIPAttendeeMapping) return false
 
-    return dpsCSIPAttendeeId != other.dpsCSIPAttendeeId
+    return dpsCSIPAttendeeId == other.dpsCSIPAttendeeId
   }
 
   override fun hashCode(): Int = dpsCSIPAttendeeId.hashCode()

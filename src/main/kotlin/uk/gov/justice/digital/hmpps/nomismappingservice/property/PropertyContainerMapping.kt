@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.finance
+package uk.gov.justice.digital.hmpps.nomismappingservice.property
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.annotation.Id
@@ -7,46 +7,44 @@ import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 import java.util.UUID
 
-data class TransactionMapping(
+data class PropertyContainerMapping(
 
   @Id
-  val nomisTransactionId: Long,
+  val dpsPropertyContainerId: UUID,
 
-  val dpsTransactionId: UUID,
-
-  val offenderNo: String? = null,
-
-  val nomisBookingId: Long? = null,
+  val nomisPropertyContainerId: Long,
+  val bookingId: Long,
+  val offenderNo: String,
 
   /**
    * ISO timestamp of batch job if a migration
    */
   val label: String? = null,
 
-  val mappingType: TransactionMappingType,
+  val mappingType: PropertyContainerMappingType,
 
   @Transient
   @Value("false")
   val new: Boolean = true,
 
   val whenCreated: LocalDateTime? = null,
-) : Persistable<Long> {
+) : Persistable<UUID> {
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is TransactionMapping) return false
+    if (other !is PropertyContainerMapping) return false
 
-    return nomisTransactionId == other.nomisTransactionId
+    return dpsPropertyContainerId == other.dpsPropertyContainerId
   }
 
-  override fun hashCode(): Int = nomisTransactionId.hashCode()
+  override fun hashCode(): Int = dpsPropertyContainerId.hashCode()
 
   override fun isNew(): Boolean = new
 
-  override fun getId(): Long = nomisTransactionId
+  override fun getId(): UUID = dpsPropertyContainerId
 }
 
-enum class TransactionMappingType {
+enum class PropertyContainerMappingType {
   MIGRATED,
   NOMIS_CREATED,
   DPS_CREATED,

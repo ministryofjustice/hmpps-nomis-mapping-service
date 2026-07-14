@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -61,7 +62,7 @@ class CourtScheduleResource(
   ) = try {
     service.createScheduleMapping(mapping)
   } catch (dke: DuplicateKeyException) {
-    val existing = getExistingCourtScheduleMappingSimilarTo(mapping)
+    val existing = service.getExistingCourtScheduleMappingSimilarTo(mapping)
     throw DuplicateMappingException(
       messageIn = "Court schedule mapping already exists",
       duplicate = mapping,
@@ -70,12 +71,40 @@ class CourtScheduleResource(
     )
   }
 
-  private suspend fun getExistingCourtScheduleMappingSimilarTo(mapping: CourtScheduleMappingDto) = runCatching {
-    service.getScheduleMappingByNomisId(mapping.nomisEventId)
+  @PutMapping("/dps-id")
+  @Operation(
+    summary = "Creates a court schedule mapping, or updates existing mapping if DPS ID already exists",
+    description = "Creates or updates a schedule mapping. If we find a mapping already exists for the DPS ID requested then we just update the NOMIS ID on that record. However if we find a duplicate for the NOMIS ID requested we reject the request as with the create endpoint. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = CourtScheduleMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "200", description = "Court schedule mapping upserted or exists"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "The mapping already exists.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun createOrUpdateCourtScheduleMappingByDpsId(
+    @RequestBody mapping: CourtScheduleMappingDto,
+  ) = try {
+    service.createScheduleMapping(mapping)
+    CourtScheduleMappingUpsertByDpsIdResponse.EVENT_ID_NOT_REPLACED
+  } catch (dke: DuplicateKeyException) {
+    service.handleUpsertDuplicateMapping(mapping, dke)
   }
-    .getOrElse {
-      service.getScheduleMappingByDpsId(mapping.dpsCourtAppearanceId)
-    }
 
   @GetMapping("/nomis-id/{nomisEventId}")
   @Operation(

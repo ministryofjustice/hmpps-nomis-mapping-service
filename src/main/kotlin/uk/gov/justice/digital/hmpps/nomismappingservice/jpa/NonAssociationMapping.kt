@@ -34,7 +34,7 @@ data class NonAssociationMapping(
     if (this === other) return true
     if (other !is NonAssociationMapping) return false
 
-    return nonAssociationId != other.nonAssociationId
+    return nonAssociationId == other.nonAssociationId
   }
 
   override fun hashCode(): Int = nonAssociationId.hashCode()

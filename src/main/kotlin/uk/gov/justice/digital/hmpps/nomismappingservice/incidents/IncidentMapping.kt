@@ -33,7 +33,7 @@ data class IncidentMapping(
     if (this === other) return true
     if (other !is IncidentMapping) return false
 
-    return dpsIncidentId != other.dpsIncidentId
+    return dpsIncidentId == other.dpsIncidentId
   }
 
   override fun hashCode(): Int = dpsIncidentId.hashCode()
