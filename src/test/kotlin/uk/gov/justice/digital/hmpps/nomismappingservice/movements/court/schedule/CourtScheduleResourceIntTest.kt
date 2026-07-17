@@ -4,7 +4,6 @@ import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -986,32 +985,63 @@ class CourtScheduleResourceIntTest(
     }
 
     @Nested
-    @Disabled("WIP - Need to implement service")
     inner class HappyPath {
       @Test
-      fun `should update prisoner and booking`() {}
+      fun `should update prisoner and booking`() = runTest {
+        webTestClient.updateMappingPrisonerOk(eventId = nomisEventId, request = anUpdateMappingPrisonerRequest())
+
+        with(scheduleRepository.findByNomisEventId(nomisEventId)!!) {
+          assertThat(offenderNo).isEqualTo(newPrisonerNumber)
+          assertThat(bookingId).isEqualTo(newBooking)
+        }
+      }
 
       @Test
-      fun `should return success if nothing changes (idempotent)`() {}
+      fun `should return success if nothing changes (idempotent)`() = runTest {
+        webTestClient.updateMappingPrisonerOk(eventId = nomisEventId, request = anUpdateMappingPrisonerRequest())
+        // Update to the same prisoner a second time
+        webTestClient.updateMappingPrisonerOk(eventId = nomisEventId, request = anUpdateMappingPrisonerRequest())
+
+        with(scheduleRepository.findByNomisEventId(nomisEventId)!!) {
+          assertThat(offenderNo).isEqualTo(newPrisonerNumber)
+          assertThat(bookingId).isEqualTo(newBooking)
+        }
+      }
     }
 
     @Nested
-    @Disabled("WIP - Need to implement service")
     inner class Validation {
       @Test
       fun `should return not found if no existing mapping`() {
+        webTestClient.updateMappingPrisoner(eventId = 9999, request = anUpdateMappingPrisonerRequest())
+          .expectStatus().isNotFound
       }
 
       @Test
       fun `should return bad request if DPS id is different`() {
+        webTestClient.updateMappingPrisoner(
+          eventId = nomisEventId,
+          request = anUpdateMappingPrisonerRequest(dpsId = UUID.randomUUID()),
+        )
+          .expectStatus().isBadRequest
       }
 
       @Test
       fun `should return bad request if old prisoner number is different`() {
+        webTestClient.updateMappingPrisoner(
+          eventId = nomisEventId,
+          request = anUpdateMappingPrisonerRequest(oldOffenderNo = "UNEXPECTED"),
+        )
+          .expectStatus().isBadRequest
       }
 
       @Test
       fun `should return bad request if old booking id is different`() {
+        webTestClient.updateMappingPrisoner(
+          eventId = nomisEventId,
+          request = anUpdateMappingPrisonerRequest(oldBookingId = 99999L),
+        )
+          .expectStatus().isBadRequest
       }
     }
 

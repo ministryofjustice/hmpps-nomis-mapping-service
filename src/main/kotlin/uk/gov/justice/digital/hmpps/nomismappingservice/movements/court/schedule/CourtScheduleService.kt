@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.movements.court.schedule
 
+import jakarta.validation.ValidationException
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -72,8 +73,32 @@ class CourtScheduleService(
   }
 
   @Transactional
-  // TODO implement this service
-  suspend fun updateMappingPrisoner(nomisEventId: Long, request: UpdateScheduleMappingPrisonerRequest) = {}
+  suspend fun updateMappingPrisoner(nomisEventId: Long, request: UpdateScheduleMappingPrisonerRequest) {
+    val mapping = scheduleRepository.findByNomisEventId(nomisEventId)
+      ?: throw NotFoundException("Mapping for NOMIS event id $nomisEventId not found")
+
+    // The DPS id is different to what we were expecting, so something has gone wrong
+    if (mapping.dpsCourtAppearanceId != request.dpsCourtAppearanceId) {
+      throw ValidationException("Mapping for NOMIS event id $nomisEventId does not match the DPS court appearance id ${request.dpsCourtAppearanceId}")
+    }
+
+    // Nothing has changed so return success
+    if (mapping.offenderNo == request.newPrisonerNumber && mapping.bookingId == request.newBookingId) {
+      return
+    }
+
+    // The prisoner number we're replacing is different, so something has gone wrong
+    if (mapping.offenderNo != request.oldPrisonerNumber) {
+      throw ValidationException("Mapping for NOMIS event id $nomisEventId does not match the old prisoner number ${request.oldPrisonerNumber}")
+    }
+
+    // The booking ID we're replacing is different, so something has gone wrong
+    if (mapping.bookingId != request.oldBookingId) {
+      throw ValidationException("Mapping for NOMIS event id $nomisEventId does not match the old booking id ${request.oldBookingId}")
+    }
+
+    scheduleRepository.save(mapping.copy(offenderNo = request.newPrisonerNumber, bookingId = request.newBookingId))
+  }
 }
 
 fun CourtScheduleMappingDto.toMapping(): CourtScheduleMapping = CourtScheduleMapping(
