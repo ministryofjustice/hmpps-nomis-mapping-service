@@ -205,4 +205,35 @@ class CourtScheduleResource(
   suspend fun deleteCourtScheduleMappingByDpsId(
     @PathVariable dpsId: UUID,
   ) = service.deleteScheduleMappingByDpsId(dpsId)
+
+  @PutMapping("/update-prisoner/nomis-id/{nomisEventId}")
+  @Operation(
+    summary = "A court schedule has been moved to a different prisoner so update the mapping",
+    description = "Updates the mapping from the old to the new prisoner. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = CourtScheduleMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "200", description = "Court schedule mapping upserted or exists"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "The mapping was not found.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun updateMappingPrisoner(
+    @PathVariable nomisEventId: Long,
+    @RequestBody request: UpdateScheduleMappingPrisonerRequest,
+  ) = service.updateMappingPrisoner(nomisEventId, request)
 }

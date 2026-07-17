@@ -70,6 +70,10 @@ class CourtScheduleService(
       )
     }
   }
+
+  @Transactional
+  // TODO implement this service
+  suspend fun updateMappingPrisoner(nomisEventId: Long, request: UpdateScheduleMappingPrisonerRequest) = {}
 }
 
 fun CourtScheduleMappingDto.toMapping(): CourtScheduleMapping = CourtScheduleMapping(
