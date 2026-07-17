@@ -210,9 +210,6 @@ class CourtScheduleResource(
   @Operation(
     summary = "A court schedule has been moved to a different prisoner so update the mapping",
     description = "Updates the mapping from the old to the new prisoner. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = CourtScheduleMappingDto::class))],
-    ),
     responses = [
       ApiResponse(responseCode = "200", description = "Court schedule mapping upserted or exists"),
       ApiResponse(
