@@ -4,6 +4,7 @@ import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -960,6 +961,120 @@ class CourtScheduleResourceIntTest(
       .exchange()
 
     private fun WebTestClient.moveBookingIdsOk(bookingId: Long = 1L, from: String = "A1234AB", to: String = "A9876BA") = moveBookingIds(bookingId, from, to)
+      .expectStatus().isOk
+  }
+
+  @Nested
+  @DisplayName("PUT /mapping/court-scheduler/schedule/prisoner")
+  inner class UpdateMappingPrisoner {
+    private val prisonerNumber = "A1234AB"
+    private val newPrisonerNumber = "B1234BC"
+    private val bookingId = 12345L
+    private val newBooking = 54321L
+    private val nomisEventId = 123L
+    private val dpsScheduleId = UUID.randomUUID()
+
+    @AfterEach
+    fun tearDown() = runTest {
+      scheduleRepository.deleteAll()
+      movementRepository.deleteAll()
+    }
+
+    @BeforeEach
+    fun setUp() = runTest {
+      scheduleRepository.save(aScheduleMapping(prisonerNumber, bookingId, nomisEventId, dpsScheduleId))
+    }
+
+    @Nested
+    @Disabled("WIP - Need to implement service")
+    inner class HappyPath {
+      @Test
+      fun `should update prisoner and booking`() {}
+
+      @Test
+      fun `should return success if nothing changes (idempotent)`() {}
+    }
+
+    @Nested
+    @Disabled("WIP - Need to implement service")
+    inner class Validation {
+      @Test
+      fun `should return not found if no existing mapping`() {
+      }
+
+      @Test
+      fun `should return bad request if DPS id is different`() {
+      }
+
+      @Test
+      fun `should return bad request if old prisoner number is different`() {
+      }
+
+      @Test
+      fun `should return bad request if old booking id is different`() {
+      }
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.put()
+          .uri("/mapping/court-scheduler/schedule/update-prisoner/nomis-id/123")
+          .bodyValue(anUpdateMappingPrisonerRequest())
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.put()
+          .uri("/mapping/court-scheduler/schedule/update-prisoner/nomis-id/123")
+          .headers(setAuthorisation(roles = listOf()))
+          .bodyValue(anUpdateMappingPrisonerRequest())
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.put()
+          .uri("/mapping/court-scheduler/schedule/update-prisoner/nomis-id/123")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .bodyValue(anUpdateMappingPrisonerRequest())
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun aScheduleMapping(
+      offenderNo: String = prisonerNumber,
+      booking: Long = bookingId,
+      eventId: Long = nomisEventId,
+      dpsId: UUID = dpsScheduleId,
+    ) = CourtScheduleMapping(
+      nomisEventId = eventId,
+      dpsCourtAppearanceId = dpsId,
+      offenderNo = offenderNo,
+      bookingId = booking,
+      mappingType = CourtMappingType.NOMIS_CREATED,
+    )
+
+    private fun anUpdateMappingPrisonerRequest(
+      oldOffenderNo: String = prisonerNumber,
+      oldBookingId: Long = bookingId,
+      newOffenderNo: String = newPrisonerNumber,
+      newBookingId: Long = newBooking,
+      dpsId: UUID = dpsScheduleId,
+    ) = UpdateScheduleMappingPrisonerRequest(dpsId, oldOffenderNo, oldBookingId, newOffenderNo, newBookingId)
+
+    private fun WebTestClient.updateMappingPrisoner(eventId: Long, request: UpdateScheduleMappingPrisonerRequest) = put()
+      .uri("/mapping/court-scheduler/schedule/update-prisoner/nomis-id/$eventId")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .bodyValue(request)
+      .exchange()
+
+    private fun WebTestClient.updateMappingPrisonerOk(eventId: Long, request: UpdateScheduleMappingPrisonerRequest) = updateMappingPrisoner(eventId, request)
       .expectStatus().isOk
   }
 

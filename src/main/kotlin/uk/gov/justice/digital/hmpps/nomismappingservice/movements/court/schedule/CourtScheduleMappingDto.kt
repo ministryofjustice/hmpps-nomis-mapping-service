@@ -29,3 +29,18 @@ data class CourtScheduleMappingUpsertByDpsIdResponse(
     val EVENT_ID_NOT_REPLACED = CourtScheduleMappingUpsertByDpsIdResponse()
   }
 }
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "A request to update a mapping's prisoner")
+data class UpdateScheduleMappingPrisonerRequest(
+  @Schema(description = "The DPS court appearance id")
+  val dpsCourtAppearanceId: UUID,
+  @Schema(description = "The NOMIS offender number on the existing mapping", example = "A1234BC")
+  val oldPrisonerNumber: String,
+  @Schema(description = "The NOMIS ID of the booking on the existing mapping", example = "12345")
+  val oldBookingId: Long,
+  @Schema(description = "The new NOMIS offender number", example = "B1234BC")
+  val newPrisonerNumber: String,
+  @Schema(description = "The new NOMIS ID of the booking", example = "54321")
+  val newBookingId: Long,
+)
