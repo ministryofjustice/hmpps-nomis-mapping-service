@@ -1308,6 +1308,76 @@ class TransactionMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
+  @DisplayName("DELETE /mapping/transactions")
+  @Nested
+  inner class DeleteAllMappingssTest {
+
+    private val dpsTransactionId = UUID.randomUUID().toString()
+    private val nomisTransactionId = 112233L
+
+    @Test
+    fun `access forbidden when no authority`() {
+      webTestClient.delete().uri("/mapping/transactions")
+        .exchange()
+        .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.delete().uri("/mapping/transactions")
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.delete().uri("/mapping/transactions")
+        .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `delete mapping success`() {
+      webTestClient.post().uri("/mapping/transactions")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(createTransactionMapping(nomisTransactionId, dpsTransactionId)))
+        .exchange()
+        .expectStatus().isCreated
+
+      webTestClient.get()
+        .uri("/mapping/transactions/nomis-transaction-id/$nomisTransactionId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+        .exchange()
+        .expectStatus().isOk
+
+      webTestClient.delete().uri("/mapping/transactions")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      webTestClient.get()
+        .uri("/mapping/transactions/nomis-transaction-id/$nomisTransactionId")
+        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+        .exchange()
+        .expectStatus().isNotFound
+    }
+
+    private fun createTransactionMapping(
+      nomisTransactionId: Long,
+      dpsTransactionId: String,
+      label: String = "2022-01-01",
+      mappingType: TransactionMappingType = TransactionMappingType.NOMIS_CREATED,
+    ): TransactionMappingDto = TransactionMappingDto(
+      nomisTransactionId = nomisTransactionId,
+      dpsTransactionId = dpsTransactionId,
+      label = label,
+      mappingType = mappingType,
+    )
+  }
+
   @Nested
   @DisplayName("PUT /merge/from/{oldOffenderNo}/to/{newOffenderNo}")
   inner class PrisonerMergeMappings {

@@ -323,6 +323,28 @@ class TransactionMappingResource(private val mappingService: TransactionMappingS
     dpsTransactionId: String,
   ) = mappingService.deleteMapping(dpsTransactionId)
 
+  @DeleteMapping
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes all transaction mappings",
+    description = """Deletes all transaction mappings regardless of source.
+      This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
+    responses = [
+      ApiResponse(responseCode = "204", description = "All mappings deleted"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteAllTransactionMappings() = mappingService.deleteAllMappings()
+
   @PutMapping("/merge/from/{oldOffenderNo}/to/{newOffenderNo}")
   @Operation(
     summary = "Replaces all occurrences of the 'from' id with the 'to' id in the mapping table",
