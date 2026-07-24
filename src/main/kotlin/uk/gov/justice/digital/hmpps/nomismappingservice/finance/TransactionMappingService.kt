@@ -100,6 +100,9 @@ class TransactionMappingService(
   @Transactional
   suspend fun deleteMapping(nomisTransactionId: Long) = repository.deleteById(nomisTransactionId)
 
+  @Transactional
+  suspend fun deleteAllMappings() = repository.deleteAll()
+
   suspend fun getMappings(offenderNo: String): AllPrisonerTransactionMappingsDto = repository.findAllByOffenderNoOrderByNomisBookingIdAscNomisTransactionIdAsc(offenderNo)
     .map { it.toDto() }
     .let { AllPrisonerTransactionMappingsDto(it) }
