@@ -1108,15 +1108,15 @@ class ReligionResourceIntTest(
 
       @Test
       fun `returns true when there exists a mapping by nomis prison number`() = runTest {
-          religionMappingRepository.save(
-            CorePersonReligionMapping(
-              cprId = "123456789",
-              nomisId = 123456789,
-              nomisPrisonNumber = "A1234BC",
-              label = "2020-01-01T10:00",
-              mappingType = StandardMappingType.MIGRATED,
-            ),
-          )
+        religionMappingRepository.save(
+          CorePersonReligionMapping(
+            cprId = "123456789",
+            nomisId = 123456789,
+            nomisPrisonNumber = "A1234BC",
+            label = "2020-01-01T10:00",
+            mappingType = StandardMappingType.MIGRATED,
+          ),
+        )
 
         webTestClient.get().uri("/mapping/core-person-religion/religion/nomis-prison-number/A1234BC/exists")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
@@ -1135,7 +1135,7 @@ class ReligionResourceIntTest(
       }
     }
   }
-  
+
   @Nested
   @DisplayName("DELETE /mapping/core-person-religion/all")
   inner class DeleteAllMappings {

@@ -206,9 +206,12 @@ class ReligionResource(private val religionService: ReligionService) {
     @Schema(description = "NOMIS prison number", example = "A1234BC", required = true)
     @PathVariable
     nomisPrisonNumber: String,
-  ): BooleanResult = BooleanResult(religionService.existsReligionMappingByNomisPrisonNumber(
-      nomisPrisonNumber = nomisPrisonNumber))
-  data class BooleanResult (val exists: Boolean)
+  ): BooleanResult = BooleanResult(
+    religionService.existsReligionMappingByNomisPrisonNumber(
+      nomisPrisonNumber = nomisPrisonNumber,
+    ),
+  )
+  data class BooleanResult(val exists: Boolean)
 
   @GetMapping("/religion/cpr-id/{cprId}")
   @Operation(
