@@ -8,6 +8,7 @@ interface ReligionMappingRepository : CoroutineCrudRepository<CorePersonReligion
   suspend fun findOneByCprId(cprId: String): CorePersonReligionMapping?
   suspend fun findOneByNomisId(nomisId: Long): CorePersonReligionMapping?
   suspend fun findByNomisPrisonNumber(prisonNumber: String): List<CorePersonReligionMapping>
+  suspend fun existsByNomisPrisonNumber(prisonNumber: String): Boolean
   suspend fun deleteByNomisId(nomisId: Long)
   suspend fun deleteAllByNomisPrisonNumber(nomisPrisonNumber: String)
 }

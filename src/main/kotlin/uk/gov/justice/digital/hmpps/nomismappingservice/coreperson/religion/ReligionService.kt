@@ -17,6 +17,10 @@ class ReligionService(
   private val religionsMappingRepository: ReligionsMappingRepository,
   private val religionMappingRepository: ReligionMappingRepository,
 ) {
+
+  suspend fun existsReligionMappingByNomisPrisonNumber(nomisPrisonNumber: String) = religionMappingRepository
+    .existsByNomisPrisonNumber(nomisPrisonNumber)
+
   suspend fun getReligionsMappingByNomisId(nomisPrisonNumber: String) = religionsMappingRepository
     .findOneByNomisPrisonNumber(nomisPrisonNumber)
     ?.toDto()
