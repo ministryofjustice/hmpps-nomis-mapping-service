@@ -1072,6 +1072,70 @@ class ReligionResourceIntTest(
     }
   }
 
+  @DisplayName("GET /mapping/core-person-religion/religion/nomis-prison-number/{nomisPrisonNumber}/exists")
+  @Nested
+  inner class ExistsReligionMappingByNomisPrisonNumber {
+    val nomisPrisonNumber = "A1234BC"
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get().uri("/mapping/core-person-religion/religion/nomis-prison-number/$nomisPrisonNumber/exists")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get().uri("/mapping/core-person-religion/religion/nomis-prison-number/$nomisPrisonNumber/exists")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get().uri("/mapping/core-person-religion/religion/nomis-prison-number/$nomisPrisonNumber/exists")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+
+      @Test
+      fun `returns true when there exists a mapping by nomis prison number`() = runTest {
+          religionMappingRepository.save(
+            CorePersonReligionMapping(
+              cprId = "123456789",
+              nomisId = 123456789,
+              nomisPrisonNumber = "A1234BC",
+              label = "2020-01-01T10:00",
+              mappingType = StandardMappingType.MIGRATED,
+            ),
+          )
+
+        webTestClient.get().uri("/mapping/core-person-religion/religion/nomis-prison-number/A1234BC/exists")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody().jsonPath(".exists").isEqualTo(true)
+      }
+
+      @Test
+      fun `returns false when there does not exists a mapping by nomis prison number`() = runTest {
+        webTestClient.get().uri("/mapping/core-person-religion/religion/nomis-prison-number/A1234BC/exists")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody().jsonPath(".exists").isEqualTo(false)
+      }
+    }
+  }
+  
   @Nested
   @DisplayName("DELETE /mapping/core-person-religion/all")
   inner class DeleteAllMappings {

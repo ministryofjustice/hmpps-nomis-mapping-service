@@ -177,6 +177,39 @@ class ReligionResource(private val religionService: ReligionService) {
     nomisId = nomisId,
   )
 
+  @GetMapping("/religion/nomis-prison-number/{nomisPrisonNumber}/exists")
+  @Operation(
+    summary = "Are there any religion mappings for the nomis prisoner number",
+    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun existsReligionMappingByNomisPrisonNumber(
+    @Schema(description = "NOMIS prison number", example = "A1234BC", required = true)
+    @PathVariable
+    nomisPrisonNumber: String,
+  ): BooleanResult = BooleanResult(religionService.existsReligionMappingByNomisPrisonNumber(
+      nomisPrisonNumber = nomisPrisonNumber))
+  data class BooleanResult (val exists: Boolean)
+
   @GetMapping("/religion/cpr-id/{cprId}")
   @Operation(
     summary = "Get religion mapping by cpr id",
