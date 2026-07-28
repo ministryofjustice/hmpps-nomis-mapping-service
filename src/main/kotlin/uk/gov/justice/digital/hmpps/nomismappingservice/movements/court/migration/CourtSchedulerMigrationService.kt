@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.nomismappingservice.courtsentencing.CourtAppearanceMappingRepository
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.court.movement.CourtMovementMapping
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.court.movement.CourtMovementRepository
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.court.schedule.CourtMappingType
@@ -19,6 +20,7 @@ class CourtSchedulerMigrationService(
   private val scheduleRepository: CourtScheduleRepository,
   private val movementRepository: CourtMovementRepository,
   private val migrationRepository: CourtSchedulerMigrationRepository,
+  private val courtAppearanceMappingRepository: CourtAppearanceMappingRepository,
 ) {
 
   suspend fun createMigrationMappings(mappings: CourtSchedulerPrisonerMappingsDto) {
@@ -55,7 +57,9 @@ class CourtSchedulerMigrationService(
       booking.courtSchedules.map { schedule ->
         schedule.toEntity(mappings.offenderNo, booking.bookingId, mappings.migrationId)
       }
-    }.also { scheduleRepository.saveAll(it).count() }
+    }
+      .filterNot { courtAppearanceMappingRepository.existsByNomisCourtAppearanceId(it.nomisEventId) }
+      .also { scheduleRepository.saveAll(it).count() }
   }
 
   private suspend fun deleteOldMappings(offenderNo: String) {
