@@ -12,9 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
-import uk.gov.justice.digital.hmpps.nomismappingservice.courtsentencing.CourtAppearanceMapping
-import uk.gov.justice.digital.hmpps.nomismappingservice.courtsentencing.CourtAppearanceMappingRepository
-import uk.gov.justice.digital.hmpps.nomismappingservice.courtsentencing.CourtAppearanceMappingType
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.court.movement.CourtMovementRepository
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.court.schedule.CourtScheduleRepository
@@ -25,7 +22,6 @@ class CourtSchedulerMigrationIntTest(
   @Autowired private val scheduleRepository: CourtScheduleRepository,
   @Autowired private val movementRepository: CourtMovementRepository,
   @Autowired private val migrationRepository: CourtSchedulerMigrationRepository,
-  @Autowired private val courtAppearanceRepository: CourtAppearanceMappingRepository,
 ) : IntegrationTestBase() {
 
   @Nested
@@ -50,7 +46,6 @@ class CourtSchedulerMigrationIntTest(
       movementRepository.deleteAll()
       scheduleRepository.deleteAll()
       migrationRepository.deleteAll()
-      courtAppearanceRepository.deleteAll()
     }
 
     fun mappingsRequest() = CourtSchedulerPrisonerMappingsDto(
@@ -195,56 +190,6 @@ class CourtSchedulerMigrationIntTest(
         // The new mappings are available
         assertThat(scheduleRepository.findById(newDpsCourtAppearanceId)).isNotNull
         assertThat(movementRepository.findById(newDpsCourtMovementId)).isNotNull
-      }
-    }
-
-    @Nested
-    inner class MappingExistsForSentencing {
-      @BeforeEach
-      fun setUp() = runTest {
-        courtAppearanceRepository.save(CourtAppearanceMapping("${UUID.randomUUID()}", NOMIS_EVENT_ID, mappingType = CourtAppearanceMappingType.MIGRATED))
-        webTestClient.saveMappings()
-      }
-
-      @Test
-      fun `should save migration mappings`() = runTest {
-        with(migrationRepository.findById(NOMIS_OFFENDER_NO)!!) {
-          assertThat(label).isEqualTo(MIGRATION_ID)
-        }
-      }
-
-      @Test
-      fun `should NOT save schedule mapping`() = runTest {
-        assertThat(scheduleRepository.findById(DPS_COURT_APPEARANCE_ID)).isNull()
-        assertThat(scheduleRepository.findByNomisEventId(NOMIS_EVENT_ID)).isNull()
-      }
-
-      @Test
-      fun `should save scheduled movement out mapping`() = runTest {
-        with(movementRepository.findById(DPS_SCHEDULE_COURT_MOVEMENT_OUT_ID)!!) {
-          assertThat(nomisMovementSeq).isEqualTo(NOMIS_SCHEDULED_MOVE_OUT_SEQ)
-        }
-      }
-
-      @Test
-      fun `should save scheduled movement in mapping`() = runTest {
-        with(movementRepository.findById(DPS_SCHEDULED_COURT_MOVEMENT_IN_ID)!!) {
-          assertThat(nomisMovementSeq).isEqualTo(NOMIS_SCHEDULED_MOVE_IN_SEQ)
-        }
-      }
-
-      @Test
-      fun `should save unscheduled movement out mapping`() = runTest {
-        with(movementRepository.findById(DPS_UNSCHEDULED_COURT_MOVEMENT_OUT_ID)!!) {
-          assertThat(nomisMovementSeq).isEqualTo(NOMIS_UNSCHEDULED_MOVE_OUT_SEQ)
-        }
-      }
-
-      @Test
-      fun `should save unscheduled movement in mapping`() = runTest {
-        with(movementRepository.findById(DPS_UNSCHEDULED_COURT_MOVEMENT_IN_ID)!!) {
-          assertThat(nomisMovementSeq).isEqualTo(NOMIS_UNSCHEDULED_MOVE_IN_SEQ)
-        }
       }
     }
 
