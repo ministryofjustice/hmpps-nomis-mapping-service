@@ -11,4 +11,5 @@ interface CourtAppearanceMappingRepository : CoroutineCrudRepository<CourtAppear
   suspend fun findAllByNomisCourtAppearanceIdIn(nomisCourtAppearanceIds: List<Long>): Flow<CourtAppearanceMapping>
   suspend fun deleteByNomisCourtAppearanceId(nomisId: Long)
   suspend fun deleteByWhenCreatedAfter(dateTime: LocalDateTime)
+  suspend fun existsByNomisCourtAppearanceId(nomisId: Long): Boolean
 }
