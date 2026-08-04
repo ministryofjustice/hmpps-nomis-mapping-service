@@ -877,10 +877,19 @@ class ReligionResourceIntTest(
         mappingType = StandardMappingType.NOMIS_CREATED,
       )
 
+      val mappingForDifferentPrisoner = CorePersonReligionMapping(
+        cprId = "tobereplaced2",
+        nomisId = 99998L,
+        nomisPrisonNumber = "ZZ1234Z",
+        label = "2026-01-01T10:00",
+        mappingType = StandardMappingType.NOMIS_CREATED,
+      )
+
       @BeforeEach
       fun setUp() = runTest {
         religionsMappingRepository.save(existingMapping)
         religionMappingRepository.save(individualMapping)
+        religionMappingRepository.save(mappingForDifferentPrisoner)
       }
 
       @Test
@@ -952,7 +961,7 @@ class ReligionResourceIntTest(
           .expectStatus().isOk
 
         assertThat(religionMappingRepository.findByNomisPrisonNumber(nomisPrisonNumber)).size().isEqualTo(2)
-        assertThat(religionMappingRepository.findOneByCprId(individualMapping.cprId)).isNull()
+        assertThat(religionMappingRepository.findOneByCprId(mappingForDifferentPrisoner.cprId)).isNull()
       }
     }
   }

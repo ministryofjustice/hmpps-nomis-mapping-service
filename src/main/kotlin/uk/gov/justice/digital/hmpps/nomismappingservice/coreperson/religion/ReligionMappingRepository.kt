@@ -4,7 +4,7 @@ import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface ReligionMappingRepository : CoroutineCrudRepository<CorePersonReligionMapping, String> {
+interface ReligionMappingRepository : CoroutineCrudRepository<CorePersonReligionMapping, Long> {
   suspend fun findOneByCprId(cprId: String): CorePersonReligionMapping?
   suspend fun findOneByNomisId(nomisId: Long): CorePersonReligionMapping?
   suspend fun findByNomisPrisonNumber(prisonNumber: String): List<CorePersonReligionMapping>

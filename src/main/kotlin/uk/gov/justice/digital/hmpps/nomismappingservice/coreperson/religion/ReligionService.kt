@@ -80,6 +80,8 @@ class ReligionService(
   suspend fun replaceMappings(mappings: ReligionsMigrationMappingDto) {
     with(mappings) {
       religionMappingRepository.deleteAllByNomisPrisonNumber(nomisPrisonNumber)
+      // also ensure that our belief ids aren't mapped to a different prisoner (due to a merge)
+      religionMappingRepository.deleteAllById(religions.map { it.nomisId })
 
       religionMappingRepository.saveAll(
         religions.map {
