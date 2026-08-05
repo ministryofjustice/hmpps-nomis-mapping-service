@@ -16,4 +16,3 @@ create index transfer_schedule_mapping_when_created_index on transfer_schedule_m
 create index transfer_schedule_mapping_label_index on transfer_schedule_mapping (label);
 create index transfer_schedule_mapping_offender_no on transfer_schedule_mapping (offender_no);
 create index transfer_schedule_mapping_booking_id on transfer_schedule_mapping (booking_id);
-create index transfer_schedule_mapping_nomis_event_id on transfer_schedule_mapping (nomis_event_id);
