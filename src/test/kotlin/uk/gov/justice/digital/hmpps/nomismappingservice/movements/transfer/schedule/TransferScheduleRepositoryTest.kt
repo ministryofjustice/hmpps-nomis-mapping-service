@@ -44,8 +44,8 @@ class TransferScheduleRepositoryTest(
     with(repository.findById(dpsId)!!) {
       assertThat(dpsTransferScheduleId).isEqualTo(dpsId)
       assertThat(nomisEventId).isEqualTo(nomisId)
-      assertThat(offenderNo).isEqualTo(offenderNo)
-      assertThat(bookingId).isEqualTo(bookingId)
+      assertThat(offenderNo).isEqualTo(this@TransferScheduleRepositoryTest.offenderNo)
+      assertThat(bookingId).isEqualTo(this@TransferScheduleRepositoryTest.bookingId)
       assertThat(label).isEqualTo("some_label")
       assertThat(mappingType).isEqualTo(TransferMappingType.MIGRATED)
     }
