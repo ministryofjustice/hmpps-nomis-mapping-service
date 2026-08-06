@@ -93,5 +93,5 @@ class TransferScheduleResource(
   )
   suspend fun getTransferScheduleMappingByNomisId(
     @PathVariable nomisEventId: Long,
-  ): TransferScheduleMappingDto = TODO("Not yet implemented")
+  ) = service.getScheduleMappingByNomisId(nomisEventId)
 }
