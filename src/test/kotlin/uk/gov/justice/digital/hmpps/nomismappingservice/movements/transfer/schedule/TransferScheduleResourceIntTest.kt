@@ -173,6 +173,41 @@ class TransferScheduleResourceIntTest(
     }
   }
 
+  @Nested
+  @DisplayName("GET /mapping/transfer-scheduler/schedule/nomis-id/{nomisEventId}")
+  inner class GetTransferScheduleMappingByNomisId {
+
+    @Nested
+    inner class Security {
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/transfer-scheduler/schedule/nomis-id/12345")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/transfer-scheduler/schedule/nomis-id/12345")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/transfer-scheduler/schedule/nomis-id/12345")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+  }
+
   private fun WebTestClient.createTransferScheduleMapping(mapping: TransferScheduleMappingDto) = post()
     .uri("/mapping/transfer-scheduler/schedule")
     .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
