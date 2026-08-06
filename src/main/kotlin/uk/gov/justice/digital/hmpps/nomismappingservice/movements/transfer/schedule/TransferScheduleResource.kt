@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -13,13 +14,16 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
 @PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/transfer-scheduler/schedule", produces = [MediaType.APPLICATION_JSON_VALUE])
-class TransferScheduleResource {
+class TransferScheduleResource(
+  private val service: TransferScheduleService,
+) {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
@@ -50,5 +54,15 @@ class TransferScheduleResource {
   )
   suspend fun createTransferScheduleMapping(
     @RequestBody mapping: TransferScheduleMappingDto,
-  ): Unit = TODO("Not yet implemented")
+  ) = try {
+    service.createScheduleMapping(mapping)
+  } catch (dke: DuplicateKeyException) {
+    val existing = service.getExistingTransferScheduleMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Transfer schedule mapping already exists",
+      duplicate = mapping,
+      existing = existing,
+      cause = dke,
+    )
+  }
 }
