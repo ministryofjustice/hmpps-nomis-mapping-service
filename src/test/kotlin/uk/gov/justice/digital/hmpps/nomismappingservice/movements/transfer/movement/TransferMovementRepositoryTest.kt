@@ -46,7 +46,7 @@ class TransferMovementRepositoryTest(
       assertThat(dpsTransferMovementId).isEqualTo(dpsId)
       assertThat(nomisBookingId).isEqualTo(bookingId)
       assertThat(nomisMovementSeq).isEqualTo(nomisSeq)
-assertThat(this.offenderNo).isEqualTo(this@TransferMovementRepositoryTest.offenderNo)
+      assertThat(this.offenderNo).isEqualTo(this@TransferMovementRepositoryTest.offenderNo)
       assertThat(label).isEqualTo("some_label")
       assertThat(mappingType).isEqualTo(TransferMappingType.MIGRATED)
     }
@@ -55,7 +55,7 @@ assertThat(this.offenderNo).isEqualTo(this@TransferMovementRepositoryTest.offend
       assertThat(dpsTransferMovementId).isEqualTo(dpsId)
       assertThat(nomisBookingId).isEqualTo(bookingId)
       assertThat(nomisMovementSeq).isEqualTo(nomisSeq)
-      assertThat(offenderNo).isEqualTo(offenderNo)
+      assertThat(this.offenderNo).isEqualTo(this@TransferMovementRepositoryTest.offenderNo)
       assertThat(label).isEqualTo("some_label")
       assertThat(mappingType).isEqualTo(TransferMappingType.MIGRATED)
     }
