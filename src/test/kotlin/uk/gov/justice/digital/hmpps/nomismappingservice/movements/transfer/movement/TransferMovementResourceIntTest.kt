@@ -178,4 +178,43 @@ class TransferMovementResourceIntTest(
       .body(BodyInserters.fromValue(mapping))
       .exchange()
   }
+
+  @Nested
+  @DisplayName("GET /mapping/transfer-scheduler/movement/nomis-id/{nomisBookingId}/{nomisMovementSeq}")
+  inner class GetTransferMovementMappingByNomisId {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      movementRepository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/transfer-scheduler/movement/nomis-id/12345/3")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/transfer-scheduler/movement/nomis-id/12345/3")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/transfer-scheduler/movement/nomis-id/12345/3")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+  }
 }
