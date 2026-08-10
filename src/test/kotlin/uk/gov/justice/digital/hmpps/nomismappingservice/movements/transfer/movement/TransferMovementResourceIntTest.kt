@@ -189,6 +189,43 @@ class TransferMovementResourceIntTest(
     }
 
     @Nested
+    inner class HappyPath {
+      val mapping = TransferMovementMapping(
+        UUID.randomUUID(),
+        23456L,
+        3,
+        "A1234BC",
+        mappingType = TransferMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `should get transfer movement mapping by NOMIS ID`() = runTest {
+        movementRepository.save(mapping)
+
+        webTestClient.getTransferMovementMapping(mapping.nomisBookingId, mapping.nomisMovementSeq)
+          .expectStatus().isOk
+          .expectBody(object : ParameterizedTypeReference<TransferMovementMappingDto>() {})
+          .returnResult().responseBody!!
+          .apply {
+            assertThat(nomisBookingId).isEqualTo(mapping.nomisBookingId)
+            assertThat(nomisMovementSeq).isEqualTo(mapping.nomisMovementSeq)
+            assertThat(dpsTransferMovementId).isEqualTo(mapping.dpsTransferMovementId)
+            assertThat(prisonerNumber).isEqualTo(mapping.offenderNo)
+            assertThat(mappingType).isEqualTo(mapping.mappingType)
+          }
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `should return not found when mapping does not exist`() = runTest {
+        webTestClient.getTransferMovementMapping(12345L, 3)
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
     inner class Security {
       @Test
       fun `access not authorised when no authority`() {
@@ -216,5 +253,10 @@ class TransferMovementResourceIntTest(
           .expectStatus().isForbidden
       }
     }
+
+    private fun WebTestClient.getTransferMovementMapping(nomisBookingId: Long, nomisMovementSeq: Int) = get()
+      .uri("/mapping/transfer-scheduler/movement/nomis-id/$nomisBookingId/$nomisMovementSeq")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .exchange()
   }
 }

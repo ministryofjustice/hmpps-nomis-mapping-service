@@ -101,5 +101,5 @@ class TransferMovementResource(
   suspend fun getTransferMovementMappingByNomisId(
     @PathVariable nomisBookingId: Long,
     @PathVariable nomisMovementSeq: Int,
-  ): TransferMovementMappingDto = TODO("Not yet implemented")
+  ) = service.getMovementMappingByNomisId(nomisBookingId, nomisMovementSeq)
 }
