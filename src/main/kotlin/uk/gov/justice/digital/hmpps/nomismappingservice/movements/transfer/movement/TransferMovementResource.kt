@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
@@ -52,5 +54,22 @@ class TransferMovementResource(
   )
   suspend fun createTransferMovementMapping(
     @RequestBody mapping: TransferMovementMappingDto,
-  ) = service.createMovementMapping(mapping)
+  ) = try {
+    service.createMovementMapping(mapping)
+  } catch (dke: DuplicateKeyException) {
+    val existing = getExistingTransferMovementMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Transfer movement mapping already exists",
+      duplicate = mapping,
+      existing = existing,
+      cause = dke,
+    )
+  }
+
+  private suspend fun getExistingTransferMovementMappingSimilarTo(mapping: TransferMovementMappingDto) = runCatching {
+    service.getMovementMappingByNomisId(mapping.nomisBookingId, mapping.nomisMovementSeq)
+  }
+    .getOrElse {
+      service.getMovementMappingByDpsId(mapping.dpsTransferMovementId)
+    }
 }
