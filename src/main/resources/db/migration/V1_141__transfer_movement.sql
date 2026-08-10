@@ -15,4 +15,4 @@ create table transfer_movement_mapping
 create index transfer_movement_mapping_when_created_index on transfer_movement_mapping (when_created);
 create index transfer_movement_mapping_label_index on transfer_movement_mapping (label);
 create index transfer_movement_mapping_offender_no on transfer_movement_mapping (offender_no);
-create index transfer_movement_mapping_nomis_id on transfer_movement_mapping (nomis_booking_id, nomis_movement_seq);
+-- unique constraint transfer_movement_mapping_nomis_id_unique already provides an index for (nomis_booking_id, nomis_movement_seq)
