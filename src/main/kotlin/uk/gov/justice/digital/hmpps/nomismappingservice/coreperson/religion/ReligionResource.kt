@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.religion
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingErrorResponse
@@ -244,6 +246,33 @@ class ReligionResource(private val religionService: ReligionService) {
     @PathVariable
     cprId: String,
   ): ReligionMappingDto = religionService.getReligionMappingByCprId(cprId = cprId)
+
+  @GetMapping("/religion/cpr-ids")
+  @Operation(
+    summary = "Get religion mappings by cpr ids",
+    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping data",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getReligionMappingsByCprIds(
+    @RequestParam(name = "ids", required = true)
+    @Parameter(required = true, description = "Cpr religion ids", example = "802dfae7-45f0-4c22-b369-bfe7da5e54e2")
+    ids: List<String>,
+  ): List<ReligionMappingDto> = religionService.getReligionMappingsByCprIds(cprIds = ids)
 
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @DeleteMapping("/religion/nomis-id/{nomisId}")
