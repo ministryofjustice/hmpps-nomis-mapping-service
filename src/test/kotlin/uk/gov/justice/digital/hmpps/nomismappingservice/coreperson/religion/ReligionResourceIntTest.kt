@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.religion
 
+import kotlinx.coroutines.flow.collect
+import org.springframework.test.web.reactive.server.expectBody
 import kotlinx.coroutines.test.runTest
 import net.minidev.json.JSONArray
 import org.assertj.core.api.Assertions.assertThat
@@ -438,6 +440,93 @@ class ReligionResourceIntTest(
   }
 
   @Nested
+  @DisplayName("GET /mapping/core-person-religion/religion/cpr-ids")
+  inner class GetReligionMappingsByCprId {
+    private val ids = arrayOf("61f19a0a-dc46-4771-b6d2-e920c6bd151f", "a16877a5-f5fc-4a58-a08b-cfe84d653f5b")
+
+    @BeforeEach
+    fun setUp() = runTest {
+      religionMappingRepository.saveAll(
+        listOf(
+          CorePersonReligionMapping(
+            cprId = ids[0],
+            nomisId = 9831302L,
+            nomisPrisonNumber = "A1234BC",
+            mappingType = StandardMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2021-02-01T12:35"),
+          ),
+          CorePersonReligionMapping(
+            cprId = ids[1],
+            nomisId = 6837812L,
+            nomisPrisonNumber = "B1234CD",
+            mappingType = StandardMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2020-01-01T10:15"),
+          ),
+        ),
+      ).collect()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access unauthorised when no authority`() {
+        webTestClient.get()
+          .uri {
+            it.path("/mapping/core-person-religion/religion/cpr-ids")
+            it.queryParam("ids", *ids).build()
+          }
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+    }
+
+    @Test
+    fun `access forbidden when no role`() {
+      webTestClient.get()
+        .uri {
+          it.path("/mapping/core-person-religion/religion/cpr-ids")
+          it.queryParam("ids", *ids).build()
+        }
+        .headers(setAuthorisation(roles = listOf()))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `access forbidden with wrong role`() {
+      webTestClient.get()
+        .uri {
+          it.path("/mapping/core-person-religion/religion/cpr-ids")
+          it.queryParam("ids", *ids).build()
+        }
+        .headers(setAuthorisation(roles = listOf("BANANAS")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will retrieve mapping by cprId`() {
+        webTestClient.get()
+          .uri {
+            it.path("/mapping/core-person-religion/religion/cpr-ids")
+            it.queryParam("ids", *ids).build()
+          }
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody<List<ReligionMappingDto>>()
+          .returnResult().responseBody!!.apply {
+            assertThat(size).isEqualTo(2)
+            assertThat(this.map { it.nomisId }).containsExactlyInAnyOrder(9831302L, 6837812L)
+          }
+
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("GET /mapping/core-person-religion/religion/nomis-id/{nomisId}")
   inner class DeleteReligionMappingByNomisId {
     val nomisId = 9831302L
@@ -835,17 +924,18 @@ class ReligionResourceIntTest(
       }
 
       @Test
-      fun `will save individual religion mappings even if top-level mapping does not exist and mappings are empty`() = runTest {
-        webTestClient.post()
-          .uri("/mapping/core-person-religion/replace")
-          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(mapping.copy(cprId = "96969")))
-          .exchange()
-          .expectStatus().isOk
+      fun `will save individual religion mappings even if top-level mapping does not exist and mappings are empty`() =
+        runTest {
+          webTestClient.post()
+            .uri("/mapping/core-person-religion/replace")
+            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(mapping.copy(cprId = "96969")))
+            .exchange()
+            .expectStatus().isOk
 
-        assertThat(religionMappingRepository.findByNomisPrisonNumber(nomisPrisonNumber)).isEmpty()
-      }
+          assertThat(religionMappingRepository.findByNomisPrisonNumber(nomisPrisonNumber)).isEmpty()
+        }
     }
 
     @Nested
