@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.religion
 
 import kotlinx.coroutines.flow.collect
-import org.springframework.test.web.reactive.server.expectBody
 import kotlinx.coroutines.test.runTest
 import net.minidev.json.JSONArray
 import org.assertj.core.api.Assertions.assertThat
@@ -14,6 +13,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
@@ -518,10 +518,9 @@ class ReligionResourceIntTest(
           .expectStatus().isOk
           .expectBody<List<ReligionMappingDto>>()
           .returnResult().responseBody!!.apply {
-            assertThat(size).isEqualTo(2)
-            assertThat(this.map { it.nomisId }).containsExactlyInAnyOrder(9831302L, 6837812L)
-          }
-
+          assertThat(size).isEqualTo(2)
+          assertThat(this.map { it.nomisId }).containsExactlyInAnyOrder(9831302L, 6837812L)
+        }
       }
     }
   }
@@ -924,18 +923,17 @@ class ReligionResourceIntTest(
       }
 
       @Test
-      fun `will save individual religion mappings even if top-level mapping does not exist and mappings are empty`() =
-        runTest {
-          webTestClient.post()
-            .uri("/mapping/core-person-religion/replace")
-            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(mapping.copy(cprId = "96969")))
-            .exchange()
-            .expectStatus().isOk
+      fun `will save individual religion mappings even if top-level mapping does not exist and mappings are empty`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/core-person-religion/replace")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping.copy(cprId = "96969")))
+          .exchange()
+          .expectStatus().isOk
 
-          assertThat(religionMappingRepository.findByNomisPrisonNumber(nomisPrisonNumber)).isEmpty()
-        }
+        assertThat(religionMappingRepository.findByNomisPrisonNumber(nomisPrisonNumber)).isEmpty()
+      }
     }
 
     @Nested
