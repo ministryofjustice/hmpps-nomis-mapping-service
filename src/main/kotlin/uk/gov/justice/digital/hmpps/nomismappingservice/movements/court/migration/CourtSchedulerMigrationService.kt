@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.court.movement.CourtMovementMapping
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.court.movement.CourtMovementRepository
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.court.schedule.CourtMappingType
@@ -21,6 +22,7 @@ class CourtSchedulerMigrationService(
   private val migrationRepository: CourtSchedulerMigrationRepository,
 ) {
 
+  @Transactional
   suspend fun createMigrationMappings(mappings: CourtSchedulerPrisonerMappingsDto) {
     deleteOldMappings(mappings.offenderNo)
 
