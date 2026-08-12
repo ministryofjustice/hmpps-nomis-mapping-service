@@ -23,6 +23,9 @@ class TransferScheduleService(
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for DPS transfer schedule id $dpsTransferScheduleId not found")
 
+  @Transactional
+  suspend fun deleteScheduleMappingByNomisId(nomisEventId: Long) = scheduleRepository.deleteByNomisEventId(nomisEventId)
+
   suspend fun getExistingTransferScheduleMappingSimilarTo(mapping: TransferScheduleMappingDto) = runCatching {
     getScheduleMappingByNomisId(mapping.nomisEventId)
   }

@@ -250,6 +250,89 @@ class TransferScheduleResourceIntTest(
     }
   }
 
+  @Nested
+  @DisplayName("DELETE /mapping/transfer-scheduler/schedule/nomis-id/{nomisEventId}")
+  inner class DeleteTransferScheduleMappingByNomisId {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      scheduleRepository.deleteAll()
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping1 = TransferScheduleMapping(
+        UUID.randomUUID(),
+        23456L,
+        "A1234BC",
+        12345L,
+        mappingType = TransferMappingType.NOMIS_CREATED,
+      )
+      val mapping2 = TransferScheduleMapping(
+        UUID.randomUUID(),
+        65432L,
+        "A1234BC",
+        12345L,
+        mappingType = TransferMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `should delete transfer schedule mapping by NOMIS ID`() = runTest {
+        scheduleRepository.save(mapping1)
+        scheduleRepository.save(mapping2)
+
+        webTestClient.deleteTransferScheduleMapping(mapping1.nomisEventId)
+          .expectStatus().isNoContent
+
+        assertThat(scheduleRepository.findByNomisEventId(mapping1.nomisEventId)).isNull()
+        assertThat(scheduleRepository.findByNomisEventId(mapping2.nomisEventId)).isNotNull
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `delete endpoint should be idempotent`() = runTest {
+        webTestClient.deleteTransferScheduleMapping(12345L)
+          .expectStatus().isNoContent
+      }
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/transfer-scheduler/schedule/nomis-id/12345")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/transfer-scheduler/schedule/nomis-id/12345")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/transfer-scheduler/schedule/nomis-id/12345")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.deleteTransferScheduleMapping(nomisEventId: Long) = delete()
+      .uri("/mapping/transfer-scheduler/schedule/nomis-id/$nomisEventId")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .exchange()
+  }
+
   private fun WebTestClient.createTransferScheduleMapping(mapping: TransferScheduleMappingDto) = post()
     .uri("/mapping/transfer-scheduler/schedule")
     .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
