@@ -104,7 +104,7 @@ class TransferMovementResource(
     @PathVariable nomisMovementSeq: Int,
   ) = service.getMovementMappingByNomisId(nomisBookingId, nomisMovementSeq)
 
-  @DeleteMapping("/nomis-id/{bookingId}/{movementSeq}")
+  @DeleteMapping("/nomis-id/{nomisBookingId}/{nomisMovementSeq}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Deletes a mapping for a single transfer movement by NOMIS booking ID and movement sequence",
@@ -124,7 +124,7 @@ class TransferMovementResource(
     ],
   )
   suspend fun deleteTransferMovementMappingByNomisId(
-    @PathVariable bookingId: Long,
-    @PathVariable movementSeq: Int,
-  ) = service.deleteMovementMappingByNomisId(bookingId, movementSeq)
+    @PathVariable nomisBookingId: Long,
+    @PathVariable nomisMovementSeq: Int,
+  ) = service.deleteMovementMappingByNomisId(nomisBookingId, nomisMovementSeq)
 }
