@@ -22,6 +22,9 @@ class TransferMovementService(
   suspend fun getMovementMappingByDpsId(dpsTransferMovementId: UUID) = movementRepository.findById(dpsTransferMovementId)
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for DPS transfer movement id $dpsTransferMovementId not found")
+
+  @Transactional
+  suspend fun deleteMovementMappingByNomisId(bookingId: Long, movementSeq: Int) = movementRepository.deleteByNomisBookingIdAndNomisMovementSeq(bookingId, movementSeq)
 }
 
 fun TransferMovementMappingDto.toMapping(): TransferMovementMapping = TransferMovementMapping(
