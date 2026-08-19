@@ -7,6 +7,7 @@ import java.util.*
 @Repository
 interface TransferScheduleRepository : CoroutineCrudRepository<TransferScheduleMapping, UUID> {
   suspend fun findByNomisEventId(nomisEventId: Long): TransferScheduleMapping?
+  suspend fun findByOffenderNo(offenderNo: String): List<TransferScheduleMapping>
   suspend fun deleteByNomisEventId(nomisEventId: Long)
   suspend fun deleteByOffenderNo(offenderNo: String)
 }
