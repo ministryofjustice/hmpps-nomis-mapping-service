@@ -8,4 +8,5 @@ import java.util.*
 interface TransferMovementRepository : CoroutineCrudRepository<TransferMovementMapping, UUID> {
   suspend fun findByNomisBookingIdAndNomisMovementSeq(nomisBookingId: Long, nomisMovementSeq: Int): TransferMovementMapping?
   suspend fun deleteByNomisBookingIdAndNomisMovementSeq(nomisBookingId: Long, nomisMovementSeq: Int)
+  suspend fun deleteByOffenderNo(offenderNo: String)
 }
