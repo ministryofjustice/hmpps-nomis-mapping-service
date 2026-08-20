@@ -179,6 +179,35 @@ class OffenderIdentifierMappingDto(
   )
 }
 
+class OffenderAliasMappingDto(
+  @Schema(description = "CPR id")
+  val cprId: String,
+  @Schema(description = "NOMIS offender id")
+  val nomisOffenderId: Long,
+  @Schema(description = "NOMIS prison number aka Offender number")
+  val nomisPrisonNumber: String,
+  label: String?,
+  mappingType: CorePersonMappingType,
+  whenCreated: LocalDateTime?,
+) : AbstractCorePersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated) {
+
+  fun copy(
+    cprId: String = this.cprId,
+    nomisOffenderId: Long = this.nomisOffenderId,
+    nomisPrisonNumber: String = this.nomisPrisonNumber,
+    label: String? = this.label,
+    mappingType: CorePersonMappingType = this.mappingType,
+    whenCreated: LocalDateTime? = this.whenCreated,
+  ) = OffenderAliasMappingDto(
+    cprId = cprId,
+    nomisOffenderId = nomisOffenderId,
+    nomisPrisonNumber = nomisPrisonNumber,
+    label = label,
+    mappingType = mappingType,
+    whenCreated = whenCreated,
+  )
+}
+
 abstract class AbstractCorePersonMappingDto(
   @Schema(description = "Label (a timestamp for migrated ids)")
   val label: String? = null,
