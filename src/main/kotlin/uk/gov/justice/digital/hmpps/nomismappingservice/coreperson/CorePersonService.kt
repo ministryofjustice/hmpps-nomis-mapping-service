@@ -21,6 +21,7 @@ class CorePersonService(
   private val corePersonEmailMappingRepository: CorePersonEmailAddressMappingRepository,
   private val profileMappingRepository: ProfileMappingRepository,
   private val offenderIdentifierMappingRepository: OffenderIdentifierMappingRepository,
+  private val offenderAliasMappingRepository: OffenderAliasMappingRepository,
 ) {
   @Transactional
   suspend fun createMappings(mappings: CorePersonMappingsDto) {
@@ -82,6 +83,8 @@ class CorePersonService(
     corePersonAddressMappingRepository.deleteAll()
     corePersonMappingRepository.deleteAll()
     profileMappingRepository.deleteAll()
+    offenderIdentifierMappingRepository.deleteAll()
+    offenderAliasMappingRepository.deleteAll()
   }
 
   suspend fun getAddressMappingByNomisId(nomisId: Long) = corePersonAddressMappingRepository.findOneByNomisId(nomisId = nomisId)
@@ -150,6 +153,26 @@ class CorePersonService(
   suspend fun createOffenderIdentifierMapping(mapping: OffenderIdentifierMappingDto) {
     offenderIdentifierMappingRepository.save(mapping.toMapping())
   }
+
+  suspend fun getOffenderAliasMappingByNomisId(nomisOffenderId: Long) = offenderAliasMappingRepository
+    .findOneByNomisOffenderId(nomisOffenderId = nomisOffenderId)
+    ?.toDto()
+    ?: throw NotFoundException("No offender alias mapping found for nomisOffenderId=$nomisOffenderId")
+
+  suspend fun getOffenderAliasMappingByCprId(cprId: String) = getOffenderAliasMappingByCprIdOrNull(cprId)
+    ?: throw NotFoundException("No offender alias mapping found for cprId=$cprId")
+
+  suspend fun getOffenderAliasMappingByCprIdOrNull(cprId: String) = offenderAliasMappingRepository
+    .findOneByCprId(cprId = cprId)
+    ?.toDto()
+
+  @Transactional
+  suspend fun deleteOffenderAliasMappingByNomisId(nomisOffenderId: Long) = offenderAliasMappingRepository
+    .deleteByNomisOffenderId(nomisOffenderId = nomisOffenderId)
+
+  @Transactional
+  suspend fun createOffenderAliasMapping(mapping: OffenderAliasMappingDto) = offenderAliasMappingRepository
+    .save(mapping.toMapping())
 }
 
 private fun CorePersonMappingsDto.toCorePersonMapping() = CorePersonMapping(
@@ -262,6 +285,24 @@ internal fun OffenderIdentifierMappingDto.toMapping() = OffenderIdentifierMappin
   cprId = cprId,
   nomisOffenderId = nomisOffenderId,
   nomisIdentifierSequence = nomisIdentifierSequence,
+  nomisPrisonNumber = nomisPrisonNumber,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+private fun OffenderAliasMapping.toDto() = OffenderAliasMappingDto(
+  cprId = cprId,
+  nomisOffenderId = nomisOffenderId,
+  nomisPrisonNumber = nomisPrisonNumber,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
+
+internal fun OffenderAliasMappingDto.toMapping() = OffenderAliasMapping(
+  cprId = cprId,
+  nomisOffenderId = nomisOffenderId,
   nomisPrisonNumber = nomisPrisonNumber,
   label = label,
   mappingType = mappingType,
