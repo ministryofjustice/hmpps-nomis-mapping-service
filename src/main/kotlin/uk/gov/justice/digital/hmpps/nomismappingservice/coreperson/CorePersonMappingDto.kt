@@ -10,33 +10,15 @@ data class CorePersonMappingsDto(
   @Schema(description = "Label (a timestamp for migrated ids)")
   val label: String? = null,
   @Schema(description = "Mapping type")
-  val mappingType: CorePersonMappingType = CorePersonMappingType.CPR_CREATED,
+  val mappingType: CorePersonMappingType = CorePersonMappingType.MIGRATED,
   @Schema(description = "Date time the mapping was created")
   val whenCreated: LocalDateTime? = null,
   @Schema(description = "Core Person mapping")
   val personMapping: CorePersonMappingIdDto,
-  @Schema(description = "Core Person address mappings")
-  val addressMappings: List<CorePersonSimpleMappingIdDto>,
-  @Schema(description = "Core Person phone mappings")
-  val phoneMappings: List<CorePersonPhoneMappingIdDto>,
-  @Schema(description = "Core Person email mappings")
-  val emailMappings: List<CorePersonSimpleMappingIdDto>,
-  @Schema(description = "Core Person profile mappings")
-  val profileMappings: List<ProfileMappingIdDto>,
-  // TODO add more child mappings
-)
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Religion mappings for a Core Person")
-data class CorePersonReligionMappingsDto(
-  @Schema(description = "Label (a timestamp for migrated ids)")
-  val label: String? = null,
-  @Schema(description = "Mapping type")
-  val mappingType: CorePersonMappingType = CorePersonMappingType.CPR_CREATED,
-  @Schema(description = "Date time the mapping was created")
-  val whenCreated: LocalDateTime? = null,
-  @Schema(description = "Core Person religion mappings")
-  val religionMappings: List<CorePersonSimpleMappingIdDto>,
+  @Schema(description = "Core Person alias mappings")
+  val aliases: List<OffenderAliasMappingDto>,
+  @Schema(description = "Core Person identifier mappings")
+  val identifiers: List<OffenderIdentifierMappingDto>,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -131,16 +113,6 @@ class ProfileMappingDto(
   val nomisProfileType: String,
   @Schema(description = "NOMIS Prison number aka Offender number")
   val nomisPrisonNumber: String,
-  label: String?,
-  mappingType: CorePersonMappingType,
-  whenCreated: LocalDateTime?,
-) : AbstractCorePersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
-
-class CorePersonReligionMappingDto(
-  @Schema(description = "CPR id")
-  val cprId: String,
-  @Schema(description = "NOMIS id")
-  val nomisId: Long,
   label: String?,
   mappingType: CorePersonMappingType,
   whenCreated: LocalDateTime?,
