@@ -14,6 +14,7 @@ import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.isDuplicateMapping
+import java.time.LocalDateTime
 
 class CorePersonAliasMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
@@ -237,7 +238,7 @@ class CorePersonAliasMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("POST /mapping/offender-alias")
+  @DisplayName("POST /mapping/core-person/alias")
   inner class CreateMapping {
     private val mappingDto = OffenderAliasMappingDto(
       cprId = "ca550f8c-00f2-41d7-80f1-ff9978ea220b",
@@ -253,7 +254,7 @@ class CorePersonAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.post()
-          .uri("/mapping/offender-alias")
+          .uri("/mapping/core-person/alias")
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappingDto))
           .exchange()
@@ -263,7 +264,7 @@ class CorePersonAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.post()
-          .uri("/mapping/offender-alias")
+          .uri("/mapping/core-person/alias")
           .headers(setAuthorisation(roles = listOf()))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappingDto))
@@ -274,7 +275,7 @@ class CorePersonAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.post()
-          .uri("/mapping/offender-alias")
+          .uri("/mapping/core-person/alias")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappingDto))
@@ -295,7 +296,7 @@ class CorePersonAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will not allow the same offender alias to have duplicate NOMIS ids`() {
         webTestClient.post()
-          .uri("/mapping/offender-alias")
+          .uri("/mapping/core-person/alias")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappingDto.copy(cprId = "96969")))
@@ -306,7 +307,7 @@ class CorePersonAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will not allow the same offender alias to have duplicate CPR ids`() {
         webTestClient.post()
-          .uri("/mapping/offender-alias")
+          .uri("/mapping/core-person/alias")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappingDto.copy(nomisOffenderId = 999)))
@@ -317,7 +318,7 @@ class CorePersonAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
-          .uri("/mapping/offender-alias")
+          .uri("/mapping/core-person/alias")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappingDto.copy(cprId = "96969")))
@@ -346,7 +347,7 @@ class CorePersonAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 201 when mapping created`() {
         webTestClient.post()
-          .uri("/mapping/offender-alias")
+          .uri("/mapping/core-person/alias")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappingDto))
@@ -357,7 +358,7 @@ class CorePersonAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will persist the offender alias mapping`() = runTest {
         webTestClient.post()
-          .uri("/mapping/offender-alias")
+          .uri("/mapping/core-person/alias")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappingDto.copy(label = "2023-01-01T12:45:12")))
@@ -375,3 +376,19 @@ class CorePersonAliasMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 }
+
+private fun OffenderAliasMappingDto.copy(
+  cprId: String = this.cprId,
+  nomisOffenderId: Long = this.nomisOffenderId,
+  nomisPrisonNumber: String = this.nomisPrisonNumber,
+  label: String? = this.label,
+  mappingType: CorePersonMappingType = this.mappingType,
+  whenCreated: LocalDateTime? = this.whenCreated,
+) = OffenderAliasMappingDto(
+  cprId = cprId,
+  nomisOffenderId = nomisOffenderId,
+  nomisPrisonNumber = nomisPrisonNumber,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)
