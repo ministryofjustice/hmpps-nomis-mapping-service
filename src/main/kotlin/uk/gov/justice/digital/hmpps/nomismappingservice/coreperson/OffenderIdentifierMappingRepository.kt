@@ -5,8 +5,8 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface OffenderIdentifierMappingRepository : CoroutineCrudRepository<OffenderIdentifierMapping, String> {
-  suspend fun findOneByNomisOffenderIdAndNomisIdentifierSequence(nomisOffenderId: Long, nomisIdentifierSequence: Long): OffenderIdentifierMapping?
+  suspend fun findOneByNomisOffenderIdAndNomisIdentifierSequence(nomisOffenderId: Long, nomisIdentifierSequence: Int): OffenderIdentifierMapping?
   suspend fun findOneByCprId(cprId: String): OffenderIdentifierMapping?
-  suspend fun deleteByNomisOffenderIdAndNomisIdentifierSequence(nomisOffenderId: Long, nomisIdentifierSequence: Long)
+  suspend fun deleteByNomisOffenderIdAndNomisIdentifierSequence(nomisOffenderId: Long, nomisIdentifierSequence: Int)
   suspend fun deleteAllByNomisPrisonNumber(nomisPrisonNumber: String)
 }
