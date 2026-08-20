@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestDuplicateErro
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.isDuplicateMapping
 
-class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
+class CorePersonAliasMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var offenderAliasMappingRepository: OffenderAliasMappingRepository
 
@@ -25,7 +25,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("GET /mapping/offender-alias/nomis-offender-id/{nomisOffenderId}")
+  @DisplayName("GET /mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}")
   inner class GetByNomisId {
     private val nomisOffenderId = 12345L
     private val cprId = "ca550f8c-00f2-41d7-80f1-ff9978ea220b"
@@ -47,7 +47,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .uri("/mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -55,7 +55,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .uri("/mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -64,7 +64,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .uri("/mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -76,7 +76,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `404 when mapping not found`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/nomis-offender-id/{nomisOffenderId}", 99999)
+          .uri("/mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}", 99999)
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
@@ -88,7 +88,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return the mapping data`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .uri("/mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
@@ -101,7 +101,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("GET /mapping/offender-alias/cpr-id/{cprId}")
+  @DisplayName("GET /mapping/core-person/alias/cpr-id/{cprId}")
   inner class GetByCprId {
     private val cprId = "c85ef4dd-0f66-41d4-a9b5-930cdd7f208f"
 
@@ -122,7 +122,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/cpr-id/{cprId}", cprId)
+          .uri("/mapping/core-person/alias/cpr-id/{cprId}", cprId)
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -130,7 +130,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/cpr-id/{cprId}", cprId)
+          .uri("/mapping/core-person/alias/cpr-id/{cprId}", cprId)
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -139,7 +139,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/cpr-id/{cprId}", cprId)
+          .uri("/mapping/core-person/alias/cpr-id/{cprId}", cprId)
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -151,7 +151,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `404 when mapping not found`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/cpr-id/{cprId}", "99999")
+          .uri("/mapping/core-person/alias/cpr-id/{cprId}", "99999")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
@@ -163,7 +163,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return the mapping data`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/cpr-id/{cprId}", cprId)
+          .uri("/mapping/core-person/alias/cpr-id/{cprId}", cprId)
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
@@ -176,7 +176,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("DELETE /mapping/offender-alias/nomis-offender-id/{nomisOffenderId}")
+  @DisplayName("DELETE /mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}")
   inner class DeleteByNomisId {
     private val nomisOffenderId = 111L
 
@@ -197,7 +197,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.delete()
-          .uri("/mapping/offender-alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .uri("/mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -205,7 +205,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.delete()
-          .uri("/mapping/offender-alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .uri("/mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -214,7 +214,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.delete()
-          .uri("/mapping/offender-alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .uri("/mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -226,7 +226,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will delete the mapping`() = runTest {
         webTestClient.delete()
-          .uri("/mapping/offender-alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .uri("/mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent

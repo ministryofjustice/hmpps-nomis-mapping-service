@@ -25,10 +25,10 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RestController
 @Validated
 @PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
-@RequestMapping("/mapping/core-person", produces = [MediaType.APPLICATION_JSON_VALUE])
+@RequestMapping("/mapping/core-person/identifier", produces = [MediaType.APPLICATION_JSON_VALUE])
 class CorePersonIdentifierMappingResource(private val service: CorePersonService) {
 
-  @GetMapping("/identifier/nomis-offender-id/{nomisOffenderId}/nomis-identifier-sequence/{nomisIdentifierSequence}")
+  @GetMapping("/nomis-offender-id/{nomisOffenderId}/nomis-identifier-sequence/{nomisIdentifierSequence}")
   @Operation(
     summary = "Get offender identifier mapping by nomis offender id and sequence",
     description = "Retrieves the offender identifier mapping by NOMIS offender id and NOMIS identifier sequence. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
@@ -69,7 +69,7 @@ class CorePersonIdentifierMappingResource(private val service: CorePersonService
     nomisIdentifierSequence = nomisIdentifierSequence,
   )
 
-  @DeleteMapping("/identifier/nomis-offender-id/{nomisOffenderId}/nomis-identifier-sequence/{nomisIdentifierSequence}")
+  @DeleteMapping("/nomis-offender-id/{nomisOffenderId}/nomis-identifier-sequence/{nomisIdentifierSequence}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete offender identifier mapping by nomis offender id and sequence",
@@ -103,7 +103,7 @@ class CorePersonIdentifierMappingResource(private val service: CorePersonService
     nomisIdentifierSequence = nomisIdentifierSequence,
   )
 
-  @GetMapping("/identifier/cpr-id/{cprOffenderIdentifierId}")
+  @GetMapping("/cpr-id/{cprOffenderIdentifierId}")
   @Operation(
     summary = "Get offender identifier mapping by cpr identifier id",
     description = "Retrieves the offender identifier mapping by CPR identifier id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
@@ -138,7 +138,7 @@ class CorePersonIdentifierMappingResource(private val service: CorePersonService
     cprOffenderIdentifierId: String,
   ): OffenderIdentifierMappingDto = service.getOffenderIdentifierMappingByCprId(cprId = cprOffenderIdentifierId)
 
-  @PostMapping("/identifier")
+  @PostMapping("")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates offender identifier mappings for synchronisation",
