@@ -14,8 +14,9 @@ import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.isDuplicateMapping
+import java.time.LocalDateTime
 
-class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
+class CorePersonAliasMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var offenderAliasMappingRepository: OffenderAliasMappingRepository
 
@@ -25,7 +26,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("GET /mapping/offender-alias/nomis-offender-id/{nomisOffenderId}")
+  @DisplayName("GET /mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}")
   inner class GetByNomisId {
     private val nomisOffenderId = 12345L
     private val cprId = "ca550f8c-00f2-41d7-80f1-ff9978ea220b"
@@ -47,7 +48,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .uri("/mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -55,7 +56,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .uri("/mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -64,7 +65,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .uri("/mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -76,7 +77,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `404 when mapping not found`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/nomis-offender-id/{nomisOffenderId}", 99999)
+          .uri("/mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}", 99999)
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
@@ -88,7 +89,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return the mapping data`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .uri("/mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
@@ -101,7 +102,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("GET /mapping/offender-alias/cpr-id/{cprId}")
+  @DisplayName("GET /mapping/core-person/alias/cpr-id/{cprId}")
   inner class GetByCprId {
     private val cprId = "c85ef4dd-0f66-41d4-a9b5-930cdd7f208f"
 
@@ -122,7 +123,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/cpr-id/{cprId}", cprId)
+          .uri("/mapping/core-person/alias/cpr-id/{cprId}", cprId)
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -130,7 +131,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/cpr-id/{cprId}", cprId)
+          .uri("/mapping/core-person/alias/cpr-id/{cprId}", cprId)
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -139,7 +140,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/cpr-id/{cprId}", cprId)
+          .uri("/mapping/core-person/alias/cpr-id/{cprId}", cprId)
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -151,7 +152,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `404 when mapping not found`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/cpr-id/{cprId}", "99999")
+          .uri("/mapping/core-person/alias/cpr-id/{cprId}", "99999")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
@@ -163,7 +164,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return the mapping data`() {
         webTestClient.get()
-          .uri("/mapping/offender-alias/cpr-id/{cprId}", cprId)
+          .uri("/mapping/core-person/alias/cpr-id/{cprId}", cprId)
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
@@ -176,7 +177,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("DELETE /mapping/offender-alias/nomis-offender-id/{nomisOffenderId}")
+  @DisplayName("DELETE /mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}")
   inner class DeleteByNomisId {
     private val nomisOffenderId = 111L
 
@@ -197,7 +198,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.delete()
-          .uri("/mapping/offender-alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .uri("/mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -205,7 +206,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.delete()
-          .uri("/mapping/offender-alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .uri("/mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -214,7 +215,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.delete()
-          .uri("/mapping/offender-alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .uri("/mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -226,7 +227,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will delete the mapping`() = runTest {
         webTestClient.delete()
-          .uri("/mapping/offender-alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .uri("/mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
@@ -237,7 +238,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("POST /mapping/offender-alias")
+  @DisplayName("POST /mapping/core-person/alias")
   inner class CreateMapping {
     private val mappingDto = OffenderAliasMappingDto(
       cprId = "ca550f8c-00f2-41d7-80f1-ff9978ea220b",
@@ -253,7 +254,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.post()
-          .uri("/mapping/offender-alias")
+          .uri("/mapping/core-person/alias")
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappingDto))
           .exchange()
@@ -263,7 +264,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.post()
-          .uri("/mapping/offender-alias")
+          .uri("/mapping/core-person/alias")
           .headers(setAuthorisation(roles = listOf()))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappingDto))
@@ -274,7 +275,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.post()
-          .uri("/mapping/offender-alias")
+          .uri("/mapping/core-person/alias")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappingDto))
@@ -295,7 +296,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will not allow the same offender alias to have duplicate NOMIS ids`() {
         webTestClient.post()
-          .uri("/mapping/offender-alias")
+          .uri("/mapping/core-person/alias")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappingDto.copy(cprId = "96969")))
@@ -306,7 +307,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will not allow the same offender alias to have duplicate CPR ids`() {
         webTestClient.post()
-          .uri("/mapping/offender-alias")
+          .uri("/mapping/core-person/alias")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappingDto.copy(nomisOffenderId = 999)))
@@ -317,7 +318,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
-          .uri("/mapping/offender-alias")
+          .uri("/mapping/core-person/alias")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappingDto.copy(cprId = "96969")))
@@ -346,7 +347,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `returns 201 when mapping created`() {
         webTestClient.post()
-          .uri("/mapping/offender-alias")
+          .uri("/mapping/core-person/alias")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappingDto))
@@ -357,7 +358,7 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will persist the offender alias mapping`() = runTest {
         webTestClient.post()
-          .uri("/mapping/offender-alias")
+          .uri("/mapping/core-person/alias")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappingDto.copy(label = "2023-01-01T12:45:12")))
@@ -375,3 +376,19 @@ class OffenderAliasMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 }
+
+private fun OffenderAliasMappingDto.copy(
+  cprId: String = this.cprId,
+  nomisOffenderId: Long = this.nomisOffenderId,
+  nomisPrisonNumber: String = this.nomisPrisonNumber,
+  label: String? = this.label,
+  mappingType: CorePersonMappingType = this.mappingType,
+  whenCreated: LocalDateTime? = this.whenCreated,
+) = OffenderAliasMappingDto(
+  cprId = cprId,
+  nomisOffenderId = nomisOffenderId,
+  nomisPrisonNumber = nomisPrisonNumber,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)

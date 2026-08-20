@@ -158,26 +158,7 @@ class OffenderIdentifierMappingDto(
   label: String?,
   mappingType: CorePersonMappingType,
   whenCreated: LocalDateTime?,
-) : AbstractCorePersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated) {
-
-  fun copy(
-    cprId: String = this.cprId,
-    nomisOffenderId: Long = this.nomisOffenderId,
-    nomisIdentifierSequence: Int = this.nomisIdentifierSequence,
-    nomisPrisonNumber: String = this.nomisPrisonNumber,
-    label: String? = this.label,
-    mappingType: CorePersonMappingType = this.mappingType,
-    whenCreated: LocalDateTime? = this.whenCreated,
-  ) = OffenderIdentifierMappingDto(
-    cprId = cprId,
-    nomisOffenderId = nomisOffenderId,
-    nomisIdentifierSequence = nomisIdentifierSequence,
-    nomisPrisonNumber = nomisPrisonNumber,
-    label = label,
-    mappingType = mappingType,
-    whenCreated = whenCreated,
-  )
-}
+) : AbstractCorePersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
 
 class OffenderAliasMappingDto(
   @Schema(description = "CPR id")
@@ -189,24 +170,7 @@ class OffenderAliasMappingDto(
   label: String?,
   mappingType: CorePersonMappingType,
   whenCreated: LocalDateTime?,
-) : AbstractCorePersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated) {
-
-  fun copy(
-    cprId: String = this.cprId,
-    nomisOffenderId: Long = this.nomisOffenderId,
-    nomisPrisonNumber: String = this.nomisPrisonNumber,
-    label: String? = this.label,
-    mappingType: CorePersonMappingType = this.mappingType,
-    whenCreated: LocalDateTime? = this.whenCreated,
-  ) = OffenderAliasMappingDto(
-    cprId = cprId,
-    nomisOffenderId = nomisOffenderId,
-    nomisPrisonNumber = nomisPrisonNumber,
-    label = label,
-    mappingType = mappingType,
-    whenCreated = whenCreated,
-  )
-}
+) : AbstractCorePersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
 
 abstract class AbstractCorePersonMappingDto(
   @Schema(description = "Label (a timestamp for migrated ids)")

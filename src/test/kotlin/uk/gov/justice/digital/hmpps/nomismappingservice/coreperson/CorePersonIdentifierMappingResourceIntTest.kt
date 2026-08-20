@@ -14,6 +14,7 @@ import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.isDuplicateMapping
+import java.time.LocalDateTime
 
 class CorePersonIdentifierMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
@@ -392,3 +393,21 @@ class CorePersonIdentifierMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 }
+
+private fun OffenderIdentifierMappingDto.copy(
+  cprId: String = this.cprId,
+  nomisOffenderId: Long = this.nomisOffenderId,
+  nomisIdentifierSequence: Int = this.nomisIdentifierSequence,
+  nomisPrisonNumber: String = this.nomisPrisonNumber,
+  label: String? = this.label,
+  mappingType: CorePersonMappingType = this.mappingType,
+  whenCreated: LocalDateTime? = this.whenCreated,
+) = OffenderIdentifierMappingDto(
+  cprId = cprId,
+  nomisOffenderId = nomisOffenderId,
+  nomisIdentifierSequence = nomisIdentifierSequence,
+  nomisPrisonNumber = nomisPrisonNumber,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+)

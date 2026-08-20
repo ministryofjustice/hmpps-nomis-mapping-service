@@ -25,8 +25,8 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RestController
 @Validated
 @PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
-@RequestMapping("/mapping/offender-alias", produces = [MediaType.APPLICATION_JSON_VALUE])
-class OffenderAliasMappingResource(private val service: CorePersonService) {
+@RequestMapping("/mapping/core-person/alias", produces = [MediaType.APPLICATION_JSON_VALUE])
+class CorePersonAliasMappingResource(private val service: CorePersonService) {
 
   @GetMapping("/nomis-offender-id/{nomisOffenderId}")
   @Operation(
