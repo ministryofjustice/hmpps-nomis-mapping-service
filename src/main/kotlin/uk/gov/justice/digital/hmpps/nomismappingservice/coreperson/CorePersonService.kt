@@ -72,13 +72,9 @@ class CorePersonService(
 
   @Transactional
   suspend fun deleteAllMappings() {
-    corePersonEmailMappingRepository.deleteAll()
-    corePersonPhoneMappingRepository.deleteAll()
-    corePersonAddressMappingRepository.deleteAll()
-    corePersonMappingRepository.deleteAll()
-    profileMappingRepository.deleteAll()
     offenderIdentifierMappingRepository.deleteAll()
     offenderAliasMappingRepository.deleteAll()
+    corePersonMappingRepository.deleteAll()
   }
 
   suspend fun getAddressMappingByNomisId(nomisId: Long) = corePersonAddressMappingRepository.findOneByNomisId(nomisId = nomisId)
