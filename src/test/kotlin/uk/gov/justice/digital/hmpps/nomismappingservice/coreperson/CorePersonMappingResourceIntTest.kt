@@ -17,6 +17,7 @@ import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.isDuplicateMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.jpa.MappingType
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -60,10 +61,8 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         label = null,
         mappingType = CorePersonMappingType.CPR_CREATED,
         whenCreated = LocalDateTime.now(),
-        addressMappings = emptyList(),
-        phoneMappings = emptyList(),
-        emailMappings = emptyList(),
-        profileMappings = emptyList(),
+        aliases = emptyList(),
+        identifiers = emptyList(),
       )
 
       @Test
@@ -111,10 +110,8 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         label = null,
         mappingType = CorePersonMappingType.MIGRATED,
         whenCreated = LocalDateTime.now(),
-        addressMappings = emptyList(),
-        phoneMappings = emptyList(),
-        emailMappings = emptyList(),
-        profileMappings = emptyList(),
+        aliases = emptyList(),
+        identifiers = emptyList(),
       )
 
       @BeforeEach
@@ -190,10 +187,8 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         label = null,
         mappingType = CorePersonMappingType.CPR_CREATED,
         whenCreated = LocalDateTime.now(),
-        addressMappings = emptyList(),
-        phoneMappings = emptyList(),
-        emailMappings = emptyList(),
-        profileMappings = emptyList(),
+        aliases = emptyList(),
+        identifiers = emptyList(),
       )
 
       @Test
@@ -228,17 +223,37 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       }
 
       @Test
-      fun `will persist the core person address mapping`() = runTest {
+      fun `will persist the core person alias mapping`() = runTest {
         webTestClient.post()
           .uri("/mapping/core-person/migrate")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
+
+
+//              CorePersonSimpleMappingIdDto(cprId = "0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6", nomisId = 1),
+//              CorePersonSimpleMa
               mappings.copy(
-                addressMappings = listOf(
-                  CorePersonSimpleMappingIdDto(cprId = "0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6", nomisId = 1),
-                  CorePersonSimpleMappingIdDto(cprId = "e96babce-4a24-49d7-8447-b45f8768f6c1", nomisId = 2),
+                aliases = listOf(
+                  OffenderAliasMappingDto(
+                    cprId = "0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6",
+                    nomisOffenderId = 1,
+                    nomisPrisonNumber = "A1234BC",
+                    label = null,
+                    mappingType = CorePersonMappingType.MIGRATED,
+                    whenCreated = null
+                  ),
+                  OffenderAliasMappingDto(
+                    cprId = "0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6",
+                    nomisOffenderId = 1,
+                    nomisPrisonNumber = "A1234BC",
+                    label = null,
+                    mappingType = CorePersonMappingType.MIGRATED,
+                    whenCreated = null
+                  ),
+
+
                 ),
               ),
             ),
