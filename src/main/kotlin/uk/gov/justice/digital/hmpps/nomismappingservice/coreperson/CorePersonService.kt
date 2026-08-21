@@ -27,17 +27,11 @@ class CorePersonService(
   suspend fun createMappings(mappings: CorePersonMappingsDto) {
     with(mappings) {
       corePersonMappingRepository.save(toCorePersonMapping())
-      addressMappings.forEach {
-        corePersonAddressMappingRepository.save(toMapping(it))
+      identifiers.forEach {
+        offenderIdentifierMappingRepository.save(it.toMapping())
       }
-      phoneMappings.forEach {
-        corePersonPhoneMappingRepository.save(toMapping(it))
-      }
-      emailMappings.forEach {
-        corePersonEmailMappingRepository.save(toMapping(it))
-      }
-      profileMappings.forEach {
-        profileMappingRepository.save(toMapping(it))
+      aliases.forEach {
+        offenderAliasMappingRepository.save(it.toMapping())
       }
     }
   }
@@ -78,13 +72,9 @@ class CorePersonService(
 
   @Transactional
   suspend fun deleteAllMappings() {
-    corePersonEmailMappingRepository.deleteAll()
-    corePersonPhoneMappingRepository.deleteAll()
-    corePersonAddressMappingRepository.deleteAll()
-    corePersonMappingRepository.deleteAll()
-    profileMappingRepository.deleteAll()
     offenderIdentifierMappingRepository.deleteAll()
     offenderAliasMappingRepository.deleteAll()
+    corePersonMappingRepository.deleteAll()
   }
 
   suspend fun getAddressMappingByNomisId(nomisId: Long) = corePersonAddressMappingRepository.findOneByNomisId(nomisId = nomisId)
@@ -197,26 +187,6 @@ private inline fun <reified T : AbstractCorePersonMapping> CorePersonMappingsDto
   this.label,
   this.mappingType,
   this.whenCreated,
-)
-
-private fun CorePersonMappingsDto.toMapping(mapping: ProfileMappingIdDto): ProfileMapping = ProfileMapping(
-  UUID.fromString(mapping.cprId),
-  mapping.nomisBookingId,
-  mapping.nomisProfileType,
-  this.personMapping.nomisPrisonNumber,
-  this.label,
-  this.mappingType,
-  whenCreated = this.whenCreated,
-)
-
-private fun CorePersonMappingsDto.toMapping(mapping: CorePersonPhoneMappingIdDto) = CorePersonPhoneMapping(
-  nomisPrisonNumber = this.personMapping.nomisPrisonNumber,
-  nomisId = mapping.nomisId,
-  cprId = mapping.cprId,
-  cprPhoneType = mapping.cprPhoneType,
-  label = label,
-  mappingType = mappingType,
-  whenCreated = whenCreated,
 )
 
 private fun ProfileMappingIdDto.toMapping() = ProfileMapping(
