@@ -348,7 +348,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
 
   @Nested
   @DisplayName("POST /mapping/core-person/replace")
-  inner class ReplaceReligionMappings {
+  inner class ReplaceCorePersonMappings {
     val nomisPrisonNumber = "A1234BC"
 
     @Nested
