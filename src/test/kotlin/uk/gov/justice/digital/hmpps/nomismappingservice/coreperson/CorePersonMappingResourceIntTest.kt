@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson
 
 import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
@@ -343,6 +344,243 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       }
     }
     // TODO add other child mapping tests when implemented
+  }
+
+  @Nested
+  @DisplayName("POST /mapping/core-person/replace")
+  inner class ReplaceReligionMappings {
+    val nomisPrisonNumber = "A1234BC"
+
+    @Nested
+    inner class Security {
+      val mapping = CorePersonMappingsDto(
+        personMapping = CorePersonMappingIdDto(
+          cprId = UUID.randomUUID().toString(),
+          nomisPrisonNumber = nomisPrisonNumber,
+        ),
+        label = "2020-01-01T10:00",
+        aliases = listOf(),
+        identifiers = listOf(),
+        mappingType = CorePersonMappingType.NOMIS_CREATED,
+        whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/replace")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/replace")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/replace")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = CorePersonMappingsDto(
+        personMapping = CorePersonMappingIdDto(
+          cprId = "9a1313b1-5c03-4225-b6fd-dbc5ce992760",
+          nomisPrisonNumber = nomisPrisonNumber,
+        ),
+        label = "2020-01-01T10:00",
+        aliases = listOf(
+          OffenderAliasMappingDto(
+            cprId = "fba8a521-fc9f-4801-bb02-3f3326c760ef",
+            nomisOffenderId = 10000L,
+            nomisPrisonNumber = nomisPrisonNumber,
+            label = "2020-01-01T10:00",
+            mappingType = CorePersonMappingType.NOMIS_CREATED,
+            whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+          ),
+        ),
+        identifiers = listOf(
+          OffenderIdentifierMappingDto(
+            cprId = "27f51212-4d32-4b8b-86c2-a2e2807e3e4e",
+            nomisOffenderId = 10000L,
+            nomisIdentifierSequence = 1,
+            nomisPrisonNumber = nomisPrisonNumber,
+            label = "2020-01-01T10:00",
+            mappingType = CorePersonMappingType.NOMIS_CREATED,
+            whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+          ),
+        ),
+        mappingType = CorePersonMappingType.NOMIS_CREATED,
+      )
+
+      val existingAliasMapping = OffenderAliasMapping(
+        cprId = "034c070d-aff5-4464-9d1e-24c20bc6f8e1",
+        nomisPrisonNumber = nomisPrisonNumber,
+        label = "2019-01-01T10:00",
+        mappingType = CorePersonMappingType.NOMIS_CREATED,
+        whenCreated = LocalDateTime.parse("2019-01-01T10:14"),
+        nomisOffenderId = 10000L,
+      )
+
+      val existingIdentifierMapping = OffenderIdentifierMapping(
+        cprId = "8d2c37b7-3f07-4954-b9bb-5ba61357be3f",
+        nomisPrisonNumber = nomisPrisonNumber,
+        label = "2019-01-01T10:00",
+        mappingType = CorePersonMappingType.NOMIS_CREATED,
+        whenCreated = LocalDateTime.parse("2019-01-01T10:14"),
+        nomisOffenderId = 10000L,
+        nomisIdentifierSequence = 1,
+      )
+
+      val individualMapping = CorePersonMapping(
+        cprId = "fe2d494c-7652-4deb-9092-03b6b3bdd486",
+        nomisPrisonNumber = nomisPrisonNumber,
+        label = "2026-01-01T10:00",
+        mappingType = CorePersonMappingType.NOMIS_CREATED,
+        whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+      )
+
+      @BeforeEach
+      fun setUp() = runTest {
+        offenderAliasMappingRepository.save(existingAliasMapping)
+        offenderIdentifierMappingRepository.save(existingIdentifierMapping)
+        corePersonMappingRepository.save(individualMapping)
+      }
+
+      @Test
+      fun `returns 200 when mappings replaced`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/core-person/replace")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isOk
+      }
+
+      @Test
+      fun `will not re-persist the core person mapping`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/core-person/replace")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isOk
+
+        // The original core person mapping should still be there, and not replaced
+        val corePersonMapping = corePersonMappingRepository.findOneByCprId(individualMapping.cprId)!!
+        assertThat(corePersonMapping.cprId).isEqualTo(individualMapping.cprId)
+        assertThat(corePersonMapping.nomisPrisonNumber).isEqualTo(individualMapping.nomisPrisonNumber)
+        assertThat(corePersonMapping.label).isEqualTo(individualMapping.label)
+        assertThat(corePersonMapping.mappingType).isEqualTo(individualMapping.mappingType)
+        assertThat(corePersonMapping.whenCreated).isEqualTo(individualMapping.whenCreated)
+
+        // Do not expect a new core person mapping to be created for the new cprId in the mapping
+        assertThat(corePersonMappingRepository.findOneByCprId(mapping.personMapping.cprId)).isNull()
+      }
+
+      @Test
+      fun `will persist the alias and identifier mappings`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/core-person/replace")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isOk
+
+        // New alias mapping
+        with(offenderAliasMappingRepository.findOneByCprId(mapping.aliases[0].cprId)!!) {
+          val expected = mapping.aliases[0] // the replacement mapping
+          assertThat(nomisOffenderId).isEqualTo(expected.nomisOffenderId)
+          assertThat(label).isEqualTo(expected.label)
+          assertThat(mappingType).isEqualTo(expected.mappingType)
+          assertThat(whenCreated).isEqualTo(expected.whenCreated)
+        }
+
+        // New identifier mapping
+        with(offenderIdentifierMappingRepository.findOneByCprId(mapping.identifiers[0].cprId)!!) {
+          val expected = mapping.identifiers[0] // the replacement mapping
+          assertThat(cprId).isEqualTo(expected.cprId)
+          assertThat(nomisOffenderId).isEqualTo(expected.nomisOffenderId)
+          assertThat(nomisIdentifierSequence).isEqualTo(expected.nomisIdentifierSequence)
+          assertThat(label).isEqualTo(expected.label)
+          assertThat(mappingType).isEqualTo(expected.mappingType)
+          assertThat(whenCreated).isEqualTo(expected.whenCreated)
+        }
+      }
+
+      @Test
+      fun `will delete any alias or identifier mappings persisted before the replace`() = runTest {
+        // Check that the existing alias and identifier mappings are present before the replace
+        assertThat(offenderAliasMappingRepository.findOneByCprId(existingAliasMapping.cprId)).isNotNull()
+        assertThat(offenderIdentifierMappingRepository.findOneByCprId(existingIdentifierMapping.cprId)).isNotNull()
+        webTestClient.post()
+          .uri("/mapping/core-person/replace")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isOk
+
+        // Check that the existing alias and identifier mappings have been deleted after the replace
+        assertThat(offenderIdentifierMappingRepository.findOneByCprId(existingAliasMapping.cprId)).isNull()
+        assertThat(offenderIdentifierMappingRepository.findOneByCprId(existingIdentifierMapping.cprId)).isNull()
+      }
+
+      @Test
+      fun `will remove the alias and identifier mappings when passed empty lists`() = runTest {
+        // Check that the existing alias and identifier mappings are present before the replace
+        suspend fun assertIdentifiersForPrisonNumber() = assertThat(offenderIdentifierMappingRepository.findAll().toList().filter { it.nomisPrisonNumber == nomisPrisonNumber })
+        suspend fun assertAliasesForPrisonNumber() = assertThat(offenderAliasMappingRepository.findAll().toList().filter { it.nomisPrisonNumber == nomisPrisonNumber })
+        assertIdentifiersForPrisonNumber().isNotEmpty()
+        assertAliasesForPrisonNumber().isNotEmpty()
+
+        webTestClient.post()
+          .uri("/mapping/core-person/replace")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CorePersonMappingsDto(
+                label = "2021-01-01T01:00",
+                mappingType = CorePersonMappingType.NOMIS_CREATED,
+                whenCreated = LocalDateTime.of(2021, 1, 1, 1, 0),
+                personMapping = CorePersonMappingIdDto(
+                  cprId = "9a1313b1-5c03-4225-b6fd-dbc5ce992760",
+                  nomisPrisonNumber = nomisPrisonNumber,
+                ),
+                aliases = emptyList(),
+                identifiers = emptyList(),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isOk
+
+        // Check that the existing alias and identifier mappings have been deleted after the replace
+        assertIdentifiersForPrisonNumber().isEmpty()
+        assertAliasesForPrisonNumber().isEmpty()
+      }
+    }
   }
 
   @DisplayName("GET /mapping/core-person/migration-id/{migrationId}")

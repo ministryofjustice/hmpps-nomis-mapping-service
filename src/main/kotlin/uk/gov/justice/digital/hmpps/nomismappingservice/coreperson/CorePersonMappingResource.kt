@@ -91,6 +91,33 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     )
   }
 
+  @PostMapping("/replace")
+  @Operation(
+    summary = "Replaces a alias and identifier mappings.",
+    description = """Creates lists of alias and identifier mappings and removes the previous supplied set.
+      This does not add or remove any data from any associated parent CorePersonMappingDto entry. 
+      Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
+    responses = [
+      ApiResponse(responseCode = "200", description = "Mappings replaced"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun replaceMappings(
+    @RequestBody @Valid
+    mappings: CorePersonMappingsDto,
+  ) = service.replaceMappings(mappings).also {
+    log.info("Replaced mappings for nomis prisoner number ${mappings.personMapping.nomisPrisonNumber}")
+  }
+
   @GetMapping("/migration-id/{migrationId}")
   @Operation(
     summary = "Get paged core person mappings by migration id",

@@ -26,13 +26,8 @@ class CorePersonService(
   @Transactional
   suspend fun createMappings(mappings: CorePersonMappingsDto) {
     with(mappings) {
+      replaceMappings(this)
       corePersonMappingRepository.save(toCorePersonMapping())
-      identifiers.forEach {
-        offenderIdentifierMappingRepository.save(it.toMapping())
-      }
-      aliases.forEach {
-        offenderAliasMappingRepository.save(it.toMapping())
-      }
     }
   }
 
@@ -163,6 +158,20 @@ class CorePersonService(
   @Transactional
   suspend fun createOffenderAliasMapping(mapping: OffenderAliasMappingDto) = offenderAliasMappingRepository
     .save(mapping.toMapping())
+
+  @Transactional
+  suspend fun replaceMappings(mappings: CorePersonMappingsDto) {
+    with(mappings) {
+      offenderIdentifierMappingRepository.deleteAllByNomisPrisonNumber(personMapping.nomisPrisonNumber)
+      offenderAliasMappingRepository.deleteAllByNomisPrisonNumber(mappings.personMapping.nomisPrisonNumber)
+      identifiers.forEach {
+        offenderIdentifierMappingRepository.save(it.toMapping())
+      }
+      aliases.forEach {
+        offenderAliasMappingRepository.save(it.toMapping())
+      }
+    }
+  }
 }
 
 private fun CorePersonMappingsDto.toCorePersonMapping() = CorePersonMapping(
