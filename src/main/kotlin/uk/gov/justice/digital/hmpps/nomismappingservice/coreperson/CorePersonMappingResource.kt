@@ -111,7 +111,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
       ),
     ],
   )
-  suspend fun replaceMappings(
+  suspend fun replaceCorePersonMappings(
     @RequestBody @Valid
     mappings: CorePersonMappingsDto,
   ) = service.replaceMappings(mappings).also {
