@@ -45,7 +45,7 @@ data class CourtCaseBatchUpdateAndCreateMappingDto(
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Court cases mapping including child entity mapping for both updating the NOMIS ID")
 data class CourtCaseBatchUpdateMappingDto(
-  @Schema(description = "Mappings")
+  @Schema(description = "Court Case Mappings")
   val courtCases: List<SimpleCourtSentencingIdPair> = emptyList(),
 
   @Schema(description = "Court Appearance mappings")
@@ -59,6 +59,26 @@ data class CourtCaseBatchUpdateMappingDto(
 
   @Schema(description = "Sentence term mappings")
   val sentenceTerms: List<CourtSentenceTermIdPair> = emptyList(),
+
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Court cases mapping updated including child entity mapping for both updating the NOMIS ID")
+data class CourtCaseBatchUpdateMappingResponseDto(
+  @Schema(description = "Court case mappings updated")
+  val courtCases: List<SimpleCourtSentencingIdTuple> = emptyList(),
+
+  @Schema(description = "Court Appearance mappings updated")
+  val courtAppearances: List<SimpleCourtSentencingIdTuple> = emptyList(),
+
+  @Schema(description = "Court Charge mappings updated")
+  val courtCharges: List<SimpleCourtSentencingIdTuple> = emptyList(),
+
+  @Schema(description = "Sentence mappings updated")
+  val sentences: List<CourtSentenceIdTuple> = emptyList(),
+
+  @Schema(description = "Sentence term mappings updated")
+  val sentenceTerms: List<CourtSentenceTermIdTuple> = emptyList(),
 
 )
 
@@ -86,3 +106,7 @@ data class SentenceId(val nomisBookingId: Long, val nomisSequence: Int)
 data class CourtSentenceIdPair(val fromNomisId: SentenceId, val toNomisId: SentenceId)
 data class SentenceTermId(val nomisSentenceId: SentenceId, val nomisSequence: Int)
 data class CourtSentenceTermIdPair(val fromNomisId: SentenceTermId, val toNomisId: SentenceTermId)
+
+data class SimpleCourtSentencingIdTuple(val fromNomisId: Long, val toNomisId: Long, val dpsId: String)
+data class CourtSentenceIdTuple(val fromNomisId: SentenceId, val toNomisId: SentenceId, val dpsId: String)
+data class CourtSentenceTermIdTuple(val fromNomisId: SentenceTermId, val toNomisId: SentenceTermId, val dpsId: String)

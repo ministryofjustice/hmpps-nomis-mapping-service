@@ -91,9 +91,9 @@ class CourtSentencingMappingService(
   }
 
   @Transactional
-  suspend fun updateAndCreateAllMappings(request: CourtCaseBatchUpdateAndCreateMappingDto) {
+  suspend fun updateAndCreateAllMappings(request: CourtCaseBatchUpdateAndCreateMappingDto): CourtCaseBatchUpdateMappingResponseDto {
     replaceAndCreateAllMappings(request.mappingsToCreate)
-    updateAllMappingsByNomisId(request.mappingsToUpdate)
+    return updateAllMappingsByNomisId(request.mappingsToUpdate)
   }
 
   @Transactional
@@ -189,53 +189,72 @@ class CourtSentencingMappingService(
   }
 
   @Transactional
-  suspend fun updateAllMappingsByNomisId(updateMappingRequest: CourtCaseBatchUpdateMappingDto) {
-    updateMappingRequest.courtCases.forEach {
-      courtCaseMappingRepository.findByNomisCourtCaseId(it.fromNomisId)?.also { mapping ->
-        courtCaseMappingRepository.save(mapping.copy(nomisCourtCaseId = it.toNomisId))
+  suspend fun updateAllMappingsByNomisId(updateMappingRequest: CourtCaseBatchUpdateMappingDto): CourtCaseBatchUpdateMappingResponseDto {
+    val caseMappingSwitch = updateMappingRequest.courtCases.mapNotNull {
+      courtCaseMappingRepository.findByNomisCourtCaseId(it.fromNomisId)?.let { mapping ->
+        SimpleCourtSentencingIdTuple(fromNomisId = mapping.nomisCourtCaseId, toNomisId = it.toNomisId, dpsId = mapping.dpsCourtCaseId).also {
+          courtCaseMappingRepository.save(mapping.copy(nomisCourtCaseId = it.toNomisId))
+        }
       }
     }
-    updateMappingRequest.courtAppearances.forEach {
-      courtAppearanceMappingRepository.findByNomisCourtAppearanceId(it.fromNomisId)?.also { mapping ->
-        courtAppearanceMappingRepository.save(mapping.copy(nomisCourtAppearanceId = it.toNomisId))
-      }
-
+    val appearanceMappingSwitch = updateMappingRequest.courtAppearances.mapNotNull {
       courtAppearanceRecallMappingRepository.findByNomisCourtAppearanceId(it.fromNomisId)?.also { mapping ->
         // nomisCourtAppearanceId is PK, so need to delete and re-insert rather than update
         courtAppearanceRecallMappingRepository.deleteByNomisCourtAppearanceId(mapping.nomisCourtAppearanceId)
         courtAppearanceRecallMappingRepository.save(mapping.copy(nomisCourtAppearanceId = it.toNomisId, new = true))
       }
-    }
-    updateMappingRequest.courtCharges.forEach {
-      courtChargeMappingRepository.findByNomisCourtChargeId(it.fromNomisId)?.also { mapping ->
-        courtChargeMappingRepository.save(mapping.copy(nomisCourtChargeId = it.toNomisId))
+
+      courtAppearanceMappingRepository.findByNomisCourtAppearanceId(it.fromNomisId)?.let { mapping ->
+        SimpleCourtSentencingIdTuple(fromNomisId = mapping.nomisCourtAppearanceId, toNomisId = it.toNomisId, dpsId = mapping.dpsCourtAppearanceId).also {
+          courtAppearanceMappingRepository.save(mapping.copy(nomisCourtAppearanceId = it.toNomisId))
+        }
       }
     }
-    updateMappingRequest.sentences.forEach {
+
+    val chargeMappingSwitch = updateMappingRequest.courtCharges.mapNotNull {
+      courtChargeMappingRepository.findByNomisCourtChargeId(it.fromNomisId)?.let { mapping ->
+        SimpleCourtSentencingIdTuple(fromNomisId = mapping.nomisCourtChargeId, toNomisId = it.toNomisId, dpsId = mapping.dpsCourtChargeId).also {
+          courtChargeMappingRepository.save(mapping.copy(nomisCourtChargeId = it.toNomisId))
+        }
+      }
+    }
+    val sentenceMappingSwitch = updateMappingRequest.sentences.mapNotNull {
       sentenceMappingRepository.findByNomisBookingIdAndNomisSentenceSequence(
         nomisBookingId = it.fromNomisId.nomisBookingId,
         nomisSentenceSeq = it.fromNomisId.nomisSequence,
-      )?.also { mapping ->
-        sentenceMappingRepository.save(
-          mapping.copy(nomisBookingId = it.toNomisId.nomisBookingId, nomisSentenceSequence = it.toNomisId.nomisSequence),
-        )
+      )?.let { mapping ->
+        CourtSentenceIdTuple(fromNomisId = SentenceId(mapping.nomisBookingId, mapping.nomisSentenceSequence), toNomisId = it.toNomisId, dpsId = mapping.dpsSentenceId).also {
+          sentenceMappingRepository.save(
+            mapping.copy(nomisBookingId = it.toNomisId.nomisBookingId, nomisSentenceSequence = it.toNomisId.nomisSequence),
+          )
+        }
       }
     }
-    return updateMappingRequest.sentenceTerms.forEach {
+    val sentenceTermMappingSwitch = updateMappingRequest.sentenceTerms.mapNotNull {
       sentenceTermMappingRepository.findByNomisBookingIdAndNomisSentenceSequenceAndNomisTermSequence(
         nomisBookingId = it.fromNomisId.nomisSentenceId.nomisBookingId,
         nomisSentenceSeq = it.fromNomisId.nomisSentenceId.nomisSequence,
         nomisTermSeq = it.fromNomisId.nomisSequence,
-      )?.also { mapping ->
-        sentenceTermMappingRepository.save(
-          mapping.copy(
-            nomisSentenceSequence = it.toNomisId.nomisSentenceId.nomisSequence,
-            nomisBookingId = it.toNomisId.nomisSentenceId.nomisBookingId,
-            nomisTermSequence = it.toNomisId.nomisSequence,
-          ),
-        )
+      )?.let { mapping ->
+        CourtSentenceTermIdTuple(fromNomisId = SentenceTermId(SentenceId(mapping.nomisBookingId, mapping.nomisSentenceSequence), mapping.nomisTermSequence), toNomisId = it.toNomisId, dpsId = mapping.dpsTermId).also {
+          sentenceTermMappingRepository.save(
+            mapping.copy(
+              nomisSentenceSequence = it.toNomisId.nomisSentenceId.nomisSequence,
+              nomisBookingId = it.toNomisId.nomisSentenceId.nomisBookingId,
+              nomisTermSequence = it.toNomisId.nomisSequence,
+            ),
+          )
+        }
       }
     }
+
+    return CourtCaseBatchUpdateMappingResponseDto(
+      courtCases = caseMappingSwitch,
+      courtAppearances = appearanceMappingSwitch,
+      courtCharges = chargeMappingSwitch,
+      sentences = sentenceMappingSwitch,
+      sentenceTerms = sentenceTermMappingSwitch,
+    )
   }
 
   @Transactional
