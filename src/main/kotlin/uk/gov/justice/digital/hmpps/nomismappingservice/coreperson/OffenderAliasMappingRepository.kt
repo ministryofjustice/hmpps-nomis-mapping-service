@@ -8,4 +8,5 @@ interface OffenderAliasMappingRepository : CoroutineCrudRepository<OffenderAlias
   suspend fun findOneByNomisOffenderId(nomisOffenderId: Long): OffenderAliasMapping?
   suspend fun findOneByCprId(cprId: String): OffenderAliasMapping?
   suspend fun deleteByNomisOffenderId(nomisOffenderId: Long)
+  suspend fun deleteAllByNomisPrisonNumber(nomisPrisonNumber: String)
 }

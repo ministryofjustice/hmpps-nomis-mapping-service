@@ -26,17 +26,15 @@ class CorePersonService(
   @Transactional
   suspend fun createMappings(mappings: CorePersonMappingsDto) {
     with(mappings) {
+      replaceMappings(this)
       corePersonMappingRepository.save(toCorePersonMapping())
-      identifiers.forEach {
-        offenderIdentifierMappingRepository.save(it.toMapping())
-      }
-      aliases.forEach {
-        offenderAliasMappingRepository.save(it.toMapping())
-      }
     }
   }
 
-  suspend fun getCorePersonMappingsByMigrationId(pageRequest: Pageable, migrationId: String): Page<CorePersonMappingDto> = coroutineScope {
+  suspend fun getCorePersonMappingsByMigrationId(
+    pageRequest: Pageable,
+    migrationId: String,
+  ): Page<CorePersonMappingDto> = coroutineScope {
     val mappings = async {
       corePersonMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
         label = migrationId,
@@ -85,14 +83,14 @@ class CorePersonService(
     ?.toDto()
     ?: throw NotFoundException("No core person address mapping found for cprId=$cprId")
 
-  suspend fun getPhoneMappingByNomisId(nomisId: Long) = corePersonPhoneMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
+  suspend fun getPhoneMappingByNomisId(nomisId: Long) = corePersonPhoneMappingRepository.findOneByNomisId(nomisId = nomisId)?.toDto()
     ?: throw NotFoundException("No core person phone mapping found for nomisId=$nomisId")
 
   suspend fun getPhoneMappingByCprId(cprId: String, cprPhoneType: CprPhoneType) = corePersonPhoneMappingRepository.findOneByCprIdAndCprPhoneType(cprId = cprId, cprPhoneType = cprPhoneType)
     ?.toDto()
     ?: throw NotFoundException("No core person phone mapping found for cprId=$cprId")
 
-  suspend fun getEmailAddressMappingByNomisId(nomisId: Long) = corePersonEmailMappingRepository.findOneByNomisId(nomisId = nomisId) ?.toDto()
+  suspend fun getEmailAddressMappingByNomisId(nomisId: Long) = corePersonEmailMappingRepository.findOneByNomisId(nomisId = nomisId)?.toDto()
     ?: throw NotFoundException("No core person email mapping found for nomisId=$nomisId")
 
   suspend fun getEmailAddressMappingByCprId(cprId: String) = corePersonEmailMappingRepository.findOneByCprId(cprId = cprId)
@@ -163,6 +161,29 @@ class CorePersonService(
   @Transactional
   suspend fun createOffenderAliasMapping(mapping: OffenderAliasMappingDto) = offenderAliasMappingRepository
     .save(mapping.toMapping())
+
+  @Transactional
+  suspend fun replaceMappings(mappings: CorePersonMappingsDto) {
+    with(mappings) {
+      offenderIdentifierMappingRepository.deleteAllByNomisPrisonNumber(personMapping.nomisPrisonNumber)
+      // In the event of a merge its possible that we need to delete dangling identifiers.
+      mappings.identifiers.forEach {
+        offenderIdentifierMappingRepository.deleteByNomisOffenderIdAndNomisIdentifierSequence(
+          it.nomisOffenderId,
+          it.nomisIdentifierSequence,
+        )
+      }
+      offenderAliasMappingRepository.deleteAllByNomisPrisonNumber(mappings.personMapping.nomisPrisonNumber)
+      // In the event of a merge its possible that we need to delete dangling aliases.
+      mappings.aliases.forEach { offenderAliasMappingRepository.deleteByNomisOffenderId(it.nomisOffenderId) }
+      identifiers.forEach {
+        offenderIdentifierMappingRepository.save(it.toMapping())
+      }
+      aliases.forEach {
+        offenderAliasMappingRepository.save(it.toMapping())
+      }
+    }
+  }
 }
 
 private fun CorePersonMappingsDto.toCorePersonMapping() = CorePersonMapping(
