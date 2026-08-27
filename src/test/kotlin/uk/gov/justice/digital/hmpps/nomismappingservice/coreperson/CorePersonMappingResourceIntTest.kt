@@ -531,8 +531,10 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `will delete any alias or identifier mappings persisted before the replace`() = runTest {
         // Check that the existing alias and identifier mappings are present before the replace
-        assertThat(offenderAliasMappingRepository.findOneByCprId(existingAliasMapping.cprId)).isNotNull()
-        assertThat(offenderIdentifierMappingRepository.findOneByCprId(existingIdentifierMapping.cprId)).isNotNull()
+        suspend fun assertAliasesForCprId() = assertThat(offenderAliasMappingRepository.findOneByCprId(existingAliasMapping.cprId))
+        suspend fun assertIdentifiersForCprId() = assertThat(offenderIdentifierMappingRepository.findOneByCprId(existingIdentifierMapping.cprId))
+        assertAliasesForCprId().isNotNull()
+        assertIdentifiersForCprId().isNotNull()
         webTestClient.post()
           .uri("/mapping/core-person/replace")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
@@ -542,8 +544,8 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isOk
 
         // Check that the existing alias and identifier mappings have been deleted after the replace
-        assertThat(offenderIdentifierMappingRepository.findOneByCprId(existingAliasMapping.cprId)).isNull()
-        assertThat(offenderIdentifierMappingRepository.findOneByCprId(existingIdentifierMapping.cprId)).isNull()
+        assertAliasesForCprId().isNull()
+        assertIdentifiersForCprId().isNull()
       }
 
       @Test
