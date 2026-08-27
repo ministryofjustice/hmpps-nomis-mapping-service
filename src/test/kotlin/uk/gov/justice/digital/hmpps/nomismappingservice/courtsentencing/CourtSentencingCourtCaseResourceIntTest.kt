@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
@@ -1780,7 +1781,7 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
         assertThat(sentenceTermRepository.findById(dpsId)!!.nomisSentenceSequence).isEqualTo(fromNomisSentenceSequence)
         assertThat(sentenceTermRepository.findById(dpsId)!!.nomisTermSequence).isEqualTo(fromNomisSequence)
 
-        webTestClient.put()
+        val response: CourtCaseBatchUpdateMappingResponseDto = webTestClient.put()
           .uri("/mapping/court-sentencing/court-cases/update-create")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
@@ -1799,7 +1800,27 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
             ),
           )
           .exchange()
-          .expectStatus().isEqualTo(200)
+          .expectStatus().isEqualTo(200).expectBodyResponse()
+
+        // assert that we return back the updates made so other services can be notified of the ID changes
+        assertThat(response.courtCases.first().toNomisId).isEqualTo(toNomisId)
+        assertThat(response.courtCases.first().fromNomisId).isEqualTo(fromNomisId)
+        assertThat(response.courtCases.first().dpsId).isEqualTo(dpsId)
+        assertThat(response.courtAppearances.first().toNomisId).isEqualTo(toNomisId)
+        assertThat(response.courtAppearances.first().fromNomisId).isEqualTo(fromNomisId)
+        assertThat(response.courtAppearances.first().dpsId).isEqualTo(dpsId)
+        assertThat(response.courtCharges.first().toNomisId).isEqualTo(toNomisId)
+        assertThat(response.courtCharges.first().fromNomisId).isEqualTo(fromNomisId)
+        assertThat(response.courtCharges.first().dpsId).isEqualTo(dpsId)
+        assertThat(response.sentences.first().toNomisId.nomisBookingId).isEqualTo(toNomisBookingId)
+        assertThat(response.sentences.first().fromNomisId.nomisBookingId).isEqualTo(fromNomisBookingId)
+        assertThat(response.sentences.first().toNomisId.nomisSequence).isEqualTo(toNomisSentenceSequence)
+        assertThat(response.sentences.first().fromNomisId.nomisSequence).isEqualTo(fromNomisSentenceSequence)
+        assertThat(response.sentences.first().dpsId).isEqualTo(dpsId)
+        assertThat(response.sentenceTerms.first().toNomisId.nomisSentenceId.nomisBookingId).isEqualTo(toNomisBookingId)
+        assertThat(response.sentenceTerms.first().toNomisId.nomisSentenceId.nomisSequence).isEqualTo(toNomisSentenceSequence)
+        assertThat(response.sentenceTerms.first().toNomisId.nomisSequence).isEqualTo(toNomisSequence)
+        assertThat(response.sentenceTerms.first().dpsId).isEqualTo(dpsId)
 
         assertThat(repository.findById(dpsId)!!.nomisCourtCaseId).isEqualTo(toNomisId)
         assertThat(courtAppearanceRepository.findById(dpsId)!!.nomisCourtAppearanceId).isEqualTo(toNomisId)
@@ -2703,3 +2724,5 @@ class CourtSentencingCourtCaseResourceIntTest : IntegrationTestBase() {
     }
   }
 }
+
+inline fun <reified B : Any> WebTestClient.ResponseSpec.expectBodyResponse(): B = this.expectStatus().is2xxSuccessful.expectBody(B::class.java).returnResult().responseBody!!
