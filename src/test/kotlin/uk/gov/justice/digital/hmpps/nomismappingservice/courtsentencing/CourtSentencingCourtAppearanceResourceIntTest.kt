@@ -1096,13 +1096,15 @@ class CourtSentencingCourtAppearanceResourceIntTest : IntegrationTestBase() {
     inner class HappyPath {
       @Test
       fun `returns 201 when mapping created`() = runTest {
-        webTestClient.post()
+        val response: CourtCaseBatchUpdateMappingResponseDto = webTestClient.post()
           .uri("/mapping/court-sentencing/court-appearances/recall")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
-          .expectStatus().isCreated
+          .expectStatus().isCreated.expectBodyResponse()
+
+        assertThat(response.courtCases).hasSize(1)
 
         val createdMappings = courtAppearanceRecallRepository.findAllByDpsRecallId(mapping.dpsRecallId)
         assertThat(createdMappings).hasSize(2)

@@ -534,19 +534,19 @@ class CourtSentencingMappingService(
   }
 
   @Transactional
-  suspend fun createCourtAppearanceRecallMapping(createMappingRequest: CourtAppearanceRecallMappingsDto): Unit = with(createMappingRequest) {
-    updateAllMappingsByNomisId(createMappingRequest.mappingsToUpdate)
-
-    courtAppearanceRecallMappingRepository.saveAll(this.toCourtAppearanceRecallMappings()).also { appearances ->
-      telemetryClient.trackEvent(
-        "court-appearance-recall-mapping-created",
-        mapOf(
-          "nomisCourtAppearanceId" to appearances.toList().map { it.nomisCourtAppearanceId }.joinToString(","),
-          "dpsRecallId" to dpsRecallId,
-          "mappingType" to mappingType.toString(),
-        ),
-        null,
-      )
+  suspend fun createCourtAppearanceRecallMapping(createMappingRequest: CourtAppearanceRecallMappingsDto) = with(createMappingRequest) {
+    updateAllMappingsByNomisId(createMappingRequest.mappingsToUpdate).also {
+      courtAppearanceRecallMappingRepository.saveAll(this.toCourtAppearanceRecallMappings()).also { appearances ->
+        telemetryClient.trackEvent(
+          "court-appearance-recall-mapping-created",
+          mapOf(
+            "nomisCourtAppearanceId" to appearances.toList().map { it.nomisCourtAppearanceId }.joinToString(","),
+            "dpsRecallId" to dpsRecallId,
+            "mappingType" to mappingType.toString(),
+          ),
+          null,
+        )
+      }
     }
   }
 
