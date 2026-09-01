@@ -146,4 +146,27 @@ class TransferScheduleResource(
   suspend fun getTransferScheduleMappingByDpsId(
     @PathVariable dpsId: UUID,
   ) = service.getScheduleMappingByDpsId(dpsId)
+
+  @DeleteMapping("/dps-id/{dpsId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes a mapping for a single transfer schedule by DPS event ID",
+    description = "Deletes a mapping for a single transfer schedule by DPS event ID. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(responseCode = "204", description = "Transfer schedule mapping deleted"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteTransferScheduleMappingByDpsId(
+    @PathVariable dpsId: UUID,
+  ) = service.deleteScheduleMappingByDpsId(dpsId)
 }

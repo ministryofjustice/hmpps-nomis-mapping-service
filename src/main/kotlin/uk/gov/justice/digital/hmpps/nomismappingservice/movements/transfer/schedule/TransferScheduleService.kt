@@ -26,6 +26,9 @@ class TransferScheduleService(
   @Transactional
   suspend fun deleteScheduleMappingByNomisId(nomisEventId: Long) = scheduleRepository.deleteByNomisEventId(nomisEventId)
 
+  @Transactional
+  suspend fun deleteScheduleMappingByDpsId(dpsId: UUID) = scheduleRepository.deleteById(dpsId)
+
   suspend fun getExistingTransferScheduleMappingSimilarTo(mapping: TransferScheduleMappingDto) = runCatching {
     getScheduleMappingByNomisId(mapping.nomisEventId)
   }
