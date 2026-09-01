@@ -333,6 +333,95 @@ class TransferScheduleResourceIntTest(
       .exchange()
   }
 
+  @Nested
+  @DisplayName("GET /mapping/transfer-scheduler/schedule/dps-id/{dpsId}")
+  inner class GetTransferScheduleMappingByDpsId {
+
+    @AfterEach
+    fun tearDown() = runTest {
+      scheduleRepository.deleteAll()
+    }
+
+    @Nested
+    inner class HappyPath {
+      val mapping = TransferScheduleMapping(
+        dpsTransferScheduleId = UUID.randomUUID(),
+        nomisEventId = 23456L,
+        offenderNo = "A1234BC",
+        bookingId = 12345L,
+        mappingType = TransferMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `should get transfer schedule mapping by DPS ID`() = runTest {
+        scheduleRepository.save(mapping)
+
+        webTestClient.getTransferScheduleMappingByDpsId(mapping.dpsTransferScheduleId)
+          .expectStatus().isOk
+          .expectBody<TransferScheduleMappingDto>()
+          .returnResult().responseBody!!
+          .apply {
+            assertThat(nomisEventId).isEqualTo(mapping.nomisEventId)
+            assertThat(dpsTransferScheduleId).isEqualTo(mapping.dpsTransferScheduleId)
+            assertThat(prisonerNumber).isEqualTo(mapping.offenderNo)
+            assertThat(bookingId).isEqualTo(mapping.bookingId)
+            assertThat(mappingType).isEqualTo(mapping.mappingType)
+          }
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `should return not found when mapping does not exist`() = runTest {
+        webTestClient.getTransferScheduleMappingByDpsId(UUID.randomUUID())
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class Security {
+      val mapping = TransferScheduleMappingDto(
+        prisonerNumber = "A1234BC",
+        bookingId = 12345L,
+        nomisEventId = 23456L,
+        dpsTransferScheduleId = UUID.randomUUID(),
+        mappingType = TransferMappingType.NOMIS_CREATED,
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/transfer-scheduler/schedule/dps-id/${mapping.dpsTransferScheduleId}")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/transfer-scheduler/schedule/dps-id/${mapping.dpsTransferScheduleId}")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/transfer-scheduler/schedule/dps-id/${mapping.dpsTransferScheduleId}")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    private fun WebTestClient.getTransferScheduleMappingByDpsId(dpsId: UUID) = get()
+      .uri("/mapping/transfer-scheduler/schedule/dps-id/$dpsId")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .exchange()
+  }
+
   private fun WebTestClient.createTransferScheduleMapping(mapping: TransferScheduleMappingDto) = post()
     .uri("/mapping/transfer-scheduler/schedule")
     .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
