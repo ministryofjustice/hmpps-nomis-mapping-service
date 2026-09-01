@@ -358,7 +358,7 @@ class TransferScheduleResourceIntTest(
 
         webTestClient.getTransferScheduleMappingByDpsId(mapping.dpsTransferScheduleId)
           .expectStatus().isOk
-          .expectBody(object : ParameterizedTypeReference<TransferScheduleMappingDto>() {})
+          .expectBody<TransferScheduleMappingDto>()
           .returnResult().responseBody!!
           .apply {
             assertThat(nomisEventId).isEqualTo(mapping.nomisEventId)
