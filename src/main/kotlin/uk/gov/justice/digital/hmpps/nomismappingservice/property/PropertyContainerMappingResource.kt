@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -170,52 +169,6 @@ class PropertyContainerMappingResource(private val mappingService: PropertyConta
     @PathVariable
     dpsPropertyContainerId: String,
   ) = mappingService.deleteMapping(dpsPropertyContainerId)
-
-  @PutMapping("/merge/from/{oldOffenderNo}/to/{newOffenderNo}")
-  @Operation(
-    summary = "Replaces all occurrences of the 'from' id with the 'to' id in the mapping table",
-    description = "Used for update after a prisoner number merge. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(responseCode = "200", description = "Replacement made, or not present in table"),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun updatePropertyContainerMappingsByNomisId(
-    @Schema(description = "Old prisoner number to replace", example = "A3456KM", required = true)
-    @PathVariable
-    oldOffenderNo: String,
-    @Schema(description = "New prisoner number to use", example = "A3457LZ", required = true)
-    @PathVariable
-    newOffenderNo: String,
-  ) {
-    mappingService.updateMappingsByNomisId(oldOffenderNo, newOffenderNo)
-  }
-
-  @PutMapping("/merge/booking-id/{bookingId}/to/{newOffenderNo}")
-  @Operation(
-    summary = "For all property containers with the given booking id in the mapping table, sets the offender no to the given 'to' id",
-    description = "Used for update after a booking has been moved from one offender to another. Returns the affected property containers. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(responseCode = "200", description = "Replacement made, or not present in table"),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun updatePropertyContainerMappingsByBookingId(
-    @Schema(description = "The booking id", example = "1234567", required = true)
-    @PathVariable
-    bookingId: Long,
-    @Schema(description = "New prisoner number to use", example = "A3457LZ", required = true)
-    @PathVariable
-    newOffenderNo: String,
-  ): List<PropertyContainerMappingDto> = mappingService.updateMappingsByBookingId(bookingId, newOffenderNo)
 
   private suspend fun getExistingMappingSimilarTo(mapping: PropertyContainerMappingIdDto) = runCatching {
     mappingService.getMappingByNomisId(mapping.nomisPropertyContainerId)

@@ -39,7 +39,6 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
     bookingId: Long = BOOKING_ID,
     nomisPropertyContainerId: Long,
     dpsPropertyContainerId: String = DPS_ID,
-    offenderNo: String = OFFENDER_NO,
     label: String = "2022-01-01",
     mappingType: PropertyContainerMappingType = PropertyContainerMappingType.DPS_CREATED,
   ) {
@@ -52,7 +51,6 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
             bookingId = bookingId,
             nomisPropertyContainerId = nomisPropertyContainerId,
             dpsPropertyContainerId = dpsPropertyContainerId,
-            offenderNo = offenderNo,
             label = label,
             mappingType = mappingType,
           ),
@@ -75,7 +73,6 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
       dpsPropertyContainerId = DPS_ID,
       bookingId = BOOKING_ID,
       nomisPropertyContainerId = NOMIS_ID,
-      offenderNo = OFFENDER_NO,
       label = "2024-02-01T12:45:12",
       mappingType = PropertyContainerMappingType.MIGRATED,
     )
@@ -87,7 +84,6 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
           dpsPropertyContainerId = UUID.fromString(DPS_ID2),
           bookingId = 3456L,
           nomisPropertyContainerId = 1,
-          offenderNo = OFFENDER_NO,
           label = "2024-01-01T12:45:12",
           mappingType = PropertyContainerMappingType.DPS_CREATED,
         ),
@@ -163,8 +159,7 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
                 {
                   "bookingId": $BOOKING_ID,
                   "nomisPropertyContainerId": $NOMIS_ID,
-                  "dpsPropertyContainerId": "$DPS_ID",
-                  "offenderNo": "A1234AA"
+                  "dpsPropertyContainerId": "$DPS_ID"
                 }
               """.trimIndent(),
             ),
@@ -298,7 +293,6 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
                 bookingId = existingMapping.bookingId,
                 nomisPropertyContainerId = existingMapping.nomisPropertyContainerId,
                 dpsPropertyContainerId = dpsPropertyContainerId,
-                offenderNo = OFFENDER_NO,
               ),
             ),
           )
@@ -337,7 +331,6 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
           dpsPropertyContainerId = UUID.fromString(DPS_ID2),
           bookingId = BOOKING_ID,
           nomisPropertyContainerId = NOMIS_ID,
-          offenderNo = OFFENDER_NO,
           label = "2023-01-01T12:45:12",
           mappingType = PropertyContainerMappingType.MIGRATED,
         ),
@@ -418,7 +411,6 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
             dpsPropertyContainerId = UUID.fromString(DPS_ID),
             bookingId = BOOKING_ID,
             nomisPropertyContainerId = NOMIS_ID,
-            offenderNo = OFFENDER_NO,
             label = "2023-01-01T12:45:12",
             mappingType = PropertyContainerMappingType.MIGRATED,
           ),
@@ -427,7 +419,6 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
           PropertyContainerMapping(
             dpsPropertyContainerId = UUID.fromString(DPS_ID2),
             nomisPropertyContainerId = NOMIS_ID2,
-            offenderNo = OFFENDER_NO,
             bookingId = BOOKING_ID,
             label = "2023-06-01T12:45:12",
             mappingType = PropertyContainerMappingType.DPS_CREATED,
@@ -487,7 +478,6 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
           .jsonPath("dpsPropertyContainerId").isEqualTo(mapping1.dpsPropertyContainerId.toString())
           .jsonPath("bookingId").isEqualTo(mapping1.bookingId)
           .jsonPath("nomisPropertyContainerId").isEqualTo(mapping1.nomisPropertyContainerId)
-          .jsonPath("offenderNo").isEqualTo(mapping1.offenderNo)
           .jsonPath("mappingType").isEqualTo(mapping1.mappingType.name)
           .jsonPath("label").isEqualTo(mapping1.label!!)
           .jsonPath("whenCreated").value<String> {
@@ -531,7 +521,6 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
           it,
           it,
           generateUUIDs(it),
-          OFFENDER_NO,
           label = "2022-01-01",
           mappingType = PropertyContainerMappingType.MIGRATED,
         )
@@ -583,7 +572,6 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
             PropertyContainerMappingDto(
               nomisPropertyContainerId = 10,
               dpsPropertyContainerId = generateUUIDs(10),
-              offenderNo = OFFENDER_NO,
               bookingId = 10,
               label = "2022-01-01T00:00:00",
               mappingType = PropertyContainerMappingType.MIGRATED,
@@ -601,7 +589,6 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
             PropertyContainerMappingDto(
               nomisPropertyContainerId = 20,
               dpsPropertyContainerId = generateUUIDs(20),
-              offenderNo = OFFENDER_NO,
               bookingId = BOOKING_ID,
               label = "2022-01-02T00:00:00",
               mappingType = PropertyContainerMappingType.MIGRATED,
@@ -619,7 +606,6 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
             PropertyContainerMappingDto(
               nomisPropertyContainerId = 1,
               dpsPropertyContainerId = generateUUIDs(1),
-              offenderNo = OFFENDER_NO,
               bookingId = 2,
               label = "2022-01-02T10:00:00",
               mappingType = PropertyContainerMappingType.MIGRATED,
@@ -637,7 +623,6 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
             PropertyContainerMappingDto(
               nomisPropertyContainerId = 99,
               dpsPropertyContainerId = generateUUIDs(199),
-              offenderNo = OFFENDER_NO,
               bookingId = BOOKING_ID,
               label = "whatever",
               mappingType = PropertyContainerMappingType.DPS_CREATED,
@@ -656,7 +641,6 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
 
       assertThat(mapping.nomisPropertyContainerId).isEqualTo(1)
       assertThat(mapping.dpsPropertyContainerId).isEqualTo(generateUUIDs(1))
-      assertThat(mapping.offenderNo).isEqualTo(OFFENDER_NO)
       assertThat(mapping.bookingId).isEqualTo(2)
       assertThat(mapping.label).isEqualTo("2022-01-02T10:00:00")
       assertThat(mapping.mappingType).isEqualTo(PropertyContainerMappingType.MIGRATED)
@@ -674,7 +658,6 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
             PropertyContainerMappingDto(
               nomisPropertyContainerId = 77,
               dpsPropertyContainerId = generateUUIDs(77),
-              offenderNo = OFFENDER_NO,
               bookingId = BOOKING_ID,
               label = "whatever",
               mappingType = PropertyContainerMappingType.DPS_CREATED,
@@ -707,7 +690,6 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
           dpsPropertyContainerId = UUID.fromString(DPS_ID2),
           bookingId = BOOKING_ID,
           nomisPropertyContainerId = NOMIS_ID,
-          offenderNo = OFFENDER_NO,
           label = "2023-01-01T12:45:12",
           mappingType = PropertyContainerMappingType.MIGRATED,
         ),
@@ -789,7 +771,6 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
           dpsPropertyContainerId = UUID.fromString(DPS_ID2),
           bookingId = BOOKING_ID,
           nomisPropertyContainerId = NOMIS_ID,
-          offenderNo = OFFENDER_NO,
           label = "2023-01-01T12:45:12",
           mappingType = PropertyContainerMappingType.MIGRATED,
         ),
@@ -855,385 +836,6 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
-      }
-    }
-  }
-
-  @Nested
-  @DisplayName("PUT /merge/from/{oldOffenderNo}/to/{newOffenderNo}")
-  inner class PrisonerMergeMappings {
-    @Nested
-    inner class Security {
-      @Test
-      fun `access not authorised when no authority`() {
-        webTestClient.put()
-          .uri("/mapping/property/merge/from/A1234AA/to/A1234BB")
-          .exchange()
-          .expectStatus().isUnauthorized
-      }
-
-      @Test
-      fun `access forbidden when no role`() {
-        webTestClient.put()
-          .uri("/mapping/property/merge/from/A1234AA/to/A1234BB")
-          .headers(setAuthorisation(roles = listOf()))
-          .exchange()
-          .expectStatus().isForbidden
-      }
-
-      @Test
-      fun `access forbidden with wrong role`() {
-        webTestClient.put()
-          .uri("/mapping/property/merge/from/A1234AA/to/A1234BB")
-          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
-          .exchange()
-          .expectStatus().isForbidden
-      }
-    }
-
-    @Nested
-    inner class HappyPath {
-      private val dps1 = "00000000-1111-2222-3333-000088880001"
-      private val dps2 = "00000000-1111-2222-3333-000088880002"
-      private val dps3 = "00000000-1111-2222-3333-000088880003"
-
-      @BeforeEach
-      fun setUp() {
-        runTest {
-          repository.save(
-            PropertyContainerMapping(
-              dpsPropertyContainerId = UUID.fromString(dps1),
-              bookingId = BOOKING_ID,
-              nomisPropertyContainerId = 54321,
-              offenderNo = "A1234AA",
-              mappingType = PropertyContainerMappingType.MIGRATED,
-            ),
-          )
-          repository.save(
-            PropertyContainerMapping(
-              dpsPropertyContainerId = UUID.fromString(dps2),
-              bookingId = 2,
-              nomisPropertyContainerId = 54322,
-              offenderNo = "A1234BB",
-              mappingType = PropertyContainerMappingType.NOMIS_CREATED,
-            ),
-          )
-          repository.save(
-            PropertyContainerMapping(
-              dpsPropertyContainerId = UUID.fromString(dps3),
-              bookingId = 2,
-              nomisPropertyContainerId = 54323,
-              offenderNo = "A1234BB",
-              mappingType = PropertyContainerMappingType.NOMIS_CREATED,
-            ),
-          )
-        }
-      }
-
-      @Test
-      fun `Merge success`() = runTest {
-        webTestClient.put().uri("/mapping/property/merge/from/A1234AA/to/B5678BB")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-
-        // first record has changed
-        webTestClient.get()
-          .uri("/mapping/property/dps-id/$dps1")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("offenderNo").isEqualTo("B5678BB")
-
-        // second has not
-        webTestClient.get()
-          .uri("/mapping/property/dps-id/$dps2")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
-      }
-
-      @Test
-      fun `Nothing happens if not found`() = runTest {
-        webTestClient.put().uri("/mapping/property/merge/from/A9999AA/to/B5678BB")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-
-        webTestClient.get()
-          .uri("/mapping/property/dps-id/$dps1")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisPropertyContainerId").isEqualTo(54321)
-          .jsonPath("offenderNo").isEqualTo("A1234AA")
-          .jsonPath("bookingId").isEqualTo(BOOKING_ID)
-
-        webTestClient.get()
-          .uri("/mapping/property/dps-id/$dps2")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisPropertyContainerId").isEqualTo(54322)
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
-          .jsonPath("bookingId").isEqualTo(2)
-
-        webTestClient.get()
-          .uri("/mapping/property/dps-id/$dps3")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisPropertyContainerId").isEqualTo(54323)
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
-          .jsonPath("bookingId").isEqualTo(2)
-      }
-
-      @Test
-      fun `Merge success - multiple candidates`() = runTest {
-        webTestClient.put().uri("/mapping/property/merge/from/A1234BB/to/B5678BB")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-
-        webTestClient.get()
-          .uri("/mapping/property/dps-id/$dps1")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisPropertyContainerId").isEqualTo(54321)
-          .jsonPath("offenderNo").isEqualTo("A1234AA")
-          .jsonPath("bookingId").isEqualTo(BOOKING_ID)
-
-        webTestClient.get()
-          .uri("/mapping/property/dps-id/$dps2")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisPropertyContainerId").isEqualTo(54322)
-          .jsonPath("offenderNo").isEqualTo("B5678BB")
-          .jsonPath("bookingId").isEqualTo(2)
-
-        webTestClient.get()
-          .uri("/mapping/property/dps-id/$dps3")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisPropertyContainerId").isEqualTo(54323)
-          .jsonPath("offenderNo").isEqualTo("B5678BB")
-          .jsonPath("bookingId").isEqualTo(2)
-      }
-    }
-  }
-
-  @Nested
-  @DisplayName("PUT /merge/booking-id/{bookingId}/to/{newOffenderNo}")
-  inner class PrisonerMoveMappingsBookingId {
-    @Nested
-    inner class Security {
-      @Test
-      fun `access not authorised when no authority`() {
-        webTestClient.put()
-          .uri("/mapping/property/merge/booking-id/333/to/A1234BB")
-          .exchange()
-          .expectStatus().isUnauthorized
-      }
-
-      @Test
-      fun `access forbidden when no role`() {
-        webTestClient.put()
-          .uri("/mapping/property/merge/booking-id/333/to/A1234BB")
-          .headers(setAuthorisation(roles = listOf()))
-          .exchange()
-          .expectStatus().isForbidden
-      }
-
-      @Test
-      fun `access forbidden with wrong role`() {
-        webTestClient.put()
-          .uri("/mapping/property/merge/booking-id/333/to/A1234BB")
-          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
-          .exchange()
-          .expectStatus().isForbidden
-      }
-    }
-
-    @Nested
-    inner class HappyPath {
-      private val dps1 = "00000000-1111-2222-3333-000088880001"
-      private val dps2 = "00000000-1111-2222-3333-000088880002"
-      private val dps3 = "00000000-1111-2222-3333-000088880003"
-
-      @BeforeEach
-      fun setUp() {
-        runTest {
-          repository.save(
-            PropertyContainerMapping(
-              dpsPropertyContainerId = UUID.fromString(dps1),
-              bookingId = BOOKING_ID,
-              nomisPropertyContainerId = 54321,
-              offenderNo = "A1234AA",
-              mappingType = PropertyContainerMappingType.MIGRATED,
-            ),
-          )
-          repository.save(
-            PropertyContainerMapping(
-              dpsPropertyContainerId = UUID.fromString(dps2),
-              bookingId = 2,
-              nomisPropertyContainerId = 54322,
-              offenderNo = "A1234BB",
-              mappingType = PropertyContainerMappingType.NOMIS_CREATED,
-            ),
-          )
-          repository.save(
-            PropertyContainerMapping(
-              dpsPropertyContainerId = UUID.fromString(dps3),
-              bookingId = 2,
-              nomisPropertyContainerId = 54323,
-              offenderNo = "A1234BB",
-              mappingType = PropertyContainerMappingType.NOMIS_CREATED,
-            ),
-          )
-        }
-      }
-
-      @Test
-      fun `Move success`() = runTest {
-        webTestClient.put().uri("/mapping/property/merge/booking-id/$BOOKING_ID/to/B5678BB")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .json(
-            """
-[
-  { 
-    "nomisPropertyContainerId": 54321,
-    "dpsPropertyContainerId": "$dps1",
-    "bookingId": $BOOKING_ID
-  }
-]""",
-          )
-
-        // Check first record has changed
-        webTestClient.get()
-          .uri("/mapping/property/dps-id/$dps1")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("offenderNo").isEqualTo("B5678BB")
-
-        // second has not
-        webTestClient.get()
-          .uri("/mapping/property/dps-id/$dps2")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
-      }
-
-      @Test
-      fun `Nothing happens if not found`() = runTest {
-        webTestClient.put().uri("/mapping/property/merge/booking-id/999/to/B5678BB")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .json("[]")
-
-        webTestClient.get()
-          .uri("/mapping/property/dps-id/$dps1")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisPropertyContainerId").isEqualTo(54321)
-          .jsonPath("offenderNo").isEqualTo("A1234AA")
-          .jsonPath("bookingId").isEqualTo(BOOKING_ID)
-
-        webTestClient.get()
-          .uri("/mapping/property/dps-id/$dps2")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisPropertyContainerId").isEqualTo(54322)
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
-          .jsonPath("bookingId").isEqualTo(2)
-
-        webTestClient.get()
-          .uri("/mapping/property/dps-id/$dps3")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisPropertyContainerId").isEqualTo(54323)
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
-          .jsonPath("bookingId").isEqualTo(2)
-      }
-
-      @Test
-      fun `Move success - multiple candidates`() = runTest {
-        webTestClient.put().uri("/mapping/property/merge/booking-id/2/to/B5678BB")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .json(
-            """
-[
-  { 
-    "nomisPropertyContainerId": 54322,
-    "dpsPropertyContainerId": "$dps2",
-    "bookingId": 2
-  },
-  { 
-    "nomisPropertyContainerId": 54323,
-    "dpsPropertyContainerId": "$dps3",
-    "bookingId": 2
-  }
-]""",
-          )
-
-        webTestClient.get()
-          .uri("/mapping/property/dps-id/$dps1")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisPropertyContainerId").isEqualTo(54321)
-          .jsonPath("offenderNo").isEqualTo("A1234AA")
-          .jsonPath("bookingId").isEqualTo(BOOKING_ID)
-
-        webTestClient.get()
-          .uri("/mapping/property/dps-id/$dps2")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisPropertyContainerId").isEqualTo(54322)
-          .jsonPath("offenderNo").isEqualTo("B5678BB")
-          .jsonPath("bookingId").isEqualTo(2)
-
-        webTestClient.get()
-          .uri("/mapping/property/dps-id/$dps3")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisPropertyContainerId").isEqualTo(54323)
-          .jsonPath("offenderNo").isEqualTo("B5678BB")
-          .jsonPath("bookingId").isEqualTo(2)
       }
     }
   }

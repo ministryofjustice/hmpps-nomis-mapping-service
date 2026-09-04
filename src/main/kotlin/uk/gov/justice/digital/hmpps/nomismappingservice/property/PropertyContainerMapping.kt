@@ -14,7 +14,6 @@ data class PropertyContainerMapping(
 
   val nomisPropertyContainerId: Long,
   val bookingId: Long,
-  val offenderNo: String,
 
   /**
    * ISO timestamp of batch job if a migration
