@@ -89,48 +89,12 @@ class PropertyContainerMappingService(
   suspend fun deleteMapping(nomisPropertyContainerId: Long) = repository
     .deleteByNomisPropertyContainerId(nomisPropertyContainerId)
 
-//  suspend fun getMappings(offenderNo: String): AllPrisonerPropertyContainerMappingsDto = repository
-//    .findAllByOffenderNoOrderByNomisBookingIdAscNomisSequenceAsc(offenderNo)
-//    .map { it.toDto() }
-//    .let { AllPrisonerPropertyContainerMappingsDto(it) }
-
-  @Transactional
-  suspend fun updateMappingsByNomisId(oldOffenderNo: String, newOffenderNo: String) {
-    val count = repository.updateOffenderNo(oldOffenderNo, newOffenderNo)
-    telemetryClient.trackEvent(
-      "property-container-mapping-prisoner-merged",
-      mapOf(
-        "count" to count.toString(),
-        "oldOffenderNo" to oldOffenderNo,
-        "newOffenderNo" to newOffenderNo,
-      ),
-      null,
-    )
-  }
-
-  @Transactional
-  suspend fun updateMappingsByBookingId(bookingId: Long, newOffenderNo: String): List<PropertyContainerMappingDto> {
-    val propertyContainers = repository.updateOffenderNoByBooking(bookingId, newOffenderNo)
-
-    telemetryClient.trackEvent(
-      "property-container-mapping-booking-moved",
-      mapOf(
-        "count" to propertyContainers.size.toString(),
-        "bookingId" to bookingId.toString(),
-        "newOffenderNo" to newOffenderNo,
-      ),
-      null,
-    )
-    return (propertyContainers).map { it.toDto() }
-  }
-
   fun PropertyContainerMapping.toDto() = PropertyContainerMappingDto(this)
 
   suspend fun PropertyContainerMappingDto.fromDto() = PropertyContainerMapping(
     dpsPropertyContainerId = UUID.fromString(dpsPropertyContainerId),
     nomisPropertyContainerId = nomisPropertyContainerId,
     bookingId = bookingId,
-    offenderNo = offenderNo,
     label = label,
     mappingType = mappingType,
     whenCreated = whenCreated,

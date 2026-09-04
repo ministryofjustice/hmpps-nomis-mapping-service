@@ -18,9 +18,6 @@ data class PropertyContainerMappingDto(
   @Schema(description = "Nomis booking id", required = true)
   val bookingId: Long,
 
-  @Schema(description = "Prisoner number in Nomis", required = true)
-  val offenderNo: String,
-
   @Schema(description = "Label (a timestamp for migrated ids)")
   @field:Size(max = 20)
   val label: String? = null,
@@ -35,7 +32,6 @@ data class PropertyContainerMappingDto(
     dpsPropertyContainerId = mapping.dpsPropertyContainerId.toString(),
     nomisPropertyContainerId = mapping.nomisPropertyContainerId,
     bookingId = mapping.bookingId,
-    offenderNo = mapping.offenderNo,
     label = mapping.label,
     mappingType = mapping.mappingType,
     whenCreated = mapping.whenCreated,
