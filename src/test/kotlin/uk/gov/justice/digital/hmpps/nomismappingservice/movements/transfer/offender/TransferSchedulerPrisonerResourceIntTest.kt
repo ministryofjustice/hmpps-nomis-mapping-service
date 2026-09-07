@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
@@ -241,6 +242,98 @@ class TransferSchedulerPrisonerResourceIntTest(
       fun `access forbidden with wrong role`() {
         webTestClient.get()
           .uri("/mapping/transfer-scheduler/move-booking/$NOMIS_BOOKING_ID")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("PUT /mapping/transfer-scheduler/move-booking/{bookingId}/from/{fromOffenderNo}/to/{toOffenderNo}")
+  inner class MoveBookingMappings {
+
+    private val NOMIS_TO_OFFENDER_NO = "Z9876YX"
+    private val NOMIS_WRONG_OFFENDER_NO = "X1111XX"
+
+    private fun WebTestClient.moveBooking(
+      bookingId: Long = NOMIS_BOOKING_ID,
+      fromOffenderNo: String = NOMIS_OFFENDER_NO,
+      toOffenderNo: String = NOMIS_TO_OFFENDER_NO,
+    ) = put()
+      .uri("/mapping/transfer-scheduler/move-booking/$bookingId/from/$fromOffenderNo/to/$toOffenderNo")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .exchange()
+
+    @Nested
+    inner class HappyPath {
+
+      @BeforeEach
+      fun setUp() {
+        saveMappings()
+      }
+
+      @Test
+      fun `should move schedule and movement mappings to the new offender`() = runTest {
+        webTestClient.moveBooking()
+          .expectStatus().isOk
+
+        assertThat(scheduleRepository.findByBookingId(NOMIS_BOOKING_ID)).allSatisfy {
+          assertThat(it.offenderNo).isEqualTo(NOMIS_TO_OFFENDER_NO)
+        }
+        assertThat(movementRepository.findByNomisBookingId(NOMIS_BOOKING_ID)).allSatisfy {
+          assertThat(it.offenderNo).isEqualTo(NOMIS_TO_OFFENDER_NO)
+        }
+      }
+
+      @Test
+      fun `should be idempotent when mappings are already on the target offender`() {
+        webTestClient.moveBooking().expectStatus().isOk
+        webTestClient.moveBooking().expectStatus().isOk
+      }
+    }
+
+    @Nested
+    inner class Validation {
+
+      @Test
+      fun `should return not found when there are no mappings for the booking`() {
+        webTestClient.moveBooking(bookingId = 99999)
+          .expectStatus().isNotFound
+      }
+
+      @Test
+      fun `should return bad request when a mapping is on an unexpected offender`() {
+        saveMappings()
+
+        webTestClient.moveBooking(fromOffenderNo = NOMIS_WRONG_OFFENDER_NO)
+          .expectStatus().isBadRequest
+      }
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.put()
+          .uri("/mapping/transfer-scheduler/move-booking/$NOMIS_BOOKING_ID/from/$NOMIS_OFFENDER_NO/to/$NOMIS_TO_OFFENDER_NO")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.put()
+          .uri("/mapping/transfer-scheduler/move-booking/$NOMIS_BOOKING_ID/from/$NOMIS_OFFENDER_NO/to/$NOMIS_TO_OFFENDER_NO")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.put()
+          .uri("/mapping/transfer-scheduler/move-booking/$NOMIS_BOOKING_ID/from/$NOMIS_OFFENDER_NO/to/$NOMIS_TO_OFFENDER_NO")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden
