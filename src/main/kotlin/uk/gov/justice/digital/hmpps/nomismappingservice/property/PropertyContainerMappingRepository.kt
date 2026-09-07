@@ -14,4 +14,6 @@ interface PropertyContainerMappingRepository : CoroutineCrudRepository<PropertyC
   suspend fun deleteByNomisPropertyContainerId(nomisPropertyContainerId: Long): Int
 
   suspend fun countAllByLabel(migrationId: String): Long
+
+  suspend fun findByBookingId(bookingId: Long): List<PropertyContainerMapping>
 }

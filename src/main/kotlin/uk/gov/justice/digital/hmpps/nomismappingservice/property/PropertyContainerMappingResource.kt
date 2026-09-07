@@ -110,6 +110,18 @@ class PropertyContainerMappingResource(private val mappingService: PropertyConta
     dpsPropertyContainerId: String,
   ) = mappingService.getMappingByDpsId(dpsPropertyContainerId)
 
+  @GetMapping("/booking-id/{bookingId}")
+  @Operation(
+    summary = "get mappings for given booking id",
+    description = "Retrieves mappings by booking id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [ApiResponse(responseCode = "200", description = "Mapping Information Returned")],
+  )
+  suspend fun getPropertyContainerMappingsByBookingId(
+    @Schema(description = "Booking id", example = "123456", required = true)
+    @PathVariable
+    bookingId: Long,
+  ) = mappingService.getMappingsByBookingId(bookingId)
+
   @PreAuthorize("hasRole('ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
   @GetMapping("/migrated/latest")
   @Operation(
