@@ -50,7 +50,7 @@ class TransferSchedulerPrisonerResource(
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Transfer scheduler mapping page returned",
+        description = "Booking mapping IDs returned",
       ),
       ApiResponse(
         responseCode = "401",
