@@ -27,66 +27,66 @@ class TransferSchedulerPrisonerResourceIntTest(
   @Autowired private val movementRepository: TransferMovementRepository,
 ) : IntegrationTestBase() {
 
-  @Nested
-  @DisplayName("GET /mapping/transfer-scheduler/{prisonerNumber}/ids")
-  inner class GetAllPrisonerMappingIds {
+  private val MIGRATION_ID = "2025-08-13T13:44:55"
+  private val NOMIS_OFFENDER_NO = "A1234BC"
+  private val NOMIS_BOOKING_ID = 1L
+  private val NOMIS_SCHEDULED_EVENT_ID = 4L
+  private val NOMIS_SCHEDULED_MOVEMENT_SEQ = 1
+  private val NOMIS_UNSCHEDULED_MOVEMENT_SEQ = 2
+  private val DPS_TRANSFER_SCHEDULE_ID = UUID.randomUUID()
+  private val DPS_SCHEDULED_MOVEMENT_ID = UUID.randomUUID()
+  private val DPS_UNSCHEDULED_MOVEMENT_ID = UUID.randomUUID()
 
-    private val MIGRATION_ID = "2025-08-13T13:44:55"
-    private val NOMIS_OFFENDER_NO = "A1234BC"
-    private val NOMIS_BOOKING_ID = 1L
-    private val NOMIS_SCHEDULED_EVENT_ID = 4L
-    private val NOMIS_SCHEDULED_MOVEMENT_SEQ = 1
-    private val NOMIS_UNSCHEDULED_MOVEMENT_SEQ = 2
-    private val DPS_TRANSFER_SCHEDULE_ID = UUID.randomUUID()
-    private val DPS_SCHEDULED_MOVEMENT_ID = UUID.randomUUID()
-    private val DPS_UNSCHEDULED_MOVEMENT_ID = UUID.randomUUID()
+  @AfterEach
+  fun clearDatabase() = runTest {
+    movementRepository.deleteAll()
+    scheduleRepository.deleteAll()
+  }
 
-    @AfterEach
-    fun clearDatabase() = runTest {
-      movementRepository.deleteAll()
-      scheduleRepository.deleteAll()
-    }
+  fun saveMappings(mappings: TransferSchedulerPrisonerMappingsDto = mappingsRequest()) {
+    webTestClient.put()
+      .uri("/mapping/transfer-scheduler/migrate")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(BodyInserters.fromValue(mappings))
+      .exchange()
+      .expectStatus().isCreated
+  }
 
-    fun saveMappings(mappings: TransferSchedulerPrisonerMappingsDto = mappingsRequest()) {
-      webTestClient.put()
-        .uri("/mapping/transfer-scheduler/migrate")
-        .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(BodyInserters.fromValue(mappings))
-        .exchange()
-        .expectStatus().isCreated
-    }
-
-    fun mappingsRequest(
-      dpsTransferScheduleId: UUID = DPS_TRANSFER_SCHEDULE_ID,
-      dpsScheduledMovementId: UUID = DPS_SCHEDULED_MOVEMENT_ID,
-      dpsUnscheduledMovementId: UUID = DPS_UNSCHEDULED_MOVEMENT_ID,
-      migrationId: String = MIGRATION_ID,
-    ) = TransferSchedulerPrisonerMappingsDto(
-      offenderNo = NOMIS_OFFENDER_NO,
-      migrationId = migrationId,
-      bookings = listOf(
-        TransferSchedulerBookingMappingsDto(
-          bookingId = NOMIS_BOOKING_ID,
-          schedules = listOf(
-            BookingTransferScheduleMappingsDto(
-              nomisEventId = NOMIS_SCHEDULED_EVENT_ID,
-              dpsTransferScheduleId = dpsTransferScheduleId,
-              movement = BookingTransferMovementMappingsDto(
-                nomisMovementSeq = NOMIS_SCHEDULED_MOVEMENT_SEQ,
-                dpsTransferMovementId = dpsScheduledMovementId,
-              ),
-            ),
-          ),
-          unscheduledMovements = listOf(
-            BookingTransferMovementMappingsDto(
-              nomisMovementSeq = NOMIS_UNSCHEDULED_MOVEMENT_SEQ,
-              dpsTransferMovementId = dpsUnscheduledMovementId,
+  fun mappingsRequest(
+    dpsTransferScheduleId: UUID = DPS_TRANSFER_SCHEDULE_ID,
+    dpsScheduledMovementId: UUID = DPS_SCHEDULED_MOVEMENT_ID,
+    dpsUnscheduledMovementId: UUID = DPS_UNSCHEDULED_MOVEMENT_ID,
+    migrationId: String = MIGRATION_ID,
+  ) = TransferSchedulerPrisonerMappingsDto(
+    offenderNo = NOMIS_OFFENDER_NO,
+    migrationId = migrationId,
+    bookings = listOf(
+      TransferSchedulerBookingMappingsDto(
+        bookingId = NOMIS_BOOKING_ID,
+        schedules = listOf(
+          BookingTransferScheduleMappingsDto(
+            nomisEventId = NOMIS_SCHEDULED_EVENT_ID,
+            dpsTransferScheduleId = dpsTransferScheduleId,
+            movement = BookingTransferMovementMappingsDto(
+              nomisMovementSeq = NOMIS_SCHEDULED_MOVEMENT_SEQ,
+              dpsTransferMovementId = dpsScheduledMovementId,
             ),
           ),
         ),
+        unscheduledMovements = listOf(
+          BookingTransferMovementMappingsDto(
+            nomisMovementSeq = NOMIS_UNSCHEDULED_MOVEMENT_SEQ,
+            dpsTransferMovementId = dpsUnscheduledMovementId,
+          ),
+        ),
       ),
-    )
+    ),
+  )
+
+  @Nested
+  @DisplayName("GET /mapping/transfer-scheduler/{prisonerNumber}/ids")
+  inner class GetAllPrisonerMappingIds {
 
     @Nested
     inner class HappyPath {
@@ -160,6 +160,87 @@ class TransferSchedulerPrisonerResourceIntTest(
       fun `access forbidden with wrong role`() {
         webTestClient.get()
           .uri("/mapping/transfer-scheduler/$NOMIS_OFFENDER_NO/ids")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/transfer-scheduler/move-booking/{bookingId}")
+  inner class GetBookingMappings {
+
+    @Nested
+    inner class HappyPath {
+      private lateinit var bookingMappings: TransferSchedulerMoveBookingMappingDto
+
+      @BeforeEach
+      fun setUp() {
+        saveMappings()
+
+        bookingMappings = webTestClient.get()
+          .uri("/mapping/transfer-scheduler/move-booking/$NOMIS_BOOKING_ID")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody<TransferSchedulerMoveBookingMappingDto>()
+          .returnResult().responseBody!!
+      }
+
+      @Test
+      fun `should get schedule mappings`() = runTest {
+        assertThat(bookingMappings.scheduleIds[0].nomisEventId).isEqualTo(NOMIS_SCHEDULED_EVENT_ID)
+        assertThat(bookingMappings.scheduleIds[0].dpsTransferScheduleId).isEqualTo(DPS_TRANSFER_SCHEDULE_ID)
+      }
+
+      @Test
+      fun `should get movement mappings`() = runTest {
+        assertThat(bookingMappings.movementIds[0].nomisMovementSeq).isEqualTo(NOMIS_SCHEDULED_MOVEMENT_SEQ)
+        assertThat(bookingMappings.movementIds[0].dpsTransferMovementId).isEqualTo(DPS_SCHEDULED_MOVEMENT_ID)
+        assertThat(bookingMappings.movementIds[1].nomisMovementSeq).isEqualTo(NOMIS_UNSCHEDULED_MOVEMENT_SEQ)
+        assertThat(bookingMappings.movementIds[1].dpsTransferMovementId).isEqualTo(DPS_UNSCHEDULED_MOVEMENT_ID)
+      }
+
+      @Test
+      fun `should return nothing if none found`() = runTest {
+        webTestClient.get()
+          .uri("/mapping/transfer-scheduler/move-booking/99999")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody<TransferSchedulerMoveBookingMappingDto>()
+          .returnResult().responseBody!!
+          .apply {
+            assertThat(scheduleIds).isEmpty()
+            assertThat(movementIds).isEmpty()
+          }
+      }
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/transfer-scheduler/move-booking/$NOMIS_BOOKING_ID")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/transfer-scheduler/move-booking/$NOMIS_BOOKING_ID")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/transfer-scheduler/move-booking/$NOMIS_BOOKING_ID")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden

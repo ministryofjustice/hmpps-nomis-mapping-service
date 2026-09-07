@@ -17,4 +17,13 @@ class TransferSchedulerPrisonerService(
     movements = movementRepository.findByOffenderNo(prisonerNumber)
       .map { TransferMovementMappingIdsDto(it.nomisBookingId, it.nomisMovementSeq, it.dpsTransferMovementId) },
   )
+
+  suspend fun getMappingsForMoveBooking(bookingId: Long): TransferSchedulerMoveBookingMappingDto {
+    val schedules = scheduleRepository.findByBookingId(bookingId)
+    val movements = movementRepository.findByNomisBookingId(bookingId)
+    return TransferSchedulerMoveBookingMappingDto(
+      scheduleIds = schedules.map { TransferScheduleIdMapping(it.nomisEventId, it.dpsTransferScheduleId) },
+      movementIds = movements.map { TransferMovementIdMapping(it.nomisMovementSeq, it.dpsTransferMovementId) },
+    )
+  }
 }
