@@ -91,6 +91,10 @@ class PropertyContainerMappingService(
 
   fun PropertyContainerMapping.toDto() = PropertyContainerMappingDto(this)
 
+  suspend fun getMappingsByBookingId(bookingId: Long): List<PropertyContainerMappingDto> = repository
+    .findByBookingId(bookingId)
+    .map { PropertyContainerMappingDto(it) }
+
   suspend fun PropertyContainerMappingDto.fromDto() = PropertyContainerMapping(
     dpsPropertyContainerId = UUID.fromString(dpsPropertyContainerId),
     nomisPropertyContainerId = nomisPropertyContainerId,

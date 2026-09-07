@@ -487,6 +487,86 @@ class PropertyContainerMappingResourceIntTest : IntegrationTestBase() {
     }
   }
 
+  @Nested
+  @DisplayName("GET /mapping/property/booking-id/{bookingId}")
+  inner class GetMappingsByBookingId {
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/property/booking-id/9999")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/property/booking-id/9999")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/property/booking-id/9999")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return empty list when booking does not exist`() {
+        webTestClient.get()
+          .uri("/mapping/property/booking-id/9999")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .json("[]")
+      }
+
+      @Test
+      fun `will return mappings for booking`() = runTest {
+        val mapping1 = repository.save(
+          PropertyContainerMapping(
+            dpsPropertyContainerId = UUID.fromString(DPS_ID),
+            bookingId = BOOKING_ID,
+            nomisPropertyContainerId = NOMIS_ID,
+            label = "2023-01-01T12:45:12",
+            mappingType = PropertyContainerMappingType.MIGRATED,
+          ),
+        )
+        val mapping2 = repository.save(
+          PropertyContainerMapping(
+            dpsPropertyContainerId = UUID.fromString(DPS_ID2),
+            nomisPropertyContainerId = NOMIS_ID2,
+            bookingId = BOOKING_ID,
+            label = "2023-06-01T12:45:12",
+            mappingType = PropertyContainerMappingType.DPS_CREATED,
+          ),
+        )
+        webTestClient.get()
+          .uri("/mapping/property/booking-id/$BOOKING_ID")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("size()").isEqualTo(2)
+          .jsonPath("$[0].dpsPropertyContainerId").isEqualTo(mapping1.dpsPropertyContainerId.toString())
+          .jsonPath("$[0].bookingId").isEqualTo(BOOKING_ID)
+          .jsonPath("$[1].dpsPropertyContainerId").isEqualTo(mapping2.dpsPropertyContainerId.toString())
+          .jsonPath("$[1].bookingId").isEqualTo(BOOKING_ID)
+      }
+    }
+  }
+
   @DisplayName("GET /mapping/property/migration-id/{migrationId}/count")
   @Nested
   inner class GetMappingCountByMigrationIdTest {
