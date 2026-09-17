@@ -74,7 +74,7 @@ class AdvanceMappingResource(private val service: AdvanceService) {
     service.createMapping(mapping)
   } catch (e: DuplicateKeyException) {
     throw DuplicateMappingException(
-      messageIn = "Hold transaction mapping already exists",
+      messageIn = "Advance mapping already exists",
       duplicate = mapping,
       existing = getExistingMappingSimilarTo(mapping),
       cause = e,
@@ -83,12 +83,12 @@ class AdvanceMappingResource(private val service: AdvanceService) {
 
   @GetMapping("/nomis-id/{nomisAdvanceId}")
   @Operation(
-    summary = "Get hold transaction mapping by Nomis transactionId",
-    description = "Retrieves the hold transaction mapping by Nomis transactionId. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    summary = "Get advance mapping by Nomis advanceId",
+    description = "Retrieves the advance mapping by Nomis advance Id (aka nomis offender payment profile id). Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Hold transaction mapping data",
+        description = "Advance mapping data",
       ),
       ApiResponse(
         responseCode = "401",
@@ -108,19 +108,19 @@ class AdvanceMappingResource(private val service: AdvanceService) {
     ],
   )
   suspend fun getAdvanceMappingByNomisId(
-    @Schema(description = "NOMIS transaction id", example = "123456", required = true)
+    @Schema(description = "NOMIS advance id (aka nomis offender payment profile id)", example = "123456", required = true)
     @PathVariable
     nomisAdvanceId: Long,
   ): AdvanceMappingDto = service.getMappingByNomisId(nomisAdvanceId = nomisAdvanceId)
 
   @GetMapping("/dps-id/{dpsId}")
   @Operation(
-    summary = "Get hold transaction mapping by DPS id",
-    description = "Retrieves the hold transaction mapping by DPS id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    summary = "Get advance mapping by DPS id",
+    description = "Retrieves the advance mapping by DPS id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Hold transaction mapping data",
+        description = "Advance mapping data",
       ),
       ApiResponse(
         responseCode = "401",
@@ -147,7 +147,7 @@ class AdvanceMappingResource(private val service: AdvanceService) {
 
   @GetMapping
   @Operation(
-    summary = "Get all paged Hold transaction mappings",
+    summary = "Get all paged Advance mappings",
     description = "Retrieve all mappings. Results are paged.",
     responses = [
       ApiResponse(
@@ -172,8 +172,8 @@ class AdvanceMappingResource(private val service: AdvanceService) {
 
   @DeleteMapping("/dps-id/{dpsId}")
   @Operation(
-    summary = "Deletes a Hold transaction mapping",
-    description = "Deletes a Hold transaction mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    summary = "Deletes a Advance mapping",
+    description = "Deletes a Advance mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -201,8 +201,8 @@ class AdvanceMappingResource(private val service: AdvanceService) {
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
-    summary = "Deletes all Hold transaction mappings",
-    description = """Deletes all Hold transaction mappings regardless of source.
+    summary = "Deletes all Advance mappings",
+    description = """Deletes all Advance mappings regardless of source.
       This is expected to only ever been used in a non-production environment. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
     responses = [
       ApiResponse(responseCode = "204", description = "All mappings deleted"),
@@ -222,12 +222,12 @@ class AdvanceMappingResource(private val service: AdvanceService) {
 
   @GetMapping("/migration-id/{migrationId}")
   @Operation(
-    summary = "Get paged hold transaction mappings by migration id",
-    description = "Retrieve all hold transaction mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    summary = "Get paged advance mappings by migration id",
+    description = "Retrieve all advance mappings of type 'MIGRATED' for the given migration id (identifies a single migration run). Results are paged. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Hold transaction mapping page returned",
+        description = "Advance mapping page returned",
       ),
       ApiResponse(
         responseCode = "401",
