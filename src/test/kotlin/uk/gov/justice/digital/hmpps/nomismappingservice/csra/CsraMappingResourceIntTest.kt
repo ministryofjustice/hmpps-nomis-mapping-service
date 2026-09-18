@@ -1556,14 +1556,14 @@ class CsraMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("PUT /merge/booking-id/{bookingId}/to/{newOffenderNo}")
+  @DisplayName("PUT /move/booking-id/{bookingId}/from/{oldOffenderNo}/to/{newOffenderNo}")
   inner class PrisonerMoveMappingsBookingId {
     @Nested
     inner class Security {
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.put()
-          .uri("/mapping/csras/merge/booking-id/333/to/A1234BB")
+          .uri("/mapping/csras/move/booking-id/333/from/A1234BB/to/B5678BB")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -1571,7 +1571,7 @@ class CsraMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden when no role`() {
         webTestClient.put()
-          .uri("/mapping/csras/merge/booking-id/333/to/A1234BB")
+          .uri("/mapping/csras/move/booking-id/333/from/A1234BB/to/B5678BB")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -1580,7 +1580,7 @@ class CsraMappingResourceIntTest : IntegrationTestBase() {
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.put()
-          .uri("/mapping/csras/merge/booking-id/333/to/A1234BB")
+          .uri("/mapping/csras/move/booking-id/333/from/A1234BB/to/B5678BB")
           .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -1628,7 +1628,7 @@ class CsraMappingResourceIntTest : IntegrationTestBase() {
 
       @Test
       fun `Move success`() = runTest {
-        webTestClient.put().uri("/mapping/csras/merge/booking-id/$BOOKING_ID/to/B5678BB")
+        webTestClient.put().uri("/mapping/csras/move/booking-id/$BOOKING_ID/from/A1234AA/to/B5678BB")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
@@ -1665,7 +1665,7 @@ class CsraMappingResourceIntTest : IntegrationTestBase() {
 
       @Test
       fun `Nothing happens if not found`() = runTest {
-        webTestClient.put().uri("/mapping/csras/merge/booking-id/999/to/B5678BB")
+        webTestClient.put().uri("/mapping/csras/move/booking-id/999/from/A9999AA/to/B5678BB")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
@@ -1705,7 +1705,7 @@ class CsraMappingResourceIntTest : IntegrationTestBase() {
 
       @Test
       fun `Move success - multiple candidates`() = runTest {
-        webTestClient.put().uri("/mapping/csras/merge/booking-id/2/to/B5678BB")
+        webTestClient.put().uri("/mapping/csras/move/booking-id/2/from/A1234BB/to/B5678BB")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk

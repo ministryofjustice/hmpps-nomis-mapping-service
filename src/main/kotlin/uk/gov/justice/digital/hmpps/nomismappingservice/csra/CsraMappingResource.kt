@@ -326,9 +326,9 @@ class CsraMappingResource(private val mappingService: CsraMappingService) {
     mappingService.updateMappingsByNomisId(oldOffenderNo, newOffenderNo)
   }
 
-  @PutMapping("/merge/booking-id/{bookingId}/to/{newOffenderNo}")
+  @PutMapping("/move/booking-id/{bookingId}/from/{oldOffenderNo}/to/{newOffenderNo}")
   @Operation(
-    summary = "For all CSRAs with the given booking id in the mapping table, sets the offender no to the given 'to' id",
+    summary = "For all CSRAs with the given booking id and old offender no in the mapping table, sets the offender no to the new id",
     description = "Used for update after a booking has been moved from one offender to another. Returns the affected CSRAs. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(responseCode = "200", description = "Replacement made, or not present in table"),
@@ -343,10 +343,13 @@ class CsraMappingResource(private val mappingService: CsraMappingService) {
     @Schema(description = "The booking id", example = "1234567", required = true)
     @PathVariable
     bookingId: Long,
+    @Schema(description = "Previous prisoner number", example = "A3457LZ", required = true)
+    @PathVariable
+    oldOffenderNo: String,
     @Schema(description = "New prisoner number to use", example = "A3457LZ", required = true)
     @PathVariable
     newOffenderNo: String,
-  ): List<CsraMappingDto> = mappingService.updateMappingsByBookingId(bookingId, newOffenderNo)
+  ): List<CsraMappingDto> = mappingService.updateMappingsByBookingId(bookingId, oldOffenderNo, newOffenderNo)
 
   private suspend fun getExistingMappingSimilarTo(mapping: CsraMappingIdDto) = runCatching {
     mappingService.getMappingByNomisId(mapping.nomisBookingId, mapping.nomisSequence)
