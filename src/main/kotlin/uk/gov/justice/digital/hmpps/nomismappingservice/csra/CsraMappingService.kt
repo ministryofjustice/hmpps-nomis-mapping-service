@@ -140,19 +140,20 @@ class CsraMappingService(
   }
 
   @Transactional
-  suspend fun updateMappingsByBookingId(bookingId: Long, newOffenderNo: String): List<CsraMappingDto> {
-    val csras = repository.updateOffenderNoByBooking(bookingId, newOffenderNo)
+  suspend fun updateMappingsByBookingId(bookingId: Long, oldOffenderNo: String, newOffenderNo: String): List<CsraMappingDto> {
+    val csras = repository.updateOffenderNoByBooking(bookingId, oldOffenderNo, newOffenderNo)
 
     telemetryClient.trackEvent(
       "csra-mapping-booking-moved",
       mapOf(
         "count" to csras.size.toString(),
         "bookingId" to bookingId.toString(),
+        "oldOffenderNo" to oldOffenderNo,
         "newOffenderNo" to newOffenderNo,
       ),
       null,
     )
-    return (csras).map { it.toDto() }
+    return csras.map { it.toDto() }
   }
 
   fun CsraMapping.toDto() = CsraMappingDto(this)

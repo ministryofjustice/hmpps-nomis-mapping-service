@@ -22,6 +22,6 @@ interface CsraMappingRepository : CoroutineCrudRepository<CsraMapping, UUID> {
   @Query("UPDATE CSRA_MAPPING SET offender_no = :toOffenderNo WHERE offender_no = :fromOffenderNo")
   suspend fun updateOffenderNo(fromOffenderNo: String, toOffenderNo: String): Int
 
-  @Query("UPDATE CSRA_MAPPING SET offender_no = :toOffenderNo WHERE nomis_booking_id = :bookingId returning *")
-  suspend fun updateOffenderNoByBooking(bookingId: Long, toOffenderNo: String): List<CsraMapping>
+  @Query("UPDATE CSRA_MAPPING SET offender_no = :toOffenderNo WHERE nomis_booking_id = :bookingId AND offender_no = :fromOffenderNo returning *")
+  suspend fun updateOffenderNoByBooking(bookingId: Long, fromOffenderNo: String, toOffenderNo: String): List<CsraMapping>
 }
