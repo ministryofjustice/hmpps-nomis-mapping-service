@@ -343,7 +343,7 @@ class CsraMappingResource(private val mappingService: CsraMappingService) {
     @Schema(description = "The booking id", example = "1234567", required = true)
     @PathVariable
     bookingId: Long,
-    @Schema(description = "Previous prisoner number", example = "A3457LZ", required = true)
+    @Schema(description = "Previous prisoner number", example = "A3422FE", required = true)
     @PathVariable
     oldOffenderNo: String,
     @Schema(description = "New prisoner number to use", example = "A3457LZ", required = true)

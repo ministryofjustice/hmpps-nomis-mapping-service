@@ -1704,6 +1704,46 @@ class CsraMappingResourceIntTest : IntegrationTestBase() {
       }
 
       @Test
+      fun `Nothing happens if old offender is different`() = runTest {
+        webTestClient.put().uri("/mapping/csras/move/booking-id/$BOOKING_ID/from/A9999AA/to/B5678BB")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .json("[]")
+
+        webTestClient.get()
+          .uri("/mapping/csras/dps-csra-id/$dps1")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisSequence").isEqualTo(54321)
+          .jsonPath("offenderNo").isEqualTo("A1234AA")
+          .jsonPath("nomisBookingId").isEqualTo(BOOKING_ID)
+
+        webTestClient.get()
+          .uri("/mapping/csras/dps-csra-id/$dps2")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisSequence").isEqualTo(54322)
+          .jsonPath("offenderNo").isEqualTo("A1234BB")
+          .jsonPath("nomisBookingId").isEqualTo(2)
+
+        webTestClient.get()
+          .uri("/mapping/csras/dps-csra-id/$dps3")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("nomisSequence").isEqualTo(54323)
+          .jsonPath("offenderNo").isEqualTo("A1234BB")
+          .jsonPath("nomisBookingId").isEqualTo(2)
+      }
+
+      @Test
       fun `Move success - multiple candidates`() = runTest {
         webTestClient.put().uri("/mapping/csras/move/booking-id/2/from/A1234BB/to/B5678BB")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
