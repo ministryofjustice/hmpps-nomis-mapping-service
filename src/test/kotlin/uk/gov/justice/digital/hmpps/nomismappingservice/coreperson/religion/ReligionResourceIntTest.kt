@@ -545,14 +545,6 @@ class ReligionResourceIntTest(
         mappingType = StandardMappingType.NOMIS_CREATED,
       )
 
-      val existingMapping = CorePersonReligionsMapping(
-        cprId = cprId,
-        nomisPrisonNumber = nomisPrisonNumber,
-        label = "2019-01-01T10:00",
-        mappingType = StandardMappingType.NOMIS_CREATED,
-        whenCreated = LocalDateTime.parse("2019-01-01T10:14"),
-      )
-
       val individualMapping = CorePersonReligionMapping(
         cprId = "tobereplaced",
         nomisId = 99991L,

@@ -1,0 +1,1 @@
+drop table core_person_religions_mapping;
