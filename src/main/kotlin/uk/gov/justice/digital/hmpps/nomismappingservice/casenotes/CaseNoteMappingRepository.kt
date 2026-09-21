@@ -19,6 +19,8 @@ interface CaseNoteMappingRepository : CoroutineCrudRepository<CaseNoteMapping, L
   @Modifying
   suspend fun deleteByDpsCaseNoteId(dpsCaseNoteId: UUID)
 
+  suspend fun deleteByNomisBookingId(bookingId: Long)
+
   suspend fun findAllByOffenderNoOrderByNomisBookingIdAscNomisCaseNoteIdAsc(offenderNo: String): List<CaseNoteMapping>
 
   @Modifying

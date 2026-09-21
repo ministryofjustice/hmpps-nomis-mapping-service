@@ -100,6 +100,9 @@ class CaseNoteMappingService(
   suspend fun deleteMappings(dpsCaseNoteId: String) = repository.deleteByDpsCaseNoteId(UUID.fromString(dpsCaseNoteId))
 
   @Transactional
+  suspend fun deleteMappingsForBooking(bookingId: Long) = repository.deleteByNomisBookingId(bookingId)
+
+  @Transactional
   suspend fun deleteMapping(nomisCaseNoteId: Long) = repository.deleteById(nomisCaseNoteId)
 
   suspend fun getMappings(offenderNo: String): AllPrisonerCaseNoteMappingsDto = repository.findAllByOffenderNoOrderByNomisBookingIdAscNomisCaseNoteIdAsc(offenderNo)
