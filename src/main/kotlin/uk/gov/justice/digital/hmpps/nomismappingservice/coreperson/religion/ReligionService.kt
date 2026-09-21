@@ -76,14 +76,6 @@ class ReligionService(
   }
 }
 
-private fun CorePersonReligionsMapping.toDto() = ReligionsMappingDto(
-  cprId = cprId,
-  nomisPrisonNumber = nomisPrisonNumber,
-  label = label,
-  mappingType = mappingType,
-  whenCreated = whenCreated,
-)
-
 private fun CorePersonReligionMapping.toDto() = ReligionMappingDto(
   cprId = cprId,
   nomisId = nomisId,
