@@ -1319,6 +1319,110 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("DELETE /mapping/casenotes/booking-id/{bookingId}")
+  inner class DeleteMappingByBookingId {
+    lateinit var mapping: CaseNoteMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      mapping = repository.save(
+        CaseNoteMapping(
+          dpsCaseNoteId = UUID.randomUUID(),
+          nomisCaseNoteId = 54321L,
+          offenderNo = OFFENDER_NO,
+          nomisBookingId = 1,
+          label = "2023-01-01T12:45:12",
+          mappingType = CaseNoteMappingType.MIGRATED,
+        ),
+      )
+
+      repository.save(
+        CaseNoteMapping(
+          dpsCaseNoteId = UUID.randomUUID(),
+          nomisCaseNoteId = 54322L,
+          offenderNo = OFFENDER_NO,
+          nomisBookingId = 2,
+          label = "2023-01-01T12:45:12",
+          mappingType = CaseNoteMappingType.MIGRATED,
+        ),
+      )
+
+      repository.save(
+        CaseNoteMapping(
+          dpsCaseNoteId = UUID.randomUUID(),
+          nomisCaseNoteId = 54323L,
+          offenderNo = OFFENDER_NO,
+          nomisBookingId = 2,
+          label = "2023-01-01T12:45:12",
+          mappingType = CaseNoteMappingType.MIGRATED,
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/casenotes/booking-id/999")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/casenotes/booking-id/999")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/casenotes/booking-id/999")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return 204 even when no mappings exist`() {
+        webTestClient.delete()
+          .uri("/mapping/casenotes/booking-id/99999")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNoContent
+      }
+
+      @Test
+      fun `will return 204 when mappings exist and are deleted`() = runTest {
+        repository.findByNomisCaseNoteIdIn(listOf(54322L, 54323L)).forEach {
+          assertThat(it.nomisBookingId).isEqualTo(2)
+        }
+        repository.findByNomisCaseNoteIdIn(listOf(54321L)).forEach {
+          assertThat(it.nomisBookingId).isEqualTo(1)
+        }
+
+        webTestClient.delete()
+          .uri("/mapping/casenotes/booking-id/2")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        assertThat(repository.findByNomisCaseNoteIdIn(listOf(54322L, 54323L))).isEmpty()
+        repository.findByNomisCaseNoteIdIn(listOf(54321L)).forEach {
+          assertThat(it.nomisBookingId).isEqualTo(1)
+        }
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("PUT /merge/from/{oldOffenderNo}/to/{newOffenderNo}")
   inner class PrisonerMergeMappings {
     @Nested

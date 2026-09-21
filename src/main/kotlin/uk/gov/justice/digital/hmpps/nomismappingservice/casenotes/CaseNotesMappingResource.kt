@@ -348,6 +348,31 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     dpsCaseNoteId: String,
   ) = mappingService.deleteMappings(dpsCaseNoteId)
 
+  @DeleteMapping("/booking-id/{bookingId}")
+  @Operation(
+    summary = "Deletes all mappings for this booking id",
+    description = "Deletes mappings by booking id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(responseCode = "204", description = "Mappings Deleted"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  suspend fun deleteCaseNotesMappingByBookingId(
+    @Schema(description = "The booking id", example = "1234567", required = true)
+    @PathVariable
+    bookingId: Long,
+  ) = mappingService.deleteMappingsForBooking(bookingId)
+
   @PutMapping("/merge/from/{oldOffenderNo}/to/{newOffenderNo}")
   @Operation(
     summary = "Replaces all occurrences of the 'from' id with the 'to' id in the mapping table",
