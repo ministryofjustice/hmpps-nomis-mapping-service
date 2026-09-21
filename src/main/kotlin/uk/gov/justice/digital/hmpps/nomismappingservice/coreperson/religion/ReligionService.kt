@@ -26,14 +26,6 @@ class ReligionService(
     ?.toDto()
     ?: throw NotFoundException("No religions mapping found for nomisPrisonNumber=$nomisPrisonNumber")
 
-  suspend fun getReligionsMappingByCprId(cprId: String) = religionsMappingRepository.findOneByCprId(cprId)
-    ?.toDto()
-    ?: throw NotFoundException("No religions mapping found for cprId=$cprId")
-
-  suspend fun deleteReligionsMappingByNomisId(nomisPrisonNumber: String) {
-    religionsMappingRepository.deleteByNomisPrisonNumber(nomisPrisonNumber = nomisPrisonNumber)
-  }
-
   suspend fun getReligionMappingByNomisId(nomisId: Long) = religionMappingRepository.findOneByNomisId(
     nomisId = nomisId,
   )
@@ -57,12 +49,6 @@ class ReligionService(
     cprId = cprId,
   )
     ?.toDto()
-
-  suspend fun deleteReligionMappingByNomisId(nomisId: Long) {
-    religionMappingRepository.deleteByNomisId(
-      nomisId = nomisId,
-    )
-  }
 
   suspend fun createMappings(mappings: ReligionsMigrationMappingDto) {
     with(mappings) {
@@ -129,12 +115,6 @@ class ReligionService(
         ),
       )
     }
-  }
-
-  @Transactional
-  suspend fun replaceReligionMappings(offenderNo: String, mappings: ReligionsMappingDto) {
-    religionsMappingRepository.deleteByNomisPrisonNumber(offenderNo)
-    createReligions(mappings)
   }
 
   suspend fun getReligionsMappingsByMigrationId(

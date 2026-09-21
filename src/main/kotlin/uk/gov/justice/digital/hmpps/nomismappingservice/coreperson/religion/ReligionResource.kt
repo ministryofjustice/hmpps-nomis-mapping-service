@@ -40,40 +40,6 @@ class ReligionResource(private val religionService: ReligionService) {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
-  @GetMapping("/religions/nomis-prison-number/{nomisPrisonNumber}")
-  @Operation(
-    summary = "Get religions mapping by nomis prison number",
-    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Mapping data",
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Access this endpoint is forbidden",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "404",
-        description = "Id does not exist in mapping table",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun getReligionsMappingByNomisPrisonNumber(
-    @Schema(description = "NOMIS prison number", example = "A1234BC", required = true)
-    @PathVariable
-    nomisPrisonNumber: String,
-  ): ReligionsMappingDto = religionService.getReligionsMappingByNomisId(
-    nomisPrisonNumber = nomisPrisonNumber,
-  )
-
   @PostMapping("/religion")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -273,36 +239,6 @@ class ReligionResource(private val religionService: ReligionService) {
     @Parameter(required = true, description = "Cpr religion ids", example = "802dfae7-45f0-4c22-b369-bfe7da5e54e2")
     ids: List<String>,
   ): List<ReligionMappingDto> = religionService.getReligionMappingsByCprIds(cprIds = ids)
-
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @DeleteMapping("/religion/nomis-id/{nomisId}")
-  @Operation(
-    summary = "Deletes religion mapping by nomis religion id",
-    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(
-        responseCode = "204",
-        description = "Mapping deleted or does not exist",
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Access this endpoint is forbidden",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun deleteReligionMappingByNomisId(
-    @Schema(description = "NOMIS religion id", example = "1234", required = true)
-    @PathVariable
-    nomisId: Long,
-  ) {
-    religionService.deleteReligionMappingByNomisId(nomisId = nomisId)
-  }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
