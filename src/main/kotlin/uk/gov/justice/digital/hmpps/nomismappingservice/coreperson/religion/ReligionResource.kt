@@ -9,14 +9,10 @@ import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
-import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
-import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -39,40 +35,6 @@ class ReligionResource(private val religionService: ReligionService) {
   private companion object {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
-
-  @GetMapping("/religions/nomis-prison-number/{nomisPrisonNumber}")
-  @Operation(
-    summary = "Get religions mapping by nomis prison number",
-    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Mapping data",
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Access this endpoint is forbidden",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "404",
-        description = "Id does not exist in mapping table",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun getReligionsMappingByNomisPrisonNumber(
-    @Schema(description = "NOMIS prison number", example = "A1234BC", required = true)
-    @PathVariable
-    nomisPrisonNumber: String,
-  ): ReligionsMappingDto = religionService.getReligionsMappingByNomisId(
-    nomisPrisonNumber = nomisPrisonNumber,
-  )
 
   @PostMapping("/religion")
   @ResponseStatus(HttpStatus.CREATED)
@@ -274,145 +236,6 @@ class ReligionResource(private val religionService: ReligionService) {
     ids: List<String>,
   ): List<ReligionMappingDto> = religionService.getReligionMappingsByCprIds(cprIds = ids)
 
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @DeleteMapping("/religion/nomis-id/{nomisId}")
-  @Operation(
-    summary = "Deletes religion mapping by nomis religion id",
-    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(
-        responseCode = "204",
-        description = "Mapping deleted or does not exist",
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Access this endpoint is forbidden",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun deleteReligionMappingByNomisId(
-    @Schema(description = "NOMIS religion id", example = "1234", required = true)
-    @PathVariable
-    nomisId: Long,
-  ) {
-    religionService.deleteReligionMappingByNomisId(nomisId = nomisId)
-  }
-
-  @PostMapping
-  @ResponseStatus(HttpStatus.CREATED)
-  @Operation(
-    summary = "Creates a mini tree of religion mappings typically for a migration",
-    description = "Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(responseCode = "201", description = "Mappings created"),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Access forbidden for this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "409",
-        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
-          ),
-        ],
-      ),
-    ],
-  )
-  suspend fun createReligionMigrationMappings(
-    @RequestBody @Valid
-    mappings: ReligionsMigrationMappingDto,
-  ) = try {
-    religionService.createMappings(mappings)
-  } catch (e: DuplicateKeyException) {
-    val existingMapping = getExistingReligionsMappingSimilarTo(mappings)
-    if (existingMapping == null) {
-      log.error("Child duplicate key found for religions even though religions for the prisoner have never been migrated", e)
-    }
-    throw DuplicateMappingException(
-      messageIn = "Religion mapping already exists",
-      duplicate = mappings,
-      existing = existingMapping?.asReligionsMigrationMappingDto() ?: mappings,
-      cause = e,
-    )
-  }
-
-  @GetMapping("/migration-id/{migrationId}")
-  @Operation(
-    summary = "Get paged religions mappings by migration id",
-    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Religions mapping page returned",
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun getReligionsMappingsByMigrationId(
-    @PageableDefault pageRequest: Pageable,
-    @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
-    @PathVariable
-    migrationId: String,
-  ): Page<ReligionsMappingDto> = religionService.getReligionsMappingsByMigrationId(pageRequest = pageRequest, migrationId = migrationId)
-
-  @DeleteMapping("/all")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(
-    summary = "Delete all religions and religion mappings",
-    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(
-        responseCode = "204",
-        description = "All mappings deleted",
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun deleteAllReligionMappings() = religionService.deleteAllMappings()
-
-  private suspend fun getExistingReligionsMappingSimilarTo(mapping: ReligionsMigrationMappingDto) = runCatching {
-    religionService.getReligionsMappingByNomisId(
-      nomisPrisonNumber = mapping.nomisPrisonNumber,
-    )
-  }.getOrElse {
-    religionService.getReligionsMappingByCprIdOrNull(
-      cprId = mapping.cprId,
-    )
-  }
-
   private suspend fun getExistingReligionMappingSimilarTo(mapping: ReligionMappingDto) = runCatching {
     religionService.getReligionMappingByNomisId(mapping.nomisId)
   }.getOrElse {
@@ -452,13 +275,4 @@ data class ReligionMigrationMappingDto(
   val cprId: String,
   val nomisId: Long,
   val nomisPrisonNumber: String,
-)
-
-private fun ReligionsMappingDto.asReligionsMigrationMappingDto() = ReligionsMigrationMappingDto(
-  cprId = this.cprId,
-  nomisPrisonNumber = this.nomisPrisonNumber,
-  label = this.label,
-  mappingType = this.mappingType,
-  whenCreated = this.whenCreated,
-  religions = emptyList(),
 )
