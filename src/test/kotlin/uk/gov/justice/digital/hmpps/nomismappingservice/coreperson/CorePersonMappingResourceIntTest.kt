@@ -345,7 +345,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
             LocalDateTime.now(),
             within(10, ChronoUnit.SECONDS),
           )
-          assertThat(addressUsageCode).isEqualTo("RELEASE")
+          assertThat(addressUsageCode).isEqualTo("CARE")
           assertThat(nomisId).isEqualTo(10000L)
         }
         with(corePersonAddressUsageMappingRepository.findOneByCprId("b0e578e3-5075-4404-8f17-4d2f71b43619")!!) {
@@ -633,11 +633,11 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
 
       @BeforeEach
       fun setUp() = runTest {
+        corePersonMappingRepository.save(individualMapping)
         corePersonAddressMappingRepository.save(existingAddressMapping)
         corePersonAddressUsageMappingRepository.save(existingAddressUsageMapping)
         corePersonEmailAddressMappingRepository.save(existingEmailAddressMapping)
         corePersonPhoneMappingRepository.save(existingPhoneMapping)
-        corePersonMappingRepository.save(individualMapping)
       }
 
       @Test

@@ -27,8 +27,8 @@ class CorePersonService(
   @Transactional
   suspend fun createMappings(mappings: CorePersonMappingsDto) {
     with(mappings) {
-      replaceMappings(this)
       corePersonMappingRepository.save(toCorePersonMapping())
+      replaceMappings(this)
     }
   }
 
