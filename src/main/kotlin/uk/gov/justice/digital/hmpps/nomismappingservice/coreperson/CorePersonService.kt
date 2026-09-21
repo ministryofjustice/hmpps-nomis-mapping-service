@@ -18,6 +18,7 @@ class CorePersonService(
   private val corePersonMappingRepository: CorePersonMappingRepository,
   private val corePersonAddressMappingRepository: CorePersonAddressMappingRepository,
   private val corePersonPhoneMappingRepository: CorePersonPhoneMappingRepository,
+  private val corePersonAddressUsageMappingRepository: CorePersonAddressUsageMappingRepository,
   private val corePersonEmailMappingRepository: CorePersonEmailAddressMappingRepository,
   private val profileMappingRepository: ProfileMappingRepository,
   private val offenderIdentifierMappingRepository: OffenderIdentifierMappingRepository,
@@ -70,8 +71,10 @@ class CorePersonService(
 
   @Transactional
   suspend fun deleteAllMappings() {
-    offenderIdentifierMappingRepository.deleteAll()
-    offenderAliasMappingRepository.deleteAll()
+    corePersonPhoneMappingRepository.deleteAll()
+    corePersonEmailMappingRepository.deleteAll()
+    corePersonAddressMappingRepository.deleteAll()
+    corePersonAddressUsageMappingRepository.deleteAll()
     corePersonMappingRepository.deleteAll()
   }
 
@@ -165,22 +168,35 @@ class CorePersonService(
   @Transactional
   suspend fun replaceMappings(mappings: CorePersonMappingsDto) {
     with(mappings) {
-      offenderIdentifierMappingRepository.deleteAllByNomisPrisonNumber(personMapping.nomisPrisonNumber)
+      corePersonAddressMappingRepository.deleteAllByNomisPrisonNumber(personMapping.nomisPrisonNumber)
+      corePersonEmailMappingRepository.deleteAllByNomisPrisonNumber(personMapping.nomisPrisonNumber)
+      corePersonPhoneMappingRepository.deleteAllByNomisPrisonNumber(personMapping.nomisPrisonNumber)
+      corePersonAddressUsageMappingRepository.deleteAllByNomisPrisonNumber(personMapping.nomisPrisonNumber)
       // In the event of a merge its possible that we need to delete dangling identifiers.
-      mappings.identifiers.forEach {
-        offenderIdentifierMappingRepository.deleteByNomisOffenderIdAndNomisIdentifierSequence(
-          it.nomisOffenderId,
-          it.nomisIdentifierSequence,
-        )
+      mappings.addresses.forEach {
+        corePersonAddressMappingRepository.deleteByNomisId(it.nomisId)
       }
-      offenderAliasMappingRepository.deleteAllByNomisPrisonNumber(mappings.personMapping.nomisPrisonNumber)
-      // In the event of a merge its possible that we need to delete dangling aliases.
-      mappings.aliases.forEach { offenderAliasMappingRepository.deleteByNomisOffenderId(it.nomisOffenderId) }
-      identifiers.forEach {
-        offenderIdentifierMappingRepository.save(it.toMapping())
+      mappings.emailAddresses.forEach {
+        corePersonEmailMappingRepository.deleteByNomisId(it.nomisId)
       }
-      aliases.forEach {
-        offenderAliasMappingRepository.save(it.toMapping())
+      mappings.phoneNumbers.forEach {
+        corePersonPhoneMappingRepository.deleteByNomisId(it.nomisId)
+      }
+      mappings.addressUsages.forEach {
+        corePersonAddressUsageMappingRepository.deleteByNomisIdAndAddressUsageCode(it.nomisId, it.addressUsageCode)
+      }
+      // Save the new mappings
+      mappings.addresses.forEach {
+        corePersonAddressMappingRepository.save(it.toMapping())
+      }
+      mappings.emailAddresses.forEach {
+        corePersonEmailMappingRepository.save(it.toMapping())
+      }
+      mappings.phoneNumbers.forEach {
+        corePersonPhoneMappingRepository.save(it.toMapping())
+      }
+      mappings.addressUsages.forEach {
+        corePersonAddressUsageMappingRepository.save(it.toMapping())
       }
     }
   }
@@ -233,15 +249,56 @@ private fun CorePersonAddressMapping.toDto() = CorePersonAddressMappingDto(
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,
+  nomisPrisonNumber = nomisPrisonNumber,
+)
+
+private fun CorePersonAddressMappingDto.toMapping() = CorePersonAddressMapping(
+  cprId = cprId,
+  nomisId = nomisId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+  nomisPrisonNumber = nomisPrisonNumber,
+)
+
+private fun CorePersonAddressUsageMapping.toDto() = CorePersonAddressUsageMappingDto(
+  cprId = cprId,
+  nomisId = nomisId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+  addressUsageCode = addressUsageCode,
+  nomisPrisonNumber = nomisPrisonNumber,
+)
+
+private fun CorePersonAddressUsageMappingDto.toMapping() = CorePersonAddressUsageMapping(
+  cprId = cprId,
+  nomisId = nomisId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+  addressUsageCode = addressUsageCode,
+  nomisPrisonNumber = nomisPrisonNumber,
 )
 
 private fun CorePersonPhoneMapping.toDto() = CorePersonPhoneMappingDto(
   nomisId = nomisId,
   cprId = cprId,
-  cprPhoneType = cprPhoneType,
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,
+  nomisPrisonNumber = nomisPrisonNumber,
+  cprPhoneType = cprPhoneType,
+)
+
+private fun CorePersonPhoneMappingDto.toMapping() = CorePersonPhoneMapping(
+  nomisId = nomisId,
+  cprId = cprId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+  nomisPrisonNumber = nomisPrisonNumber,
+  cprPhoneType = cprPhoneType,
 )
 
 private fun CorePersonEmailAddressMapping.toDto() = CorePersonEmailAddressMappingDto(
@@ -250,6 +307,16 @@ private fun CorePersonEmailAddressMapping.toDto() = CorePersonEmailAddressMappin
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,
+  nomisPrisonNumber = nomisPrisonNumber,
+)
+
+private fun CorePersonEmailAddressMappingDto.toMapping() = CorePersonEmailAddressMapping(
+  nomisId = nomisId,
+  cprId = cprId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+  nomisPrisonNumber = nomisPrisonNumber,
 )
 
 private fun ProfileMapping.toDto() = ProfileMappingDto(

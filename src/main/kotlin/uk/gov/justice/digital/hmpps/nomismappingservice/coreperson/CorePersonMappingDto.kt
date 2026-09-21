@@ -15,10 +15,14 @@ data class CorePersonMappingsDto(
   val whenCreated: LocalDateTime? = null,
   @Schema(description = "Core Person mapping")
   val personMapping: CorePersonMappingIdDto,
-  @Schema(description = "Core Person alias mappings")
-  val aliases: List<OffenderAliasMappingDto>,
-  @Schema(description = "Core Person identifier mappings")
-  val identifiers: List<OffenderIdentifierMappingDto>,
+  @Schema(description = "Core Person address mappings")
+  val addresses: List<CorePersonAddressMappingDto>,
+  @Schema(description = "Core Person phone numbers mappings")
+  val phoneNumbers: List<CorePersonPhoneMappingDto>,
+  @Schema(description = "Core Person email addresses mappings")
+  val emailAddresses: List<CorePersonEmailAddressMappingDto>,
+  @Schema(description = "Core Person address usage mappings")
+  val addressUsages: List<CorePersonAddressUsageMappingDto>,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -38,21 +42,24 @@ data class CorePersonSimpleMappingIdDto(
   val nomisId: Long,
 )
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "NOMIS to CPR phone mapping IDs")
-data class CorePersonPhoneMappingIdDto(
-  @Schema(description = "NOMIS id")
-  val nomisId: Long,
-  @Schema(description = "CPR id")
-  val cprId: String,
-  @Schema(description = "CPR phone type")
-  val cprPhoneType: CprPhoneType,
-)
-
 class CorePersonMappingDto(
   @Schema(description = "CPR id")
   val cprId: String,
   @Schema(description = "NOMIS Prison number aka Offender number")
+  val nomisPrisonNumber: String,
+  label: String?,
+  mappingType: CorePersonMappingType,
+  whenCreated: LocalDateTime?,
+) : AbstractCorePersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
+
+class CorePersonAddressUsageMappingDto(
+  @Schema(description = "CPR id")
+  val cprId: String,
+  @Schema(description = "NOMIS id")
+  val nomisId: Long,
+  @Schema(description = "NOMIS address usage code")
+  val addressUsageCode: String,
+  @Schema(description = "NOMIS prison number aka Offender number")
   val nomisPrisonNumber: String,
   label: String?,
   mappingType: CorePersonMappingType,
@@ -64,6 +71,8 @@ class CorePersonAddressMappingDto(
   val cprId: String,
   @Schema(description = "NOMIS id")
   val nomisId: Long,
+  @Schema(description = "NOMIS prison number aka Offender number")
+  val nomisPrisonNumber: String,
   label: String?,
   mappingType: CorePersonMappingType,
   whenCreated: LocalDateTime?,
@@ -76,6 +85,8 @@ class CorePersonPhoneMappingDto(
   val nomisId: Long,
   @Schema(description = "CPR phone type")
   val cprPhoneType: CprPhoneType,
+  @Schema(description = "NOMIS prison number aka Offender number")
+  val nomisPrisonNumber: String,
   label: String?,
   mappingType: CorePersonMappingType,
   whenCreated: LocalDateTime?,
@@ -86,6 +97,8 @@ class CorePersonEmailAddressMappingDto(
   val cprId: String,
   @Schema(description = "NOMIS id")
   val nomisId: Long,
+  @Schema(description = "NOMIS prison number aka Offender number")
+  val nomisPrisonNumber: String,
   label: String?,
   mappingType: CorePersonMappingType,
   whenCreated: LocalDateTime?,
