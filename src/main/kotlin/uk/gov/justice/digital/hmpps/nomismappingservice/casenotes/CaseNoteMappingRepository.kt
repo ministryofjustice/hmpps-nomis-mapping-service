@@ -11,10 +11,7 @@ interface CaseNoteMappingRepository : CoroutineCrudRepository<CaseNoteMapping, L
   suspend fun findByDpsCaseNoteId(dpsCaseNoteId: UUID): List<CaseNoteMapping>
   suspend fun findByNomisCaseNoteIdIn(nomisCaseNoteIds: List<Long>): List<CaseNoteMapping>
   suspend fun findFirstByMappingTypeOrderByWhenCreatedDesc(mappingType: CaseNoteMappingType): CaseNoteMapping?
-
-  // plain distinct count: 814264 in 3m30s
-
-  // plain count(*) 108976723 takes 38s
+  suspend fun findAllByNomisBookingIdOrderByNomisCaseNoteIdAsc(bookingId: Long): List<CaseNoteMapping>
 
   @Modifying
   suspend fun deleteByDpsCaseNoteId(dpsCaseNoteId: UUID)

@@ -189,6 +189,36 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
     caseNoteId: Long,
   ): CaseNoteMappingDto = mappingService.getMappingByNomisId(caseNoteId)
 
+  @GetMapping("/booking-id/{bookingId}")
+  @Operation(
+    summary = "get mappings by booking id",
+    description = "Retrieves mappings by NOMIS booking id. If there aren't any, an empty list is returned. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping Information Returned",
+        content = [
+          Content(mediaType = "application/json", array = ArraySchema(schema = Schema(implementation = CaseNoteMappingDto::class))),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Id does not exist in mapping table",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getCaseNotesMappingsByBookingId(
+    @Schema(description = "NOMIS booking id", example = "123456", required = true)
+    @PathVariable
+    bookingId: Long,
+  ): List<CaseNoteMappingDto> = mappingService.getMappingsByBookingId(bookingId)
+
   @PostMapping("/nomis-casenote-id")
   @Operation(
     summary = "get mappings by Nomis id",
