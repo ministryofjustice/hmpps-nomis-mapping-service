@@ -89,7 +89,7 @@ class CorePersonService(
   suspend fun getPhoneMappingByNomisId(nomisId: Long) = corePersonPhoneMappingRepository.findOneByNomisId(nomisId = nomisId)?.toDto()
     ?: throw NotFoundException("No core person phone mapping found for nomisId=$nomisId")
 
-  suspend fun getPhoneMappingByCprId(cprId: String, cprPhoneType: CprPhoneType) = corePersonPhoneMappingRepository.findOneByCprIdAndCprPhoneType(cprId = cprId, cprPhoneType = cprPhoneType)
+  suspend fun getPhoneMappingByCprId(cprId: String, cprPhoneType: CprPhoneType) = corePersonPhoneMappingRepository.findOneByCprId(cprId)
     ?.toDto()
     ?: throw NotFoundException("No core person phone mapping found for cprId=$cprId")
 
@@ -288,7 +288,6 @@ private fun CorePersonPhoneMapping.toDto() = CorePersonPhoneMappingDto(
   mappingType = mappingType,
   whenCreated = whenCreated,
   nomisPrisonNumber = nomisPrisonNumber,
-  cprPhoneType = cprPhoneType,
 )
 
 private fun CorePersonPhoneMappingDto.toMapping() = CorePersonPhoneMapping(
@@ -298,7 +297,6 @@ private fun CorePersonPhoneMappingDto.toMapping() = CorePersonPhoneMapping(
   mappingType = mappingType,
   whenCreated = whenCreated,
   nomisPrisonNumber = nomisPrisonNumber,
-  cprPhoneType = cprPhoneType,
 )
 
 private fun CorePersonEmailAddressMapping.toDto() = CorePersonEmailAddressMappingDto(
