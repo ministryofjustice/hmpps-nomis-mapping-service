@@ -8,4 +8,5 @@ interface CorePersonPhoneMappingRepository : CoroutineCrudRepository<CorePersonP
   suspend fun findOneByNomisId(nomisId: Long): CorePersonPhoneMapping?
   suspend fun findOneByCprIdAndCprPhoneType(cprId: String, cprPhoneType: CprPhoneType): CorePersonPhoneMapping?
   suspend fun deleteByNomisId(nomisId: Long)
+  suspend fun deleteAllByNomisPrisonNumber(prisonNumber: String)
 }
