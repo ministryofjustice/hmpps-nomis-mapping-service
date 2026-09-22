@@ -692,6 +692,104 @@ class CaseNoteMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("GET /mapping/casenotes/booking-id/{bookingId}")
+  inner class GetMappingsByBookingId {
+    lateinit var mapping: CaseNoteMapping
+
+    @BeforeEach
+    fun setUp() = runTest {
+      repository.save(
+        CaseNoteMapping(
+          dpsCaseNoteId = UUID.fromString(DPS_CASENOTE_ID),
+          nomisCaseNoteId = 54321L,
+          offenderNo = OFFENDER_NO,
+          nomisBookingId = 1,
+          label = "2023-01-01T12:45:12",
+          mappingType = CaseNoteMappingType.MIGRATED,
+        ),
+      )
+      repository.save(
+        CaseNoteMapping(
+          dpsCaseNoteId = UUID.fromString(DPS_CASENOTE_ID2),
+          nomisCaseNoteId = 54322L,
+          offenderNo = OFFENDER_NO,
+          nomisBookingId = 1,
+          label = "2023-01-01T12:45:12",
+          mappingType = CaseNoteMappingType.MIGRATED,
+        ),
+      )
+      repository.save(
+        CaseNoteMapping(
+          dpsCaseNoteId = UUID.randomUUID(),
+          nomisCaseNoteId = 54323L,
+          offenderNo = OFFENDER_NO,
+          nomisBookingId = 3,
+          label = "2023-01-01T12:45:12",
+          mappingType = CaseNoteMappingType.MIGRATED,
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/casenotes/booking-id/9999")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/casenotes/booking-id/9999")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/casenotes/booking-id/9999")
+          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return empty list when mapping does not exist`() {
+        webTestClient.get()
+          .uri("/mapping/casenotes/booking-id/9999")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .json("[]")
+      }
+
+      @Test
+      fun `will return mappings for booking`() {
+        webTestClient.get()
+          .uri("/mapping/casenotes/booking-id/1")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("length()").isEqualTo(2)
+          .jsonPath("$[0].nomisCaseNoteId").isEqualTo(54321)
+          .jsonPath("$[0].nomisBookingId").isEqualTo(1)
+          .jsonPath("$[1].nomisCaseNoteId").isEqualTo(54322)
+          .jsonPath("$[1].nomisBookingId").isEqualTo(1)
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("POST /mapping/nomis-casenote-id")
   inner class GetMappingsByNomisId {
     lateinit var mapping1: CaseNoteMapping

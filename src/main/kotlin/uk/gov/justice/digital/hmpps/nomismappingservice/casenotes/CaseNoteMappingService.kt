@@ -75,6 +75,9 @@ class CaseNoteMappingService(
     ?.let { CaseNoteMappingDto(it) }
     ?: throw NotFoundException("CaseNote with nomisCaseNoteId=$nomisCaseNoteId not found")
 
+  suspend fun getMappingsByBookingId(bookingId: Long): List<CaseNoteMappingDto> = repository.findAllByNomisBookingIdOrderByNomisCaseNoteIdAsc(bookingId)
+    .map { CaseNoteMappingDto(it) }
+
   suspend fun getMappingsByNomisId(nomisCaseNoteIds: List<Long>): List<CaseNoteMappingDto> = repository.findByNomisCaseNoteIdIn(nomisCaseNoteIds).map {
     CaseNoteMappingDto(it)
   }
