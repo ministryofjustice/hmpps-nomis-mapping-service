@@ -9,6 +9,6 @@ create table core_person_address_usage_mapping
     mapping_type              varchar(20)              not null,
     constraint core_person_address_usage_mapping_nomis_id_unique unique (nomis_id, address_usage_code)
 );
-create index core_person_address_usage_mapping_when_created_index on offender_identifier_mapping (when_created);
-create index core_person_address_usage_mapping_label_index on offender_identifier_mapping (label);
-create index core_person_address_usage_mapping_prison_number_index on offender_identifier_mapping (nomis_prison_number);
+create index core_person_address_usage_mapping_when_created_index on core_person_address_usage_mapping (when_created);
+create index core_person_address_usage_mapping_label_index on core_person_address_usage_mapping (label);
+create index core_person_address_usage_mapping_prison_number_index on core_person_address_usage_mapping (nomis_prison_number);
