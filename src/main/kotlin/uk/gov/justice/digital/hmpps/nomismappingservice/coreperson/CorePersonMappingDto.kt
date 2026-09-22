@@ -83,8 +83,6 @@ class CorePersonPhoneMappingDto(
   val cprId: String,
   @Schema(description = "NOMIS id")
   val nomisId: Long,
-  @Schema(description = "CPR phone type")
-  val cprPhoneType: CprPhoneType,
   @Schema(description = "NOMIS prison number aka Offender number")
   val nomisPrisonNumber: String,
   label: String?,

@@ -1,0 +1,3 @@
+alter table core_person_phone_mapping drop constraint if exists core_person_phone_mapping_cpr_id_unique;
+alter table core_person_phone_mapping drop column if exists cpr_phone_type;
+alter table core_person_phone_mapping add constraint core_person_phone_mapping_cpr_id_unique unique (cpr_id);

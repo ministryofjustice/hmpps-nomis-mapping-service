@@ -46,7 +46,6 @@ class CorePersonPhoneMappingResourceIntTest : IntegrationTestBase() {
           cprId = cprPhoneId,
           nomisId = nomisPhoneId,
           label = "2023-01-01T12:45:12",
-          cprPhoneType = CprPhoneType.CORE_PERSON,
           mappingType = CorePersonMappingType.MIGRATED,
           whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
         ),
@@ -106,7 +105,6 @@ class CorePersonPhoneMappingResourceIntTest : IntegrationTestBase() {
           .expectBody()
           .jsonPath("cprId").isEqualTo(cprPhoneId)
           .jsonPath("nomisId").isEqualTo(nomisPhoneId)
-          .jsonPath("cprPhoneType").isEqualTo("CORE_PERSON")
           .jsonPath("label").isEqualTo("2023-01-01T12:45:12")
           .jsonPath("mappingType").isEqualTo("MIGRATED")
           .jsonPath("whenCreated").isEqualTo("2023-01-01T12:45:12")
@@ -136,7 +134,6 @@ class CorePersonPhoneMappingResourceIntTest : IntegrationTestBase() {
           nomisPrisonNumber = "A1234AA",
           cprId = cprPhoneId,
           nomisId = nomisInternetAddressId,
-          cprPhoneType = CprPhoneType.CORE_PERSON,
           label = "2023-01-01T12:45:12",
           mappingType = CorePersonMappingType.MIGRATED,
           whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
@@ -206,7 +203,6 @@ class CorePersonPhoneMappingResourceIntTest : IntegrationTestBase() {
           .expectBody()
           .jsonPath("cprId").isEqualTo(cprPhoneId)
           .jsonPath("nomisId").isEqualTo(nomisInternetAddressId)
-          .jsonPath("cprPhoneType").isEqualTo("CORE_PERSON")
           .jsonPath("label").isEqualTo("2023-01-01T12:45:12")
           .jsonPath("mappingType").isEqualTo("MIGRATED")
           .jsonPath("whenCreated").isEqualTo("2023-01-01T12:45:12")

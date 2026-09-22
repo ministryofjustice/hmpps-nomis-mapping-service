@@ -8,7 +8,6 @@ class CorePersonPhoneMapping(
   @Id
   val nomisId: Long,
   val cprId: String,
-  val cprPhoneType: CprPhoneType,
   label: String? = null,
   mappingType: CorePersonMappingType,
   whenCreated: LocalDateTime? = null,
