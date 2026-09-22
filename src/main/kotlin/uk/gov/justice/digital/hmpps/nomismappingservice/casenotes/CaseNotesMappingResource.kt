@@ -199,7 +199,7 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
         description = "Mapping Information Returned",
         content = [
           Content(mediaType = "application/json", array = ArraySchema(schema = Schema(implementation = CaseNoteMappingDto::class))),
-        ]
+        ],
       ),
       ApiResponse(
         responseCode = "401",
