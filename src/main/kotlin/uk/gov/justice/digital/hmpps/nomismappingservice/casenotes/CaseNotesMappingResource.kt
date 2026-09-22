@@ -192,14 +192,14 @@ class CaseNotesMappingResource(private val mappingService: CaseNoteMappingServic
   @GetMapping("/booking-id/{bookingId}")
   @Operation(
     summary = "get mappings by booking id",
-    description = "Retrieves mappings by NOMIS booking id. If there arent any, an empty list is returned. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    description = "Retrieves mappings by NOMIS booking id. If there aren't any, an empty list is returned. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "200",
         description = "Mapping Information Returned",
         content = [
-          Content(mediaType = "application/json", schema = Schema(implementation = CaseNoteMappingDto::class)),
-        ],
+          Content(mediaType = "application/json", array = ArraySchema(schema = Schema(implementation = CaseNoteMappingDto::class))),
+        ]
       ),
       ApiResponse(
         responseCode = "401",
