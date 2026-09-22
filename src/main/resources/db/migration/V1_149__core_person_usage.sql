@@ -12,3 +12,4 @@ create table core_person_address_usage_mapping
 create index core_person_address_usage_mapping_when_created_index on core_person_address_usage_mapping (when_created);
 create index core_person_address_usage_mapping_label_index on core_person_address_usage_mapping (label);
 create index core_person_address_usage_mapping_prison_number_index on core_person_address_usage_mapping (nomis_prison_number);
+create index core_person_address_usage_mapping_nomis_id_index on core_person_address_usage_mapping (nomis_id);
