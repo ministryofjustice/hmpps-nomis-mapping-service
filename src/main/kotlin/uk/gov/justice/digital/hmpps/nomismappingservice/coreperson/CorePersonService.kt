@@ -93,12 +93,34 @@ class CorePersonService(
     ?.toDto()
     ?: throw NotFoundException("No core person phone mapping found for cprId=$cprId")
 
+  suspend fun getPhoneMappingByCprIdOrNull(cprId: String) = corePersonPhoneMappingRepository.findOneByCprId(cprId)
+    ?.toDto()
+
+  @Transactional
+  suspend fun deletePhoneMappingByNomisId(nomisId: Long) = corePersonPhoneMappingRepository.deleteByNomisId(nomisId)
+
+  @Transactional
+  suspend fun createPhoneMapping(mapping: CorePersonPhoneMappingDto) {
+    corePersonPhoneMappingRepository.save(mapping.toMapping())
+  }
+
   suspend fun getEmailAddressMappingByNomisId(nomisId: Long) = corePersonEmailMappingRepository.findOneByNomisId(nomisId = nomisId)?.toDto()
     ?: throw NotFoundException("No core person email mapping found for nomisId=$nomisId")
 
   suspend fun getEmailAddressMappingByCprId(cprId: String) = corePersonEmailMappingRepository.findOneByCprId(cprId = cprId)
     ?.toDto()
     ?: throw NotFoundException("No core person email mapping found for cprId=$cprId")
+
+  suspend fun getEmailAddressMappingByCprIdOrNull(cprId: String) = corePersonEmailMappingRepository.findOneByCprId(cprId = cprId)
+    ?.toDto()
+
+  @Transactional
+  suspend fun deleteEmailAddressMappingByNomisId(nomisId: Long) = corePersonEmailMappingRepository.deleteByNomisId(nomisId = nomisId)
+
+  @Transactional
+  suspend fun createEmailAddressMapping(mapping: CorePersonEmailAddressMappingDto) {
+    corePersonEmailMappingRepository.save(mapping.toMapping())
+  }
 
   suspend fun getProfileMappingByDpsId(dpsId: String) = profileMappingRepository
     .findById(dpsId)

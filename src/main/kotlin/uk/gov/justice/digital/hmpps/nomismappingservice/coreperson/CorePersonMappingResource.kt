@@ -329,6 +329,31 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     nomisPhoneId: Long,
   ): CorePersonPhoneMappingDto = service.getPhoneMappingByNomisId(nomisId = nomisPhoneId)
 
+  @DeleteMapping("/phone/nomis-phone-id/{nomisPhoneId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete core person phone mapping by nomis phone Id",
+    description = "Delete the core person phone mapping by NOMIS Phone Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(responseCode = "204", description = "Core person phone mapping deleted"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteCorePersonPhoneMappingByNomisId(
+    @Schema(description = "NOMIS phone id", example = "12345", required = true)
+    @PathVariable
+    nomisPhoneId: Long,
+  ) = service.deletePhoneMappingByNomisId(nomisId = nomisPhoneId)
+
   @GetMapping("/phone/cpr-phone-id/{cprPhoneId}")
   @Operation(
     summary = "Get core person phone mapping by cpr phone Id",
@@ -360,6 +385,53 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     @PathVariable
     cprPhoneId: String,
   ): CorePersonPhoneMappingDto = service.getPhoneMappingByCprId(cprId = cprPhoneId, cprPhoneType = CprPhoneType.CORE_PERSON)
+
+  @PostMapping("/phone")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates core person phone mappings for synchronisation",
+    description = "Creates core person phone mappings for synchronisation between NOMIS ids and CPR ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = CorePersonPhoneMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createCorePersonPhoneMapping(
+    @RequestBody @Valid
+    mapping: CorePersonPhoneMappingDto,
+  ) = try {
+    service.createPhoneMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingCorePersonPhoneMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Core person phone mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
 
   @GetMapping("/email/nomis-email-address-id/{nomisEmailAddressId}")
   @Operation(
@@ -393,6 +465,31 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     nomisEmailAddressId: Long,
   ): CorePersonEmailAddressMappingDto = service.getEmailAddressMappingByNomisId(nomisId = nomisEmailAddressId)
 
+  @DeleteMapping("/email/nomis-email-address-id/{nomisEmailAddressId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Delete core person email mapping by nomis email address Id",
+    description = "Delete the core person email mapping by NOMIS Email/Internet Address Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(responseCode = "204", description = "Core person email mapping deleted"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteCorePersonEmailMappingByNomisId(
+    @Schema(description = "NOMIS email address id", example = "12345", required = true)
+    @PathVariable
+    nomisEmailAddressId: Long,
+  ) = service.deleteEmailAddressMappingByNomisId(nomisId = nomisEmailAddressId)
+
   @GetMapping("/email/cpr-email-address-id/{cprEmailAddressId}")
   @Operation(
     summary = "Get a core person email mapping by cpr email address Id",
@@ -424,6 +521,53 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     @PathVariable
     cprEmailAddressId: String,
   ): CorePersonEmailAddressMappingDto = service.getEmailAddressMappingByCprId(cprId = cprEmailAddressId)
+
+  @PostMapping("/email")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates core person email mappings for synchronisation",
+    description = "Creates core person email mappings for synchronisation between NOMIS ids and CPR ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = CorePersonEmailAddressMappingDto::class))],
+    ),
+    responses = [
+      ApiResponse(responseCode = "201", description = "Mapping created"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "409",
+        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
+        content = [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
+          ),
+        ],
+      ),
+    ],
+  )
+  suspend fun createCorePersonEmailMapping(
+    @RequestBody @Valid
+    mapping: CorePersonEmailAddressMappingDto,
+  ) = try {
+    service.createEmailAddressMapping(mapping)
+  } catch (e: DuplicateKeyException) {
+    val existingMapping = getExistingCorePersonEmailMappingSimilarTo(mapping)
+    throw DuplicateMappingException(
+      messageIn = "Core person email mapping already exists",
+      duplicate = mapping,
+      existing = existingMapping ?: mapping,
+      cause = e,
+    )
+  }
 
   @PostMapping("/profile")
   @ResponseStatus(HttpStatus.CREATED)
@@ -511,6 +655,18 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     service.getProfileMappingByNomisId(mapping.nomisBookingId, mapping.nomisProfileType)
   }.getOrElse {
     service.getProfileMappingByDpsIdOrNull(mapping.cprId)
+  }
+
+  private suspend fun getExistingCorePersonEmailMappingSimilarTo(mapping: CorePersonEmailAddressMappingDto) = runCatching {
+    service.getEmailAddressMappingByNomisId(mapping.nomisId)
+  }.getOrElse {
+    service.getEmailAddressMappingByCprIdOrNull(mapping.cprId)
+  }
+
+  private suspend fun getExistingCorePersonPhoneMappingSimilarTo(mapping: CorePersonPhoneMappingDto) = runCatching {
+    service.getPhoneMappingByNomisId(mapping.nomisId)
+  }.getOrElse {
+    service.getPhoneMappingByCprIdOrNull(mapping.cprId)
   }
 }
 
