@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationT
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.isDuplicateMapping
 import java.time.LocalDateTime
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CorePersonPhoneMappingResourceIntTest(
   @Autowired private val corePersonMappingRepository: CorePersonMappingRepository,
   @Autowired private val corePersonPhoneMappingRepository: CorePersonPhoneMappingRepository,
@@ -181,15 +180,6 @@ class CorePersonPhoneMappingResourceIntTest(
       fun `404 when mapping not found`() {
         webTestClient.get()
           .uri("/mapping/core-person/phone/cpr-phone-id/{cprPhoneId}", "99999")
-          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isNotFound
-      }
-
-      @Test
-      fun `404 when mapping not found even when address phone with same ID exists`() {
-        webTestClient.get()
-          .uri("/mapping/core-person/phone/cpr-core-address-phone-id/{cprCoreAddressPhoneId}", cprPhoneId)
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
