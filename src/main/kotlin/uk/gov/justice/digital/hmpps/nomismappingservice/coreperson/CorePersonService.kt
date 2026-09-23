@@ -86,10 +86,21 @@ class CorePersonService(
     ?.toDto()
     ?: throw NotFoundException("No core person address mapping found for cprId=$cprId")
 
+  suspend fun getAddressMappingByCprIdOrNull(cprId: String) = corePersonAddressMappingRepository.findOneByCprId(cprId = cprId)
+    ?.toDto()
+
+  @Transactional
+  suspend fun deleteAddressMappingByNomisId(nomisId: Long) = corePersonAddressMappingRepository.deleteByNomisId(nomisId)
+
+  @Transactional
+  suspend fun createAddressMapping(mapping: CorePersonAddressMappingDto) {
+    corePersonAddressMappingRepository.save(mapping.toMapping())
+  }
+
   suspend fun getPhoneMappingByNomisId(nomisId: Long) = corePersonPhoneMappingRepository.findOneByNomisId(nomisId = nomisId)?.toDto()
     ?: throw NotFoundException("No core person phone mapping found for nomisId=$nomisId")
 
-  suspend fun getPhoneMappingByCprId(cprId: String, cprPhoneType: CprPhoneType) = corePersonPhoneMappingRepository.findOneByCprId(cprId)
+  suspend fun getPhoneMappingByCprId(cprId: String) = corePersonPhoneMappingRepository.findOneByCprId(cprId)
     ?.toDto()
     ?: throw NotFoundException("No core person phone mapping found for cprId=$cprId")
 

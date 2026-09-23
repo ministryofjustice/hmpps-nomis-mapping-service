@@ -23,8 +23,3 @@ class CorePersonPhoneMapping(
   override fun hashCode(): Int = nomisId.hashCode()
   override fun getId(): Long = nomisId
 }
-
-enum class CprPhoneType {
-  ADDRESS,
-  CORE_PERSON,
-}
