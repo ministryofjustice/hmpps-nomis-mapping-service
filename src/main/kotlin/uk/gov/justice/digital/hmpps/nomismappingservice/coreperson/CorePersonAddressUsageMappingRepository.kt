@@ -8,4 +8,5 @@ interface CorePersonAddressUsageMappingRepository : CoroutineCrudRepository<Core
   suspend fun findOneByCprId(cprId: String): CorePersonAddressUsageMapping?
   suspend fun deleteByNomisIdAndAddressUsageCode(nomisId: Long, addressUsageCode: String)
   suspend fun deleteAllByNomisPrisonNumber(nomisPrisonNumber: String)
+  suspend fun deleteAllByNomisId(nomisId: Long)
 }
