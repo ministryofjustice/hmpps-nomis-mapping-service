@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationT
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.isDuplicateMapping
 import java.time.LocalDateTime
 
-class CorePersonAddressMappingResourceIntTest : IntegrationTestBase() {
+class CorePersonAddressMappingResourceIntTest(@Autowired private val corePersonAddressUsageMappingRepository: CorePersonAddressUsageMappingRepository) : IntegrationTestBase() {
   @Autowired
   private lateinit var corePersonMappingRepository: CorePersonMappingRepository
 
@@ -219,6 +219,7 @@ class CorePersonAddressMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("DELETE /mapping/core-person/address/nomis-address-id/{nomisAddressId}")
   inner class DeleteCorePersonAddressByNomisId {
     private val nomisAddressId = 22345L
+    private val nomisAddressUsageCprId = "123456"
 
     @BeforeAll
     fun setUp() = runTest {
@@ -234,6 +235,15 @@ class CorePersonAddressMappingResourceIntTest : IntegrationTestBase() {
           nomisPrisonNumber = "C1234CC",
           cprId = "654321",
           nomisId = nomisAddressId,
+          mappingType = CorePersonMappingType.MIGRATED,
+        ),
+      )
+      corePersonAddressUsageMappingRepository.save(
+        CorePersonAddressUsageMapping(
+          nomisPrisonNumber = "C1234CC",
+          cprId = nomisAddressUsageCprId,
+          nomisId = nomisAddressId,
+          addressUsageCode = "HOME",
           mappingType = CorePersonMappingType.MIGRATED,
         ),
       )
@@ -275,6 +285,8 @@ class CorePersonAddressMappingResourceIntTest : IntegrationTestBase() {
     inner class HappyPath {
       @Test
       fun `will delete the mapping data`() = runTest {
+        assertThat(corePersonAddressMappingRepository.findOneByNomisId(nomisAddressId)).isNotNull()
+        assertThat(corePersonAddressUsageMappingRepository.findOneByCprId(nomisAddressUsageCprId)).isNotNull()
         webTestClient.delete()
           .uri("/mapping/core-person/address/nomis-address-id/{nomisAddressId}", nomisAddressId)
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
@@ -282,6 +294,7 @@ class CorePersonAddressMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isNoContent
 
         assertThat(corePersonAddressMappingRepository.findOneByNomisId(nomisAddressId)).isNull()
+        assertThat(corePersonAddressUsageMappingRepository.findOneByCprId(nomisAddressUsageCprId)).isNull()
       }
     }
 

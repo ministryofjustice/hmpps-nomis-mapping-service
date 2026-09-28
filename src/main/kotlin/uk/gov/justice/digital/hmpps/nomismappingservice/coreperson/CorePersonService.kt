@@ -90,7 +90,10 @@ class CorePersonService(
     ?.toDto()
 
   @Transactional
-  suspend fun deleteAddressMappingByNomisId(nomisId: Long) = corePersonAddressMappingRepository.deleteByNomisId(nomisId)
+  suspend fun deleteAddressMappingByNomisId(nomisId: Long) {
+    corePersonAddressUsageMappingRepository.deleteAllByNomisId(nomisId)
+    corePersonAddressMappingRepository.deleteByNomisId(nomisId)
+  }
 
   @Transactional
   suspend fun createAddressMapping(mapping: CorePersonAddressMappingDto) {
