@@ -100,6 +100,26 @@ class CorePersonService(
     corePersonAddressMappingRepository.save(mapping.toMapping())
   }
 
+  suspend fun getAddressUsageMappingByNomisId(nomisId: Long, addressUsageCode: String) = corePersonAddressUsageMappingRepository
+    .findOneByNomisIdAndAddressUsageCode(nomisId, addressUsageCode)
+    ?.toDto()
+    ?: throw NotFoundException("No core person address usage mapping found for nomisId=$nomisId and addressUsageCode=$addressUsageCode")
+
+  suspend fun getAddressUsageMappingByCprId(cprId: String) = corePersonAddressUsageMappingRepository.findOneByCprId(cprId)
+    ?.toDto()
+    ?: throw NotFoundException("No core person address usage mapping found for cprId=$cprId")
+
+  suspend fun getAddressUsageMappingByCprIdOrNull(cprId: String) = corePersonAddressUsageMappingRepository.findOneByCprId(cprId)
+    ?.toDto()
+
+  @Transactional
+  suspend fun deleteAddressUsageMappingByNomisId(nomisId: Long, addressUsageCode: String) = corePersonAddressUsageMappingRepository.deleteByNomisIdAndAddressUsageCode(nomisId, addressUsageCode)
+
+  @Transactional
+  suspend fun createAddressUsageMapping(mapping: CorePersonAddressUsageMappingDto) {
+    corePersonAddressUsageMappingRepository.save(mapping.toMapping())
+  }
+
   suspend fun getPhoneMappingByNomisId(nomisId: Long) = corePersonPhoneMappingRepository.findOneByNomisId(nomisId = nomisId)?.toDto()
     ?: throw NotFoundException("No core person phone mapping found for nomisId=$nomisId")
 

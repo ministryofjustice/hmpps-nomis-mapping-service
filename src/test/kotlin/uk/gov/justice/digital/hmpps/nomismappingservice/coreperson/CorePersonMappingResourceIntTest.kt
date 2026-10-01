@@ -1146,6 +1146,258 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("GET /mapping/core-person/address-usage/nomis-address-id/{nomisAddressId}/usage-code/{addressUsageCode}")
+  inner class GetAddressUsageByNomisId {
+    private val nomisAddressId = 7654321L
+    private val addressUsageCode = "HOME"
+    private val cprAddressUsageId = "1234567"
+    private val uri = "/mapping/core-person/address-usage/nomis-address-id/$nomisAddressId/usage-code/$addressUsageCode"
+    private val mapping = addressUsageMapping(cprAddressUsageId, nomisAddressId, addressUsageCode)
+
+    @BeforeEach
+    fun setUp() = runTest {
+      corePersonAddressUsageMappingRepository.save(mapping.toEntity())
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get().uri(uri).exchange().expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get().uri(uri).headers(setAuthorisation(roles = listOf())).exchange().expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get().uri(uri).headers(setAuthorisation(roles = listOf("BANANAS"))).exchange().expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `404 when mapping not found`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/address-usage/nomis-address-id/99999/usage-code/HOME")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return the mapping data`() {
+        webTestClient.get()
+          .uri(uri)
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("cprId").isEqualTo(cprAddressUsageId)
+          .jsonPath("nomisId").isEqualTo(nomisAddressId)
+          .jsonPath("addressUsageCode").isEqualTo(addressUsageCode)
+          .jsonPath("nomisPrisonNumber").isEqualTo("A1234BA")
+          .jsonPath("label").isEqualTo("2023-01-01T12:45:12")
+          .jsonPath("mappingType").isEqualTo("MIGRATED")
+          .jsonPath("whenCreated").isEqualTo("2023-01-01T12:45:12")
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("GET /mapping/core-person/address-usage/cpr-address-usage-id/{cprAddressUsageId}")
+  inner class GetAddressUsageByCprId {
+    private val cprAddressUsageId = "1234567"
+    private val mapping = addressUsageMapping(cprAddressUsageId)
+    private val uri = "/mapping/core-person/address-usage/cpr-address-usage-id/$cprAddressUsageId"
+
+    @BeforeEach
+    fun setUp() = runTest {
+      corePersonAddressUsageMappingRepository.save(mapping.toEntity())
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get().uri(uri).exchange().expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get().uri(uri).headers(setAuthorisation(roles = listOf())).exchange().expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get().uri(uri).headers(setAuthorisation(roles = listOf("BANANAS"))).exchange().expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `404 when mapping not found`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/address-usage/cpr-address-usage-id/99999")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNotFound
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return the mapping data`() {
+        webTestClient.get()
+          .uri(uri)
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("cprId").isEqualTo(cprAddressUsageId)
+          .jsonPath("nomisId").isEqualTo(7654321)
+          .jsonPath("addressUsageCode").isEqualTo("HOME")
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("POST /mapping/core-person/address-usage")
+  inner class CreateAddressUsage {
+    private val mapping = addressUsageMapping("1234567")
+    private val uri = "/mapping/core-person/address-usage"
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post().uri(uri).contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping)).exchange().expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post().uri(uri).headers(setAuthorisation(roles = listOf())).contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping)).exchange().expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post().uri(uri).headers(setAuthorisation(roles = listOf("BANANAS"))).contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping)).exchange().expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `returns duplicate mapping details when mapping already exists`() = runTest {
+        corePersonAddressUsageMappingRepository.save(mapping.toEntity())
+        webTestClient.post().uri(uri)
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isDuplicateMapping
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will create the mapping`() = runTest {
+        webTestClient.post().uri(uri)
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mapping))
+          .exchange()
+          .expectStatus().isCreated
+
+        with(corePersonAddressUsageMappingRepository.findOneByCprId(mapping.cprId)!!) {
+          assertThat(nomisId).isEqualTo(mapping.nomisId)
+          assertThat(addressUsageCode).isEqualTo(mapping.addressUsageCode)
+          assertThat(nomisPrisonNumber).isEqualTo(mapping.nomisPrisonNumber)
+          assertThat(label).isEqualTo(mapping.label)
+          assertThat(mappingType).isEqualTo(mapping.mappingType)
+          assertThat(whenCreated).isEqualTo(mapping.whenCreated)
+        }
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("DELETE /mapping/core-person/address-usage/nomis-address-id/{nomisAddressId}/usage-code/{addressUsageCode}")
+  inner class DeleteAddressUsageByNomisId {
+    private val nomisAddressId = 7654321L
+    private val addressUsageCode = "HOME"
+    private val mapping = addressUsageMapping("1234567", nomisAddressId, addressUsageCode)
+    private val uri = "/mapping/core-person/address-usage/nomis-address-id/$nomisAddressId/usage-code/$addressUsageCode"
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete().uri(uri).exchange().expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete().uri(uri).headers(setAuthorisation(roles = listOf())).exchange().expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete().uri(uri).headers(setAuthorisation(roles = listOf("BANANAS"))).exchange().expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will delete the mapping`() = runTest {
+        corePersonAddressUsageMappingRepository.save(mapping.toEntity())
+        webTestClient.delete().uri(uri)
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNoContent
+        assertThat(corePersonAddressUsageMappingRepository.findOneByCprId(mapping.cprId)).isNull()
+      }
+    }
+  }
+
+  private fun addressUsageMapping(
+    cprId: String,
+    nomisId: Long = 7654321L,
+    addressUsageCode: String = "HOME",
+  ) = CorePersonAddressUsageMappingDto(
+    cprId = cprId,
+    nomisId = nomisId,
+    addressUsageCode = addressUsageCode,
+    nomisPrisonNumber = "A1234BA",
+    label = "2023-01-01T12:45:12",
+    mappingType = CorePersonMappingType.MIGRATED,
+    whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+  )
+
+  private fun CorePersonAddressUsageMappingDto.toEntity() = CorePersonAddressUsageMapping(
+    nomisPrisonNumber = nomisPrisonNumber,
+    cprId = cprId,
+    nomisId = nomisId,
+    addressUsageCode = addressUsageCode,
+    label = label,
+    mappingType = mappingType,
+    whenCreated = whenCreated,
+  )
+
+  @Nested
   @DisplayName("DELETE /mapping/core-person")
   inner class DeleteAllMappings {
     @BeforeEach
