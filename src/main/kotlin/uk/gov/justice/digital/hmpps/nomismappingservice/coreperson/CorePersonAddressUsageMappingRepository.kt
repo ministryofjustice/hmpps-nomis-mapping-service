@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface CorePersonAddressUsageMappingRepository : CoroutineCrudRepository<CorePersonAddressUsageMapping, String> {
+  suspend fun findOneByNomisIdAndAddressUsageCode(nomisId: Long, addressUsageCode: String): CorePersonAddressUsageMapping?
   suspend fun findOneByCprId(cprId: String): CorePersonAddressUsageMapping?
   suspend fun deleteByNomisIdAndAddressUsageCode(nomisId: Long, addressUsageCode: String)
   suspend fun deleteAllByNomisPrisonNumber(nomisPrisonNumber: String)
