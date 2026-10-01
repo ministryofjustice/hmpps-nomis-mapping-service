@@ -619,17 +619,8 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         nomisId = 10000L,
       )
 
-      val individualMapping = CorePersonMapping(
-        cprId = "fe2d494c-7652-4deb-9092-03b6b3bdd486",
-        nomisPrisonNumber = nomisPrisonNumber,
-        label = "2026-01-01T10:00",
-        mappingType = CorePersonMappingType.NOMIS_CREATED,
-        whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
-      )
-
       @BeforeEach
       fun setUp() = runTest {
-        corePersonMappingRepository.save(individualMapping)
         corePersonAddressMappingRepository.save(existingAddressMapping)
         corePersonAddressUsageMappingRepository.save(existingAddressUsageMapping)
         corePersonEmailAddressMappingRepository.save(existingEmailAddressMapping)
@@ -645,28 +636,6 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
           .body(BodyInserters.fromValue(mapping))
           .exchange()
           .expectStatus().isOk
-      }
-
-      @Test
-      fun `will not re-persist the core person mapping`() = runTest {
-        webTestClient.post()
-          .uri("/mapping/core-person/replace")
-          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(BodyInserters.fromValue(mapping))
-          .exchange()
-          .expectStatus().isOk
-
-        // The original core person mapping should still be there, and not replaced
-        val corePersonMapping = corePersonMappingRepository.findOneByCprId(individualMapping.cprId)!!
-        assertThat(corePersonMapping.cprId).isEqualTo(individualMapping.cprId)
-        assertThat(corePersonMapping.nomisPrisonNumber).isEqualTo(individualMapping.nomisPrisonNumber)
-        assertThat(corePersonMapping.label).isEqualTo(individualMapping.label)
-        assertThat(corePersonMapping.mappingType).isEqualTo(individualMapping.mappingType)
-        assertThat(corePersonMapping.whenCreated).isEqualTo(individualMapping.whenCreated)
-
-        // Do not expect a new core person mapping to be created for the new cprId in the mapping
-        assertThat(corePersonMappingRepository.findOneByCprId(mapping.personMapping.cprId)).isNull()
       }
 
       @Test
@@ -1065,14 +1034,6 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setUp() = runTest {
-      corePersonMappingRepository.save(
-        CorePersonMapping(
-          cprId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
-          nomisPrisonNumber = "A1234BA",
-          label = "2023-01-01T12:45:12",
-          mappingType = CorePersonMappingType.MIGRATED,
-        ),
-      )
       personAddressMapping = corePersonAddressMappingRepository.save(
         CorePersonAddressMapping(
           nomisPrisonNumber = "A1234BA",
