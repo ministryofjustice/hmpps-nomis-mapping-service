@@ -17,10 +17,8 @@ data class CorePersonMappingsDto(
   val personMapping: CorePersonMappingIdDto,
   @Schema(description = "Core Person address mappings")
   val addresses: List<CorePersonAddressMappingDto>,
-  @Schema(description = "Core Person phone numbers mappings")
-  val phoneNumbers: List<CorePersonPhoneMappingDto>,
-  @Schema(description = "Core Person email addresses mappings")
-  val emailAddresses: List<CorePersonEmailAddressMappingDto>,
+  @Schema(description = "Core Person contact mappings")
+  val contacts: List<CorePersonContactMappingDto>,
   @Schema(description = "Core Person address usage mappings")
   val addressUsages: List<CorePersonAddressUsageMappingDto>,
 )

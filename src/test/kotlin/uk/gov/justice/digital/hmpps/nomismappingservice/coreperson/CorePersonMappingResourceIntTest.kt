@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
-import org.hamcrest.Matchers
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -22,27 +21,14 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
-class CorePersonMappingResourceIntTest : IntegrationTestBase() {
-  @Autowired
-  private lateinit var corePersonMappingRepository: CorePersonMappingRepository
-
-  @Autowired
-  private lateinit var offenderAliasMappingRepository: OffenderAliasMappingRepository
-
-  @Autowired
-  private lateinit var corePersonAddressMappingRepository: CorePersonAddressMappingRepository
-
-  @Autowired
-  private lateinit var corePersonAddressUsageMappingRepository: CorePersonAddressUsageMappingRepository
-
-  @Autowired
-  private lateinit var corePersonEmailAddressMappingRepository: CorePersonEmailAddressMappingRepository
-
-  @Autowired
-  private lateinit var corePersonPhoneMappingRepository: CorePersonPhoneMappingRepository
-
-  @Autowired
-  private lateinit var offenderIdentifierMappingRepository: OffenderIdentifierMappingRepository
+class CorePersonMappingResourceIntTest(
+  @Autowired private val corePersonMappingRepository: CorePersonMappingRepository,
+  @Autowired private val offenderAliasMappingRepository: OffenderAliasMappingRepository,
+  @Autowired private val corePersonAddressMappingRepository: CorePersonAddressMappingRepository,
+  @Autowired private val corePersonAddressUsageMappingRepository: CorePersonAddressUsageMappingRepository,
+  @Autowired private val corePersonContactMappingRepository: CorePersonContactMappingRepository,
+  @Autowired private val offenderIdentifierMappingRepository: OffenderIdentifierMappingRepository,
+) : IntegrationTestBase() {
 
   @AfterEach
   fun tearDown() = runTest {
@@ -50,8 +36,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
     offenderIdentifierMappingRepository.deleteAll()
     corePersonAddressMappingRepository.deleteAll()
     corePersonAddressUsageMappingRepository.deleteAll()
-    corePersonEmailAddressMappingRepository.deleteAll()
-    corePersonPhoneMappingRepository.deleteAll()
+    corePersonContactMappingRepository.deleteAll()
     corePersonMappingRepository.deleteAll()
   }
 
@@ -70,8 +55,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         mappingType = CorePersonMappingType.CPR_CREATED,
         whenCreated = LocalDateTime.now(),
         addresses = emptyList(),
-        phoneNumbers = emptyList(),
-        emailAddresses = emptyList(),
+        contacts = emptyList(),
         addressUsages = emptyList(),
       )
 
@@ -121,8 +105,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         mappingType = CorePersonMappingType.MIGRATED,
         whenCreated = LocalDateTime.now(),
         addresses = emptyList(),
-        phoneNumbers = emptyList(),
-        emailAddresses = emptyList(),
+        contacts = emptyList(),
         addressUsages = emptyList(),
       )
 
@@ -210,8 +193,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         mappingType = CorePersonMappingType.CPR_CREATED,
         whenCreated = LocalDateTime.now(),
         addresses = emptyList(),
-        phoneNumbers = emptyList(),
-        emailAddresses = emptyList(),
+        contacts = emptyList(),
         addressUsages = emptyList(),
       )
 
@@ -370,18 +352,20 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
           .body(
             BodyInserters.fromValue(
               mappings.copy(
-                emailAddresses = listOf(
-                  CorePersonEmailAddressMappingDto(
+                contacts = listOf(
+                  CorePersonContactMappingDto(
                     cprId = "0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6",
                     nomisId = 10000L,
+                    nomisContactType = NomisContactType.EMAIL,
                     nomisPrisonNumber = "A1234BC",
                     label = "2023-01-01T12:45:12",
                     mappingType = CorePersonMappingType.MIGRATED,
                     whenCreated = LocalDateTime.now(),
                   ),
-                  CorePersonEmailAddressMappingDto(
+                  CorePersonContactMappingDto(
                     cprId = "37611e56-3b4e-4cfa-994d-6c089794fd1b",
                     nomisId = 10001L,
+                    nomisContactType = NomisContactType.EMAIL,
                     nomisPrisonNumber = "A1234BC",
                     label = "2024-01-01T12:45:12",
                     mappingType = CorePersonMappingType.MIGRATED,
@@ -394,7 +378,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isCreated
 
-        with(corePersonEmailAddressMappingRepository.findOneByCprId("0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6")!!) {
+        with(corePersonContactMappingRepository.findOneByCprId("0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6")!!) {
           assertThat(label).isEqualTo("2023-01-01T12:45:12")
           assertThat(mappingType).isEqualTo(CorePersonMappingType.MIGRATED)
           assertThat(nomisPrisonNumber).isEqualTo("A1234BC")
@@ -405,7 +389,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
           assertThat(nomisId).isEqualTo(10000L)
         }
 
-        with(corePersonEmailAddressMappingRepository.findOneByCprId("37611e56-3b4e-4cfa-994d-6c089794fd1b")!!) {
+        with(corePersonContactMappingRepository.findOneByCprId("37611e56-3b4e-4cfa-994d-6c089794fd1b")!!) {
           assertThat(label).isEqualTo("2024-01-01T12:45:12")
           assertThat(mappingType).isEqualTo(CorePersonMappingType.MIGRATED)
           assertThat(nomisPrisonNumber).isEqualTo("A1234BC")
@@ -426,18 +410,20 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
           .body(
             BodyInserters.fromValue(
               mappings.copy(
-                phoneNumbers = listOf(
-                  CorePersonPhoneMappingDto(
+                contacts = listOf(
+                  CorePersonContactMappingDto(
                     cprId = "0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6",
                     nomisId = 10000L,
+                    nomisContactType = NomisContactType.PHONE,
                     nomisPrisonNumber = "A1234BC",
                     label = "2023-01-01T12:45:12",
                     mappingType = CorePersonMappingType.MIGRATED,
                     whenCreated = LocalDateTime.now(),
                   ),
-                  CorePersonPhoneMappingDto(
+                  CorePersonContactMappingDto(
                     cprId = "37611e56-3b4e-4cfa-994d-6c089794fd1b",
                     nomisId = 10001L,
+                    nomisContactType = NomisContactType.PHONE,
                     nomisPrisonNumber = "A1234BC",
                     label = "2024-01-01T12:45:12",
                     mappingType = CorePersonMappingType.MIGRATED,
@@ -450,7 +436,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isCreated
 
-        with(corePersonPhoneMappingRepository.findOneByCprId("0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6")!!) {
+        with(corePersonContactMappingRepository.findOneByCprId("0dcdd1cf-6a40-47d9-9c7e-f8c92452f1a6")!!) {
           assertThat(label).isEqualTo("2023-01-01T12:45:12")
           assertThat(mappingType).isEqualTo(CorePersonMappingType.MIGRATED)
           assertThat(nomisPrisonNumber).isEqualTo("A1234BC")
@@ -459,9 +445,10 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
             within(10, ChronoUnit.SECONDS),
           )
           assertThat(nomisId).isEqualTo(10000L)
+          assertThat(nomisContactType).isEqualTo(NomisContactType.PHONE)
         }
 
-        with(corePersonPhoneMappingRepository.findOneByCprId("37611e56-3b4e-4cfa-994d-6c089794fd1b")!!) {
+        with(corePersonContactMappingRepository.findOneByCprId("37611e56-3b4e-4cfa-994d-6c089794fd1b")!!) {
           assertThat(label).isEqualTo("2024-01-01T12:45:12")
           assertThat(mappingType).isEqualTo(CorePersonMappingType.MIGRATED)
           assertThat(nomisPrisonNumber).isEqualTo("A1234BC")
@@ -470,6 +457,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
             within(10, ChronoUnit.SECONDS),
           )
           assertThat(nomisId).isEqualTo(10001L)
+          assertThat(nomisContactType).isEqualTo(NomisContactType.PHONE)
         }
       }
     }
@@ -490,8 +478,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         ),
         label = "2020-01-01T10:00",
         addresses = emptyList(),
-        phoneNumbers = emptyList(),
-        emailAddresses = emptyList(),
+        contacts = emptyList(),
         addressUsages = emptyList(),
         mappingType = CorePersonMappingType.NOMIS_CREATED,
         whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
@@ -559,20 +546,20 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
             whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
           ),
         ),
-        emailAddresses = listOf(
-          CorePersonEmailAddressMappingDto(
+        contacts = listOf(
+          CorePersonContactMappingDto(
             cprId = "27f51212-4d32-4b8b-86c2-a2e2807e3e4e",
             nomisId = 10000L,
+            nomisContactType = NomisContactType.EMAIL,
             nomisPrisonNumber = nomisPrisonNumber,
             label = "2020-01-01T10:00",
             mappingType = CorePersonMappingType.NOMIS_CREATED,
             whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
           ),
-        ),
-        phoneNumbers = listOf(
-          CorePersonPhoneMappingDto(
-            cprId = "27f51212-4d32-4b8b-86c2-a2e2807e3e4e",
+          CorePersonContactMappingDto(
+            cprId = "27f51212-4d32-4b8b-86c2-a2e2807e3e4f",
             nomisId = 10000L,
+            nomisContactType = NomisContactType.PHONE,
             nomisPrisonNumber = nomisPrisonNumber,
             label = "2020-01-01T10:00",
             mappingType = CorePersonMappingType.NOMIS_CREATED,
@@ -601,30 +588,32 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         addressUsageCode = "RELEASE",
       )
 
-      val existingEmailAddressMapping = CorePersonEmailAddressMapping(
-        cprId = "8d2c37b7-3f07-4954-b9bb-5ba61357be3f",
+      val existingEmailAddressMapping = CorePersonContactMapping(
+        cprId = "8d2c37b7-3f07-4954-b9bb-5ba61357be3e",
         nomisPrisonNumber = nomisPrisonNumber,
         label = "2019-01-01T10:00",
         mappingType = CorePersonMappingType.NOMIS_CREATED,
         whenCreated = LocalDateTime.parse("2019-01-01T10:14"),
         nomisId = 10000L,
+        nomisContactType = NomisContactType.EMAIL,
       )
 
-      val existingPhoneMapping = CorePersonPhoneMapping(
+      val existingPhoneMapping = CorePersonContactMapping(
         cprId = "8d2c37b7-3f07-4954-b9bb-5ba61357be3f",
         nomisPrisonNumber = nomisPrisonNumber,
         label = "2019-01-01T10:00",
         mappingType = CorePersonMappingType.NOMIS_CREATED,
         whenCreated = LocalDateTime.parse("2019-01-01T10:14"),
         nomisId = 10000L,
+        nomisContactType = NomisContactType.PHONE,
       )
 
       @BeforeEach
       fun setUp() = runTest {
         corePersonAddressMappingRepository.save(existingAddressMapping)
         corePersonAddressUsageMappingRepository.save(existingAddressUsageMapping)
-        corePersonEmailAddressMappingRepository.save(existingEmailAddressMapping)
-        corePersonPhoneMappingRepository.save(existingPhoneMapping)
+        corePersonContactMappingRepository.save(existingEmailAddressMapping)
+        corePersonContactMappingRepository.save(existingPhoneMapping)
       }
 
       @Test
@@ -669,18 +658,20 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         }
 
         // New email mapping
-        with(corePersonEmailAddressMappingRepository.findOneByCprId(mapping.emailAddresses[0].cprId)!!) {
-          val expected = mapping.emailAddresses[0] // the replacement mapping
+        with(corePersonContactMappingRepository.findOneByCprId(mapping.contacts[0].cprId)!!) {
+          val expected = mapping.contacts[0] // the replacement mapping
           assertThat(nomisId).isEqualTo(expected.nomisId)
+          assertThat(nomisContactType).isEqualTo(expected.nomisContactType)
           assertThat(label).isEqualTo(expected.label)
           assertThat(mappingType).isEqualTo(expected.mappingType)
           assertThat(whenCreated).isEqualTo(expected.whenCreated)
         }
 
         // New phone mapping
-        with(corePersonPhoneMappingRepository.findOneByCprId(mapping.phoneNumbers[0].cprId)!!) {
-          val expected = mapping.phoneNumbers[0] // the replacement mapping
+        with(corePersonContactMappingRepository.findOneByCprId(mapping.contacts[1].cprId)!!) {
+          val expected = mapping.contacts[1] // the replacement mapping
           assertThat(nomisId).isEqualTo(expected.nomisId)
+          assertThat(nomisContactType).isEqualTo(expected.nomisContactType)
           assertThat(label).isEqualTo(expected.label)
           assertThat(mappingType).isEqualTo(expected.mappingType)
           assertThat(whenCreated).isEqualTo(expected.whenCreated)
@@ -692,8 +683,8 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         // Check that the existing address, address usage, email or phone mappings are present before the replace
         suspend fun assertAddressesForCprId() = assertThat(corePersonAddressMappingRepository.findOneByCprId(existingAddressMapping.cprId))
         suspend fun assertAddressUsagesForCprId() = assertThat(corePersonAddressUsageMappingRepository.findOneByCprId(existingAddressUsageMapping.cprId))
-        suspend fun assertEmailsForCprId() = assertThat(corePersonEmailAddressMappingRepository.findOneByCprId(existingEmailAddressMapping.cprId))
-        suspend fun assertPhonesForCprId() = assertThat(corePersonPhoneMappingRepository.findOneByCprId(existingPhoneMapping.cprId))
+        suspend fun assertEmailsForCprId() = assertThat(corePersonContactMappingRepository.findOneByCprId(existingEmailAddressMapping.cprId))
+        suspend fun assertPhonesForCprId() = assertThat(corePersonContactMappingRepository.findOneByCprId(existingPhoneMapping.cprId))
         assertAddressesForCprId().isNotNull()
         assertAddressUsagesForCprId().isNotNull()
         assertEmailsForCprId().isNotNull()
@@ -718,12 +709,10 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         // Check that the existing address, address usage, email and phone mappings are present before the replace
         suspend fun assertAddressesForPrisonNumber() = assertThat(corePersonAddressMappingRepository.findAll().toList().filter { it.nomisPrisonNumber == nomisPrisonNumber })
         suspend fun assertAddressUsagesForPrisonNumber() = assertThat(corePersonAddressUsageMappingRepository.findAll().toList().filter { it.nomisPrisonNumber == nomisPrisonNumber })
-        suspend fun assertEmailsForPrisonNumber() = assertThat(corePersonEmailAddressMappingRepository.findAll().toList().filter { it.nomisPrisonNumber == nomisPrisonNumber })
-        suspend fun assertPhonesForPrisonNumber() = assertThat(corePersonPhoneMappingRepository.findAll().toList().filter { it.nomisPrisonNumber == nomisPrisonNumber })
+        suspend fun assertContactsForPrisonNumber() = assertThat(corePersonContactMappingRepository.findAll().toList().filter { it.nomisPrisonNumber == nomisPrisonNumber })
         assertAddressesForPrisonNumber().isNotEmpty()
         assertAddressUsagesForPrisonNumber().isNotEmpty()
-        assertEmailsForPrisonNumber().isNotEmpty()
-        assertPhonesForPrisonNumber().isNotEmpty()
+        assertContactsForPrisonNumber().isNotEmpty()
 
         webTestClient.post()
           .uri("/mapping/core-person/replace")
@@ -740,8 +729,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
                   nomisPrisonNumber = nomisPrisonNumber,
                 ),
                 addresses = emptyList(),
-                phoneNumbers = emptyList(),
-                emailAddresses = emptyList(),
+                contacts = emptyList(),
                 addressUsages = emptyList(),
               ),
             ),
@@ -749,11 +737,10 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
           .exchange()
           .expectStatus().isOk
 
-        // Check that the existing address, address usage, email and phone mappings have been deleted after the replace
+        // Check that the existing address, address usage, contact mappings have been deleted after the replace
         assertAddressesForPrisonNumber().isEmpty()
         assertAddressUsagesForPrisonNumber().isEmpty()
-        assertEmailsForPrisonNumber().isEmpty()
-        assertPhonesForPrisonNumber().isEmpty()
+        assertContactsForPrisonNumber().isEmpty()
       }
     }
   }
@@ -819,9 +806,9 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isOk
           .expectBody()
           .jsonPath("totalElements").isEqualTo(4)
-          .jsonPath("$.content..nomisPrisonNumber").value(
-            Matchers.contains("A1231BC", "A1232BC", "A1233BC", "A1234BC"),
-          )
+          .jsonPath("$.content..nomisPrisonNumber").value<List<String>> {
+            assertThat(it).containsExactly("A1231BC", "A1232BC", "A1233BC", "A1234BC")
+          }
           .jsonPath("$.content[0].whenCreated").isNotEmpty
       }
 
@@ -1392,20 +1379,20 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
             whenCreated = LocalDateTime.now(),
           ),
         ),
-        emailAddresses = listOf(
-          CorePersonEmailAddressMappingDto(
-            cprId = "96f9ea13-9c2a-4e05-8128-f32778edd9e9",
+        contacts = listOf(
+          CorePersonContactMappingDto(
+            cprId = "96f9ea13-9c2a-4e05-8128-f32778edd9e8",
             nomisId = 10000L,
+            nomisContactType = NomisContactType.EMAIL,
             nomisPrisonNumber = "A1234BC",
             label = "2025-03-01T12:45:12",
             mappingType = CorePersonMappingType.MIGRATED,
             whenCreated = LocalDateTime.now(),
           ),
-        ),
-        phoneNumbers = listOf(
-          CorePersonPhoneMappingDto(
+          CorePersonContactMappingDto(
             cprId = "96f9ea13-9c2a-4e05-8128-f32778edd9e9",
             nomisId = 10000L,
+            nomisContactType = NomisContactType.PHONE,
             nomisPrisonNumber = "A1234BC",
             label = "2025-03-01T12:45:12",
             mappingType = CorePersonMappingType.MIGRATED,
@@ -1458,8 +1445,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         // TODO add other child mappings when implemented
         assertThat(corePersonAddressMappingRepository.findAll().count()).isEqualTo(1)
         assertThat(corePersonAddressUsageMappingRepository.findAll().count()).isEqualTo(1)
-        assertThat(corePersonPhoneMappingRepository.findAll().count()).isEqualTo(1)
-        assertThat(corePersonEmailAddressMappingRepository.findAll().count()).isEqualTo(1)
+        assertThat(corePersonContactMappingRepository.findAll().count()).isEqualTo(2)
         assertThat(corePersonMappingRepository.findAll().count()).isEqualTo(1)
 
         webTestClient.delete()
@@ -1471,8 +1457,7 @@ class CorePersonMappingResourceIntTest : IntegrationTestBase() {
         // TODO add other child mappings when implemented
         assertThat(corePersonAddressMappingRepository.findAll().count()).isEqualTo(0)
         assertThat(corePersonAddressUsageMappingRepository.findAll().count()).isEqualTo(0)
-        assertThat(corePersonPhoneMappingRepository.findAll().count()).isEqualTo(0)
-        assertThat(corePersonEmailAddressMappingRepository.findAll().count()).isEqualTo(0)
+        assertThat(corePersonContactMappingRepository.findAll().count()).isEqualTo(0)
         assertThat(corePersonMappingRepository.findAll().count()).isEqualTo(0)
       }
     }
