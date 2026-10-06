@@ -9,7 +9,6 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundException
-import java.time.LocalDateTime
 import java.util.UUID
 
 @Service
@@ -248,18 +247,14 @@ class CorePersonService(
   suspend fun replaceMappings(mappings: CorePersonMappingsDto) {
     with(mappings) {
       corePersonAddressMappingRepository.deleteAllByNomisPrisonNumber(personMapping.nomisPrisonNumber)
-      corePersonEmailMappingRepository.deleteAllByNomisPrisonNumber(personMapping.nomisPrisonNumber)
-      corePersonPhoneMappingRepository.deleteAllByNomisPrisonNumber(personMapping.nomisPrisonNumber)
+      corePersonContactMappingRepository.deleteAllByNomisPrisonNumber(personMapping.nomisPrisonNumber)
       corePersonAddressUsageMappingRepository.deleteAllByNomisPrisonNumber(personMapping.nomisPrisonNumber)
-      // In the event of a merge its possible that we need to delete dangling identifiers.
+      // In the event of a merge, it's possible that we need to delete dangling identifiers.
       mappings.addresses.forEach {
         corePersonAddressMappingRepository.deleteByNomisId(it.nomisId)
       }
-      mappings.emailAddresses.forEach {
-        corePersonEmailMappingRepository.deleteByNomisId(it.nomisId)
-      }
-      mappings.phoneNumbers.forEach {
-        corePersonPhoneMappingRepository.deleteByNomisId(it.nomisId)
+      mappings.contacts.forEach {
+        corePersonContactMappingRepository.deleteByNomisIdAndNomisContactType(it.nomisId, it.nomisContactType)
       }
       mappings.addressUsages.forEach {
         corePersonAddressUsageMappingRepository.deleteByNomisIdAndAddressUsageCode(it.nomisId, it.addressUsageCode)
@@ -268,11 +263,8 @@ class CorePersonService(
       mappings.addresses.forEach {
         corePersonAddressMappingRepository.save(it.toMapping())
       }
-      mappings.emailAddresses.forEach {
-        corePersonEmailMappingRepository.save(it.toMapping())
-      }
-      mappings.phoneNumbers.forEach {
-        corePersonPhoneMappingRepository.save(it.toMapping())
+      mappings.contacts.forEach {
+        corePersonContactMappingRepository.save(it.toMapping())
       }
       mappings.addressUsages.forEach {
         corePersonAddressUsageMappingRepository.save(it.toMapping())
@@ -287,22 +279,6 @@ private fun CorePersonMappingsDto.toCorePersonMapping() = CorePersonMapping(
   label = label,
   mappingType = mappingType,
   whenCreated = whenCreated,
-)
-
-private inline fun <reified T : AbstractCorePersonMapping> CorePersonMappingsDto.toMapping(mapping: CorePersonSimpleMappingIdDto): T = T::class.java.getDeclaredConstructor(
-  String::class.java,
-  String::class.java,
-  Long::class.java,
-  String::class.java,
-  CorePersonMappingType::class.java,
-  LocalDateTime::class.java,
-).newInstance(
-  this.personMapping.nomisPrisonNumber,
-  mapping.cprId,
-  mapping.nomisId,
-  this.label,
-  this.mappingType,
-  this.whenCreated,
 )
 
 private fun ProfileMappingIdDto.toMapping() = ProfileMapping(
