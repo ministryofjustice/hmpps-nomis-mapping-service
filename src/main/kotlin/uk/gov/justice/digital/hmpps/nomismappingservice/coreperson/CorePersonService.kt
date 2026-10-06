@@ -20,6 +20,7 @@ class CorePersonService(
   private val corePersonPhoneMappingRepository: CorePersonPhoneMappingRepository,
   private val corePersonAddressUsageMappingRepository: CorePersonAddressUsageMappingRepository,
   private val corePersonEmailMappingRepository: CorePersonEmailAddressMappingRepository,
+  private val corePersonContactMappingRepository: CorePersonContactMappingRepository,
   private val profileMappingRepository: ProfileMappingRepository,
   private val offenderIdentifierMappingRepository: OffenderIdentifierMappingRepository,
   private val offenderAliasMappingRepository: OffenderAliasMappingRepository,
@@ -73,6 +74,7 @@ class CorePersonService(
   suspend fun deleteAllMappings() {
     corePersonPhoneMappingRepository.deleteAll()
     corePersonEmailMappingRepository.deleteAll()
+    corePersonContactMappingRepository.deleteAll()
     corePersonAddressMappingRepository.deleteAll()
     corePersonAddressUsageMappingRepository.deleteAll()
     corePersonMappingRepository.deleteAll()
@@ -154,6 +156,27 @@ class CorePersonService(
   @Transactional
   suspend fun createEmailAddressMapping(mapping: CorePersonEmailAddressMappingDto) {
     corePersonEmailMappingRepository.save(mapping.toMapping())
+  }
+
+  suspend fun getContactMappingByNomisId(nomisId: Long, nomisContactType: NomisContactType) = corePersonContactMappingRepository
+    .findOneByNomisIdAndNomisContactType(nomisId = nomisId, nomisContactType = nomisContactType)
+    ?.toDto()
+    ?: throw NotFoundException("No core person contact mapping found for nomisId=$nomisId and nomisContactType=$nomisContactType")
+
+  suspend fun getContactMappingByCprId(cprId: String) = corePersonContactMappingRepository.findOneByCprId(cprId = cprId)
+    ?.toDto()
+    ?: throw NotFoundException("No core person contact mapping found for cprId=$cprId")
+
+  suspend fun getContactMappingByCprIdOrNull(cprId: String) = corePersonContactMappingRepository.findOneByCprId(cprId = cprId)
+    ?.toDto()
+
+  @Transactional
+  suspend fun deleteContactMappingByNomisId(nomisId: Long, nomisContactType: NomisContactType) = corePersonContactMappingRepository
+    .deleteByNomisIdAndNomisContactType(nomisId = nomisId, nomisContactType = nomisContactType)
+
+  @Transactional
+  suspend fun createContactMapping(mapping: CorePersonContactMappingDto) {
+    corePersonContactMappingRepository.save(mapping.toMapping())
   }
 
   suspend fun getProfileMappingByDpsId(dpsId: String) = profileMappingRepository
@@ -366,6 +389,26 @@ private fun CorePersonEmailAddressMapping.toDto() = CorePersonEmailAddressMappin
 
 private fun CorePersonEmailAddressMappingDto.toMapping() = CorePersonEmailAddressMapping(
   nomisId = nomisId,
+  cprId = cprId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+  nomisPrisonNumber = nomisPrisonNumber,
+)
+
+private fun CorePersonContactMapping.toDto() = CorePersonContactMappingDto(
+  nomisId = nomisId,
+  nomisContactType = nomisContactType,
+  cprId = cprId,
+  label = label,
+  mappingType = mappingType,
+  whenCreated = whenCreated,
+  nomisPrisonNumber = nomisPrisonNumber,
+)
+
+private fun CorePersonContactMappingDto.toMapping() = CorePersonContactMapping(
+  nomisId = nomisId,
+  nomisContactType = nomisContactType,
   cprId = cprId,
   label = label,
   mappingType = mappingType,

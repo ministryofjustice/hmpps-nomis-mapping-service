@@ -102,6 +102,20 @@ class CorePersonEmailAddressMappingDto(
   whenCreated: LocalDateTime?,
 ) : AbstractCorePersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
 
+class CorePersonContactMappingDto(
+  @Schema(description = "CPR id")
+  val cprId: String,
+  @Schema(description = "NOMIS id")
+  val nomisId: Long,
+  @Schema(description = "NOMIS contact type")
+  val nomisContactType: NomisContactType,
+  @Schema(description = "NOMIS prison number aka Offender number")
+  val nomisPrisonNumber: String,
+  label: String?,
+  mappingType: CorePersonMappingType,
+  whenCreated: LocalDateTime?,
+) : AbstractCorePersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
+
 class ProfileMappingIdDto(
   @Schema(description = "CPR profile id")
   val cprId: String,
