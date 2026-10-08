@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.movements.prisonerlocation.migration
+package uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.migration
 
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
@@ -13,8 +13,8 @@ import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 @DataR2dbcTest
 @ActiveProfiles("test")
 @WithMockAuthUser
-class PrisonerLocationMigrationRepositoryTest(
-  @Autowired private val repository: PrisonerLocationMigrationRepository,
+class PersonLocationMigrationRepositoryTest(
+  @Autowired private val repository: PersonLocationMigrationRepository,
 ) : TestBase() {
 
   private val offenderNo = "A1234BC"
@@ -26,10 +26,10 @@ class PrisonerLocationMigrationRepositoryTest(
 
   @Test
   fun `should save and load migration`() = runTest {
-    repository.save(PrisonerLocationMigration(offenderNo, "some_label"))
+    repository.save(PersonLocationMigration(offenderNo, "some_label"))
 
     with(repository.findById(offenderNo)!!) {
-      assertThat(this.offenderNo).isEqualTo(this@PrisonerLocationMigrationRepositoryTest.offenderNo)
+      assertThat(this.offenderNo).isEqualTo(this@PersonLocationMigrationRepositoryTest.offenderNo)
       assertThat(label).isEqualTo("some_label")
       assertThat(whenCreated).isNotNull
     }
@@ -37,7 +37,7 @@ class PrisonerLocationMigrationRepositoryTest(
 
   @Test
   fun `should delete migration`() = runTest {
-    repository.save(PrisonerLocationMigration(offenderNo, "some_label"))
+    repository.save(PersonLocationMigration(offenderNo, "some_label"))
 
     repository.deleteById(offenderNo)
 

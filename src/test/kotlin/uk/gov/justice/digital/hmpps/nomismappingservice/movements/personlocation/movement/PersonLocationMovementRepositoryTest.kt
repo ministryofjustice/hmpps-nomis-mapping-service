@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.movements.prisonerlocation.movement
+package uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.movement
 
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
@@ -8,15 +8,15 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.r2dbc.test.autoconfigure.DataR2dbcTest
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestBase
-import uk.gov.justice.digital.hmpps.nomismappingservice.movements.prisonerlocation.PrisonerLocationMappingType
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.PersonLocationMappingType
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 import java.util.UUID
 
 @DataR2dbcTest
 @ActiveProfiles("test")
 @WithMockAuthUser
-class PrisonerLocationMovementRepositoryTest(
-  @Autowired private val repository: PrisonerLocationMovementRepository,
+class PersonLocationMovementRepositoryTest(
+  @Autowired private val repository: PersonLocationMovementRepository,
 ) : TestBase() {
 
   private val dpsId = UUID.randomUUID()
@@ -31,12 +31,12 @@ class PrisonerLocationMovementRepositoryTest(
   @Test
   fun `should save and load mapping`() = runTest {
     repository.save(
-      PrisonerLocationMovementMapping(
+      PersonLocationMovementMapping(
         dpsId,
         bookingId,
         nomisSeq,
         "some_label",
-        PrisonerLocationMappingType.MIGRATED,
+        PersonLocationMappingType.MIGRATED,
       ),
     )
 
@@ -45,7 +45,7 @@ class PrisonerLocationMovementRepositoryTest(
       assertThat(nomisBookingId).isEqualTo(bookingId)
       assertThat(nomisMovementSeq).isEqualTo(nomisSeq)
       assertThat(label).isEqualTo("some_label")
-      assertThat(mappingType).isEqualTo(PrisonerLocationMappingType.MIGRATED)
+      assertThat(mappingType).isEqualTo(PersonLocationMappingType.MIGRATED)
       assertThat(whenCreated).isNotNull
     }
 
@@ -54,31 +54,31 @@ class PrisonerLocationMovementRepositoryTest(
       assertThat(nomisBookingId).isEqualTo(bookingId)
       assertThat(nomisMovementSeq).isEqualTo(nomisSeq)
       assertThat(label).isEqualTo("some_label")
-      assertThat(mappingType).isEqualTo(PrisonerLocationMappingType.MIGRATED)
+      assertThat(mappingType).isEqualTo(PersonLocationMappingType.MIGRATED)
     }
   }
 
   @Test
   fun `should update mapping`() = runTest {
     repository.save(
-      PrisonerLocationMovementMapping(
+      PersonLocationMovementMapping(
         dpsId,
         bookingId,
         nomisSeq,
         "some_label",
-        PrisonerLocationMappingType.MIGRATED,
+        PersonLocationMappingType.MIGRATED,
       ),
     )
 
     val saved = repository.findById(dpsId)!!
-    repository.save(saved.copy(label = "new_label", mappingType = PrisonerLocationMappingType.NOMIS_CREATED))
+    repository.save(saved.copy(label = "new_label", mappingType = PersonLocationMappingType.NOMIS_CREATED))
 
     with(repository.findById(dpsId)!!) {
       assertThat(dpsExternalMovementId).isEqualTo(dpsId)
       assertThat(nomisBookingId).isEqualTo(bookingId)
       assertThat(nomisMovementSeq).isEqualTo(nomisSeq)
       assertThat(label).isEqualTo("new_label")
-      assertThat(mappingType).isEqualTo(PrisonerLocationMappingType.NOMIS_CREATED)
+      assertThat(mappingType).isEqualTo(PersonLocationMappingType.NOMIS_CREATED)
     }
   }
 
@@ -87,10 +87,10 @@ class PrisonerLocationMovementRepositoryTest(
     val sameBookingDpsId = UUID.randomUUID()
     val otherBookingDpsId = UUID.randomUUID()
     val untouchedDpsId = UUID.randomUUID()
-    repository.save(PrisonerLocationMovementMapping(dpsId, bookingId, 1, "some_label", PrisonerLocationMappingType.MIGRATED))
-    repository.save(PrisonerLocationMovementMapping(sameBookingDpsId, bookingId, 2, "some_label", PrisonerLocationMappingType.MIGRATED))
-    repository.save(PrisonerLocationMovementMapping(otherBookingDpsId, 54322L, 1, "some_label", PrisonerLocationMappingType.MIGRATED))
-    repository.save(PrisonerLocationMovementMapping(untouchedDpsId, 54323L, 1, "some_label", PrisonerLocationMappingType.MIGRATED))
+    repository.save(PersonLocationMovementMapping(dpsId, bookingId, 1, "some_label", PersonLocationMappingType.MIGRATED))
+    repository.save(PersonLocationMovementMapping(sameBookingDpsId, bookingId, 2, "some_label", PersonLocationMappingType.MIGRATED))
+    repository.save(PersonLocationMovementMapping(otherBookingDpsId, 54322L, 1, "some_label", PersonLocationMappingType.MIGRATED))
+    repository.save(PersonLocationMovementMapping(untouchedDpsId, 54323L, 1, "some_label", PersonLocationMappingType.MIGRATED))
 
     repository.deleteByNomisBookingIdIn(listOf(bookingId, 54322L))
 

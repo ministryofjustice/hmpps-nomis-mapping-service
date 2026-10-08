@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.movements.prisonerlocation.migration
+package uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.migration
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.annotation.Id
@@ -6,7 +6,7 @@ import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 
-data class PrisonerLocationMigration(
+data class PersonLocationMigration(
 
   @Id
   val offenderNo: String,
@@ -25,7 +25,7 @@ data class PrisonerLocationMigration(
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is PrisonerLocationMigration) return false
+    if (other !is PersonLocationMigration) return false
 
     return offenderNo == other.offenderNo
   }

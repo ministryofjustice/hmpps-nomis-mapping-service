@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.movements.prisonerlocation.migration
+package uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.migration
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -18,9 +18,9 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RestController
 @Validated
 @PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
-@RequestMapping("/mapping/prisoner-location", produces = [MediaType.APPLICATION_JSON_VALUE])
-class PrisonerLocationMigrationResource(
-  private val service: PrisonerLocationMigrationService,
+@RequestMapping("/mapping/person-location", produces = [MediaType.APPLICATION_JSON_VALUE])
+class PersonLocationMigrationResource(
+  private val service: PersonLocationMigrationService,
 ) {
 
   @PutMapping("/migrate")
@@ -29,7 +29,7 @@ class PrisonerLocationMigrationResource(
     summary = "Creates all mappings for a prisoner's bookings and external movements which are all migrated at the same time",
     description = "Creates mappings for a prisoner's custodial series (bookings) and external movements. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = PrisonerLocationsMappingDto::class))],
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = PersonLocationsMappingDto::class))],
     ),
     responses = [
       ApiResponse(responseCode = "201", description = "Mappings created"),
@@ -45,7 +45,7 @@ class PrisonerLocationMigrationResource(
       ),
     ],
   )
-  suspend fun createPrisonerLocationMappings(
-    @RequestBody mappings: PrisonerLocationsMappingDto,
+  suspend fun createPersonLocationMappings(
+    @RequestBody mappings: PersonLocationsMappingDto,
   ) = service.createMigrationMappings(mappings)
 }
