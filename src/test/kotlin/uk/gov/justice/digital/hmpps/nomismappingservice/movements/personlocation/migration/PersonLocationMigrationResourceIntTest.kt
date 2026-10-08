@@ -1,6 +1,6 @@
 @file:Suppress("ktlint:standard:property-naming")
 
-package uk.gov.justice.digital.hmpps.nomismappingservice.movements.prisonerlocation.migration
+package uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.migration
 
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
@@ -13,20 +13,20 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.nomismappingservice.movements.prisonerlocation.PrisonerLocationMappingType
-import uk.gov.justice.digital.hmpps.nomismappingservice.movements.prisonerlocation.booking.PrisonerLocationBookingMapping
-import uk.gov.justice.digital.hmpps.nomismappingservice.movements.prisonerlocation.booking.PrisonerLocationBookingRepository
-import uk.gov.justice.digital.hmpps.nomismappingservice.movements.prisonerlocation.movement.PrisonerLocationMovementRepository
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.PersonLocationMappingType
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.booking.PersonLocationBookingMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.booking.PersonLocationBookingRepository
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.movement.PersonLocationMovementRepository
 import java.util.*
 
-class PrisonerLocationMigrationResourceIntTest(
-  @Autowired private val bookingRepository: PrisonerLocationBookingRepository,
-  @Autowired private val movementRepository: PrisonerLocationMovementRepository,
-  @Autowired private val migrationRepository: PrisonerLocationMigrationRepository,
+class PersonLocationMigrationResourceIntTest(
+  @Autowired private val bookingRepository: PersonLocationBookingRepository,
+  @Autowired private val movementRepository: PersonLocationMovementRepository,
+  @Autowired private val migrationRepository: PersonLocationMigrationRepository,
 ) : IntegrationTestBase() {
 
   @Nested
-  @DisplayName("PUT /mapping/prisoner-location/migrate")
+  @DisplayName("PUT /mapping/person-location/migrate")
   inner class Migrate {
     private val MIGRATION_ID = "some_migration_id"
     private val NOMIS_OFFENDER_NO = "A1234BC"
@@ -48,29 +48,29 @@ class PrisonerLocationMigrationResourceIntTest(
       migrationRepository.deleteAll()
     }
 
-    fun mappingsRequest() = PrisonerLocationsMappingDto(
+    fun mappingsRequest() = PersonLocationsMappingDto(
       offenderNo = NOMIS_OFFENDER_NO,
       migrationId = MIGRATION_ID,
       bookings = listOf(
-        PrisonerLocationBookingMappingDto(
+        PersonLocationBookingMappingDto(
           bookingId = NOMIS_BOOKING_ID,
           dpsCustodialSeriesId = DPS_CUSTODIAL_SERIES_ID,
           movements = listOf(
-            PrisonerLocationMovementMappingDto(
+            PersonLocationMovementMappingDto(
               nomisMovementSeq = NOMIS_MOVEMENT_SEQ_1,
               dpsExternalMovementId = DPS_EXTERNAL_MOVEMENT_ID_1,
             ),
-            PrisonerLocationMovementMappingDto(
+            PersonLocationMovementMappingDto(
               nomisMovementSeq = NOMIS_MOVEMENT_SEQ_2,
               dpsExternalMovementId = DPS_EXTERNAL_MOVEMENT_ID_2,
             ),
           ),
         ),
-        PrisonerLocationBookingMappingDto(
+        PersonLocationBookingMappingDto(
           bookingId = NOMIS_OLD_BOOKING_ID,
           dpsCustodialSeriesId = DPS_OLD_CUSTODIAL_SERIES_ID,
           movements = listOf(
-            PrisonerLocationMovementMappingDto(
+            PersonLocationMovementMappingDto(
               nomisMovementSeq = NOMIS_OLD_BOOKING_MOVEMENT_SEQ,
               dpsExternalMovementId = DPS_OLD_BOOKING_EXTERNAL_MOVEMENT_ID,
             ),
@@ -79,9 +79,9 @@ class PrisonerLocationMigrationResourceIntTest(
       ),
     )
 
-    fun WebTestClient.saveMappings(mappings: PrisonerLocationsMappingDto = mappingsRequest()) {
+    fun WebTestClient.saveMappings(mappings: PersonLocationsMappingDto = mappingsRequest()) {
       put()
-        .uri("/mapping/prisoner-location/migrate")
+        .uri("/mapping/person-location/migrate")
         .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(mappings))
@@ -108,12 +108,12 @@ class PrisonerLocationMigrationResourceIntTest(
         with(bookingRepository.findById(DPS_CUSTODIAL_SERIES_ID)!!) {
           assertThat(nomisBookingId).isEqualTo(NOMIS_BOOKING_ID)
           assertThat(label).isEqualTo(MIGRATION_ID)
-          assertThat(mappingType).isEqualTo(PrisonerLocationMappingType.MIGRATED)
+          assertThat(mappingType).isEqualTo(PersonLocationMappingType.MIGRATED)
         }
         with(bookingRepository.findById(DPS_OLD_CUSTODIAL_SERIES_ID)!!) {
           assertThat(nomisBookingId).isEqualTo(NOMIS_OLD_BOOKING_ID)
           assertThat(label).isEqualTo(MIGRATION_ID)
-          assertThat(mappingType).isEqualTo(PrisonerLocationMappingType.MIGRATED)
+          assertThat(mappingType).isEqualTo(PersonLocationMappingType.MIGRATED)
         }
       }
 
@@ -123,19 +123,19 @@ class PrisonerLocationMigrationResourceIntTest(
           assertThat(nomisBookingId).isEqualTo(NOMIS_BOOKING_ID)
           assertThat(nomisMovementSeq).isEqualTo(NOMIS_MOVEMENT_SEQ_1)
           assertThat(label).isEqualTo(MIGRATION_ID)
-          assertThat(mappingType).isEqualTo(PrisonerLocationMappingType.MIGRATED)
+          assertThat(mappingType).isEqualTo(PersonLocationMappingType.MIGRATED)
         }
         with(movementRepository.findById(DPS_EXTERNAL_MOVEMENT_ID_2)!!) {
           assertThat(nomisBookingId).isEqualTo(NOMIS_BOOKING_ID)
           assertThat(nomisMovementSeq).isEqualTo(NOMIS_MOVEMENT_SEQ_2)
           assertThat(label).isEqualTo(MIGRATION_ID)
-          assertThat(mappingType).isEqualTo(PrisonerLocationMappingType.MIGRATED)
+          assertThat(mappingType).isEqualTo(PersonLocationMappingType.MIGRATED)
         }
         with(movementRepository.findById(DPS_OLD_BOOKING_EXTERNAL_MOVEMENT_ID)!!) {
           assertThat(nomisBookingId).isEqualTo(NOMIS_OLD_BOOKING_ID)
           assertThat(nomisMovementSeq).isEqualTo(NOMIS_OLD_BOOKING_MOVEMENT_SEQ)
           assertThat(label).isEqualTo(MIGRATION_ID)
-          assertThat(mappingType).isEqualTo(PrisonerLocationMappingType.MIGRATED)
+          assertThat(mappingType).isEqualTo(PersonLocationMappingType.MIGRATED)
         }
       }
 
@@ -145,15 +145,15 @@ class PrisonerLocationMigrationResourceIntTest(
         val newDpsCustodialSeriesId = UUID.randomUUID()
         val newDpsExternalMovementId = UUID.randomUUID()
 
-        val mappings = PrisonerLocationsMappingDto(
+        val mappings = PersonLocationsMappingDto(
           offenderNo = NOMIS_OFFENDER_NO,
           migrationId = newMigrationId,
           bookings = listOf(
-            PrisonerLocationBookingMappingDto(
+            PersonLocationBookingMappingDto(
               bookingId = NOMIS_BOOKING_ID,
               dpsCustodialSeriesId = newDpsCustodialSeriesId,
               movements = listOf(
-                PrisonerLocationMovementMappingDto(
+                PersonLocationMovementMappingDto(
                   nomisMovementSeq = NOMIS_MOVEMENT_SEQ_1,
                   dpsExternalMovementId = newDpsExternalMovementId,
                 ),
@@ -203,16 +203,16 @@ class PrisonerLocationMigrationResourceIntTest(
       @Test
       fun `should save migration mapping when there are no bookings`() = runTest {
         bookingRepository.save(
-          PrisonerLocationBookingMapping(
+          PersonLocationBookingMapping(
             dpsCustodialSeriesId = DPS_CUSTODIAL_SERIES_ID,
             nomisBookingId = NOMIS_BOOKING_ID,
             label = "some_other_label",
-            mappingType = PrisonerLocationMappingType.MIGRATED,
+            mappingType = PersonLocationMappingType.MIGRATED,
           ),
         )
 
         webTestClient.saveMappings(
-          PrisonerLocationsMappingDto(
+          PersonLocationsMappingDto(
             offenderNo = NOMIS_OFFENDER_NO,
             migrationId = MIGRATION_ID,
             bookings = listOf(),
@@ -226,7 +226,7 @@ class PrisonerLocationMigrationResourceIntTest(
 
     @Nested
     inner class Security {
-      val mappings = PrisonerLocationsMappingDto(
+      val mappings = PersonLocationsMappingDto(
         offenderNo = "A1234BC",
         bookings = listOf(),
         migrationId = "some_migration_id",
@@ -235,7 +235,7 @@ class PrisonerLocationMigrationResourceIntTest(
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.put()
-          .uri("/mapping/prisoner-location/migrate")
+          .uri("/mapping/person-location/migrate")
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -245,7 +245,7 @@ class PrisonerLocationMigrationResourceIntTest(
       @Test
       fun `access forbidden when no role`() {
         webTestClient.put()
-          .uri("/mapping/prisoner-location/migrate")
+          .uri("/mapping/person-location/migrate")
           .headers(setAuthorisation(roles = listOf()))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
@@ -256,7 +256,7 @@ class PrisonerLocationMigrationResourceIntTest(
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.put()
-          .uri("/mapping/prisoner-location/migrate")
+          .uri("/mapping/person-location/migrate")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))

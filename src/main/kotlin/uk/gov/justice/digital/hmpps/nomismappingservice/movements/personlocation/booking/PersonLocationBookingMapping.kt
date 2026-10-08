@@ -1,28 +1,26 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.movements.prisonerlocation.movement
+package uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.booking
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
-import uk.gov.justice.digital.hmpps.nomismappingservice.movements.prisonerlocation.PrisonerLocationMappingType
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.PersonLocationMappingType
 import java.time.LocalDateTime
 import java.util.*
 
-data class PrisonerLocationMovementMapping(
+data class PersonLocationBookingMapping(
 
   @Id
-  val dpsExternalMovementId: UUID,
+  val dpsCustodialSeriesId: UUID,
 
   val nomisBookingId: Long,
-
-  val nomisMovementSeq: Int,
 
   /**
    * ISO timestamp of batch job if a migration
    */
   val label: String? = null,
 
-  val mappingType: PrisonerLocationMappingType,
+  val mappingType: PersonLocationMappingType,
 
   @Transient
   @Value("false")
@@ -36,14 +34,14 @@ data class PrisonerLocationMovementMapping(
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is PrisonerLocationMovementMapping) return false
+    if (other !is PersonLocationBookingMapping) return false
 
-    return dpsExternalMovementId == other.dpsExternalMovementId
+    return dpsCustodialSeriesId == other.dpsCustodialSeriesId
   }
 
-  override fun hashCode(): Int = dpsExternalMovementId.hashCode()
+  override fun hashCode(): Int = dpsCustodialSeriesId.hashCode()
 
   override fun isNew(): Boolean = new
 
-  override fun getId(): UUID = dpsExternalMovementId
+  override fun getId(): UUID = dpsCustodialSeriesId
 }
