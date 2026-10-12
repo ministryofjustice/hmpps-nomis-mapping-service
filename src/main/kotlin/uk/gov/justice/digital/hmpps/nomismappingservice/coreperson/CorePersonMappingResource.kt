@@ -36,7 +36,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
-  @PostMapping("/migrate")
+  @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a tree of core person mappings typically for a migration",

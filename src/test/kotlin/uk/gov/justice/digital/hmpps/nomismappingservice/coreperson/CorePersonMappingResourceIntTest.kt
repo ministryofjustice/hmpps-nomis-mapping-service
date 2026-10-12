@@ -62,7 +62,7 @@ class CorePersonMappingResourceIntTest(
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.post()
-          .uri("/mapping/core-person/migrate")
+          .uri("/mapping/core-person")
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -72,7 +72,7 @@ class CorePersonMappingResourceIntTest(
       @Test
       fun `access forbidden when no role`() {
         webTestClient.post()
-          .uri("/mapping/core-person/migrate")
+          .uri("/mapping/core-person")
           .headers(setAuthorisation(roles = listOf()))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
@@ -83,7 +83,7 @@ class CorePersonMappingResourceIntTest(
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.post()
-          .uri("/mapping/core-person/migrate")
+          .uri("/mapping/core-person")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
@@ -145,7 +145,7 @@ class CorePersonMappingResourceIntTest(
       @Test
       fun `will not allow the same core person to have duplicate mappings`() {
         webTestClient.post()
-          .uri("/mapping/core-person/migrate")
+          .uri("/mapping/core-person")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
@@ -156,7 +156,7 @@ class CorePersonMappingResourceIntTest(
       @Test
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
-          .uri("/mapping/core-person/migrate")
+          .uri("/mapping/core-person")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
@@ -200,7 +200,7 @@ class CorePersonMappingResourceIntTest(
       @Test
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
-          .uri("/mapping/core-person/migrate")
+          .uri("/mapping/core-person")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
@@ -211,7 +211,7 @@ class CorePersonMappingResourceIntTest(
       @Test
       fun `will persist the core person mapping`() = runTest {
         webTestClient.post()
-          .uri("/mapping/core-person/migrate")
+          .uri("/mapping/core-person")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings.copy(label = "2023-01-01T12:45:12")))
@@ -231,7 +231,7 @@ class CorePersonMappingResourceIntTest(
       @Test
       fun `will persist the core person addresses mappings`() = runTest {
         webTestClient.post()
-          .uri("/mapping/core-person/migrate")
+          .uri("/mapping/core-person")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -287,7 +287,7 @@ class CorePersonMappingResourceIntTest(
       @Test
       fun `will persist the core person address usage mappings`() = runTest {
         webTestClient.post()
-          .uri("/mapping/core-person/migrate")
+          .uri("/mapping/core-person")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -346,7 +346,7 @@ class CorePersonMappingResourceIntTest(
       @Test
       fun `will persist the core person email addresses mappings`() = runTest {
         webTestClient.post()
-          .uri("/mapping/core-person/migrate")
+          .uri("/mapping/core-person")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -404,7 +404,7 @@ class CorePersonMappingResourceIntTest(
       @Test
       fun `will persist the core person phone number mappings`() = runTest {
         webTestClient.post()
-          .uri("/mapping/core-person/migrate")
+          .uri("/mapping/core-person")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -1401,7 +1401,7 @@ class CorePersonMappingResourceIntTest(
         ),
       )
       webTestClient.post()
-        .uri("/mapping/core-person/migrate")
+        .uri("/mapping/core-person")
         .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(mappings))
