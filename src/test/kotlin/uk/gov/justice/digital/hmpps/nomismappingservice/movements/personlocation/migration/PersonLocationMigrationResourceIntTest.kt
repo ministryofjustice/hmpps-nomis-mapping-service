@@ -325,44 +325,47 @@ class PersonLocationMigrationResourceIntTest(
       .expectBodyList(PersonLocationBookingMappingDto::class.java)
       .returnResult().responseBody!!
 
-    @Test
-    fun `should return mappings for the requested bookings`() {
-      val mappings = webTestClient.getMappings(listOf(NOMIS_BOOKING_ID, NOMIS_OTHER_BOOKING_ID, NOMIS_NO_MOVEMENTS_BOOKING_ID))
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `should return mappings for the requested bookings`() {
+        val mappings = webTestClient.getMappings(listOf(NOMIS_BOOKING_ID, NOMIS_OTHER_BOOKING_ID, NOMIS_NO_MOVEMENTS_BOOKING_ID))
 
-      assertThat(mappings).containsExactlyInAnyOrder(
-        PersonLocationBookingMappingDto(
-          bookingId = NOMIS_BOOKING_ID,
-          dpsCustodialSeriesId = DPS_CUSTODIAL_SERIES_ID,
-          movements = listOf(
-            PersonLocationMovementMappingDto(nomisMovementSeq = 1, dpsExternalMovementId = DPS_EXTERNAL_MOVEMENT_ID_1),
-            PersonLocationMovementMappingDto(nomisMovementSeq = 2, dpsExternalMovementId = DPS_EXTERNAL_MOVEMENT_ID_2),
+        assertThat(mappings).containsExactlyInAnyOrder(
+          PersonLocationBookingMappingDto(
+            bookingId = NOMIS_BOOKING_ID,
+            dpsCustodialSeriesId = DPS_CUSTODIAL_SERIES_ID,
+            movements = listOf(
+              PersonLocationMovementMappingDto(nomisMovementSeq = 1, dpsExternalMovementId = DPS_EXTERNAL_MOVEMENT_ID_1),
+              PersonLocationMovementMappingDto(nomisMovementSeq = 2, dpsExternalMovementId = DPS_EXTERNAL_MOVEMENT_ID_2),
+            ),
           ),
-        ),
-        PersonLocationBookingMappingDto(
-          bookingId = NOMIS_OTHER_BOOKING_ID,
-          dpsCustodialSeriesId = DPS_OTHER_CUSTODIAL_SERIES_ID,
-          movements = listOf(
-            PersonLocationMovementMappingDto(nomisMovementSeq = 1, dpsExternalMovementId = DPS_OTHER_BOOKING_EXTERNAL_MOVEMENT_ID),
+          PersonLocationBookingMappingDto(
+            bookingId = NOMIS_OTHER_BOOKING_ID,
+            dpsCustodialSeriesId = DPS_OTHER_CUSTODIAL_SERIES_ID,
+            movements = listOf(
+              PersonLocationMovementMappingDto(nomisMovementSeq = 1, dpsExternalMovementId = DPS_OTHER_BOOKING_EXTERNAL_MOVEMENT_ID),
+            ),
           ),
-        ),
-        PersonLocationBookingMappingDto(
-          bookingId = NOMIS_NO_MOVEMENTS_BOOKING_ID,
-          dpsCustodialSeriesId = DPS_NO_MOVEMENTS_CUSTODIAL_SERIES_ID,
-          movements = listOf(),
-        ),
-      )
-    }
+          PersonLocationBookingMappingDto(
+            bookingId = NOMIS_NO_MOVEMENTS_BOOKING_ID,
+            dpsCustodialSeriesId = DPS_NO_MOVEMENTS_CUSTODIAL_SERIES_ID,
+            movements = listOf(),
+          ),
+        )
+      }
 
-    @Test
-    fun `should omit bookings with no mappings`() {
-      val mappings = webTestClient.getMappings(listOf(NOMIS_BOOKING_ID, 99999L))
+      @Test
+      fun `should omit bookings with no mappings`() {
+        val mappings = webTestClient.getMappings(listOf(NOMIS_BOOKING_ID, 99999L))
 
-      assertThat(mappings.map { it.bookingId }).containsExactly(NOMIS_BOOKING_ID)
-    }
+        assertThat(mappings.map { it.bookingId }).containsExactly(NOMIS_BOOKING_ID)
+      }
 
-    @Test
-    fun `should return empty list when no bookings requested`() {
-      assertThat(webTestClient.getMappings(listOf())).isEmpty()
+      @Test
+      fun `should return empty list when no bookings requested`() {
+        assertThat(webTestClient.getMappings(listOf())).isEmpty()
+      }
     }
 
     @Nested

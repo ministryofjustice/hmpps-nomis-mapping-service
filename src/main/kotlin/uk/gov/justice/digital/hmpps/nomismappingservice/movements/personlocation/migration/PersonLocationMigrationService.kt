@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocatio
 
 import kotlinx.coroutines.flow.count
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.PersonLocationMappingType
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.booking.PersonLocationBookingMapping
@@ -27,6 +28,8 @@ class PersonLocationMigrationService(
     migrationRepository.save(PersonLocationMigration(mappings.offenderNo, mappings.migrationId))
   }
 
+  // Repeatable read so both queries see the same snapshot, otherwise a concurrent migration could mix old and new mappings
+  @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
   suspend fun getMappingsByBookingIds(bookingIds: List<Long>): List<PersonLocationBookingMappingDto> {
     if (bookingIds.isEmpty()) return listOf()
 
