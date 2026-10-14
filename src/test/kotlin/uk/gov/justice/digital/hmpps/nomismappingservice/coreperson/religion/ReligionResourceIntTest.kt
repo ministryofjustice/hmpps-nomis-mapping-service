@@ -511,6 +511,18 @@ class ReligionResourceIntTest(
     }
 
     @Nested
+    inner class Validation {
+      @Test
+      fun `returns bad request when ids are omitted`() {
+        webTestClient.put()
+          .uri("/mapping/core-person-religion/religion/$updatedPrisonNumber/cpr-ids")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+    }
+
+    @Nested
     inner class HappyPath {
       @Test
       fun `will retrieve mappings by cprId and update prison number`() = runTest {
