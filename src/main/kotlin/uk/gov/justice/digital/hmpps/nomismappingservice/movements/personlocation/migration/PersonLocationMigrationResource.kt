@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.migration
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -8,6 +9,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -48,4 +50,33 @@ class PersonLocationMigrationResource(
   suspend fun createPersonLocationMappings(
     @RequestBody mappings: PersonLocationsMappingDto,
   ) = service.createMigrationMappings(mappings)
+
+  @PostMapping("/nomis-booking-ids/get-list")
+  @Operation(
+    summary = "Retrieves the custodial series and external movement mappings for the supplied NOMIS booking ids",
+    description = "Bookings without a mapping are omitted from the response. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+      content = [Content(mediaType = "application/json", array = ArraySchema(schema = Schema(implementation = Long::class)))],
+    ),
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mappings returned",
+        content = [Content(mediaType = "application/json", array = ArraySchema(schema = Schema(implementation = PersonLocationBookingMappingDto::class)))],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getPersonLocationMappingsByBookingIds(
+    @RequestBody bookingIds: List<Long>,
+  ): List<PersonLocationBookingMappingDto> = service.getMappingsByBookingIds(bookingIds)
 }

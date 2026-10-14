@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocatio
 
 import kotlinx.coroutines.flow.count
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.PersonLocationMappingType
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.booking.PersonLocationBookingMapping
@@ -25,6 +26,23 @@ class PersonLocationMigrationService(
 
     migrationRepository.deleteById(mappings.offenderNo)
     migrationRepository.save(PersonLocationMigration(mappings.offenderNo, mappings.migrationId))
+  }
+
+  // Repeatable read so both queries see the same snapshot, otherwise a concurrent migration could mix old and new mappings
+  @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
+  suspend fun getMappingsByBookingIds(bookingIds: List<Long>): List<PersonLocationBookingMappingDto> {
+    if (bookingIds.isEmpty()) return listOf()
+
+    val movementsByBooking = movementRepository.findByNomisBookingIdIn(bookingIds).groupBy { it.nomisBookingId }
+    return bookingRepository.findByNomisBookingIdIn(bookingIds).map { booking ->
+      PersonLocationBookingMappingDto(
+        bookingId = booking.nomisBookingId,
+        dpsCustodialSeriesId = booking.dpsCustodialSeriesId,
+        movements = movementsByBooking[booking.nomisBookingId].orEmpty()
+          .sortedBy { it.nomisMovementSeq }
+          .map { PersonLocationMovementMappingDto(nomisMovementSeq = it.nomisMovementSeq, dpsExternalMovementId = it.dpsExternalMovementId) },
+      )
+    }
   }
 
   private suspend fun deleteOldMappings(bookingIds: List<Long>) {
