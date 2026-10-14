@@ -27,6 +27,21 @@ class PersonLocationMigrationService(
     migrationRepository.save(PersonLocationMigration(mappings.offenderNo, mappings.migrationId))
   }
 
+  suspend fun getMappingsByBookingIds(bookingIds: List<Long>): List<PersonLocationBookingMappingDto> {
+    if (bookingIds.isEmpty()) return listOf()
+
+    val movementsByBooking = movementRepository.findByNomisBookingIdIn(bookingIds).groupBy { it.nomisBookingId }
+    return bookingRepository.findByNomisBookingIdIn(bookingIds).map { booking ->
+      PersonLocationBookingMappingDto(
+        bookingId = booking.nomisBookingId,
+        dpsCustodialSeriesId = booking.dpsCustodialSeriesId,
+        movements = movementsByBooking[booking.nomisBookingId].orEmpty()
+          .sortedBy { it.nomisMovementSeq }
+          .map { PersonLocationMovementMappingDto(nomisMovementSeq = it.nomisMovementSeq, dpsExternalMovementId = it.dpsExternalMovementId) },
+      )
+    }
+  }
+
   private suspend fun deleteOldMappings(bookingIds: List<Long>) {
     bookingRepository.deleteByNomisBookingIdIn(bookingIds)
     movementRepository.deleteByNomisBookingIdIn(bookingIds)

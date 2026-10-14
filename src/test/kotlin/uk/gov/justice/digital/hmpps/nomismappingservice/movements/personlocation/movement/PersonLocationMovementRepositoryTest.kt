@@ -99,4 +99,17 @@ class PersonLocationMovementRepositoryTest(
     assertThat(repository.findById(otherBookingDpsId)).isNull()
     assertThat(repository.findById(untouchedDpsId)).isNotNull
   }
+
+  @Test
+  fun `should find mappings by NOMIS booking ids`() = runTest {
+    val sameBookingDpsId = UUID.randomUUID()
+    val otherBookingDpsId = UUID.randomUUID()
+    repository.save(PersonLocationMovementMapping(dpsId, bookingId, 1, "some_label", PersonLocationMappingType.MIGRATED))
+    repository.save(PersonLocationMovementMapping(sameBookingDpsId, bookingId, 2, "some_label", PersonLocationMappingType.MIGRATED))
+    repository.save(PersonLocationMovementMapping(otherBookingDpsId, 54322L, 1, "some_label", PersonLocationMappingType.MIGRATED))
+    repository.save(PersonLocationMovementMapping(UUID.randomUUID(), 54323L, 1, "some_label", PersonLocationMappingType.MIGRATED))
+
+    assertThat(repository.findByNomisBookingIdIn(listOf(bookingId, 54322L, 99999L)).map { it.dpsExternalMovementId })
+      .containsExactlyInAnyOrder(dpsId, sameBookingDpsId, otherBookingDpsId)
+  }
 }

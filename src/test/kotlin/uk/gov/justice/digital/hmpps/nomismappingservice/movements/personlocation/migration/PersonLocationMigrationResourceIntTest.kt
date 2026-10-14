@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationT
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.PersonLocationMappingType
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.booking.PersonLocationBookingMapping
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.booking.PersonLocationBookingRepository
+import uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.movement.PersonLocationMovementMapping
 import uk.gov.justice.digital.hmpps.nomismappingservice.movements.personlocation.movement.PersonLocationMovementRepository
 import java.util.*
 
@@ -260,6 +261,140 @@ class PersonLocationMigrationResourceIntTest(
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("POST /mapping/person-location/nomis-booking-ids/get-list")
+  inner class GetMappingsByBookingIds {
+    private val NOMIS_BOOKING_ID = 12345L
+    private val DPS_CUSTODIAL_SERIES_ID = UUID.randomUUID()
+    private val DPS_EXTERNAL_MOVEMENT_ID_1 = UUID.randomUUID()
+    private val DPS_EXTERNAL_MOVEMENT_ID_2 = UUID.randomUUID()
+    private val NOMIS_OTHER_BOOKING_ID = 12344L
+    private val DPS_OTHER_CUSTODIAL_SERIES_ID = UUID.randomUUID()
+    private val DPS_OTHER_BOOKING_EXTERNAL_MOVEMENT_ID = UUID.randomUUID()
+    private val NOMIS_NO_MOVEMENTS_BOOKING_ID = 12343L
+    private val DPS_NO_MOVEMENTS_CUSTODIAL_SERIES_ID = UUID.randomUUID()
+    private val NOMIS_UNREQUESTED_BOOKING_ID = 12342L
+
+    @BeforeEach
+    fun setUp() = runTest {
+      movementRepository.deleteAll()
+      bookingRepository.deleteAll()
+
+      saveBooking(DPS_CUSTODIAL_SERIES_ID, NOMIS_BOOKING_ID)
+      saveMovement(DPS_EXTERNAL_MOVEMENT_ID_1, NOMIS_BOOKING_ID, 1)
+      saveMovement(DPS_EXTERNAL_MOVEMENT_ID_2, NOMIS_BOOKING_ID, 2)
+      saveBooking(DPS_OTHER_CUSTODIAL_SERIES_ID, NOMIS_OTHER_BOOKING_ID)
+      saveMovement(DPS_OTHER_BOOKING_EXTERNAL_MOVEMENT_ID, NOMIS_OTHER_BOOKING_ID, 1)
+      saveBooking(DPS_NO_MOVEMENTS_CUSTODIAL_SERIES_ID, NOMIS_NO_MOVEMENTS_BOOKING_ID)
+      saveBooking(UUID.randomUUID(), NOMIS_UNREQUESTED_BOOKING_ID)
+      saveMovement(UUID.randomUUID(), NOMIS_UNREQUESTED_BOOKING_ID, 1)
+    }
+
+    private suspend fun saveBooking(dpsId: UUID, bookingId: Long) = bookingRepository.save(
+      PersonLocationBookingMapping(
+        dpsCustodialSeriesId = dpsId,
+        nomisBookingId = bookingId,
+        label = "some_label",
+        mappingType = PersonLocationMappingType.MIGRATED,
+      ),
+    )
+
+    private suspend fun saveMovement(dpsId: UUID, bookingId: Long, sequence: Int) = movementRepository.save(
+      PersonLocationMovementMapping(
+        dpsExternalMovementId = dpsId,
+        nomisBookingId = bookingId,
+        nomisMovementSeq = sequence,
+        label = "some_label",
+        mappingType = PersonLocationMappingType.MIGRATED,
+      ),
+    )
+
+    private fun WebTestClient.getMappings(bookingIds: List<Long>) = post()
+      .uri("/mapping/person-location/nomis-booking-ids/get-list")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .contentType(MediaType.APPLICATION_JSON)
+      .body(BodyInserters.fromValue(bookingIds))
+      .exchange()
+      .expectStatus().isOk
+      .expectBodyList(PersonLocationBookingMappingDto::class.java)
+      .returnResult().responseBody!!
+
+    @Test
+    fun `should return mappings for the requested bookings`() {
+      val mappings = webTestClient.getMappings(listOf(NOMIS_BOOKING_ID, NOMIS_OTHER_BOOKING_ID, NOMIS_NO_MOVEMENTS_BOOKING_ID))
+
+      assertThat(mappings).containsExactlyInAnyOrder(
+        PersonLocationBookingMappingDto(
+          bookingId = NOMIS_BOOKING_ID,
+          dpsCustodialSeriesId = DPS_CUSTODIAL_SERIES_ID,
+          movements = listOf(
+            PersonLocationMovementMappingDto(nomisMovementSeq = 1, dpsExternalMovementId = DPS_EXTERNAL_MOVEMENT_ID_1),
+            PersonLocationMovementMappingDto(nomisMovementSeq = 2, dpsExternalMovementId = DPS_EXTERNAL_MOVEMENT_ID_2),
+          ),
+        ),
+        PersonLocationBookingMappingDto(
+          bookingId = NOMIS_OTHER_BOOKING_ID,
+          dpsCustodialSeriesId = DPS_OTHER_CUSTODIAL_SERIES_ID,
+          movements = listOf(
+            PersonLocationMovementMappingDto(nomisMovementSeq = 1, dpsExternalMovementId = DPS_OTHER_BOOKING_EXTERNAL_MOVEMENT_ID),
+          ),
+        ),
+        PersonLocationBookingMappingDto(
+          bookingId = NOMIS_NO_MOVEMENTS_BOOKING_ID,
+          dpsCustodialSeriesId = DPS_NO_MOVEMENTS_CUSTODIAL_SERIES_ID,
+          movements = listOf(),
+        ),
+      )
+    }
+
+    @Test
+    fun `should omit bookings with no mappings`() {
+      val mappings = webTestClient.getMappings(listOf(NOMIS_BOOKING_ID, 99999L))
+
+      assertThat(mappings.map { it.bookingId }).containsExactly(NOMIS_BOOKING_ID)
+    }
+
+    @Test
+    fun `should return empty list when no bookings requested`() {
+      assertThat(webTestClient.getMappings(listOf())).isEmpty()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/person-location/nomis-booking-ids/get-list")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(listOf(NOMIS_BOOKING_ID)))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/person-location/nomis-booking-ids/get-list")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(listOf(NOMIS_BOOKING_ID)))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/person-location/nomis-booking-ids/get-list")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(listOf(NOMIS_BOOKING_ID)))
           .exchange()
           .expectStatus().isForbidden
       }
