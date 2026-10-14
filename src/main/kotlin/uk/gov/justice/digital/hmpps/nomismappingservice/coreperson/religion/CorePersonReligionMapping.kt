@@ -9,7 +9,7 @@ class CorePersonReligionMapping(
   @Id
   val nomisId: Long,
   val cprId: String,
-  val nomisPrisonNumber: String,
+  var nomisPrisonNumber: String,
   label: String? = null,
   mappingType: StandardMappingType,
   whenCreated: LocalDateTime? = null,

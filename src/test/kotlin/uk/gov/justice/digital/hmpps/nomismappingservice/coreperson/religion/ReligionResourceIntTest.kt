@@ -445,6 +445,108 @@ class ReligionResourceIntTest(
   }
 
   @Nested
+  @DisplayName("PUT /mapping/core-person-religion/religion/{prisonNumber}/cpr-ids")
+  inner class UpdateReligionMappingsByCprId {
+    private val ids = arrayOf("61f19a0a-dc46-4771-b6d2-e920c6bd151f", "a16877a5-f5fc-4a58-a08b-cfe84d653f5b")
+    private val updatedPrisonNumber = "Z9876YX"
+
+    @BeforeEach
+    fun setUp() = runTest {
+      religionMappingRepository.saveAll(
+        listOf(
+          CorePersonReligionMapping(
+            cprId = ids[0],
+            nomisId = 9831302L,
+            nomisPrisonNumber = "A1234BC",
+            mappingType = StandardMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2021-02-01T12:35"),
+          ),
+          CorePersonReligionMapping(
+            cprId = ids[1],
+            nomisId = 6837812L,
+            nomisPrisonNumber = "B1234CD",
+            mappingType = StandardMappingType.MIGRATED,
+            whenCreated = LocalDateTime.parse("2020-01-01T10:15"),
+          ),
+        ),
+      ).collect()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access unauthorised when no authority`() {
+        webTestClient.put()
+          .uri {
+            it.path("/mapping/core-person-religion/religion/$updatedPrisonNumber/cpr-ids")
+            it.queryParam("ids", *ids).build()
+          }
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.put()
+          .uri {
+            it.path("/mapping/core-person-religion/religion/$updatedPrisonNumber/cpr-ids")
+            it.queryParam("ids", *ids).build()
+          }
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.put()
+          .uri {
+            it.path("/mapping/core-person-religion/religion/$updatedPrisonNumber/cpr-ids")
+            it.queryParam("ids", *ids).build()
+          }
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `returns bad request when ids are omitted`() {
+        webTestClient.put()
+          .uri("/mapping/core-person-religion/religion/$updatedPrisonNumber/cpr-ids")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will retrieve mappings by cprId and update prison number`() = runTest {
+        val response = webTestClient.put()
+          .uri {
+            it.path("/mapping/core-person-religion/religion/$updatedPrisonNumber/cpr-ids")
+            it.queryParam("ids", *ids).build()
+          }
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody<List<ReligionMappingDto>>()
+          .returnResult().responseBody!!
+
+        assertThat(response).hasSize(2)
+        assertThat(response.map { it.nomisPrisonNumber }).containsOnly(updatedPrisonNumber)
+        val persistedMappings = religionMappingRepository.findByCprIdIn(ids.toList())
+        assertThat(persistedMappings).hasSize(2)
+        assertThat(persistedMappings.map { it.nomisPrisonNumber }).containsOnly(updatedPrisonNumber)
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("POST /mapping/core-person-religion/replace")
   inner class ReplaceReligionMappings {
     val nomisPrisonNumber = "A1234BC"
