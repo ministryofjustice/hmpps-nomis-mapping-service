@@ -239,7 +239,7 @@ class ReligionResource(private val religionService: ReligionService) {
 
   @PutMapping("/religion/{prisonNumber}/cpr-ids")
   @Operation(
-    summary = "Get religion mappings by cpr ids",
+    summary = "Update prisonNumber on religion mappings by cpr ids",
     description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
@@ -258,13 +258,14 @@ class ReligionResource(private val religionService: ReligionService) {
       ),
     ],
   )
-  suspend fun getReligionMappingsByCprIds(
-    @PathVariable(name = "prisonNumber", required = true)
+  suspend fun updatePrisonNumberOnReligionMappingsByCprIds(
+    @Schema(description = "Prison number", example = "1234", required = true)
+    @PathVariable
     prisonNumber: String,
     @RequestParam(name = "ids", required = true)
     @Parameter(required = true, description = "Cpr religion ids", example = "802dfae7-45f0-4c22-b369-bfe7da5e54e2")
     ids: List<String>,
-  ): List<ReligionMappingDto> = religionService.updateReligionMappingsByCprIds(toPrisonNumber = prisonNumber, cprIds = ids)
+  ): List<ReligionMappingDto> = religionService.updatePrisonNumberOnReligionMappingsByCprIds(toPrisonNumber = prisonNumber, cprIds = ids)
 
   private suspend fun getExistingReligionMappingSimilarTo(mapping: ReligionMappingDto) = runCatching {
     religionService.getReligionMappingByNomisId(mapping.nomisId)
