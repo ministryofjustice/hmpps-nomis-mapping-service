@@ -30,6 +30,8 @@ class ReligionService(
     cprIds = cprIds,
   ).map { it.toDto() }
 
+  suspend fun updateReligionMappingsByCprIds(toPrisonNumber: String, cprIds: List<String>) = religionMappingRepository.updatePrisonNumberByCprIds(cprIds = cprIds, toPrisonNumber = toPrisonNumber).map { it.toDto() }
+
   suspend fun getReligionMappingByCprIdOrNull(cprId: String) = religionMappingRepository.findOneByCprId(
     cprId = cprId,
   )

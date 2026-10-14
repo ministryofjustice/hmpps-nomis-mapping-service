@@ -16,6 +16,7 @@ import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -236,6 +237,35 @@ class ReligionResource(private val religionService: ReligionService) {
     ids: List<String>,
   ): List<ReligionMappingDto> = religionService.getReligionMappingsByCprIds(cprIds = ids)
 
+  @PutMapping("/religion/{prisonNumber}/cpr-ids")
+  @Operation(
+    summary = "Get religion mappings by cpr ids",
+    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping data",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getReligionMappingsByCprIds(
+    @PathVariable(name = "prisonNumber", required = true)
+    prisonNumber: String,
+    @RequestParam(name = "ids", required = true)
+    @Parameter(required = true, description = "Cpr religion ids", example = "802dfae7-45f0-4c22-b369-bfe7da5e54e2")
+    ids: List<String>,
+  ): List<ReligionMappingDto> = religionService.updateReligionMappingsByCprIds(toPrisonNumber = prisonNumber, cprIds = ids)
+
   private suspend fun getExistingReligionMappingSimilarTo(mapping: ReligionMappingDto) = runCatching {
     religionService.getReligionMappingByNomisId(mapping.nomisId)
   }.getOrElse {
@@ -244,14 +274,6 @@ class ReligionResource(private val religionService: ReligionService) {
     )
   }
 }
-
-data class ReligionsMappingDto(
-  val cprId: String,
-  val nomisPrisonNumber: String,
-  val label: String?,
-  val mappingType: StandardMappingType,
-  val whenCreated: LocalDateTime? = null,
-)
 
 data class ReligionMappingDto(
   val cprId: String,
