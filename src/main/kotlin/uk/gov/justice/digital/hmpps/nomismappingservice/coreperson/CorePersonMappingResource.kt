@@ -120,11 +120,11 @@ class CorePersonMappingResource(private val service: CorePersonService) {
 
   @DeleteMapping("/delete")
   @Operation(
-    summary = "Deletes the migration so that it can be rerun on all of the prisoners",
+    summary = "Deletes the core person migration so that it can be rerun on all of the prisoners",
     description = """Deletes. 
       Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
     responses = [
-      ApiResponse(responseCode = "200", description = "Migration deleted"),
+      ApiResponse(responseCode = "200", description = "Core person migration deleted"),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
@@ -138,7 +138,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     ],
   )
   suspend fun deleteCorePersonMigration() = service.deleteCorePersonMigration().also {
-    log.info("Deleted migration")
+    log.info("Deleted core person migration")
   }
 
   @GetMapping("/migration-id/{migrationId}")
