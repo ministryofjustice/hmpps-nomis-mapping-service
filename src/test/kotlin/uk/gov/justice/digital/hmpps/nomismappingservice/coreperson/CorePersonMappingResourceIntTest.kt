@@ -745,6 +745,76 @@ class CorePersonMappingResourceIntTest(
     }
   }
 
+  @Nested
+  @DisplayName("DELETE /mapping/core-person/delete")
+  inner class DeleteCorePersonMigration {
+    private val nomisPrisonNumber = "A1234BC"
+
+    @BeforeEach
+    fun setUp() = runTest {
+      corePersonMappingRepository.save(
+        CorePersonMapping(
+          cprId = "084bde26-a0e4-43dc-8fa9-c7e2cceab7f1",
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+        ),
+      )
+      corePersonMappingRepository.save(
+        CorePersonMapping(
+          cprId = "6a0d1f7a-98df-4fdd-b168-cbbc4f7e0b79",
+          nomisPrisonNumber = "D1234EF",
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/core-person/delete")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/core-person/delete")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/core-person/delete")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will delete all core person mappings`() = runTest {
+        assertThat(corePersonMappingRepository.findAll().toList()).isNotEmpty()
+        webTestClient.delete()
+          .uri("/mapping/core-person/delete")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+
+        assertThat(corePersonMappingRepository.findAll().toList()).isEmpty()
+      }
+    }
+  }
+
   @DisplayName("GET /mapping/core-person/migration-id/{migrationId}")
   @Nested
   inner class GetCorePersonMappingsByMigrationId {

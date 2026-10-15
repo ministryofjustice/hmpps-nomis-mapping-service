@@ -204,6 +204,11 @@ class CorePersonService(
     .save(mapping.toMapping())
 
   @Transactional
+  suspend fun deleteCorePersonMigration() {
+    corePersonMappingRepository.deleteAll()
+  }
+
+  @Transactional
   suspend fun replaceMappings(mappings: CorePersonMappingsDto) {
     with(mappings) {
       corePersonAddressMappingRepository.deleteAllByNomisPrisonNumber(personMapping.nomisPrisonNumber)
