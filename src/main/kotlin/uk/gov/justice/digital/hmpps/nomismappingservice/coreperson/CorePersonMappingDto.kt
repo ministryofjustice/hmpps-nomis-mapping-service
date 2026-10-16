@@ -74,30 +74,8 @@ class CorePersonAddressMappingDto(
   label: String?,
   mappingType: CorePersonMappingType,
   whenCreated: LocalDateTime?,
-) : AbstractCorePersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
-
-class CorePersonPhoneMappingDto(
-  @Schema(description = "CPR id")
-  val cprId: String,
-  @Schema(description = "NOMIS id")
-  val nomisId: Long,
-  @Schema(description = "NOMIS prison number aka Offender number")
-  val nomisPrisonNumber: String,
-  label: String?,
-  mappingType: CorePersonMappingType,
-  whenCreated: LocalDateTime?,
-) : AbstractCorePersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
-
-class CorePersonEmailAddressMappingDto(
-  @Schema(description = "CPR id")
-  val cprId: String,
-  @Schema(description = "NOMIS id")
-  val nomisId: Long,
-  @Schema(description = "NOMIS prison number aka Offender number")
-  val nomisPrisonNumber: String,
-  label: String?,
-  mappingType: CorePersonMappingType,
-  whenCreated: LocalDateTime?,
+  @Schema(description = "Address usage mappings, only sent and not returned in the get calls")
+  val addressUsageMappings: List<CorePersonAddressUsageMappingDto>? = null,
 ) : AbstractCorePersonMappingDto(label = label, mappingType = mappingType, whenCreated = whenCreated)
 
 class CorePersonContactMappingDto(
