@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -95,6 +96,9 @@ class CorePersonService(
   @Transactional
   suspend fun createAddressMapping(mapping: CorePersonAddressMappingDto) {
     corePersonAddressMappingRepository.save(mapping.toMapping())
+    mapping.addressUsageMappings?.takeIf { it.isNotEmpty() }?.let { mappings ->
+      corePersonAddressUsageMappingRepository.saveAll(mappings.map { it.toMapping() }).collect()
+    }
   }
 
   suspend fun getAddressUsageMappingByNomisId(nomisId: Long, addressUsageCode: String) = corePersonAddressUsageMappingRepository
