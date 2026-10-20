@@ -93,8 +93,8 @@ class CorePersonMappingResource(private val service: CorePersonService) {
 
   @PostMapping("/replace")
   @Operation(
-    summary = "Replaces alias and identifier mappings.",
-    description = """Creates lists of alias and identifier mappings and removes the previous supplied set.
+    summary = "Replaces addresses and contacts mappings.",
+    description = """Creates lists of addresses and contacts mappings and removes the previous supplied set.
       This does not add or remove any data from any associated parent CorePersonMappingDto entry. 
       Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
     responses = [
@@ -116,6 +116,32 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     mappings: CorePersonMappingsDto,
   ) = service.replaceMappings(mappings).also {
     log.info("Replaced mappings for nomis prisoner number ${mappings.personMapping.nomisPrisonNumber}")
+  }
+
+  @PostMapping("/replaceMergeMappings")
+  @Operation(
+    summary = "Replaces mappings after a merge",
+    description = """Replaces mappings after a merge on the to person. The mappings of the from person will be deleted 
+      Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
+    responses = [
+      ApiResponse(responseCode = "200", description = "Mappings replaced"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun replaceMergeMappings(
+    @RequestBody @Valid
+    mappings: CorePersonMergeMappingsDto,
+  ) = service.replaceMergeMappings(mappings).also {
+    log.info("Replaced mappings for merged to nomis prisoner number ${mappings.toNomisPrisonNumber} deleted mappings for the merged from nomis prisoner number ${mappings.fromNomisPrisonNumber}")
   }
 
   @DeleteMapping("/delete")

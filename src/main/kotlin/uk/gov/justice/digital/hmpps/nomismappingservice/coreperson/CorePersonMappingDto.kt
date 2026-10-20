@@ -24,6 +24,21 @@ data class CorePersonMappingsDto(
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Mappings for a Core Person and its associated child entities after it has been merged to.")
+data class CorePersonMergeMappingsDto(
+  @Schema(description = "NOMIS Prison number aka Offender number of the person being merged to")
+  val toNomisPrisonNumber: String,
+  @Schema(description = "NOMIS Prison number aka Offender number of the person being merged from")
+  val fromNomisPrisonNumber: String,
+  @Schema(description = "Core Person address mappings of the person being merged to")
+  val addresses: List<CorePersonAddressMappingDto>,
+  @Schema(description = "Core Person contact mappings of the person being merged to")
+  val contacts: List<CorePersonContactMappingDto>,
+  @Schema(description = "Core Person address usage mappings of the person being merged to")
+  val addressUsages: List<CorePersonAddressUsageMappingDto>,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "NOMIS to CPR core person mapping IDs")
 data class CorePersonMappingIdDto(
   @Schema(description = "CPR id")
