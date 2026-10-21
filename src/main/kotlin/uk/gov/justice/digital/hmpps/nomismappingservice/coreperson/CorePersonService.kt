@@ -24,7 +24,7 @@ class CorePersonService(
   private val offenderAliasMappingRepository: OffenderAliasMappingRepository,
 ) {
   @Transactional
-  suspend fun replaceMergeMappings(mappings: CorePersonMergeMappingsDto) {
+  suspend fun merge(mappings: CorePersonMergeMappingsDto) {
     replaceAddressesAndContactsMappings(
       prisonNumber = mappings.toNomisPrisonNumber,
       contacts = mappings.contacts,

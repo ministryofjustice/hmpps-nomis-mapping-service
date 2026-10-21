@@ -118,10 +118,10 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     log.info("Replaced mappings for nomis prisoner number ${mappings.personMapping.nomisPrisonNumber}")
   }
 
-  @PostMapping("/replaceMergeMappings")
+  @PostMapping("/merge")
   @Operation(
-    summary = "Replaces mappings after a merge",
-    description = """Replaces mappings after a merge on the to person. The mappings of the from person will be deleted 
+    summary = "Replaces mappings for a merge",
+    description = """Replaces mappings for a merge with the provided mappings on the to person. The mappings of the from person will be deleted 
       Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
     responses = [
       ApiResponse(responseCode = "200", description = "Mappings replaced"),
@@ -137,10 +137,10 @@ class CorePersonMappingResource(private val service: CorePersonService) {
       ),
     ],
   )
-  suspend fun replaceMergeMappings(
+  suspend fun merge(
     @RequestBody @Valid
     mappings: CorePersonMergeMappingsDto,
-  ) = service.replaceMergeMappings(mappings).also {
+  ) = service.merge(mappings).also {
     log.info("Replaced mappings for merged to nomis prisoner number ${mappings.toNomisPrisonNumber} deleted mappings for the merged from nomis prisoner number ${mappings.fromNomisPrisonNumber}")
   }
 
