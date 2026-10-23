@@ -39,6 +39,46 @@ data class CorePersonMergeMappingsDto(
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Lists of mappings requested directly by ids")
+data class CorePersonMappingsResult(
+  @Schema(description = "List of address mappings requested")
+  val addresses: List<CorePersonAddressMappingDto>,
+  @Schema(description = "List of contact mappings requested")
+  val contacts: List<CorePersonContactMappingDto>,
+  @Schema(description = "List of address usage mappings requested")
+  val addressUsages: List<CorePersonAddressUsageMappingDto>,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Request for mappings on nomis ids")
+data class CorePersonMappingsByNomisIdsRequest(
+  @Schema(description = "Address mappings with requested nomis ids")
+  val addresses: List<Long>,
+  @Schema(description = "Contacts with requested nomis ids")
+  val contacts: List<ContactByNomisIdRequest>,
+  @Schema(description = "Address usages with requested nomis ids")
+  val addressUsages: List<AddressUsageByNomisIdRequest>,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Request for a contact mapping on nomis id")
+data class ContactByNomisIdRequest(
+  @Schema(description = "NOMIS id")
+  val nomisId: Long,
+  @Schema(description = "NOMIS contact type")
+  val nomisContactType: NomisContactType,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Request for an address usage mapping on nomis id")
+data class AddressUsageByNomisIdRequest(
+  @Schema(description = "NOMIS id")
+  val nomisId: Long,
+  @Schema(description = "NOMIS address usage code")
+  val addressUsageCode: String,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "NOMIS to CPR core person mapping IDs")
 data class CorePersonMappingIdDto(
   @Schema(description = "CPR id")

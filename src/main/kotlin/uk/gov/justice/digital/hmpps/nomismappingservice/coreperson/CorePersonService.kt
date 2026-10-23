@@ -276,6 +276,24 @@ class CorePersonService(
 
   @Transactional
   suspend fun replaceMappings(mappings: CorePersonMappingsDto) = replaceAddressesAndContactsMappings(mappings.personMapping.nomisPrisonNumber, mappings.contacts, mappings.addresses, mappings.addressUsages)
+
+  @Transactional(readOnly = true)
+  suspend fun getMappingResultFromNomisIds(mappingRequest: CorePersonMappingsByNomisIdsRequest): CorePersonMappingsResult {
+    val matchingAddresses = corePersonAddressMappingRepository.findAllByNomisIdIn(mappingRequest.addresses).map { it.toDto() }
+    val requestedContacts = mappingRequest.contacts
+    val matchingContacts = corePersonContactMappingRepository.findAllByNomisIdIn(mappingRequest.contacts.map { it.nomisId })
+      .filter { mapping -> requestedContacts.any { it.nomisId == mapping.nomisId && it.nomisContactType == mapping.nomisContactType } }
+      .map { it.toDto() }
+    val requestedAddressUsages = mappingRequest.addressUsages
+    val matchingAddressUsages = corePersonAddressUsageMappingRepository.findAllByNomisIdIn(requestedAddressUsages.map { it.nomisId })
+      .filter { mapping -> requestedAddressUsages.any { it.nomisId == mapping.nomisId && it.addressUsageCode == mapping.addressUsageCode } }
+      .map { it.toDto() }
+    return CorePersonMappingsResult(
+      addresses = matchingAddresses,
+      contacts = matchingContacts,
+      addressUsages = matchingAddressUsages,
+    )
+  }
 }
 
 private fun CorePersonMappingsDto.toCorePersonMapping() = CorePersonMapping(

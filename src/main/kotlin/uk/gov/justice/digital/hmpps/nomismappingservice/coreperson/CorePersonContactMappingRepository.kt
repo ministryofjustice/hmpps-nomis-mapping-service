@@ -9,4 +9,5 @@ interface CorePersonContactMappingRepository : CoroutineCrudRepository<CorePerso
   suspend fun findOneByCprId(cprId: String): CorePersonContactMapping?
   suspend fun deleteByNomisIdAndNomisContactType(nomisId: Long, nomisContactType: NomisContactType)
   suspend fun deleteAllByNomisPrisonNumber(nomisPrisonNumber: String)
+  suspend fun findAllByNomisIdIn(nomisIds: List<Long>): List<CorePersonContactMapping>
 }

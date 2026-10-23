@@ -768,6 +768,35 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     profileType: String,
   ): ProfileMappingDto = service.getProfileMappingByNomisId(bookingId, profileType)
 
+  @PostMapping("/mappings/by-nomis-ids")
+  @Operation(
+    summary = "Get mapping by nomis ids",
+    description = """Retrieves mappings by nomis ids. 
+    Used during a merge to find existing corresponding cpr ids. 
+    These can then be passed these to the cpr service and allow cpr to maintain them.
+    Maintaining cpr ids allows down stream services to continue to use them.
+    Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping data",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getMappingsFromNomisIds(
+    @RequestBody mappingRequest: CorePersonMappingsByNomisIdsRequest,
+  ): CorePersonMappingsResult = service.getMappingResultFromNomisIds(mappingRequest)
+
   private suspend fun getExistingCorePersonMappingSimilarTo(personMapping: CorePersonMappingIdDto) = runCatching {
     service.getCorePersonMappingByNomisPrisonNumber(
       nomisPrisonNumber = personMapping.nomisPrisonNumber,
