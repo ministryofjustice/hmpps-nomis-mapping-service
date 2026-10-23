@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson
 
+import jakarta.validation.ValidationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
@@ -23,6 +24,32 @@ class CorePersonService(
   private val offenderIdentifierMappingRepository: OffenderIdentifierMappingRepository,
   private val offenderAliasMappingRepository: OffenderAliasMappingRepository,
 ) {
+  @Transactional
+  suspend fun merge(mappings: CorePersonMergeMappingsDto) {
+    validate(mappings)
+    corePersonAddressMappingRepository.deleteAllByNomisPrisonNumber(mappings.fromNomisPrisonNumber)
+    corePersonContactMappingRepository.deleteAllByNomisPrisonNumber(mappings.fromNomisPrisonNumber)
+    corePersonAddressUsageMappingRepository.deleteAllByNomisPrisonNumber(mappings.fromNomisPrisonNumber)
+    replaceAddressesAndContactsMappings(
+      prisonNumber = mappings.toNomisPrisonNumber,
+      contacts = mappings.contacts,
+      addresses = mappings.addresses,
+      addressUsages = mappings.addressUsages,
+    )
+  }
+
+  private fun validate(mappings: CorePersonMergeMappingsDto) {
+    if (mappings.toNomisPrisonNumber == mappings.fromNomisPrisonNumber) {
+      throw ValidationException("to nomis prison number: ${mappings.toNomisPrisonNumber} and from nomis prison number: ${mappings.toNomisPrisonNumber} cannot be the same")
+    }
+    if (mappings.addresses.any { it.nomisPrisonNumber != mappings.toNomisPrisonNumber } ||
+      mappings.contacts.any { it.nomisPrisonNumber != mappings.toNomisPrisonNumber } ||
+      mappings.addressUsages.any { it.nomisPrisonNumber != mappings.toNomisPrisonNumber }
+    ) {
+      throw ValidationException("Child mappings must have the same nomis prison number as the to nomis prison number: ${mappings.toNomisPrisonNumber}")
+    }
+  }
+
   @Transactional
   suspend fun createMappings(mappings: CorePersonMappingsDto) {
     with(mappings) {
@@ -213,33 +240,42 @@ class CorePersonService(
   }
 
   @Transactional
-  suspend fun replaceMappings(mappings: CorePersonMappingsDto) {
-    with(mappings) {
-      corePersonAddressMappingRepository.deleteAllByNomisPrisonNumber(personMapping.nomisPrisonNumber)
-      corePersonContactMappingRepository.deleteAllByNomisPrisonNumber(personMapping.nomisPrisonNumber)
-      corePersonAddressUsageMappingRepository.deleteAllByNomisPrisonNumber(personMapping.nomisPrisonNumber)
-      // In the event of a merge, it's possible that we need to delete dangling identifiers.
-      mappings.addresses.forEach {
-        corePersonAddressMappingRepository.deleteByNomisId(it.nomisId)
-      }
-      mappings.contacts.forEach {
-        corePersonContactMappingRepository.deleteByNomisIdAndNomisContactType(it.nomisId, it.nomisContactType)
-      }
-      mappings.addressUsages.forEach {
-        corePersonAddressUsageMappingRepository.deleteByNomisIdAndAddressUsageCode(it.nomisId, it.addressUsageCode)
-      }
-      // Save the new mappings
-      mappings.addresses.forEach {
-        corePersonAddressMappingRepository.save(it.toMapping())
-      }
-      mappings.contacts.forEach {
-        corePersonContactMappingRepository.save(it.toMapping())
-      }
-      mappings.addressUsages.forEach {
-        corePersonAddressUsageMappingRepository.save(it.toMapping())
-      }
+  internal suspend fun replaceAddressesAndContactsMappings(
+    prisonNumber: String,
+    contacts: List<CorePersonContactMappingDto>,
+    addresses: List<CorePersonAddressMappingDto>,
+    addressUsages: List<CorePersonAddressUsageMappingDto>,
+  ) {
+    corePersonAddressMappingRepository.deleteAllByNomisPrisonNumber(prisonNumber)
+    corePersonContactMappingRepository.deleteAllByNomisPrisonNumber(prisonNumber)
+    corePersonAddressUsageMappingRepository.deleteAllByNomisPrisonNumber(prisonNumber)
+    // In the event of a merge, it's possible that we need to delete dangling identifiers.
+    addresses.forEach {
+      corePersonAddressMappingRepository.deleteByNomisId(it.nomisId)
+      corePersonAddressUsageMappingRepository.deleteById(it.cprId)
+    }
+    contacts.forEach {
+      corePersonContactMappingRepository.deleteByNomisIdAndNomisContactType(it.nomisId, it.nomisContactType)
+      corePersonContactMappingRepository.deleteById(it.cprId)
+    }
+    addressUsages.forEach {
+      corePersonAddressUsageMappingRepository.deleteByNomisIdAndAddressUsageCode(it.nomisId, it.addressUsageCode)
+      corePersonAddressUsageMappingRepository.deleteById(it.cprId)
+    }
+    // Save the new mappings
+    addresses.forEach {
+      corePersonAddressMappingRepository.save(it.toMapping())
+    }
+    contacts.forEach {
+      corePersonContactMappingRepository.save(it.toMapping())
+    }
+    addressUsages.forEach {
+      corePersonAddressUsageMappingRepository.save(it.toMapping())
     }
   }
+
+  @Transactional
+  suspend fun replaceMappings(mappings: CorePersonMappingsDto) = replaceAddressesAndContactsMappings(mappings.personMapping.nomisPrisonNumber, mappings.contacts, mappings.addresses, mappings.addressUsages)
 }
 
 private fun CorePersonMappingsDto.toCorePersonMapping() = CorePersonMapping(
