@@ -1194,7 +1194,7 @@ class CorePersonMappingResourceIntTest(
     inner class Security {
       val request = CorePersonMappingsByNomisIdsRequest(
         addresses = listOf(101L),
-        contacts = listOf(201L),
+        contacts = listOf(ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.EMAIL)),
         addressUsages = listOf(AddressUsageByNomisIdRequest(nomisId = 101L, addressUsageCode = "HOME")),
       )
 
@@ -1239,7 +1239,7 @@ class CorePersonMappingResourceIntTest(
           .uri("/mapping/core-person/mappings/by-nomis-ids")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
-          .bodyValue("""{ "addresses": [101], "contacts": [201] }""")
+          .bodyValue("""{ "addresses": [101], "contacts": [{"nomisId": 201, "nomisContactType": "EMAIL"}] }""")
           .exchange()
           .expectStatus().isBadRequest
       }
@@ -1293,7 +1293,10 @@ class CorePersonMappingResourceIntTest(
             BodyInserters.fromValue(
               CorePersonMappingsByNomisIdsRequest(
                 addresses = emptyList(),
-                contacts = listOf(201L, 202L),
+                contacts = listOf(
+                  ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.EMAIL),
+                  ContactByNomisIdRequest(nomisId = 202L, nomisContactType = NomisContactType.PHONE),
+                ),
                 addressUsages = emptyList(),
               ),
             ),
@@ -1351,7 +1354,7 @@ class CorePersonMappingResourceIntTest(
             BodyInserters.fromValue(
               CorePersonMappingsByNomisIdsRequest(
                 addresses = listOf(101L),
-                contacts = listOf(201L),
+                contacts = listOf(ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.EMAIL)),
                 addressUsages = listOf(
                   AddressUsageByNomisIdRequest(nomisId = 101L, addressUsageCode = "HOME"),
                   AddressUsageByNomisIdRequest(nomisId = 101L, addressUsageCode = "WORK"),
@@ -1382,7 +1385,7 @@ class CorePersonMappingResourceIntTest(
             BodyInserters.fromValue(
               CorePersonMappingsByNomisIdsRequest(
                 addresses = listOf(999L),
-                contacts = listOf(999L),
+                contacts = listOf(ContactByNomisIdRequest(nomisId = 999L, nomisContactType = NomisContactType.EMAIL)),
                 addressUsages = listOf(AddressUsageByNomisIdRequest(nomisId = 999L, addressUsageCode = "HOME")),
               ),
             ),

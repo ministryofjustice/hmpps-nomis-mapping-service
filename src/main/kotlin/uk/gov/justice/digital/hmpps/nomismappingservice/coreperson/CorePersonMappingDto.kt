@@ -55,9 +55,18 @@ data class CorePersonMappingsByNomisIdsRequest(
   @Schema(description = "Address mappings with requested nomis ids")
   val addresses: List<Long>,
   @Schema(description = "Contacts with requested nomis ids")
-  val contacts: List<Long>,
+  val contacts: List<ContactByNomisIdRequest>,
   @Schema(description = "Address usages with requested nomis ids")
   val addressUsages: List<AddressUsageByNomisIdRequest>,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Request for a contact mapping on nomis id")
+data class ContactByNomisIdRequest(
+  @Schema(description = "NOMIS id")
+  val nomisId: Long,
+  @Schema(description = "NOMIS contact type")
+  val nomisContactType: NomisContactType,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
