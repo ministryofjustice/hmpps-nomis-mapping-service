@@ -1314,6 +1314,36 @@ class CorePersonMappingResourceIntTest(
       }
 
       @Test
+      fun `will only return contact mappings where both the nomis id and contact type match`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/mappings/by-nomis-ids")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CorePersonMappingsByNomisIdsRequest(
+                addresses = emptyList(),
+                contacts = listOf(
+                  ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.PHONE),
+                  ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.EMAIL),
+                  ContactByNomisIdRequest(nomisId = 202L, nomisContactType = NomisContactType.EMAIL),
+                ),
+                addressUsages = emptyList(),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("contacts.length()").isEqualTo(1)
+          .jsonPath("contacts[0].nomisId").isEqualTo(201)
+          .jsonPath("contacts[0].nomisContactType").isEqualTo("EMAIL")
+          .jsonPath("contacts[0].cprId").isEqualTo("b2d5e7f9-2222-4c3b-8d4e-000000000201")
+          .jsonPath("addresses").isEmpty
+          .jsonPath("addressUsages").isEmpty
+      }
+
+      @Test
       fun `will only return address usage mappings where both the nomis id and usage code match`() {
         webTestClient.post()
           .uri("/mapping/core-person/mappings/by-nomis-ids")
