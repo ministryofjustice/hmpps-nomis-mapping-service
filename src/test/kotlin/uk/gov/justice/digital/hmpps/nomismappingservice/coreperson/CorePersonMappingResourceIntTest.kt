@@ -1107,6 +1107,320 @@ class CorePersonMappingResourceIntTest(
   }
 
   @Nested
+  @DisplayName("POST /mapping/core-person/mappings/by-nomis-ids")
+  inner class GetMappingsFromNomisIds {
+    private val nomisPrisonNumber = "A1234BC"
+
+    @BeforeEach
+    fun setUp() = runTest {
+      corePersonAddressMappingRepository.save(
+        CorePersonAddressMapping(
+          cprId = "a1c4d6e8-1111-4b2a-9c3d-000000000101",
+          nomisId = 101L,
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+      corePersonAddressMappingRepository.save(
+        CorePersonAddressMapping(
+          cprId = "a1c4d6e8-1111-4b2a-9c3d-000000000102",
+          nomisId = 102L,
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+      corePersonContactMappingRepository.save(
+        CorePersonContactMapping(
+          cprId = "b2d5e7f9-2222-4c3b-8d4e-000000000201",
+          nomisId = 201L,
+          nomisContactType = NomisContactType.EMAIL,
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+      corePersonContactMappingRepository.save(
+        CorePersonContactMapping(
+          cprId = "b2d5e7f9-2222-4c3b-8d4e-000000000202",
+          nomisId = 202L,
+          nomisContactType = NomisContactType.PHONE,
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+      corePersonAddressUsageMappingRepository.save(
+        CorePersonAddressUsageMapping(
+          cprId = "c3e6f8a0-3333-4d4c-9e5f-000000000301",
+          nomisId = 101L,
+          addressUsageCode = "HOME",
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+      corePersonAddressUsageMappingRepository.save(
+        CorePersonAddressUsageMapping(
+          cprId = "c3e6f8a0-3333-4d4c-9e5f-000000000302",
+          nomisId = 101L,
+          addressUsageCode = "WORK",
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+      corePersonAddressUsageMappingRepository.save(
+        CorePersonAddressUsageMapping(
+          cprId = "c3e6f8a0-3333-4d4c-9e5f-000000000303",
+          nomisId = 102L,
+          addressUsageCode = "HOME",
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      val request = CorePersonMappingsByNomisIdsRequest(
+        addresses = listOf(101L),
+        contacts = listOf(201L),
+        addressUsages = listOf(AddressUsageByNomisIdRequest(nomisId = 101L, addressUsageCode = "HOME")),
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/mappings/by-nomis-ids")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(request))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/mappings/by-nomis-ids")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(request))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/mappings/by-nomis-ids")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(request))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `returns 400 when a required list is missing`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/mappings/by-nomis-ids")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .bodyValue("""{ "addresses": [101], "contacts": [201] }""")
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return the address mappings for the requested nomis ids`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/mappings/by-nomis-ids")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CorePersonMappingsByNomisIdsRequest(
+                addresses = listOf(101L, 102L, 999L),
+                contacts = emptyList(),
+                addressUsages = emptyList(),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("addresses.length()").isEqualTo(2)
+          .jsonPath("addresses[*].nomisId").value<List<Int>> {
+            assertThat(it).containsExactlyInAnyOrder(101, 102)
+          }
+          .jsonPath("addresses[*].cprId").value<List<String>> {
+            assertThat(it).containsExactlyInAnyOrder(
+              "a1c4d6e8-1111-4b2a-9c3d-000000000101",
+              "a1c4d6e8-1111-4b2a-9c3d-000000000102",
+            )
+          }
+          .jsonPath("addresses[0].nomisPrisonNumber").isEqualTo(nomisPrisonNumber)
+          .jsonPath("addresses[0].label").isEqualTo("2023-01-01T12:45:12")
+          .jsonPath("addresses[0].mappingType").isEqualTo("MIGRATED")
+          .jsonPath("addresses[0].whenCreated").isEqualTo("2023-01-01T12:45:12")
+          .jsonPath("contacts").isEmpty
+          .jsonPath("addressUsages").isEmpty
+      }
+
+      @Test
+      fun `will return the contact mappings for the requested nomis ids`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/mappings/by-nomis-ids")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CorePersonMappingsByNomisIdsRequest(
+                addresses = emptyList(),
+                contacts = listOf(201L, 202L),
+                addressUsages = emptyList(),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("contacts.length()").isEqualTo(2)
+          .jsonPath("contacts[?(@.nomisId == 201)].nomisContactType").isEqualTo("EMAIL")
+          .jsonPath("contacts[?(@.nomisId == 201)].cprId").isEqualTo("b2d5e7f9-2222-4c3b-8d4e-000000000201")
+          .jsonPath("contacts[?(@.nomisId == 202)].nomisContactType").isEqualTo("PHONE")
+          .jsonPath("contacts[?(@.nomisId == 202)].cprId").isEqualTo("b2d5e7f9-2222-4c3b-8d4e-000000000202")
+          .jsonPath("addresses").isEmpty
+          .jsonPath("addressUsages").isEmpty
+      }
+
+      @Test
+      fun `will only return address usage mappings where both the nomis id and usage code match`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/mappings/by-nomis-ids")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CorePersonMappingsByNomisIdsRequest(
+                addresses = emptyList(),
+                contacts = emptyList(),
+                addressUsages = listOf(
+                  AddressUsageByNomisIdRequest(nomisId = 101L, addressUsageCode = "HOME"),
+                  // 102 only has a HOME usage so this should not match
+                  AddressUsageByNomisIdRequest(nomisId = 102L, addressUsageCode = "WORK"),
+                ),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("addressUsages.length()").isEqualTo(1)
+          .jsonPath("addressUsages[0].cprId").isEqualTo("c3e6f8a0-3333-4d4c-9e5f-000000000301")
+          .jsonPath("addressUsages[0].nomisId").isEqualTo(101)
+          .jsonPath("addressUsages[0].addressUsageCode").isEqualTo("HOME")
+          .jsonPath("addressUsages[0].nomisPrisonNumber").isEqualTo(nomisPrisonNumber)
+          .jsonPath("addresses").isEmpty
+          .jsonPath("contacts").isEmpty
+      }
+
+      @Test
+      fun `will return all requested mapping types together`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/mappings/by-nomis-ids")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CorePersonMappingsByNomisIdsRequest(
+                addresses = listOf(101L),
+                contacts = listOf(201L),
+                addressUsages = listOf(
+                  AddressUsageByNomisIdRequest(nomisId = 101L, addressUsageCode = "HOME"),
+                  AddressUsageByNomisIdRequest(nomisId = 101L, addressUsageCode = "WORK"),
+                ),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("addresses.length()").isEqualTo(1)
+          .jsonPath("addresses[0].nomisId").isEqualTo(101)
+          .jsonPath("contacts.length()").isEqualTo(1)
+          .jsonPath("contacts[0].nomisId").isEqualTo(201)
+          .jsonPath("addressUsages.length()").isEqualTo(2)
+          .jsonPath("addressUsages[*].addressUsageCode").value<List<String>> {
+            assertThat(it).containsExactlyInAnyOrder("HOME", "WORK")
+          }
+      }
+
+      @Test
+      fun `will return empty lists when no mappings match`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/mappings/by-nomis-ids")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CorePersonMappingsByNomisIdsRequest(
+                addresses = listOf(999L),
+                contacts = listOf(999L),
+                addressUsages = listOf(AddressUsageByNomisIdRequest(nomisId = 999L, addressUsageCode = "HOME")),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("addresses").isEmpty
+          .jsonPath("contacts").isEmpty
+          .jsonPath("addressUsages").isEmpty
+      }
+
+      @Test
+      fun `will return empty lists when no ids are requested`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/mappings/by-nomis-ids")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CorePersonMappingsByNomisIdsRequest(
+                addresses = emptyList(),
+                contacts = emptyList(),
+                addressUsages = emptyList(),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("addresses").isEmpty
+          .jsonPath("contacts").isEmpty
+          .jsonPath("addressUsages").isEmpty
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("DELETE /mapping/core-person/delete")
   inner class DeleteCorePersonMigration {
     private val nomisPrisonNumber = "A1234BC"
