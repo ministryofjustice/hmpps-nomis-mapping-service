@@ -740,7 +740,7 @@ class CorePersonMappingResourceIntTest(
 
   @Nested
   @DisplayName("POST /mapping/core-person/merge")
-  inner class ReplaceMergeCorePersonMappings {
+  inner class MergeCorePersonMappings {
     val toNomisPrisonNumber = "A1234BC"
     val fromNomisPrisonNumber = "D1234EF"
 
@@ -784,6 +784,60 @@ class CorePersonMappingResourceIntTest(
           .body(BodyInserters.fromValue(mapping))
           .exchange()
           .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `returns 400 when from and to prison numbers are the same`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/core-person/merge")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CorePersonMergeMappingsDto(
+                toNomisPrisonNumber = toNomisPrisonNumber,
+                fromNomisPrisonNumber = toNomisPrisonNumber,
+                addresses = emptyList(),
+                contacts = emptyList(),
+                addressUsages = emptyList(),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+
+      @Test
+      fun `returns 400 when a child mapping prison number does not match the target prisoner`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/core-person/merge")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CorePersonMergeMappingsDto(
+                toNomisPrisonNumber = toNomisPrisonNumber,
+                fromNomisPrisonNumber = fromNomisPrisonNumber,
+                addresses = listOf(
+                  CorePersonAddressMappingDto(
+                    cprId = "3d4cf77c-63d6-4c2e-9e7c-7ed0a8e56d72",
+                    nomisId = 10000L,
+                    nomisPrisonNumber = "Z9999ZZ",
+                    label = "2020-01-01T10:00",
+                    mappingType = CorePersonMappingType.NOMIS_CREATED,
+                    whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+                  ),
+                ),
+                contacts = emptyList(),
+                addressUsages = emptyList(),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isBadRequest
       }
     }
 
