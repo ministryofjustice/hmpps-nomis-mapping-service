@@ -25,6 +25,7 @@ class CorePersonService(
 ) {
   @Transactional
   suspend fun merge(mappings: CorePersonMergeMappingsDto) {
+    validate(mappings)
     corePersonAddressMappingRepository.deleteAllByNomisPrisonNumber(mappings.fromNomisPrisonNumber)
     corePersonContactMappingRepository.deleteAllByNomisPrisonNumber(mappings.fromNomisPrisonNumber)
     corePersonAddressUsageMappingRepository.deleteAllByNomisPrisonNumber(mappings.fromNomisPrisonNumber)
@@ -34,6 +35,18 @@ class CorePersonService(
       addresses = mappings.addresses,
       addressUsages = mappings.addressUsages,
     )
+  }
+
+  private fun validate(mappings: CorePersonMergeMappingsDto) {
+    if (mappings.fromNomisPrisonNumber == mappings.toNomisPrisonNumber) {
+      throw IllegalArgumentException("fromNomisPrisonNumber: ${mappings.fromNomisPrisonNumber} and toNomisPrisonNumber: ${mappings.toNomisPrisonNumber} cannot be the same")
+    }
+    if (mappings.addresses.any { it.nomisPrisonNumber != mappings.toNomisPrisonNumber } ||
+      mappings.contacts.any { it.nomisPrisonNumber != mappings.toNomisPrisonNumber } ||
+      mappings.addressUsages.any { it.nomisPrisonNumber != mappings.toNomisPrisonNumber }
+    ) {
+      throw IllegalArgumentException("Child mappings must have the same nomisPrisonNumber as the toNomisPrisonNumber: ${mappings.toNomisPrisonNumber}")
+    }
   }
 
   @Transactional
@@ -238,12 +251,15 @@ class CorePersonService(
     // In the event of a merge, it's possible that we need to delete dangling identifiers.
     addresses.forEach {
       corePersonAddressMappingRepository.deleteByNomisId(it.nomisId)
+      corePersonAddressUsageMappingRepository.deleteById(it.cprId)
     }
     contacts.forEach {
       corePersonContactMappingRepository.deleteByNomisIdAndNomisContactType(it.nomisId, it.nomisContactType)
+      corePersonContactMappingRepository.deleteById(it.cprId)
     }
     addressUsages.forEach {
       corePersonAddressUsageMappingRepository.deleteByNomisIdAndAddressUsageCode(it.nomisId, it.addressUsageCode)
+      corePersonAddressUsageMappingRepository.deleteById(it.cprId)
     }
     // Save the new mappings
     addresses.forEach {
