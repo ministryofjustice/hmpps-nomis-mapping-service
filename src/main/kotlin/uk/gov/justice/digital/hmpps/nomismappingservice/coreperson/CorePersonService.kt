@@ -25,15 +25,15 @@ class CorePersonService(
 ) {
   @Transactional
   suspend fun merge(mappings: CorePersonMergeMappingsDto) {
+    corePersonAddressMappingRepository.deleteAllByNomisPrisonNumber(mappings.fromNomisPrisonNumber)
+    corePersonContactMappingRepository.deleteAllByNomisPrisonNumber(mappings.fromNomisPrisonNumber)
+    corePersonAddressUsageMappingRepository.deleteAllByNomisPrisonNumber(mappings.fromNomisPrisonNumber)
     replaceAddressesAndContactsMappings(
       prisonNumber = mappings.toNomisPrisonNumber,
       contacts = mappings.contacts,
       addresses = mappings.addresses,
       addressUsages = mappings.addressUsages,
     )
-    corePersonAddressMappingRepository.deleteAllByNomisPrisonNumber(mappings.fromNomisPrisonNumber)
-    corePersonContactMappingRepository.deleteAllByNomisPrisonNumber(mappings.fromNomisPrisonNumber)
-    corePersonAddressUsageMappingRepository.deleteAllByNomisPrisonNumber(mappings.fromNomisPrisonNumber)
   }
 
   @Transactional
