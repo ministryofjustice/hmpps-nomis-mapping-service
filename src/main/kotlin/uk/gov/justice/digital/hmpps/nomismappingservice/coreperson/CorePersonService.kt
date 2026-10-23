@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson
 
+import jakarta.validation.ValidationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
@@ -39,13 +40,13 @@ class CorePersonService(
 
   private fun validate(mappings: CorePersonMergeMappingsDto) {
     if (mappings.fromNomisPrisonNumber == mappings.toNomisPrisonNumber) {
-      throw IllegalArgumentException("fromNomisPrisonNumber: ${mappings.fromNomisPrisonNumber} and toNomisPrisonNumber: ${mappings.toNomisPrisonNumber} cannot be the same")
+      throw ValidationException("fromNomisPrisonNumber: ${mappings.fromNomisPrisonNumber} and toNomisPrisonNumber: ${mappings.toNomisPrisonNumber} cannot be the same")
     }
     if (mappings.addresses.any { it.nomisPrisonNumber != mappings.toNomisPrisonNumber } ||
       mappings.contacts.any { it.nomisPrisonNumber != mappings.toNomisPrisonNumber } ||
       mappings.addressUsages.any { it.nomisPrisonNumber != mappings.toNomisPrisonNumber }
     ) {
-      throw IllegalArgumentException("Child mappings must have the same nomisPrisonNumber as the toNomisPrisonNumber: ${mappings.toNomisPrisonNumber}")
+      throw ValidationException("Child mappings must have the same nomisPrisonNumber as the toNomisPrisonNumber: ${mappings.toNomisPrisonNumber}")
     }
   }
 

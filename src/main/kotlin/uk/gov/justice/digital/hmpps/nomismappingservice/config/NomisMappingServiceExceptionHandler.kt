@@ -51,17 +51,6 @@ class NomisMappingServiceExceptionHandler {
       ),
     ).also { log.info("Validation exception: {}", e.message) }
 
-  @ExceptionHandler(IllegalArgumentException::class)
-  fun handleIllegalArgumentException(e: IllegalArgumentException): ResponseEntity<ErrorResponse> = ResponseEntity
-    .status(BAD_REQUEST)
-    .body(
-      ErrorResponse(
-        status = BAD_REQUEST,
-        userMessage = "Validation failure: ${e.message}",
-        developerMessage = e.message,
-      ),
-    ).also { log.info("Validation exception: {}", e.message) }
-
   @Suppress("UNCHECKED_CAST")
   @ExceptionHandler(DuplicateMappingException::class)
   fun <MAPPING> handleDuplicateException(e: DuplicateMappingException): ResponseEntity<DuplicateMappingErrorResponse<MAPPING>> = ResponseEntity
