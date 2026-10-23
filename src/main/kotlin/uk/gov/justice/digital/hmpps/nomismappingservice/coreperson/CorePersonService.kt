@@ -39,14 +39,14 @@ class CorePersonService(
   }
 
   private fun validate(mappings: CorePersonMergeMappingsDto) {
-    if (mappings.fromNomisPrisonNumber == mappings.toNomisPrisonNumber) {
-      throw ValidationException("fromNomisPrisonNumber: ${mappings.fromNomisPrisonNumber} and toNomisPrisonNumber: ${mappings.toNomisPrisonNumber} cannot be the same")
+    if (mappings.toNomisPrisonNumber == mappings.fromNomisPrisonNumber) {
+      throw ValidationException("to nomis prison number: ${mappings.toNomisPrisonNumber} and from nomis prison number: ${mappings.toNomisPrisonNumber} cannot be the same")
     }
     if (mappings.addresses.any { it.nomisPrisonNumber != mappings.toNomisPrisonNumber } ||
       mappings.contacts.any { it.nomisPrisonNumber != mappings.toNomisPrisonNumber } ||
       mappings.addressUsages.any { it.nomisPrisonNumber != mappings.toNomisPrisonNumber }
     ) {
-      throw ValidationException("Child mappings must have the same nomisPrisonNumber as the toNomisPrisonNumber: ${mappings.toNomisPrisonNumber}")
+      throw ValidationException("Child mappings must have the same nomis prison number as the to nomis prison number: ${mappings.toNomisPrisonNumber}")
     }
   }
 
