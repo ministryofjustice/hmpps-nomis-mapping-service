@@ -1,7 +1,7 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.13"
-  kotlin("plugin.spring") version "2.4.20"
-  kotlin("plugin.jpa") version "2.4.20"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.14"
+  kotlin("plugin.spring") version "2.4.21"
+  kotlin("plugin.jpa") version "2.4.21"
   idea
 }
 
@@ -18,7 +18,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
   implementation("org.springframework.security:spring-security-access")
   implementation("org.springframework.boot:spring-boot-starter-flyway")
-  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.1.1")
+  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.2.0")
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
