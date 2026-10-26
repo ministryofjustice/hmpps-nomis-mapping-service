@@ -19,6 +19,9 @@ class PersonLocationMovementService(
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for NOMIS booking id / movement seq $nomisBookingId/$nomisMovementSeq not found")
 
+  @Transactional
+  suspend fun deleteMovementMappingByNomisId(nomisBookingId: Long, nomisMovementSeq: Int) = movementRepository.deleteByNomisBookingIdAndNomisMovementSeq(nomisBookingId, nomisMovementSeq)
+
   suspend fun getMovementMappingByDpsId(dpsExternalMovementId: UUID) = movementRepository.findById(dpsExternalMovementId)
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for DPS external movement id $dpsExternalMovementId not found")
