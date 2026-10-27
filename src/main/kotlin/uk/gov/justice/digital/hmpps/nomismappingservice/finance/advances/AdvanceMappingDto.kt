@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.finance
+package uk.gov.justice.digital.hmpps.nomismappingservice.finance.advances
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
@@ -13,7 +13,7 @@ data class AdvanceMappingDto(
   @Schema(description = "NOMIS Advance ID", example = "123456")
   val nomisAdvanceId: Long,
 
-  @Schema(description = "DPS representation of the transaction")
+  @Schema(description = "DPS representation of the advance")
   val dpsId: String,
 
   @Schema(description = "Label (a timestamp for migrated ids)")
