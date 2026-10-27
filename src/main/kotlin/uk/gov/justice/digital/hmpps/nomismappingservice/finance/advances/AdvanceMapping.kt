@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.finance
+package uk.gov.justice.digital.hmpps.nomismappingservice.finance.advances
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.annotation.Id

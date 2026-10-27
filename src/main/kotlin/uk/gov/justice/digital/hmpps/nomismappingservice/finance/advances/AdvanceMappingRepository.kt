@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.finance
+package uk.gov.justice.digital.hmpps.nomismappingservice.finance.advances
 
 import kotlinx.coroutines.flow.Flow
 import org.springframework.data.domain.Pageable

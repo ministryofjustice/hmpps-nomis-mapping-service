@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.finance
+package uk.gov.justice.digital.hmpps.nomismappingservice.finance.advances
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -18,11 +18,11 @@ class AdvanceService(
 ) {
   suspend fun getMappingByNomisId(nomisAdvanceId: Long) = repository.findOneByNomisId(nomisAdvanceId)
     ?.toDto()
-    ?: throw NotFoundException("No hold balance mapping found for nomisAdvanceId=$nomisAdvanceId")
+    ?: throw NotFoundException("No advance mapping found for nomisAdvanceId=$nomisAdvanceId")
 
   suspend fun getMappingByDpsId(dpsId: String) = repository.findOneByDpsId(dpsId = dpsId)
     ?.toDto()
-    ?: throw NotFoundException("No hold balance mapping found for dps Id=$dpsId")
+    ?: throw NotFoundException("No advance mapping found for dps Id=$dpsId")
 
   suspend fun getMappingByDpsIdOrNull(dpsId: String) = repository.findOneByDpsId(dpsId = dpsId)
     ?.toDto()

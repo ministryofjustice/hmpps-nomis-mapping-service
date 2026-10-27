@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
+import uk.gov.justice.digital.hmpps.nomismappingservice.finance.advances.AdvanceMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.finance.advances.AdvanceMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.finance.advances.AdvanceMappingRepository
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomismappingservice.jpa.StandardMappingType.MIGRATED
