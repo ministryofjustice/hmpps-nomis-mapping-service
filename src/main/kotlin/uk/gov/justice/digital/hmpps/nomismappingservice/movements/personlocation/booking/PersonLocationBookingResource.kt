@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -98,4 +99,27 @@ class PersonLocationBookingResource(
   suspend fun getBookingMappingByNomisId(
     @PathVariable nomisBookingId: Long,
   ) = service.getBookingMappingByNomisId(nomisBookingId)
+
+  @DeleteMapping("/nomis-booking-id/{nomisBookingId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes a mapping for a single person location booking by NOMIS booking ID",
+    description = "Deletes a mapping for a single person location booking by NOMIS booking ID. Succeeds if the mapping does not exist. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(responseCode = "204", description = "Person location booking mapping deleted"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun deleteBookingMappingByNomisId(
+    @PathVariable nomisBookingId: Long,
+  ) = service.deleteBookingMappingByNomisId(nomisBookingId)
 }

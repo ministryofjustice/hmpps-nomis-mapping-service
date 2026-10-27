@@ -229,4 +229,82 @@ class PersonLocationBookingResourceIntTest(
       .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
   }
+
+  @Nested
+  @DisplayName("DELETE /mapping/person-location/booking/nomis-booking-id/{nomisBookingId}")
+  inner class DeleteBookingMappingByNomisId {
+    private val mapping1 = PersonLocationBookingMapping(
+      dpsCustodialSeriesId = UUID.randomUUID(),
+      nomisBookingId = 12345L,
+      mappingType = PersonLocationMappingType.NOMIS_CREATED,
+    )
+    private val mapping2 = PersonLocationBookingMapping(
+      dpsCustodialSeriesId = UUID.randomUUID(),
+      nomisBookingId = 12346L,
+      mappingType = PersonLocationMappingType.NOMIS_CREATED,
+    )
+
+    @AfterEach
+    fun tearDown() = runTest {
+      bookingRepository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/person-location/booking/nomis-booking-id/12345")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/person-location/booking/nomis-booking-id/12345")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/person-location/booking/nomis-booking-id/12345")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `delete endpoint should be idempotent`() {
+        webTestClient.deleteBookingMapping(99999L)
+          .expectStatus().isNoContent
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `should delete only the requested booking mapping`() = runTest {
+        bookingRepository.save(mapping1)
+        bookingRepository.save(mapping2)
+
+        webTestClient.deleteBookingMapping(mapping1.nomisBookingId)
+          .expectStatus().isNoContent
+
+        assertThat(bookingRepository.findByNomisBookingId(mapping1.nomisBookingId)).isNull()
+        assertThat(bookingRepository.findByNomisBookingId(mapping2.nomisBookingId)).isNotNull
+      }
+    }
+
+    private fun WebTestClient.deleteBookingMapping(nomisBookingId: Long) = delete()
+      .uri("/mapping/person-location/booking/nomis-booking-id/$nomisBookingId")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .exchange()
+  }
 }

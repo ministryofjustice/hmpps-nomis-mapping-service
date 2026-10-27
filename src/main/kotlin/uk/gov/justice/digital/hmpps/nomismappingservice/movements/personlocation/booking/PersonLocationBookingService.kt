@@ -19,6 +19,9 @@ class PersonLocationBookingService(
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for NOMIS booking id $nomisBookingId not found")
 
+  @Transactional
+  suspend fun deleteBookingMappingByNomisId(nomisBookingId: Long) = bookingRepository.deleteByNomisBookingId(nomisBookingId)
+
   suspend fun getBookingMappingByDpsId(dpsCustodialSeriesId: UUID) = bookingRepository.findById(dpsCustodialSeriesId)
     ?.toMappingDto()
     ?: throw NotFoundException("Mapping for DPS custodial series id $dpsCustodialSeriesId not found")

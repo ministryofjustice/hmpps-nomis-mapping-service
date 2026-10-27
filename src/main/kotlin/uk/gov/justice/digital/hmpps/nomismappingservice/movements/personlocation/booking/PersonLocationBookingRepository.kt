@@ -8,5 +8,6 @@ import java.util.*
 interface PersonLocationBookingRepository : CoroutineCrudRepository<PersonLocationBookingMapping, UUID> {
   suspend fun findByNomisBookingId(nomisBookingId: Long): PersonLocationBookingMapping?
   suspend fun findByNomisBookingIdIn(nomisBookingIds: Collection<Long>): List<PersonLocationBookingMapping>
+  suspend fun deleteByNomisBookingId(nomisBookingId: Long)
   suspend fun deleteByNomisBookingIdIn(nomisBookingIds: Collection<Long>)
 }
