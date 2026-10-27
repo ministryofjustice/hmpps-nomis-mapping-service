@@ -236,4 +236,84 @@ class PersonLocationMovementResourceIntTest(
       .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
       .exchange()
   }
+
+  @Nested
+  @DisplayName("DELETE /mapping/person-location/movement/nomis-booking-id/{nomisBookingId}/nomis-movement-seq/{nomisMovementSeq}")
+  inner class DeleteMovementMappingByNomisId {
+    private val mapping1 = PersonLocationMovementMapping(
+      dpsExternalMovementId = UUID.randomUUID(),
+      nomisBookingId = 12345L,
+      nomisMovementSeq = 12,
+      mappingType = PersonLocationMappingType.NOMIS_CREATED,
+    )
+    private val mapping2 = PersonLocationMovementMapping(
+      dpsExternalMovementId = UUID.randomUUID(),
+      nomisBookingId = 12345L,
+      nomisMovementSeq = 13,
+      mappingType = PersonLocationMappingType.NOMIS_CREATED,
+    )
+
+    @AfterEach
+    fun tearDown() = runTest {
+      movementRepository.deleteAll()
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.delete()
+          .uri("/mapping/person-location/movement/nomis-booking-id/12345/nomis-movement-seq/3")
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.delete()
+          .uri("/mapping/person-location/movement/nomis-booking-id/12345/nomis-movement-seq/3")
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.delete()
+          .uri("/mapping/person-location/movement/nomis-booking-id/12345/nomis-movement-seq/3")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `delete endpoint should be idempotent`() {
+        webTestClient.deleteMovementMapping(99999L, 1)
+          .expectStatus().isNoContent
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `should delete only the requested movement mapping`() = runTest {
+        movementRepository.save(mapping1)
+        movementRepository.save(mapping2)
+
+        webTestClient.deleteMovementMapping(mapping1.nomisBookingId, mapping1.nomisMovementSeq)
+          .expectStatus().isNoContent
+
+        assertThat(movementRepository.findByNomisBookingIdAndNomisMovementSeq(mapping1.nomisBookingId, mapping1.nomisMovementSeq)).isNull()
+        assertThat(movementRepository.findByNomisBookingIdAndNomisMovementSeq(mapping2.nomisBookingId, mapping2.nomisMovementSeq)).isNotNull
+      }
+    }
+
+    private fun WebTestClient.deleteMovementMapping(nomisBookingId: Long, nomisMovementSeq: Int) = delete()
+      .uri("/mapping/person-location/movement/nomis-booking-id/$nomisBookingId/nomis-movement-seq/$nomisMovementSeq")
+      .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+      .exchange()
+  }
 }
