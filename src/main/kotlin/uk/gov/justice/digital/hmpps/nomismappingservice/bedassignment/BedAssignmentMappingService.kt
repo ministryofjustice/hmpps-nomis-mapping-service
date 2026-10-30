@@ -75,16 +75,20 @@ class BedAssignmentMappingService(
     repository.saveAll(mappings.map { it.fromDto() }).collect()
   }
 
+  /**
+   * Replaces any earlier mappings for the prisoner's bookings, so a prisoner can be migrated again. There is
+   * no prisoner number on the mapping: a booking belongs to one prisoner, and its id does not change when
+   * NOMIS merges prisoners or moves the booking, so the booking ids identify what to replace.
+   */
   @Transactional
-  suspend fun createMappings(offenderNo: String, prisonerMapping: PrisonerBedAssignmentMappingsDto) {
-    repository.deleteAllByOffenderNo(offenderNo)
+  suspend fun createMappings(prisonerMapping: PrisonerBedAssignmentMappingsDto) {
+    repository.deleteAllByNomisBookingIdIn(prisonerMapping.mappings.map { it.nomisBookingId }.distinct())
     repository.saveAll(
       prisonerMapping.mappings.map {
         BedAssignmentMapping(
           dpsBedAssignmentId = UUID.fromString(it.dpsBedAssignmentId),
           nomisBookingId = it.nomisBookingId,
           nomisSequence = it.nomisSequence,
-          offenderNo = offenderNo,
           label = prisonerMapping.label,
           mappingType = prisonerMapping.mappingType,
         )
@@ -120,49 +124,12 @@ class BedAssignmentMappingService(
   suspend fun deleteMapping(nomisBookingId: Long, sequence: Int) = repository
     .deleteByNomisBookingIdAndNomisSequence(nomisBookingId, sequence)
 
-  suspend fun getMappings(offenderNo: String): AllPrisonerBedAssignmentMappingsDto = repository
-    .findAllByOffenderNoOrderByNomisBookingIdAscNomisSequenceAsc(offenderNo)
-    .map { it.toDto() }
-    .let { AllPrisonerBedAssignmentMappingsDto(it) }
-
-  @Transactional
-  suspend fun updateMappingsByNomisId(oldOffenderNo: String, newOffenderNo: String) {
-    val count = repository.updateOffenderNo(oldOffenderNo, newOffenderNo)
-    telemetryClient.trackEvent(
-      "bed-assignment-mapping-prisoner-merged",
-      mapOf(
-        "count" to count.toString(),
-        "oldOffenderNo" to oldOffenderNo,
-        "newOffenderNo" to newOffenderNo,
-      ),
-      null,
-    )
-  }
-
-  @Transactional
-  suspend fun updateMappingsByBookingId(bookingId: Long, oldOffenderNo: String, newOffenderNo: String): List<BedAssignmentMappingDto> {
-    val bedAssignments = repository.updateOffenderNoByBooking(bookingId, oldOffenderNo, newOffenderNo)
-
-    telemetryClient.trackEvent(
-      "bed-assignment-mapping-booking-moved",
-      mapOf(
-        "count" to bedAssignments.size.toString(),
-        "bookingId" to bookingId.toString(),
-        "oldOffenderNo" to oldOffenderNo,
-        "newOffenderNo" to newOffenderNo,
-      ),
-      null,
-    )
-    return bedAssignments.map { it.toDto() }
-  }
-
   fun BedAssignmentMapping.toDto() = BedAssignmentMappingDto(this)
 
   fun BedAssignmentMappingDto.fromDto() = BedAssignmentMapping(
     dpsBedAssignmentId = UUID.fromString(dpsBedAssignmentId),
     nomisBookingId = nomisBookingId,
     nomisSequence = nomisSequence,
-    offenderNo = offenderNo,
     label = label,
     mappingType = mappingType,
     whenCreated = whenCreated,

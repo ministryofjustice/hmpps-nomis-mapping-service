@@ -3,7 +3,6 @@ create table bed_assignment_mapping
     dps_bed_assignment_id uuid                     not null primary key,
     nomis_booking_id      bigint                   not null,
     nomis_sequence        integer                  not null,
-    offender_no           varchar(10)              not null,
     label                 varchar(20),
     mapping_type          varchar(20)              not null,
     when_created          timestamp with time zone not null default now(),
@@ -12,4 +11,3 @@ create table bed_assignment_mapping
 
 create index bed_assignment_mapping_label_index on bed_assignment_mapping (label);
 create index bed_assignment_mapping_when_created_index on bed_assignment_mapping (when_created);
-create index bed_assignment_mapping_offender_no_index on bed_assignment_mapping (offender_no);

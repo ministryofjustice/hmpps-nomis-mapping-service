@@ -18,9 +18,6 @@ data class BedAssignmentMappingDto(
   @Schema(description = "Nomis sequence within booking", required = true)
   val nomisSequence: Int,
 
-  @Schema(description = "Prisoner number in Nomis", required = true)
-  val offenderNo: String,
-
   @Schema(description = "Label (a timestamp for migrated ids)")
   @field:Size(max = 20)
   val label: String? = null,
@@ -35,7 +32,6 @@ data class BedAssignmentMappingDto(
     dpsBedAssignmentId = mapping.dpsBedAssignmentId.toString(),
     nomisBookingId = mapping.nomisBookingId,
     nomisSequence = mapping.nomisSequence,
-    offenderNo = mapping.offenderNo,
     label = mapping.label,
     mappingType = mapping.mappingType,
     whenCreated = mapping.whenCreated,
@@ -69,10 +65,4 @@ data class BedAssignmentMappingIdDto(
 
   @Schema(description = "NOMIS sequence within booking")
   val nomisSequence: Int,
-)
-
-@Schema(description = "All mappings for a prisoner created either via migration or synchronisation")
-data class AllPrisonerBedAssignmentMappingsDto(
-  @Schema(description = "Mappings")
-  val mappings: List<BedAssignmentMappingDto>,
 )

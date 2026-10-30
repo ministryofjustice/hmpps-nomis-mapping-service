@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -116,7 +115,7 @@ class BedAssignmentMappingResource(private val mappingService: BedAssignmentMapp
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a set of new Bed assignment mappings for a prisoner",
-    description = "Creates a mapping between all the nomis bed assignment ids and dps bed assignment ids. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    description = "Creates a mapping between all the nomis bed assignment ids and dps bed assignment ids, replacing any earlier mappings for the same bookings. Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
       content = [
         Content(mediaType = "application/json", schema = Schema(implementation = PrisonerBedAssignmentMappingsDto::class)),
@@ -137,13 +136,13 @@ class BedAssignmentMappingResource(private val mappingService: BedAssignmentMapp
     ],
   )
   suspend fun createBedAssignmentMappingsForPrisoner(
-    @Schema(description = "NOMIS offender no", example = "A1234KT", required = true)
+    @Schema(description = "NOMIS offender no of the prisoner being migrated. Not stored on the mapping", example = "A1234KT", required = true)
     @PathVariable
     offenderNo: String,
     @RequestBody @Valid
     prisonerMapping: PrisonerBedAssignmentMappingsDto,
   ) = try {
-    mappingService.createMappings(offenderNo, prisonerMapping)
+    mappingService.createMappings(prisonerMapping)
   } catch (e: DuplicateKeyException) {
     val duplicateMapping = getMappingIdThatIsDuplicate(prisonerMapping.mappings)
     if (duplicateMapping != null) {
@@ -154,7 +153,6 @@ class BedAssignmentMappingResource(private val mappingService: BedAssignmentMapp
             dpsBedAssignmentId = it.dpsBedAssignmentId,
             nomisBookingId = it.nomisBookingId,
             nomisSequence = it.nomisSequence,
-            offenderNo = offenderNo,
             label = prisonerMapping.label,
             mappingType = prisonerMapping.mappingType,
           )
@@ -165,23 +163,6 @@ class BedAssignmentMappingResource(private val mappingService: BedAssignmentMapp
     }
     throw e
   }
-
-  @GetMapping("{offenderNo}/all")
-  @Operation(
-    summary = "Gets all Bed assignment mappings for a prisoner",
-    description = "Gets all the mappings between Nomis bed assignments and DPS bed assignments related to specific prisoner created either via migration or synchronisation. Requires NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Mappings for prisoner",
-      ),
-    ],
-  )
-  suspend fun getBedAssignmentMappingsForPrisoner(
-    @Schema(description = "NOMIS offender no", example = "A1234KT", required = true)
-    @PathVariable
-    offenderNo: String,
-  ): AllPrisonerBedAssignmentMappingsDto = mappingService.getMappings(offenderNo)
 
   @GetMapping("/booking-id/{bookingId}/sequence/{sequence}")
   @Operation(
@@ -301,55 +282,6 @@ class BedAssignmentMappingResource(private val mappingService: BedAssignmentMapp
     @PathVariable
     dpsBedAssignmentId: String,
   ) = mappingService.deleteMapping(dpsBedAssignmentId)
-
-  @PutMapping("/merge/from/{oldOffenderNo}/to/{newOffenderNo}")
-  @Operation(
-    summary = "Replaces all occurrences of the 'from' id with the 'to' id in the mapping table",
-    description = "Used for update after a prisoner number merge. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(responseCode = "200", description = "Replacement made, or not present in table"),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun updateBedAssignmentMappingsByNomisId(
-    @Schema(description = "Old prisoner number to replace", example = "A3456KM", required = true)
-    @PathVariable
-    oldOffenderNo: String,
-    @Schema(description = "New prisoner number to use", example = "A3457LZ", required = true)
-    @PathVariable
-    newOffenderNo: String,
-  ) {
-    mappingService.updateMappingsByNomisId(oldOffenderNo, newOffenderNo)
-  }
-
-  @PutMapping("/move/booking-id/{bookingId}/from/{oldOffenderNo}/to/{newOffenderNo}")
-  @Operation(
-    summary = "For all bed assignments with the given booking id and old offender no in the mapping table, sets the offender no to the new id",
-    description = "Used for update after a booking has been moved from one offender to another. Returns the affected bed assignments. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(responseCode = "200", description = "Replacement made, or not present in table"),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun updateBedAssignmentMappingsByBookingId(
-    @Schema(description = "The booking id", example = "1234567", required = true)
-    @PathVariable
-    bookingId: Long,
-    @Schema(description = "Previous prisoner number", example = "A3422FE", required = true)
-    @PathVariable
-    oldOffenderNo: String,
-    @Schema(description = "New prisoner number to use", example = "A3457LZ", required = true)
-    @PathVariable
-    newOffenderNo: String,
-  ): List<BedAssignmentMappingDto> = mappingService.updateMappingsByBookingId(bookingId, oldOffenderNo, newOffenderNo)
 
   private suspend fun getExistingMappingSimilarTo(mapping: BedAssignmentMappingIdDto) = runCatching {
     mappingService.getMappingByNomisId(mapping.nomisBookingId, mapping.nomisSequence)

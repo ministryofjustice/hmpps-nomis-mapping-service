@@ -15,8 +15,6 @@ data class BedAssignmentMapping(
   val nomisBookingId: Long,
   val nomisSequence: Int,
 
-  val offenderNo: String,
-
   /**
    * ISO timestamp of batch job if a migration
    */

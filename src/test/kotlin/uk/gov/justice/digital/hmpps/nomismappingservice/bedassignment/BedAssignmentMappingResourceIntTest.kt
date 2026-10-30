@@ -39,7 +39,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
     nomisBookingId: Long = BOOKING_ID,
     sequence: Int = 1,
     dpsBedAssignmentId: String = DPS_BED_ASSIGNMENT_ID,
-    offenderNo: String = OFFENDER_NO,
     label: String = "2022-01-01",
     mappingType: BedAssignmentMappingType = BedAssignmentMappingType.DPS_CREATED,
   ) {
@@ -52,7 +51,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
             nomisBookingId = nomisBookingId,
             nomisSequence = sequence,
             dpsBedAssignmentId = dpsBedAssignmentId,
-            offenderNo = offenderNo,
             label = label,
             mappingType = mappingType,
           ),
@@ -75,7 +73,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
       dpsBedAssignmentId = DPS_BED_ASSIGNMENT_ID,
       nomisBookingId = BOOKING_ID,
       nomisSequence = 1,
-      offenderNo = OFFENDER_NO,
       label = "2024-02-01T12:45:12",
       mappingType = BedAssignmentMappingType.MIGRATED,
     )
@@ -87,7 +84,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
           dpsBedAssignmentId = UUID.fromString(DPS_BED_ASSIGNMENT_ID2),
           nomisBookingId = 3456L,
           nomisSequence = 1,
-          offenderNo = OFFENDER_NO,
           label = "2024-01-01T12:45:12",
           mappingType = BedAssignmentMappingType.DPS_CREATED,
         ),
@@ -163,8 +159,7 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
                 {
                   "nomisBookingId": $BOOKING_ID,
                   "nomisSequence": 2,
-                  "dpsBedAssignmentId": "$DPS_BED_ASSIGNMENT_ID",
-                  "offenderNo": "A1234AA"
+                  "dpsBedAssignmentId": "$DPS_BED_ASSIGNMENT_ID"
                 }
               """.trimIndent(),
             ),
@@ -194,8 +189,7 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
                 {
                   "nomisBookingId": 54555,
                   "nomisSequence": 1,
-                  "dpsBedAssignmentId": "$DPS_BED_ASSIGNMENT_ID",
-                  "offenderNo": "A1234AA"
+                  "dpsBedAssignmentId": "$DPS_BED_ASSIGNMENT_ID"
                 }
               """.trimIndent(),
             ),
@@ -297,7 +291,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
                 nomisBookingId = existingMapping.nomisBookingId,
                 nomisSequence = existingMapping.nomisSequence,
                 dpsBedAssignmentId = dpsBedAssignmentId,
-                offenderNo = OFFENDER_NO,
               ),
             ),
           )
@@ -331,7 +324,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
       dpsBedAssignmentId = generateUUID(1),
       nomisBookingId = 50001L,
       nomisSequence = 1,
-      offenderNo = "B5678BB",
       label = "2023-01-01T12:45:12",
       mappingType = BedAssignmentMappingType.MIGRATED,
     )
@@ -403,7 +395,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
             assertThat(it.nomisBookingId).isEqualTo(mappings[0].nomisBookingId)
             assertThat(it.nomisSequence).isEqualTo(mappings[0].nomisSequence)
             assertThat(it.dpsBedAssignmentId.toString()).isEqualTo(mappings[0].dpsBedAssignmentId)
-            assertThat(it.offenderNo).isEqualTo(OFFENDER_NO)
             assertThat(it.mappingType).isEqualTo(mappingType)
             assertThat(it.label).isEqualTo(label)
           }
@@ -413,11 +404,29 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
             assertThat(it.nomisBookingId).isEqualTo(mappings[1].nomisBookingId)
             assertThat(it.nomisSequence).isEqualTo(mappings[1].nomisSequence)
             assertThat(it.dpsBedAssignmentId.toString()).isEqualTo(mappings[1].dpsBedAssignmentId)
-            assertThat(it.offenderNo).isEqualTo(OFFENDER_NO)
             assertThat(it.mappingType).isEqualTo(mappingType)
             assertThat(it.label).isEqualTo(label)
           }
         }
+      }
+
+      @Test
+      fun `replaces earlier mappings for the same bookings when a prisoner is migrated again`() = runTest {
+        val earlierForSameBooking = repository.save(existingMapping.copy(nomisBookingId = 50002L, nomisSequence = 2))
+        val otherBooking = repository.save(existingMapping.copy(dpsBedAssignmentId = generateUUID(9)))
+
+        webTestClient.post()
+          .uri("/mapping/bed-assignments/$OFFENDER_NO/all")
+          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(mappings))
+          .exchange()
+          .expectStatus().isCreated
+
+        assertThat(repository.findById(earlierForSameBooking.dpsBedAssignmentId)).isNull()
+        assertThat(repository.findById(otherBooking.dpsBedAssignmentId)).isNotNull
+        assertThat(repository.findById(UUID.fromString(mappings.mappings[0].dpsBedAssignmentId))).isNotNull
+        assertThat(repository.findById(UUID.fromString(mappings.mappings[1].dpsBedAssignmentId))).isNotNull
       }
     }
 
@@ -450,10 +459,10 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
       }
 
       @Test
-      fun `will return 409 if nomis ids already exist`() = runTest {
+      fun `will return 409 if the dps id is already mapped to another booking`() = runTest {
         existingMapping = repository.save(existingMapping)
 
-        val dpsBedAssignmentId = UUID.randomUUID().toString()
+        val nomisBookingId = 50009L
         val duplicateResponse = webTestClient.post()
           .uri("/mapping/bed-assignments/$OFFENDER_NO/all")
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
@@ -462,8 +471,8 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
             BodyInserters.fromValue(
               PrisonerBedAssignmentMappingsDto(
                 mappings = mappings.mappings + BedAssignmentMappingIdDto(
-                  dpsBedAssignmentId = dpsBedAssignmentId,
-                  nomisBookingId = existingMapping.nomisBookingId,
+                  dpsBedAssignmentId = existingMapping.dpsBedAssignmentId.toString(),
+                  nomisBookingId = nomisBookingId,
                   nomisSequence = existingMapping.nomisSequence,
                 ),
               ),
@@ -484,9 +493,9 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
             .containsEntry("nomisSequence", existingMapping.nomisSequence)
             .containsEntry("dpsBedAssignmentId", existingMapping.dpsBedAssignmentId.toString())
           assertThat(this.moreInfo.duplicate)
-            .containsEntry("nomisBookingId", existingMapping.nomisBookingId.toInt())
+            .containsEntry("nomisBookingId", nomisBookingId.toInt())
             .containsEntry("nomisSequence", existingMapping.nomisSequence)
-            .containsEntry("dpsBedAssignmentId", dpsBedAssignmentId)
+            .containsEntry("dpsBedAssignmentId", existingMapping.dpsBedAssignmentId.toString())
         }
       }
     }
@@ -499,7 +508,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
       dpsBedAssignmentId = generateUUID(1),
       nomisBookingId = 50001L,
       nomisSequence = 1,
-      offenderNo = OFFENDER_NO,
       label = "2023-01-01T12:45:12",
       mappingType = BedAssignmentMappingType.MIGRATED,
     )
@@ -508,14 +516,12 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
         dpsBedAssignmentId = "e52d7268-6e10-41a8-a0b9-000000000002",
         nomisBookingId = 50002L,
         nomisSequence = 1,
-        offenderNo = OFFENDER_NO,
         mappingType = BedAssignmentMappingType.DPS_CREATED,
       ),
       BedAssignmentMappingDto(
         dpsBedAssignmentId = "fd4e55a8-0805-439b-9e27-000000000003",
         nomisBookingId = 50003L,
         nomisSequence = 1,
-        offenderNo = OFFENDER_NO,
         mappingType = BedAssignmentMappingType.NOMIS_CREATED,
       ),
     )
@@ -578,7 +584,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
         assertThat(createdMapping1.nomisBookingId).isEqualTo(mappings[0].nomisBookingId)
         assertThat(createdMapping1.nomisSequence).isEqualTo(mappings[0].nomisSequence)
         assertThat(createdMapping1.dpsBedAssignmentId.toString()).isEqualTo(mappings[0].dpsBedAssignmentId)
-        assertThat(createdMapping1.offenderNo).isEqualTo(mappings[0].offenderNo)
         assertThat(createdMapping1.mappingType).isEqualTo(mappings[0].mappingType)
         assertThat(createdMapping1.label).isEqualTo(mappings[0].label)
 
@@ -588,7 +593,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
         assertThat(createdMapping2.nomisBookingId).isEqualTo(mappings[1].nomisBookingId)
         assertThat(createdMapping2.nomisSequence).isEqualTo(mappings[1].nomisSequence)
         assertThat(createdMapping2.dpsBedAssignmentId.toString()).isEqualTo(mappings[1].dpsBedAssignmentId)
-        assertThat(createdMapping2.offenderNo).isEqualTo(mappings[1].offenderNo)
         assertThat(createdMapping2.mappingType).isEqualTo(mappings[1].mappingType)
         assertThat(createdMapping2.label).isEqualTo(mappings[1].label)
       }
@@ -657,142 +661,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
-  @DisplayName("GET /mapping/bed-assignments/{offenderNo}/all")
-  inner class GetMappingByPrisoner {
-    val dpsId1 = "85665bb9-ab28-458a-8386-b8cc91b311f7"
-    val dpsId2 = DPS_BED_ASSIGNMENT_ID2
-    val dpsId3 = "e52d7268-6e10-41a8-a0b9-2319b32520d6"
-    val dpsId4 = "fd4e55a8-0805-439b-9e27-647583b96e4e"
-
-    private var mapping1: BedAssignmentMapping = BedAssignmentMapping(
-      dpsBedAssignmentId = UUID.fromString(dpsId2),
-      nomisBookingId = 54321L,
-      nomisSequence = 2,
-      offenderNo = "A1234KT",
-      mappingType = BedAssignmentMappingType.DPS_CREATED,
-    )
-    private var mapping2: BedAssignmentMapping = BedAssignmentMapping(
-      dpsBedAssignmentId = UUID.fromString(dpsId1),
-      nomisBookingId = 11111L,
-      nomisSequence = 1,
-      offenderNo = "A1234KT",
-      mappingType = BedAssignmentMappingType.DPS_CREATED,
-    )
-    private val prisonerMappings = listOf(
-      BedAssignmentMappingDto(
-        dpsBedAssignmentId = dpsId3,
-        nomisSequence = 3,
-        offenderNo = "A1234KT",
-        nomisBookingId = 54321L,
-        label = "2023-01-01T12:45:12",
-        mappingType = BedAssignmentMappingType.MIGRATED,
-      ),
-      BedAssignmentMappingDto(
-        dpsBedAssignmentId = dpsId4,
-        nomisSequence = 4,
-        offenderNo = "A1234KT",
-        nomisBookingId = 54321L,
-        label = "2023-01-01T12:45:12",
-        mappingType = BedAssignmentMappingType.MIGRATED,
-      ),
-    )
-
-    @BeforeEach
-    fun setUp() = runTest {
-      webTestClient.post()
-        .uri("/mapping/bed-assignments/batch")
-        .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(BodyInserters.fromValue(prisonerMappings))
-        .exchange()
-        .expectStatus().isCreated
-      mapping1 = repository.save(mapping1)
-      mapping2 = repository.save(mapping2)
-      repository.save(
-        BedAssignmentMapping(
-          dpsBedAssignmentId = UUID.fromString("fd4e55a8-41ba-42ea-b5c4-404b453ad99b"),
-          nomisBookingId = 9999L,
-          nomisSequence = 5,
-          offenderNo = "A1111KT",
-          mappingType = BedAssignmentMappingType.MIGRATED,
-        ),
-      )
-    }
-
-    @AfterEach
-    fun tearDown() = runTest {
-      repository.deleteAll()
-    }
-
-    @Nested
-    inner class Security {
-      @Test
-      fun `access not authorised when no authority`() {
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/A1234KT/all")
-          .exchange()
-          .expectStatus().isUnauthorized
-      }
-
-      @Test
-      fun `access forbidden when no role`() {
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/A1234KT/all")
-          .headers(setAuthorisation(roles = listOf()))
-          .exchange()
-          .expectStatus().isForbidden
-      }
-
-      @Test
-      fun `access forbidden with wrong role`() {
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/A1234KT/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
-          .exchange()
-          .expectStatus().isForbidden
-      }
-    }
-
-    @Nested
-    inner class HappyPath {
-      @Test
-      fun `will return 200 when no mappings found for prisoner`() {
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/A9999KT/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("mappings.size()").isEqualTo(0)
-      }
-
-      @Test
-      fun `will return all mappings for prisoner`() {
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/A1234KT/all")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("mappings.size()").isEqualTo(4)
-          .jsonPath("mappings[0].dpsBedAssignmentId").isEqualTo(dpsId1)
-          .jsonPath("mappings[0].nomisSequence").isEqualTo(1)
-          .jsonPath("mappings[0].nomisBookingId").isEqualTo(11111)
-          .jsonPath("mappings[0].offenderNo").isEqualTo("A1234KT")
-          .jsonPath("mappings[1].dpsBedAssignmentId").isEqualTo(dpsId2)
-          .jsonPath("mappings[1].nomisSequence").isEqualTo(2)
-          .jsonPath("mappings[1].nomisBookingId").isEqualTo(54321L)
-          .jsonPath("mappings[2].dpsBedAssignmentId").isEqualTo(dpsId3)
-          .jsonPath("mappings[2].nomisSequence").isEqualTo(3)
-          .jsonPath("mappings[2].nomisBookingId").isEqualTo(54321L)
-          .jsonPath("mappings[3].dpsBedAssignmentId").isEqualTo(dpsId4)
-          .jsonPath("mappings[3].nomisSequence").isEqualTo(4)
-          .jsonPath("mappings[3].nomisBookingId").isEqualTo(54321L)
-      }
-    }
-  }
-
-  @Nested
   @DisplayName("GET /mapping/bed-assignments/booking-id/{bookingId}/sequence/{sequence}")
   inner class GetMappingByNomisId {
     lateinit var mapping: BedAssignmentMapping
@@ -804,7 +672,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
           dpsBedAssignmentId = UUID.fromString(DPS_BED_ASSIGNMENT_ID2),
           nomisBookingId = BOOKING_ID,
           nomisSequence = 1,
-          offenderNo = OFFENDER_NO,
           label = "2023-01-01T12:45:12",
           mappingType = BedAssignmentMappingType.MIGRATED,
         ),
@@ -885,7 +752,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
             dpsBedAssignmentId = UUID.fromString(DPS_BED_ASSIGNMENT_ID),
             nomisBookingId = BOOKING_ID,
             nomisSequence = 1,
-            offenderNo = OFFENDER_NO,
             label = "2023-01-01T12:45:12",
             mappingType = BedAssignmentMappingType.MIGRATED,
           ),
@@ -894,7 +760,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
           BedAssignmentMapping(
             dpsBedAssignmentId = UUID.fromString(DPS_BED_ASSIGNMENT_ID2),
             nomisSequence = 2,
-            offenderNo = OFFENDER_NO,
             nomisBookingId = BOOKING_ID,
             label = "2023-06-01T12:45:12",
             mappingType = BedAssignmentMappingType.DPS_CREATED,
@@ -954,7 +819,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
           .jsonPath("dpsBedAssignmentId").isEqualTo(mapping1.dpsBedAssignmentId.toString())
           .jsonPath("nomisBookingId").isEqualTo(mapping1.nomisBookingId)
           .jsonPath("nomisSequence").isEqualTo(mapping1.nomisSequence)
-          .jsonPath("offenderNo").isEqualTo(OFFENDER_NO)
           .jsonPath("mappingType").isEqualTo(mapping1.mappingType.name)
           .jsonPath("label").isEqualTo(mapping1.label!!)
           .jsonPath("whenCreated").value<String> {
@@ -998,7 +862,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
           it,
           1,
           generateUUIDs(it),
-          OFFENDER_NO,
           label = "2022-01-01",
           mappingType = BedAssignmentMappingType.MIGRATED,
         )
@@ -1020,7 +883,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
           it,
           1,
           generateUUIDs(it),
-          offenderNo = "A000${it}AA",
           label = "2022-01-01",
           mappingType = BedAssignmentMappingType.MIGRATED,
         )
@@ -1104,7 +966,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
             BedAssignmentMappingDto(
               nomisSequence = 10,
               dpsBedAssignmentId = generateUUIDs(10),
-              offenderNo = OFFENDER_NO,
               nomisBookingId = 10,
               label = "2022-01-01T00:00:00",
               mappingType = BedAssignmentMappingType.MIGRATED,
@@ -1122,7 +983,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
             BedAssignmentMappingDto(
               nomisSequence = 20,
               dpsBedAssignmentId = generateUUIDs(20),
-              offenderNo = OFFENDER_NO,
               nomisBookingId = BOOKING_ID,
               label = "2022-01-02T00:00:00",
               mappingType = BedAssignmentMappingType.MIGRATED,
@@ -1140,7 +1000,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
             BedAssignmentMappingDto(
               nomisSequence = 1,
               dpsBedAssignmentId = generateUUIDs(1),
-              offenderNo = OFFENDER_NO,
               nomisBookingId = 2,
               label = "2022-01-02T10:00:00",
               mappingType = BedAssignmentMappingType.MIGRATED,
@@ -1158,7 +1017,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
             BedAssignmentMappingDto(
               nomisSequence = 99,
               dpsBedAssignmentId = generateUUIDs(199),
-              offenderNo = OFFENDER_NO,
               nomisBookingId = BOOKING_ID,
               label = "whatever",
               mappingType = BedAssignmentMappingType.DPS_CREATED,
@@ -1177,7 +1035,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
 
       assertThat(mapping.nomisSequence).isEqualTo(1)
       assertThat(mapping.dpsBedAssignmentId).isEqualTo(generateUUIDs(1))
-      assertThat(mapping.offenderNo).isEqualTo(OFFENDER_NO)
       assertThat(mapping.nomisBookingId).isEqualTo(2)
       assertThat(mapping.label).isEqualTo("2022-01-02T10:00:00")
       assertThat(mapping.mappingType).isEqualTo(BedAssignmentMappingType.MIGRATED)
@@ -1195,7 +1052,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
             BedAssignmentMappingDto(
               nomisSequence = 77,
               dpsBedAssignmentId = generateUUIDs(77),
-              offenderNo = OFFENDER_NO,
               nomisBookingId = BOOKING_ID,
               label = "whatever",
               mappingType = BedAssignmentMappingType.DPS_CREATED,
@@ -1228,7 +1084,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
           dpsBedAssignmentId = UUID.fromString(DPS_BED_ASSIGNMENT_ID2),
           nomisBookingId = BOOKING_ID,
           nomisSequence = 1,
-          offenderNo = OFFENDER_NO,
           label = "2023-01-01T12:45:12",
           mappingType = BedAssignmentMappingType.MIGRATED,
         ),
@@ -1310,7 +1165,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
           dpsBedAssignmentId = UUID.fromString(DPS_BED_ASSIGNMENT_ID2),
           nomisBookingId = BOOKING_ID,
           nomisSequence = 1,
-          offenderNo = OFFENDER_NO,
           label = "2023-01-01T12:45:12",
           mappingType = BedAssignmentMappingType.MIGRATED,
         ),
@@ -1376,425 +1230,6 @@ class BedAssignmentMappingResourceIntTest : IntegrationTestBase() {
           .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
-      }
-    }
-  }
-
-  @Nested
-  @DisplayName("PUT /merge/from/{oldOffenderNo}/to/{newOffenderNo}")
-  inner class PrisonerMergeMappings {
-    @Nested
-    inner class Security {
-      @Test
-      fun `access not authorised when no authority`() {
-        webTestClient.put()
-          .uri("/mapping/bed-assignments/merge/from/A1234AA/to/A1234BB")
-          .exchange()
-          .expectStatus().isUnauthorized
-      }
-
-      @Test
-      fun `access forbidden when no role`() {
-        webTestClient.put()
-          .uri("/mapping/bed-assignments/merge/from/A1234AA/to/A1234BB")
-          .headers(setAuthorisation(roles = listOf()))
-          .exchange()
-          .expectStatus().isForbidden
-      }
-
-      @Test
-      fun `access forbidden with wrong role`() {
-        webTestClient.put()
-          .uri("/mapping/bed-assignments/merge/from/A1234AA/to/A1234BB")
-          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
-          .exchange()
-          .expectStatus().isForbidden
-      }
-    }
-
-    @Nested
-    inner class HappyPath {
-      private val dps1 = "00000000-1111-2222-3333-000088880001"
-      private val dps2 = "00000000-1111-2222-3333-000088880002"
-      private val dps3 = "00000000-1111-2222-3333-000088880003"
-
-      @BeforeEach
-      fun setUp() {
-        runTest {
-          repository.save(
-            BedAssignmentMapping(
-              dpsBedAssignmentId = UUID.fromString(dps1),
-              nomisBookingId = BOOKING_ID,
-              nomisSequence = 54321,
-              offenderNo = "A1234AA",
-              mappingType = BedAssignmentMappingType.MIGRATED,
-            ),
-          )
-          repository.save(
-            BedAssignmentMapping(
-              dpsBedAssignmentId = UUID.fromString(dps2),
-              nomisBookingId = 2,
-              nomisSequence = 54322,
-              offenderNo = "A1234BB",
-              mappingType = BedAssignmentMappingType.NOMIS_CREATED,
-            ),
-          )
-          repository.save(
-            BedAssignmentMapping(
-              dpsBedAssignmentId = UUID.fromString(dps3),
-              nomisBookingId = 2,
-              nomisSequence = 54323,
-              offenderNo = "A1234BB",
-              mappingType = BedAssignmentMappingType.NOMIS_CREATED,
-            ),
-          )
-        }
-      }
-
-      @Test
-      fun `Merge success`() = runTest {
-        webTestClient.put().uri("/mapping/bed-assignments/merge/from/A1234AA/to/B5678BB")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-
-        // first record has changed
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/dps-bed-assignment-id/$dps1")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("offenderNo").isEqualTo("B5678BB")
-
-        // second has not
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/dps-bed-assignment-id/$dps2")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
-      }
-
-      @Test
-      fun `Nothing happens if not found`() = runTest {
-        webTestClient.put().uri("/mapping/bed-assignments/merge/from/A9999AA/to/B5678BB")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/dps-bed-assignment-id/$dps1")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisSequence").isEqualTo(54321)
-          .jsonPath("offenderNo").isEqualTo("A1234AA")
-          .jsonPath("nomisBookingId").isEqualTo(BOOKING_ID)
-
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/dps-bed-assignment-id/$dps2")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisSequence").isEqualTo(54322)
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
-          .jsonPath("nomisBookingId").isEqualTo(2)
-
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/dps-bed-assignment-id/$dps3")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisSequence").isEqualTo(54323)
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
-          .jsonPath("nomisBookingId").isEqualTo(2)
-      }
-
-      @Test
-      fun `Merge success - multiple candidates`() = runTest {
-        webTestClient.put().uri("/mapping/bed-assignments/merge/from/A1234BB/to/B5678BB")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/dps-bed-assignment-id/$dps1")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisSequence").isEqualTo(54321)
-          .jsonPath("offenderNo").isEqualTo("A1234AA")
-          .jsonPath("nomisBookingId").isEqualTo(BOOKING_ID)
-
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/dps-bed-assignment-id/$dps2")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisSequence").isEqualTo(54322)
-          .jsonPath("offenderNo").isEqualTo("B5678BB")
-          .jsonPath("nomisBookingId").isEqualTo(2)
-
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/dps-bed-assignment-id/$dps3")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisSequence").isEqualTo(54323)
-          .jsonPath("offenderNo").isEqualTo("B5678BB")
-          .jsonPath("nomisBookingId").isEqualTo(2)
-      }
-    }
-  }
-
-  @Nested
-  @DisplayName("PUT /move/booking-id/{bookingId}/from/{oldOffenderNo}/to/{newOffenderNo}")
-  inner class PrisonerMoveMappingsBookingId {
-    @Nested
-    inner class Security {
-      @Test
-      fun `access not authorised when no authority`() {
-        webTestClient.put()
-          .uri("/mapping/bed-assignments/move/booking-id/333/from/A1234BB/to/B5678BB")
-          .exchange()
-          .expectStatus().isUnauthorized
-      }
-
-      @Test
-      fun `access forbidden when no role`() {
-        webTestClient.put()
-          .uri("/mapping/bed-assignments/move/booking-id/333/from/A1234BB/to/B5678BB")
-          .headers(setAuthorisation(roles = listOf()))
-          .exchange()
-          .expectStatus().isForbidden
-      }
-
-      @Test
-      fun `access forbidden with wrong role`() {
-        webTestClient.put()
-          .uri("/mapping/bed-assignments/move/booking-id/333/from/A1234BB/to/B5678BB")
-          .headers(setAuthorisation(roles = listOf("ROLE_BANANAS")))
-          .exchange()
-          .expectStatus().isForbidden
-      }
-    }
-
-    @Nested
-    inner class HappyPath {
-      private val dps1 = "00000000-1111-2222-3333-000088880001"
-      private val dps2 = "00000000-1111-2222-3333-000088880002"
-      private val dps3 = "00000000-1111-2222-3333-000088880003"
-
-      @BeforeEach
-      fun setUp() {
-        runTest {
-          repository.save(
-            BedAssignmentMapping(
-              dpsBedAssignmentId = UUID.fromString(dps1),
-              nomisBookingId = BOOKING_ID,
-              nomisSequence = 54321,
-              offenderNo = "A1234AA",
-              mappingType = BedAssignmentMappingType.MIGRATED,
-            ),
-          )
-          repository.save(
-            BedAssignmentMapping(
-              dpsBedAssignmentId = UUID.fromString(dps2),
-              nomisBookingId = 2,
-              nomisSequence = 54322,
-              offenderNo = "A1234BB",
-              mappingType = BedAssignmentMappingType.NOMIS_CREATED,
-            ),
-          )
-          repository.save(
-            BedAssignmentMapping(
-              dpsBedAssignmentId = UUID.fromString(dps3),
-              nomisBookingId = 2,
-              nomisSequence = 54323,
-              offenderNo = "A1234BB",
-              mappingType = BedAssignmentMappingType.NOMIS_CREATED,
-            ),
-          )
-        }
-      }
-
-      @Test
-      fun `Move success`() = runTest {
-        webTestClient.put().uri("/mapping/bed-assignments/move/booking-id/$BOOKING_ID/from/A1234AA/to/B5678BB")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .json(
-            """
-[
-  { 
-    "nomisSequence": 54321,
-    "dpsBedAssignmentId": "$dps1",
-    "nomisBookingId": $BOOKING_ID
-  }
-]""",
-          )
-
-        // Check first record has changed
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/dps-bed-assignment-id/$dps1")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("offenderNo").isEqualTo("B5678BB")
-
-        // second has not
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/dps-bed-assignment-id/$dps2")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
-      }
-
-      @Test
-      fun `Nothing happens if not found`() = runTest {
-        webTestClient.put().uri("/mapping/bed-assignments/move/booking-id/999/from/A9999AA/to/B5678BB")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .json("[]")
-
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/dps-bed-assignment-id/$dps1")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisSequence").isEqualTo(54321)
-          .jsonPath("offenderNo").isEqualTo("A1234AA")
-          .jsonPath("nomisBookingId").isEqualTo(BOOKING_ID)
-
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/dps-bed-assignment-id/$dps2")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisSequence").isEqualTo(54322)
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
-          .jsonPath("nomisBookingId").isEqualTo(2)
-
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/dps-bed-assignment-id/$dps3")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisSequence").isEqualTo(54323)
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
-          .jsonPath("nomisBookingId").isEqualTo(2)
-      }
-
-      @Test
-      fun `Nothing happens if old offender is different`() = runTest {
-        webTestClient.put().uri("/mapping/bed-assignments/move/booking-id/$BOOKING_ID/from/A9999AA/to/B5678BB")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .json("[]")
-
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/dps-bed-assignment-id/$dps1")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisSequence").isEqualTo(54321)
-          .jsonPath("offenderNo").isEqualTo("A1234AA")
-          .jsonPath("nomisBookingId").isEqualTo(BOOKING_ID)
-
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/dps-bed-assignment-id/$dps2")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisSequence").isEqualTo(54322)
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
-          .jsonPath("nomisBookingId").isEqualTo(2)
-
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/dps-bed-assignment-id/$dps3")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisSequence").isEqualTo(54323)
-          .jsonPath("offenderNo").isEqualTo("A1234BB")
-          .jsonPath("nomisBookingId").isEqualTo(2)
-      }
-
-      @Test
-      fun `Move success - multiple candidates`() = runTest {
-        webTestClient.put().uri("/mapping/bed-assignments/move/booking-id/2/from/A1234BB/to/B5678BB")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .json(
-            """
-[
-  { 
-    "nomisSequence": 54322,
-    "dpsBedAssignmentId": "$dps2",
-    "nomisBookingId": 2
-  },
-  { 
-    "nomisSequence": 54323,
-    "dpsBedAssignmentId": "$dps3",
-    "nomisBookingId": 2
-  }
-]""",
-          )
-
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/dps-bed-assignment-id/$dps1")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisSequence").isEqualTo(54321)
-          .jsonPath("offenderNo").isEqualTo("A1234AA")
-          .jsonPath("nomisBookingId").isEqualTo(BOOKING_ID)
-
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/dps-bed-assignment-id/$dps2")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisSequence").isEqualTo(54322)
-          .jsonPath("offenderNo").isEqualTo("B5678BB")
-          .jsonPath("nomisBookingId").isEqualTo(2)
-
-        webTestClient.get()
-          .uri("/mapping/bed-assignments/dps-bed-assignment-id/$dps3")
-          .headers(setAuthorisation(roles = listOf("ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("nomisSequence").isEqualTo(54323)
-          .jsonPath("offenderNo").isEqualTo("B5678BB")
-          .jsonPath("nomisBookingId").isEqualTo(2)
       }
     }
   }
