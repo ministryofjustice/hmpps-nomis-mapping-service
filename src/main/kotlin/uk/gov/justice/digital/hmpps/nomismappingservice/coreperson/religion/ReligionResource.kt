@@ -210,33 +210,6 @@ class ReligionResource(private val religionService: ReligionService) {
     cprId: String,
   ): ReligionMappingDto = religionService.getReligionMappingByCprId(cprId = cprId)
 
-  @GetMapping("/religion/cpr-ids")
-  @Operation(
-    summary = "Get religion mappings by cpr ids",
-    description = "Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Mapping data",
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Access this endpoint is forbidden",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun getReligionMappingsByCprIds(
-    @RequestParam(name = "ids", required = true)
-    @Parameter(required = true, description = "Cpr religion ids", example = "802dfae7-45f0-4c22-b369-bfe7da5e54e2")
-    ids: List<String>,
-  ): List<ReligionMappingDto> = religionService.getReligionMappingsByCprIds(cprIds = ids)
-
   @PutMapping("/religion/{prisonNumber}/cpr-ids")
   @Operation(
     summary = "Update prisonNumber on religion mappings by cpr ids",
