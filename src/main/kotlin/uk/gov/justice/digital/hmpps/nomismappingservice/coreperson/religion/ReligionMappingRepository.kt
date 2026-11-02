@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository
 @Repository
 interface ReligionMappingRepository : CoroutineCrudRepository<CorePersonReligionMapping, Long> {
   suspend fun findOneByCprId(cprId: String): CorePersonReligionMapping?
-  suspend fun findByCprIdIn(cprIds: List<String>): List<CorePersonReligionMapping>
 
   @Query("UPDATE CORE_PERSON_RELIGION_MAPPING SET nomis_prison_number = :toPrisonNumber WHERE cpr_id IN (:cprIds) RETURNING *")
   suspend fun updatePrisonNumberByCprIds(cprIds: List<String>, toPrisonNumber: String): List<CorePersonReligionMapping>

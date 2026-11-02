@@ -359,92 +359,6 @@ class ReligionResourceIntTest(
   }
 
   @Nested
-  @DisplayName("GET /mapping/core-person-religion/religion/cpr-ids")
-  inner class GetReligionMappingsByCprId {
-    private val ids = arrayOf("61f19a0a-dc46-4771-b6d2-e920c6bd151f", "a16877a5-f5fc-4a58-a08b-cfe84d653f5b")
-
-    @BeforeEach
-    fun setUp() = runTest {
-      religionMappingRepository.saveAll(
-        listOf(
-          CorePersonReligionMapping(
-            cprId = ids[0],
-            nomisId = 9831302L,
-            nomisPrisonNumber = "A1234BC",
-            mappingType = StandardMappingType.MIGRATED,
-            whenCreated = LocalDateTime.parse("2021-02-01T12:35"),
-          ),
-          CorePersonReligionMapping(
-            cprId = ids[1],
-            nomisId = 6837812L,
-            nomisPrisonNumber = "B1234CD",
-            mappingType = StandardMappingType.MIGRATED,
-            whenCreated = LocalDateTime.parse("2020-01-01T10:15"),
-          ),
-        ),
-      ).collect()
-    }
-
-    @Nested
-    inner class Security {
-      @Test
-      fun `access unauthorised when no authority`() {
-        webTestClient.get()
-          .uri {
-            it.path("/mapping/core-person-religion/religion/cpr-ids")
-            it.queryParam("ids", *ids).build()
-          }
-          .exchange()
-          .expectStatus().isUnauthorized
-      }
-    }
-
-    @Test
-    fun `access forbidden when no role`() {
-      webTestClient.get()
-        .uri {
-          it.path("/mapping/core-person-religion/religion/cpr-ids")
-          it.queryParam("ids", *ids).build()
-        }
-        .headers(setAuthorisation(roles = listOf()))
-        .exchange()
-        .expectStatus().isForbidden
-    }
-
-    @Test
-    fun `access forbidden with wrong role`() {
-      webTestClient.get()
-        .uri {
-          it.path("/mapping/core-person-religion/religion/cpr-ids")
-          it.queryParam("ids", *ids).build()
-        }
-        .headers(setAuthorisation(roles = listOf("BANANAS")))
-        .exchange()
-        .expectStatus().isForbidden
-    }
-
-    @Nested
-    inner class HappyPath {
-      @Test
-      fun `will retrieve mapping by cprId`() {
-        webTestClient.get()
-          .uri {
-            it.path("/mapping/core-person-religion/religion/cpr-ids")
-            it.queryParam("ids", *ids).build()
-          }
-          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .exchange()
-          .expectStatus().isOk
-          .expectBody<List<ReligionMappingDto>>()
-          .returnResult().responseBody!!.apply {
-          assertThat(size).isEqualTo(2)
-          assertThat(this.map { it.nomisId }).containsExactlyInAnyOrder(9831302L, 6837812L)
-        }
-      }
-    }
-  }
-
-  @Nested
   @DisplayName("PUT /mapping/core-person-religion/religion/{prisonNumber}/cpr-ids")
   inner class UpdateReligionMappingsByCprId {
     private val ids = arrayOf("61f19a0a-dc46-4771-b6d2-e920c6bd151f", "a16877a5-f5fc-4a58-a08b-cfe84d653f5b")
@@ -539,9 +453,9 @@ class ReligionResourceIntTest(
 
         assertThat(response).hasSize(2)
         assertThat(response.map { it.nomisPrisonNumber }).containsOnly(updatedPrisonNumber)
-        val persistedMappings = religionMappingRepository.findByCprIdIn(ids.toList())
+        val persistedMappings = ids.toList().map { religionMappingRepository.findOneByCprId(it) }
         assertThat(persistedMappings).hasSize(2)
-        assertThat(persistedMappings.map { it.nomisPrisonNumber }).containsOnly(updatedPrisonNumber)
+        assertThat(persistedMappings.map { it!!.nomisPrisonNumber }).containsOnly(updatedPrisonNumber)
       }
     }
   }

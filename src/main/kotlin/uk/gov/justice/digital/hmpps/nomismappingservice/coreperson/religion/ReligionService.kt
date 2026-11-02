@@ -26,10 +26,6 @@ class ReligionService(
     ?.toDto()
     ?: throw NotFoundException("No religion mapping found for cprId=$cprId")
 
-  suspend fun getReligionMappingsByCprIds(cprIds: List<String>) = religionMappingRepository.findByCprIdIn(
-    cprIds = cprIds,
-  ).map { it.toDto() }
-
   suspend fun updatePrisonNumberOnReligionMappingsByCprIds(toPrisonNumber: String, cprIds: List<String>) = religionMappingRepository.updatePrisonNumberByCprIds(cprIds = cprIds, toPrisonNumber = toPrisonNumber).map { it.toDto() }
 
   suspend fun getReligionMappingByCprIdOrNull(cprId: String) = religionMappingRepository.findOneByCprId(
