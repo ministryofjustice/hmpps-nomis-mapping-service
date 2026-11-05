@@ -10,6 +10,17 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressMappingRepository
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressUsageMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressUsageMappingRepository
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonContactMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonContactMappingRepository
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.NomisContactType
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier.OffenderAliasMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier.OffenderAliasMappingRepository
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier.OffenderIdentifierMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier.OffenderIdentifierMappingRepository
 import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundException
 import java.util.UUID
 

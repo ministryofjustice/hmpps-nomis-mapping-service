@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson
+package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingException
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonService
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.OffenderIdentifierMappingDto
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController

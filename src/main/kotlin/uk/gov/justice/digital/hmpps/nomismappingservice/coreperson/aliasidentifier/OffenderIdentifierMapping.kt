@@ -1,14 +1,16 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson
+package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier
 
 import org.springframework.data.annotation.Id
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.AbstractCorePersonMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingType
 import java.time.LocalDateTime
 
-class CorePersonContactMapping(
-  nomisPrisonNumber: String,
+class OffenderIdentifierMapping(
   @Id
   val cprId: String,
-  val nomisId: Long,
-  val nomisContactType: NomisContactType,
+  val nomisOffenderId: Long,
+  val nomisIdentifierSequence: Int,
+  nomisPrisonNumber: String,
   label: String? = null,
   mappingType: CorePersonMappingType,
   whenCreated: LocalDateTime? = null,
@@ -16,16 +18,11 @@ class CorePersonContactMapping(
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is CorePersonContactMapping) return false
+    if (other !is OffenderIdentifierMapping) return false
     if (cprId != other.cprId) return false
     return true
   }
 
   override fun hashCode(): Int = cprId.hashCode()
   override fun getId(): String = cprId
-}
-
-enum class NomisContactType {
-  PHONE,
-  EMAIL,
 }

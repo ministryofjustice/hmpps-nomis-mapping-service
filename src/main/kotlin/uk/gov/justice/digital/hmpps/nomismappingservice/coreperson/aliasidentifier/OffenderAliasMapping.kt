@@ -1,6 +1,8 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson
+package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier
 
 import org.springframework.data.annotation.Id
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.AbstractCorePersonMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingType
 import java.time.LocalDateTime
 
 class OffenderAliasMapping(
