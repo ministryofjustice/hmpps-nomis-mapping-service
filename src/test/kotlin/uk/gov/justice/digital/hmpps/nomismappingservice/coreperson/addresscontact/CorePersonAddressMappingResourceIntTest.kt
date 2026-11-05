@@ -303,192 +303,192 @@ class CorePersonAddressMappingResourceIntTest(
         assertThat(corePersonAddressUsageMappingRepository.findOneByCprId(nomisAddressUsageCprId)).isNull()
       }
     }
+  }
 
-    @Nested
-    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-    @DisplayName("POST /mapping/core-person/address")
-    inner class CreateCorePersonAddressMapping {
-      private val mapping = CorePersonAddressMappingDto(
-        cprId = "754321",
-        nomisId = 32345L,
-        nomisPrisonNumber = "D1234DD",
-        label = null,
-        mappingType = CorePersonMappingType.CPR_CREATED,
-        whenCreated = null,
-      )
-      private val mappingWithUsages = CorePersonAddressMappingDto(
-        cprId = mapping.cprId,
-        nomisId = mapping.nomisId,
-        nomisPrisonNumber = mapping.nomisPrisonNumber,
-        label = null,
-        mappingType = mapping.mappingType,
-        whenCreated = null,
-        addressUsageMappings = listOf(
-          addressUsageMapping(cprId = "854321", nomisId = mapping.nomisId, addressUsageCode = "HOME"),
-          addressUsageMapping(cprId = "854322", nomisId = mapping.nomisId, addressUsageCode = "BUS"),
+  @Nested
+  @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+  @DisplayName("POST /mapping/core-person/address")
+  inner class CreateCorePersonAddressMapping {
+    private val mapping = CorePersonAddressMappingDto(
+      cprId = "754321",
+      nomisId = 32345L,
+      nomisPrisonNumber = "D1234DD",
+      label = null,
+      mappingType = CorePersonMappingType.CPR_CREATED,
+      whenCreated = null,
+    )
+    private val mappingWithUsages = CorePersonAddressMappingDto(
+      cprId = mapping.cprId,
+      nomisId = mapping.nomisId,
+      nomisPrisonNumber = mapping.nomisPrisonNumber,
+      label = null,
+      mappingType = mapping.mappingType,
+      whenCreated = null,
+      addressUsageMappings = listOf(
+        addressUsageMapping(cprId = "854321", nomisId = mapping.nomisId, addressUsageCode = "HOME"),
+        addressUsageMapping(cprId = "854322", nomisId = mapping.nomisId, addressUsageCode = "BUS"),
+      ),
+    )
+
+    @BeforeAll
+    fun setUp() = runTest {
+      corePersonMappingRepository.save(
+        CorePersonMapping(
+          cprId = "d6f5c52c-1d13-4f86-bf2c-4a4f4f891e69",
+          nomisPrisonNumber = "D1234DD",
+          mappingType = CorePersonMappingType.MIGRATED,
         ),
       )
+    }
 
-      @BeforeAll
+    @AfterAll
+    fun tearDown() = deleteAll()
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/address")
+          .contentType(MediaType.APPLICATION_JSON)
+          .bodyValue(mapping)
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/address")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .bodyValue(mapping)
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/address")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .bodyValue(mapping)
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @BeforeEach
       fun setUp() = runTest {
-        corePersonMappingRepository.save(
-          CorePersonMapping(
-            cprId = "d6f5c52c-1d13-4f86-bf2c-4a4f4f891e69",
-            nomisPrisonNumber = "D1234DD",
-            mappingType = CorePersonMappingType.MIGRATED,
+        corePersonAddressMappingRepository.save(
+          CorePersonAddressMapping(
+            nomisPrisonNumber = mapping.nomisPrisonNumber,
+            cprId = mapping.cprId,
+            nomisId = mapping.nomisId,
+            mappingType = mapping.mappingType,
           ),
         )
       }
 
-      @AfterAll
-      fun tearDown() = deleteAll()
-
-      @Nested
-      inner class Security {
-        @Test
-        fun `access not authorised when no authority`() {
-          webTestClient.post()
-            .uri("/mapping/core-person/address")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(mapping)
-            .exchange()
-            .expectStatus().isUnauthorized
-        }
-
-        @Test
-        fun `access forbidden when no role`() {
-          webTestClient.post()
-            .uri("/mapping/core-person/address")
-            .headers(setAuthorisation(roles = listOf()))
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(mapping)
-            .exchange()
-            .expectStatus().isForbidden
-        }
-
-        @Test
-        fun `access forbidden with wrong role`() {
-          webTestClient.post()
-            .uri("/mapping/core-person/address")
-            .headers(setAuthorisation(roles = listOf("BANANAS")))
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(mapping)
-            .exchange()
-            .expectStatus().isForbidden
-        }
+      @Test
+      fun `will not allow a duplicate address mapping`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/address")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .bodyValue(mapping)
+          .exchange()
+          .expectStatus().isDuplicateMapping
       }
 
-      @Nested
-      inner class Validation {
-        @BeforeEach
-        fun setUp() = runTest {
-          corePersonAddressMappingRepository.save(
-            CorePersonAddressMapping(
-              nomisPrisonNumber = mapping.nomisPrisonNumber,
-              cprId = mapping.cprId,
-              nomisId = mapping.nomisId,
-              mappingType = mapping.mappingType,
-            ),
-          )
-        }
+      @Test
+      fun `will not persist address usage mappings when the address mapping is a duplicate`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/core-person/address")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .bodyValue(mappingWithUsages)
+          .exchange()
+          .expectStatus().isDuplicateMapping
 
-        @Test
-        fun `will not allow a duplicate address mapping`() {
-          webTestClient.post()
-            .uri("/mapping/core-person/address")
-            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(mapping)
-            .exchange()
-            .expectStatus().isDuplicateMapping
-        }
-
-        @Test
-        fun `will not persist address usage mappings when the address mapping is a duplicate`() = runTest {
-          webTestClient.post()
-            .uri("/mapping/core-person/address")
-            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(mappingWithUsages)
-            .exchange()
-            .expectStatus().isDuplicateMapping
-
-          mappingWithUsages.addressUsageMappings!!.forEach {
-            assertThat(corePersonAddressUsageMappingRepository.findOneByCprId(it.cprId)).isNull()
-          }
+        mappingWithUsages.addressUsageMappings!!.forEach {
+          assertThat(corePersonAddressUsageMappingRepository.findOneByCprId(it.cprId)).isNull()
         }
       }
+    }
 
-      @Nested
-      inner class DuplicateAddressUsage {
-        @BeforeEach
-        fun setUp() = runTest {
-          corePersonAddressUsageMappingRepository.save(mappingWithUsages.addressUsageMappings!!.first().toEntity())
-        }
-
-        @Test
-        fun `will not persist the address mapping when an address usage mapping is a duplicate`() = runTest {
-          webTestClient.post()
-            .uri("/mapping/core-person/address")
-            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(mappingWithUsages)
-            .exchange()
-            .expectStatus().isDuplicateMapping
-
-          assertThat(corePersonAddressMappingRepository.findOneByNomisId(mapping.nomisId)).isNull()
-          assertThat(corePersonAddressUsageMappingRepository.findOneByCprId(mappingWithUsages.addressUsageMappings!!.last().cprId)).isNull()
-        }
+    @Nested
+    inner class DuplicateAddressUsage {
+      @BeforeEach
+      fun setUp() = runTest {
+        corePersonAddressUsageMappingRepository.save(mappingWithUsages.addressUsageMappings!!.first().toEntity())
       }
 
-      @AfterEach
-      fun tearDownPersonAddressMapping() = runTest {
-        corePersonAddressUsageMappingRepository.deleteAll()
-        corePersonAddressMappingRepository.deleteAll()
+      @Test
+      fun `will not persist the address mapping when an address usage mapping is a duplicate`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/core-person/address")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .bodyValue(mappingWithUsages)
+          .exchange()
+          .expectStatus().isDuplicateMapping
+
+        assertThat(corePersonAddressMappingRepository.findOneByNomisId(mapping.nomisId)).isNull()
+        assertThat(corePersonAddressUsageMappingRepository.findOneByCprId(mappingWithUsages.addressUsageMappings!!.last().cprId)).isNull()
+      }
+    }
+
+    @AfterEach
+    fun tearDownPersonAddressMapping() = runTest {
+      corePersonAddressUsageMappingRepository.deleteAll()
+      corePersonAddressMappingRepository.deleteAll()
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will persist the person address mapping`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/core-person/address")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .bodyValue(mapping)
+          .exchange()
+          .expectStatus().isCreated
+
+        val persisted = corePersonAddressMappingRepository.findOneByNomisId(mapping.nomisId)!!
+        assertThat(persisted.cprId).isEqualTo(mapping.cprId)
+        assertThat(persisted.nomisPrisonNumber).isEqualTo(mapping.nomisPrisonNumber)
+        assertThat(persisted.mappingType).isEqualTo(mapping.mappingType)
+        assertThat(corePersonAddressUsageMappingRepository.findAll().toList().filter { it.nomisId == mapping.nomisId }).isEmpty()
       }
 
-      @Nested
-      inner class HappyPath {
-        @Test
-        fun `will persist the person address mapping`() = runTest {
-          webTestClient.post()
-            .uri("/mapping/core-person/address")
-            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(mapping)
-            .exchange()
-            .expectStatus().isCreated
+      @Test
+      fun `will persist the person address mapping and address usage mappings`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/core-person/address")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .bodyValue(mappingWithUsages)
+          .exchange()
+          .expectStatus().isCreated
 
-          val persisted = corePersonAddressMappingRepository.findOneByNomisId(mapping.nomisId)!!
-          assertThat(persisted.cprId).isEqualTo(mapping.cprId)
-          assertThat(persisted.nomisPrisonNumber).isEqualTo(mapping.nomisPrisonNumber)
-          assertThat(persisted.mappingType).isEqualTo(mapping.mappingType)
-          assertThat(corePersonAddressUsageMappingRepository.findAll().toList().filter { it.nomisId == mapping.nomisId }).isEmpty()
-        }
+        val persisted = corePersonAddressMappingRepository.findOneByNomisId(mappingWithUsages.nomisId)!!
+        assertThat(persisted.cprId).isEqualTo(mappingWithUsages.cprId)
+        assertThat(persisted.nomisPrisonNumber).isEqualTo(mappingWithUsages.nomisPrisonNumber)
+        assertThat(persisted.mappingType).isEqualTo(mappingWithUsages.mappingType)
 
-        @Test
-        fun `will persist the person address mapping and address usage mappings`() = runTest {
-          webTestClient.post()
-            .uri("/mapping/core-person/address")
-            .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(mappingWithUsages)
-            .exchange()
-            .expectStatus().isCreated
-
-          val persisted = corePersonAddressMappingRepository.findOneByNomisId(mappingWithUsages.nomisId)!!
-          assertThat(persisted.cprId).isEqualTo(mappingWithUsages.cprId)
-          assertThat(persisted.nomisPrisonNumber).isEqualTo(mappingWithUsages.nomisPrisonNumber)
-          assertThat(persisted.mappingType).isEqualTo(mappingWithUsages.mappingType)
-
-          mappingWithUsages.addressUsageMappings!!.forEach { expected ->
-            with(corePersonAddressUsageMappingRepository.findOneByCprId(expected.cprId)!!) {
-              assertThat(nomisId).isEqualTo(expected.nomisId)
-              assertThat(addressUsageCode).isEqualTo(expected.addressUsageCode)
-              assertThat(nomisPrisonNumber).isEqualTo(expected.nomisPrisonNumber)
-              assertThat(label).isEqualTo(expected.label)
-              assertThat(mappingType).isEqualTo(expected.mappingType)
-            }
+        mappingWithUsages.addressUsageMappings!!.forEach { expected ->
+          with(corePersonAddressUsageMappingRepository.findOneByCprId(expected.cprId)!!) {
+            assertThat(nomisId).isEqualTo(expected.nomisId)
+            assertThat(addressUsageCode).isEqualTo(expected.addressUsageCode)
+            assertThat(nomisPrisonNumber).isEqualTo(expected.nomisPrisonNumber)
+            assertThat(label).isEqualTo(expected.label)
+            assertThat(mappingType).isEqualTo(expected.mappingType)
           }
         }
       }
