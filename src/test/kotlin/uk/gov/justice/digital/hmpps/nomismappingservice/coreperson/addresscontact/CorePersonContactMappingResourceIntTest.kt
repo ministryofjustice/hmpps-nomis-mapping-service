@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson
+package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact
 
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
@@ -10,6 +10,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonContactMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingRepository
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingType
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.isDuplicateMapping
 import java.time.LocalDateTime
