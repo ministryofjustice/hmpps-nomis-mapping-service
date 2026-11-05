@@ -3,24 +3,17 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson
 import jakarta.validation.ValidationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressMapping
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressMappingRepository
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressUsageMapping
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressUsageMappingRepository
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonContactMapping
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonContactMappingRepository
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.NomisContactType
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier.OffenderAliasMapping
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier.OffenderAliasMappingRepository
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier.OffenderIdentifierMapping
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier.OffenderIdentifierMappingRepository
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.toDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.toMapping
 import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundException
 import java.util.UUID
 
@@ -32,8 +25,6 @@ class CorePersonService(
   private val corePersonAddressUsageMappingRepository: CorePersonAddressUsageMappingRepository,
   private val corePersonContactMappingRepository: CorePersonContactMappingRepository,
   private val profileMappingRepository: ProfileMappingRepository,
-  private val offenderIdentifierMappingRepository: OffenderIdentifierMappingRepository,
-  private val offenderAliasMappingRepository: OffenderAliasMappingRepository,
 ) {
   @Transactional
   suspend fun merge(mappings: CorePersonMergeMappingsDto) {
@@ -114,72 +105,6 @@ class CorePersonService(
     corePersonMappingRepository.deleteAll()
   }
 
-  suspend fun getAddressMappingByNomisId(nomisId: Long) = corePersonAddressMappingRepository.findOneByNomisId(nomisId = nomisId)
-    ?.toDto()
-    ?: throw NotFoundException("No core person address mapping found for nomisId=$nomisId")
-
-  suspend fun getAddressMappingByCprId(cprId: String) = corePersonAddressMappingRepository.findOneByCprId(cprId = cprId)
-    ?.toDto()
-    ?: throw NotFoundException("No core person address mapping found for cprId=$cprId")
-
-  suspend fun getAddressMappingByCprIdOrNull(cprId: String) = corePersonAddressMappingRepository.findOneByCprId(cprId = cprId)
-    ?.toDto()
-
-  @Transactional
-  suspend fun deleteAddressMappingByNomisId(nomisId: Long) {
-    corePersonAddressUsageMappingRepository.deleteAllByNomisId(nomisId)
-    corePersonAddressMappingRepository.deleteByNomisId(nomisId)
-  }
-
-  @Transactional
-  suspend fun createAddressMapping(mapping: CorePersonAddressMappingDto) {
-    corePersonAddressMappingRepository.save(mapping.toMapping())
-    mapping.addressUsageMappings?.takeIf { it.isNotEmpty() }?.let { mappings ->
-      corePersonAddressUsageMappingRepository.saveAll(mappings.map { it.toMapping() }).collect()
-    }
-  }
-
-  suspend fun getAddressUsageMappingByNomisId(nomisId: Long, addressUsageCode: String) = corePersonAddressUsageMappingRepository
-    .findOneByNomisIdAndAddressUsageCode(nomisId, addressUsageCode)
-    ?.toDto()
-    ?: throw NotFoundException("No core person address usage mapping found for nomisId=$nomisId and addressUsageCode=$addressUsageCode")
-
-  suspend fun getAddressUsageMappingByCprId(cprId: String) = corePersonAddressUsageMappingRepository.findOneByCprId(cprId)
-    ?.toDto()
-    ?: throw NotFoundException("No core person address usage mapping found for cprId=$cprId")
-
-  suspend fun getAddressUsageMappingByCprIdOrNull(cprId: String) = corePersonAddressUsageMappingRepository.findOneByCprId(cprId)
-    ?.toDto()
-
-  @Transactional
-  suspend fun deleteAddressUsageMappingByNomisId(nomisId: Long, addressUsageCode: String) = corePersonAddressUsageMappingRepository.deleteByNomisIdAndAddressUsageCode(nomisId, addressUsageCode)
-
-  @Transactional
-  suspend fun createAddressUsageMapping(mapping: CorePersonAddressUsageMappingDto) {
-    corePersonAddressUsageMappingRepository.save(mapping.toMapping())
-  }
-
-  suspend fun getContactMappingByNomisId(nomisId: Long, nomisContactType: NomisContactType) = corePersonContactMappingRepository
-    .findOneByNomisIdAndNomisContactType(nomisId = nomisId, nomisContactType = nomisContactType)
-    ?.toDto()
-    ?: throw NotFoundException("No core person contact mapping found for nomisId=$nomisId and nomisContactType=$nomisContactType")
-
-  suspend fun getContactMappingByCprId(cprId: String) = corePersonContactMappingRepository.findOneByCprId(cprId = cprId)
-    ?.toDto()
-    ?: throw NotFoundException("No core person contact mapping found for cprId=$cprId")
-
-  suspend fun getContactMappingByCprIdOrNull(cprId: String) = corePersonContactMappingRepository.findOneByCprId(cprId = cprId)
-    ?.toDto()
-
-  @Transactional
-  suspend fun deleteContactMappingByNomisId(nomisId: Long, nomisContactType: NomisContactType) = corePersonContactMappingRepository
-    .deleteByNomisIdAndNomisContactType(nomisId = nomisId, nomisContactType = nomisContactType)
-
-  @Transactional
-  suspend fun createContactMapping(mapping: CorePersonContactMappingDto) {
-    corePersonContactMappingRepository.save(mapping.toMapping())
-  }
-
   suspend fun getProfileMappingByDpsId(dpsId: String) = profileMappingRepository
     .findById(dpsId)
     ?.toDto()
@@ -198,52 +123,6 @@ class CorePersonService(
     .findOneByNomisBookingIdAndNomisProfileType(nomisBookingId, nomisProfileType)
     ?.toDto()
     ?: throw NotFoundException("No profile mapping found for nomisBookingId=$nomisBookingId and nomisProfileType = $nomisProfileType")
-
-  suspend fun getOffenderIdentifierMappingByNomisId(nomisOffenderId: Long, nomisIdentifierSequence: Int) = offenderIdentifierMappingRepository
-    .findOneByNomisOffenderIdAndNomisIdentifierSequence(
-      nomisOffenderId = nomisOffenderId,
-      nomisIdentifierSequence = nomisIdentifierSequence,
-    )?.toDto()
-    ?: throw NotFoundException("No offender identifier mapping found for nomisOffenderId=$nomisOffenderId and nomisIdentifierSequence=$nomisIdentifierSequence")
-
-  @Transactional
-  suspend fun deleteOffenderIdentifierMappingByNomisId(nomisOffenderId: Long, nomisIdentifierSequence: Int) = offenderIdentifierMappingRepository
-    .deleteByNomisOffenderIdAndNomisIdentifierSequence(
-      nomisOffenderId = nomisOffenderId,
-      nomisIdentifierSequence = nomisIdentifierSequence,
-    )
-
-  suspend fun getOffenderIdentifierMappingByCprId(cprId: String) = getOffenderIdentifierMappingByCprIdOrNull(cprId)
-    ?: throw NotFoundException("No offender identifier mapping found for cprId=$cprId")
-
-  suspend fun getOffenderIdentifierMappingByCprIdOrNull(cprId: String) = offenderIdentifierMappingRepository
-    .findOneByCprId(cprId = cprId)
-    ?.toDto()
-
-  @Transactional
-  suspend fun createOffenderIdentifierMapping(mapping: OffenderIdentifierMappingDto) {
-    offenderIdentifierMappingRepository.save(mapping.toMapping())
-  }
-
-  suspend fun getOffenderAliasMappingByNomisId(nomisOffenderId: Long) = offenderAliasMappingRepository
-    .findOneByNomisOffenderId(nomisOffenderId = nomisOffenderId)
-    ?.toDto()
-    ?: throw NotFoundException("No offender alias mapping found for nomisOffenderId=$nomisOffenderId")
-
-  suspend fun getOffenderAliasMappingByCprId(cprId: String) = getOffenderAliasMappingByCprIdOrNull(cprId)
-    ?: throw NotFoundException("No offender alias mapping found for cprId=$cprId")
-
-  suspend fun getOffenderAliasMappingByCprIdOrNull(cprId: String) = offenderAliasMappingRepository
-    .findOneByCprId(cprId = cprId)
-    ?.toDto()
-
-  @Transactional
-  suspend fun deleteOffenderAliasMappingByNomisId(nomisOffenderId: Long) = offenderAliasMappingRepository
-    .deleteByNomisOffenderId(nomisOffenderId = nomisOffenderId)
-
-  @Transactional
-  suspend fun createOffenderAliasMapping(mapping: OffenderAliasMappingDto) = offenderAliasMappingRepository
-    .save(mapping.toMapping())
 
   @Transactional
   suspend fun deleteCorePersonMigration() {
@@ -332,106 +211,10 @@ private fun CorePersonMapping.toDto() = CorePersonMappingDto(
   whenCreated = whenCreated,
 )
 
-private fun CorePersonAddressMapping.toDto() = CorePersonAddressMappingDto(
-  cprId = cprId,
-  nomisId = nomisId,
-  label = label,
-  mappingType = mappingType,
-  whenCreated = whenCreated,
-  nomisPrisonNumber = nomisPrisonNumber,
-)
-
-private fun CorePersonAddressMappingDto.toMapping() = CorePersonAddressMapping(
-  cprId = cprId,
-  nomisId = nomisId,
-  label = label,
-  mappingType = mappingType,
-  whenCreated = whenCreated,
-  nomisPrisonNumber = nomisPrisonNumber,
-)
-
-private fun CorePersonAddressUsageMapping.toDto() = CorePersonAddressUsageMappingDto(
-  cprId = cprId,
-  nomisId = nomisId,
-  label = label,
-  mappingType = mappingType,
-  whenCreated = whenCreated,
-  addressUsageCode = addressUsageCode,
-  nomisPrisonNumber = nomisPrisonNumber,
-)
-
-private fun CorePersonAddressUsageMappingDto.toMapping() = CorePersonAddressUsageMapping(
-  cprId = cprId,
-  nomisId = nomisId,
-  label = label,
-  mappingType = mappingType,
-  whenCreated = whenCreated,
-  addressUsageCode = addressUsageCode,
-  nomisPrisonNumber = nomisPrisonNumber,
-)
-
-private fun CorePersonContactMapping.toDto() = CorePersonContactMappingDto(
-  nomisId = nomisId,
-  nomisContactType = nomisContactType,
-  cprId = cprId,
-  label = label,
-  mappingType = mappingType,
-  whenCreated = whenCreated,
-  nomisPrisonNumber = nomisPrisonNumber,
-)
-
-private fun CorePersonContactMappingDto.toMapping() = CorePersonContactMapping(
-  nomisId = nomisId,
-  nomisContactType = nomisContactType,
-  cprId = cprId,
-  label = label,
-  mappingType = mappingType,
-  whenCreated = whenCreated,
-  nomisPrisonNumber = nomisPrisonNumber,
-)
-
 private fun ProfileMapping.toDto() = ProfileMappingDto(
   cprId = cprId.toString(),
   nomisBookingId = nomisBookingId,
   nomisProfileType = nomisProfileType,
-  nomisPrisonNumber = nomisPrisonNumber,
-  label = label,
-  mappingType = mappingType,
-  whenCreated = whenCreated,
-)
-
-internal fun OffenderIdentifierMapping.toDto() = OffenderIdentifierMappingDto(
-  cprId = cprId,
-  nomisOffenderId = nomisOffenderId,
-  nomisIdentifierSequence = nomisIdentifierSequence,
-  nomisPrisonNumber = nomisPrisonNumber,
-  label = label,
-  mappingType = mappingType,
-  whenCreated = whenCreated,
-)
-
-internal fun OffenderIdentifierMappingDto.toMapping() = OffenderIdentifierMapping(
-  cprId = cprId,
-  nomisOffenderId = nomisOffenderId,
-  nomisIdentifierSequence = nomisIdentifierSequence,
-  nomisPrisonNumber = nomisPrisonNumber,
-  label = label,
-  mappingType = mappingType,
-  whenCreated = whenCreated,
-)
-
-private fun OffenderAliasMapping.toDto() = OffenderAliasMappingDto(
-  cprId = cprId,
-  nomisOffenderId = nomisOffenderId,
-  nomisPrisonNumber = nomisPrisonNumber,
-  label = label,
-  mappingType = mappingType,
-  whenCreated = whenCreated,
-)
-
-internal fun OffenderAliasMappingDto.toMapping() = OffenderAliasMapping(
-  cprId = cprId,
-  nomisOffenderId = nomisOffenderId,
   nomisPrisonNumber = nomisPrisonNumber,
   label = label,
   mappingType = mappingType,
