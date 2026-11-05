@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentif
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.OffenderIdentifierMappingDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundException
 
 @Service

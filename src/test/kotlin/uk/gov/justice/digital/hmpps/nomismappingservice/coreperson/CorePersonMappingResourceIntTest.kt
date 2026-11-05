@@ -15,10 +15,13 @@ import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressMappingDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressMappingRepository
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressUsageMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressUsageMappingDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressUsageMappingRepository
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonContactMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonContactMappingDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonContactMappingRepository
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.NomisContactType
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier.OffenderAliasMapping

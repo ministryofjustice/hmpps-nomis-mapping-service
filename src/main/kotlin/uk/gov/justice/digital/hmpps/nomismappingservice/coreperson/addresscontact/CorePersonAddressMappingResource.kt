@@ -20,8 +20,6 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingException
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonAddressMappingDto
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonAddressUsageMappingDto
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController

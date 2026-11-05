@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonContactMappingDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMapping
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingRepository
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingType
