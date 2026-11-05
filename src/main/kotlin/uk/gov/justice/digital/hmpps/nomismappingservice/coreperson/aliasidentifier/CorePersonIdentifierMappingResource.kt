@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingException
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonService
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.OffenderIdentifierMappingDto
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
@@ -28,7 +27,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @Validated
 @PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/core-person/identifier", produces = [MediaType.APPLICATION_JSON_VALUE])
-class CorePersonIdentifierMappingResource(private val service: CorePersonService) {
+class CorePersonIdentifierMappingResource(private val service: CorePersonIdentifierService) {
 
   @GetMapping("/nomis-offender-id/{nomisOffenderId}/nomis-identifier-sequence/{nomisIdentifierSequence}")
   @Operation(

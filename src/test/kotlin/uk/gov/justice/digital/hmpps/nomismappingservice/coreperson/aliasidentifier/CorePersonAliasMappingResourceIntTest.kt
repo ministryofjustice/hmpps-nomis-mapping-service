@@ -13,7 +13,6 @@ import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingType
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.OffenderAliasMappingDto
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.toMapping
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestDuplicateErrorResponse
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.isDuplicateMapping

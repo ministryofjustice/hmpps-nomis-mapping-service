@@ -22,14 +22,13 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingE
 import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingException
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonAddressMappingDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonAddressUsageMappingDto
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonService
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
 @PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/core-person", produces = [MediaType.APPLICATION_JSON_VALUE])
-class CorePersonAddressMappingResource(private val service: CorePersonService) {
+class CorePersonAddressMappingResource(private val service: CorePersonAddressService) {
 
   @GetMapping("/address/nomis-address-id/{nomisAddressId}")
   @Operation(
