@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontac
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.toDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.toMapping
 import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundException
-import java.util.UUID
 
 @Service
 @Transactional(readOnly = true)
@@ -24,7 +23,6 @@ class CorePersonService(
   private val corePersonAddressMappingRepository: CorePersonAddressMappingRepository,
   private val corePersonAddressUsageMappingRepository: CorePersonAddressUsageMappingRepository,
   private val corePersonContactMappingRepository: CorePersonContactMappingRepository,
-  private val profileMappingRepository: ProfileMappingRepository,
 ) {
   @Transactional
   suspend fun merge(mappings: CorePersonMergeMappingsDto) {
@@ -105,25 +103,6 @@ class CorePersonService(
     corePersonMappingRepository.deleteAll()
   }
 
-  suspend fun getProfileMappingByDpsId(dpsId: String) = profileMappingRepository
-    .findById(dpsId)
-    ?.toDto()
-    ?: throw NotFoundException("No profile mapping found for dpsId=$dpsId")
-
-  @Transactional
-  suspend fun createProfileMapping(profileMappingDto: ProfileMappingIdDto) {
-    profileMappingRepository.save(profileMappingDto.toMapping())
-  }
-
-  suspend fun getProfileMappingByDpsIdOrNull(dpsId: String) = profileMappingRepository
-    .findById(dpsId)
-    ?.toDto()
-
-  suspend fun getProfileMappingByNomisId(nomisBookingId: Long, nomisProfileType: String) = profileMappingRepository
-    .findOneByNomisBookingIdAndNomisProfileType(nomisBookingId, nomisProfileType)
-    ?.toDto()
-    ?: throw NotFoundException("No profile mapping found for nomisBookingId=$nomisBookingId and nomisProfileType = $nomisProfileType")
-
   @Transactional
   suspend fun deleteCorePersonMigration() {
     corePersonMappingRepository.deleteAll()
@@ -194,27 +173,8 @@ private fun CorePersonMappingsDto.toCorePersonMapping() = CorePersonMapping(
   whenCreated = whenCreated,
 )
 
-private fun ProfileMappingIdDto.toMapping() = ProfileMapping(
-  cprId = UUID.fromString(cprId),
-  nomisBookingId = nomisBookingId,
-  nomisProfileType = nomisProfileType,
-  nomisPrisonNumber = nomisPrisonNumber,
-  label = null,
-  mappingType = mappingType,
-)
-
 private fun CorePersonMapping.toDto() = CorePersonMappingDto(
   cprId = cprId,
-  nomisPrisonNumber = nomisPrisonNumber,
-  label = label,
-  mappingType = mappingType,
-  whenCreated = whenCreated,
-)
-
-private fun ProfileMapping.toDto() = ProfileMappingDto(
-  cprId = cprId.toString(),
-  nomisBookingId = nomisBookingId,
-  nomisProfileType = nomisProfileType,
   nomisPrisonNumber = nomisPrisonNumber,
   label = label,
   mappingType = mappingType,
