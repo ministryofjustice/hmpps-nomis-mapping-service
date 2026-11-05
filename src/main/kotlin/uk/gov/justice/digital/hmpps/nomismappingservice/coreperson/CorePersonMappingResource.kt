@@ -282,78 +282,6 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   )
   suspend fun deleteAllCorePersonMappings() = service.deleteAllMappings()
 
-  @PostMapping("/profile")
-  @ResponseStatus(HttpStatus.CREATED)
-  @Operation(
-    summary = "Creates a core person profile mapping",
-    description = """Creates a core person profile mapping typically when syncing a newly created profile item to DPS.
-      Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
-    requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-      content = [
-        Content(mediaType = "application/json", schema = Schema(implementation = ProfileMappingIdDto::class)),
-      ],
-    ),
-    responses = [
-      ApiResponse(responseCode = "201", description = "Mappings created"),
-      ApiResponse(
-        responseCode = "409",
-        description = "Indicates a duplicate mapping has been rejected. If Error code = 1409 the body will return a DuplicateErrorResponse",
-        content = [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = DuplicateMappingErrorResponse::class),
-          ),
-        ],
-      ),
-    ],
-  )
-  suspend fun createProfileMapping(
-    @RequestBody @Valid
-    mapping: ProfileMappingIdDto,
-  ) = try {
-    service.createProfileMapping(mapping)
-  } catch (e: DuplicateKeyException) {
-    val existingMapping = getExistingProfileMappingSimilarTo(mapping)
-    if (existingMapping == null) {
-      log.error("Child duplicate key found for profile even though profile has never been migrated", e)
-    }
-    throw DuplicateMappingException(
-      messageIn = "Profile mapping already exists",
-      duplicate = mapping,
-      existing = existingMapping ?: mapping,
-      cause = e,
-    )
-  }
-
-  @GetMapping("/profile/cpr-id/{cprId}")
-  @Operation(
-    summary = "Get a core person profile mapping by cpr Id",
-    description = """Retrieves the core person profile mapping.
-      Note this Id may refer to one of several tables in the CPR service, e.g. Disability, sexual orientation etc.
-      Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
-  )
-  suspend fun getProfileMappingByDpsId(
-    @Schema(description = "CPR UUID", example = "12345678-1234-5678-abcd-1234567890ab", required = true)
-    @PathVariable
-    cprId: String,
-  ): ProfileMappingDto = service.getProfileMappingByDpsId(cprId)
-
-  @GetMapping("/profile/booking/{bookingId}/type/{profileType}")
-  @Operation(
-    summary = "Get a core person profile mapping by booking Id and Nomis profile type",
-    description = """Retrieves the core person profile mapping.
-      Note this can retrieve a CPR Id which may refer to one of several tables in the CPR service, e.g. Disability, sexual orientation etc.
-      Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
-  )
-  suspend fun getProfileMappingByNomisIds(
-    @Schema(description = "Booking id", example = "12345678", required = true)
-    @PathVariable
-    bookingId: Long,
-    @Schema(description = "Nomis profile type", example = "SEXO", required = true)
-    @PathVariable
-    profileType: String,
-  ): ProfileMappingDto = service.getProfileMappingByNomisId(bookingId, profileType)
-
   @PostMapping("/mappings/by-nomis-ids")
   @Operation(
     summary = "Get mapping by nomis ids",
@@ -391,12 +319,6 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     service.getCorePersonMappingByCprIdOrNull(
       cprId = personMapping.cprId,
     )
-  }
-
-  private suspend fun getExistingProfileMappingSimilarTo(mapping: ProfileMappingIdDto) = runCatching {
-    service.getProfileMappingByNomisId(mapping.nomisBookingId, mapping.nomisProfileType)
-  }.getOrElse {
-    service.getProfileMappingByDpsIdOrNull(mapping.cprId)
   }
 }
 
