@@ -1,32 +1,21 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson
+package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact
 
 import jakarta.validation.ValidationException
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.toList
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageImpl
-import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressMappingDto
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressMappingRepository
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressUsageMappingDto
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressUsageMappingRepository
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonContactMappingDto
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonContactMappingRepository
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.toDto
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.toMapping
-import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundException
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonAddressContactMappingsDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingsByNomisIdsRequest
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingsResult
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMergeMappingsDto
 
 @Service
 @Transactional(readOnly = true)
-class CorePersonService(
-  private val corePersonMigrationAddressContactMappingRepository: CorePersonMigrationAddressContactMappingRepository,
+class CorePersonAddressContactService(
   private val corePersonAddressMappingRepository: CorePersonAddressMappingRepository,
   private val corePersonAddressUsageMappingRepository: CorePersonAddressUsageMappingRepository,
   private val corePersonContactMappingRepository: CorePersonContactMappingRepository,
 ) {
+
   @Transactional
   suspend fun merge(mappings: CorePersonMergeMappingsDto) {
     validate(mappings)
@@ -54,61 +43,15 @@ class CorePersonService(
   }
 
   @Transactional
-  suspend fun createMappings(mappings: CorePersonAddressContactMappingsDto) {
-    with(mappings) {
-      corePersonMigrationAddressContactMappingRepository.save(toCorePersonMapping())
-      replaceMappings(this)
-    }
-  }
-
-  suspend fun getCorePersonMappingsByMigrationId(
-    pageRequest: Pageable,
-    migrationId: String,
-  ): Page<CorePersonMappingDto> = coroutineScope {
-    val mappings = async {
-      corePersonMigrationAddressContactMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
-        label = migrationId,
-        mappingType = CorePersonMappingType.MIGRATED,
-        pageRequest = pageRequest,
-      )
-    }
-
-    val count = async {
-      corePersonMigrationAddressContactMappingRepository.countAllByLabelAndMappingType(
-        migrationId = migrationId,
-        mappingType = CorePersonMappingType.MIGRATED,
-      )
-    }
-
-    PageImpl(
-      mappings.await().toList().map { it.toDto() },
-      pageRequest,
-      count.await(),
-    )
-  }
-
-  suspend fun getCorePersonMappingByNomisPrisonNumber(nomisPrisonNumber: String) = corePersonMigrationAddressContactMappingRepository.findOneByNomisPrisonNumber(nomisPrisonNumber = nomisPrisonNumber)
-    ?.toDto()
-    ?: throw NotFoundException("No core person mapping found for nomisPrisonNumber=$nomisPrisonNumber")
-
-  suspend fun getCorePersonMappingByCprIdOrNull(cprId: String) = corePersonMigrationAddressContactMappingRepository.findOneByCprId(cprId = cprId)
-    ?.toDto()
+  suspend fun replaceMappings(mappings: CorePersonAddressContactMappingsDto) = replaceAddressesAndContactsMappings(
+    mappings.personMapping.nomisPrisonNumber,
+    mappings.contacts,
+    mappings.addresses,
+    mappings.addressUsages,
+  )
 
   @Transactional
-  suspend fun deleteAllMappings() {
-    corePersonContactMappingRepository.deleteAll()
-    corePersonAddressMappingRepository.deleteAll()
-    corePersonAddressUsageMappingRepository.deleteAll()
-    corePersonMigrationAddressContactMappingRepository.deleteAll()
-  }
-
-  @Transactional
-  suspend fun deleteCorePersonMigration() {
-    corePersonMigrationAddressContactMappingRepository.deleteAll()
-  }
-
-  @Transactional
-  internal suspend fun replaceAddressesAndContactsMappings(
+  suspend fun replaceAddressesAndContactsMappings(
     prisonNumber: String,
     contacts: List<CorePersonContactMappingDto>,
     addresses: List<CorePersonAddressMappingDto>,
@@ -142,9 +85,6 @@ class CorePersonService(
     }
   }
 
-  @Transactional
-  suspend fun replaceMappings(mappings: CorePersonAddressContactMappingsDto) = replaceAddressesAndContactsMappings(mappings.personMapping.nomisPrisonNumber, mappings.contacts, mappings.addresses, mappings.addressUsages)
-
   @Transactional(readOnly = true)
   suspend fun getMappingResultFromNomisIds(mappingRequest: CorePersonMappingsByNomisIdsRequest): CorePersonMappingsResult {
     val matchingAddresses = corePersonAddressMappingRepository.findAllByNomisIdIn(mappingRequest.addresses).map { it.toDto() }
@@ -162,20 +102,11 @@ class CorePersonService(
       addressUsages = matchingAddressUsages,
     )
   }
+
+  @Transactional
+  suspend fun deleteAll() {
+    corePersonContactMappingRepository.deleteAll()
+    corePersonAddressMappingRepository.deleteAll()
+    corePersonAddressUsageMappingRepository.deleteAll()
+  }
 }
-
-private fun CorePersonAddressContactMappingsDto.toCorePersonMapping() = CorePersonMigrationAddressContact(
-  cprId = personMapping.cprId,
-  nomisPrisonNumber = personMapping.nomisPrisonNumber,
-  label = label,
-  mappingType = mappingType,
-  whenCreated = whenCreated,
-)
-
-private fun CorePersonMigrationAddressContact.toDto() = CorePersonMappingDto(
-  cprId = cprId,
-  nomisPrisonNumber = nomisPrisonNumber,
-  label = label,
-  mappingType = mappingType,
-  whenCreated = whenCreated,
-)
