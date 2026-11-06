@@ -267,10 +267,10 @@ class AdvanceMappingResource(private val service: AdvanceService) {
   @PostMapping("/replace")
   @Operation(
     summary = "Replaces an advance mapping.",
-    description = """Creates an of advance mappings and removes the previous supplied one.
+    description = """Creates a new advance mapping and removes the previously supplied one (if one exists).
       Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
     responses = [
-      ApiResponse(responseCode = "200", description = "Mappings replaced"),
+      ApiResponse(responseCode = "200", description = "Mapping replaced"),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
