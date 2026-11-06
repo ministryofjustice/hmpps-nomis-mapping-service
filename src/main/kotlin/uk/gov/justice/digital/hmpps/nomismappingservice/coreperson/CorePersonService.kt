@@ -22,7 +22,7 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundExceptio
 @Service
 @Transactional(readOnly = true)
 class CorePersonService(
-  private val corePersonMappingRepository: CorePersonMappingRepository,
+  private val corePersonMigrationAddressContactMappingRepository: CorePersonMigrationAddressContactMappingRepository,
   private val corePersonAddressMappingRepository: CorePersonAddressMappingRepository,
   private val corePersonAddressUsageMappingRepository: CorePersonAddressUsageMappingRepository,
   private val corePersonContactMappingRepository: CorePersonContactMappingRepository,
@@ -54,9 +54,9 @@ class CorePersonService(
   }
 
   @Transactional
-  suspend fun createMappings(mappings: CorePersonMappingsDto) {
+  suspend fun createMappings(mappings: CorePersonAddressContactMappingsDto) {
     with(mappings) {
-      corePersonMappingRepository.save(toCorePersonMapping())
+      corePersonMigrationAddressContactMappingRepository.save(toCorePersonMapping())
       replaceMappings(this)
     }
   }
@@ -66,7 +66,7 @@ class CorePersonService(
     migrationId: String,
   ): Page<CorePersonMappingDto> = coroutineScope {
     val mappings = async {
-      corePersonMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
+      corePersonMigrationAddressContactMappingRepository.findAllByLabelAndMappingTypeOrderByLabelDesc(
         label = migrationId,
         mappingType = CorePersonMappingType.MIGRATED,
         pageRequest = pageRequest,
@@ -74,7 +74,7 @@ class CorePersonService(
     }
 
     val count = async {
-      corePersonMappingRepository.countAllByLabelAndMappingType(
+      corePersonMigrationAddressContactMappingRepository.countAllByLabelAndMappingType(
         migrationId = migrationId,
         mappingType = CorePersonMappingType.MIGRATED,
       )
@@ -87,15 +87,15 @@ class CorePersonService(
     )
   }
 
-  suspend fun getCorePersonMappingByNomisPrisonNumber(nomisPrisonNumber: String) = corePersonMappingRepository.findOneByNomisPrisonNumber(nomisPrisonNumber = nomisPrisonNumber)
+  suspend fun getCorePersonMappingByNomisPrisonNumber(nomisPrisonNumber: String) = corePersonMigrationAddressContactMappingRepository.findOneByNomisPrisonNumber(nomisPrisonNumber = nomisPrisonNumber)
     ?.toDto()
     ?: throw NotFoundException("No core person mapping found for nomisPrisonNumber=$nomisPrisonNumber")
 
-  suspend fun getCorePersonMappingByCprId(cprId: String) = corePersonMappingRepository.findOneByCprId(cprId = cprId)
+  suspend fun getCorePersonMappingByCprId(cprId: String) = corePersonMigrationAddressContactMappingRepository.findOneByCprId(cprId = cprId)
     ?.toDto()
     ?: throw NotFoundException("No core person mapping found for cprId=$cprId")
 
-  suspend fun getCorePersonMappingByCprIdOrNull(cprId: String) = corePersonMappingRepository.findOneByCprId(cprId = cprId)
+  suspend fun getCorePersonMappingByCprIdOrNull(cprId: String) = corePersonMigrationAddressContactMappingRepository.findOneByCprId(cprId = cprId)
     ?.toDto()
 
   @Transactional
@@ -103,12 +103,12 @@ class CorePersonService(
     corePersonContactMappingRepository.deleteAll()
     corePersonAddressMappingRepository.deleteAll()
     corePersonAddressUsageMappingRepository.deleteAll()
-    corePersonMappingRepository.deleteAll()
+    corePersonMigrationAddressContactMappingRepository.deleteAll()
   }
 
   @Transactional
   suspend fun deleteCorePersonMigration() {
-    corePersonMappingRepository.deleteAll()
+    corePersonMigrationAddressContactMappingRepository.deleteAll()
   }
 
   @Transactional
@@ -147,7 +147,7 @@ class CorePersonService(
   }
 
   @Transactional
-  suspend fun replaceMappings(mappings: CorePersonMappingsDto) = replaceAddressesAndContactsMappings(mappings.personMapping.nomisPrisonNumber, mappings.contacts, mappings.addresses, mappings.addressUsages)
+  suspend fun replaceMappings(mappings: CorePersonAddressContactMappingsDto) = replaceAddressesAndContactsMappings(mappings.personMapping.nomisPrisonNumber, mappings.contacts, mappings.addresses, mappings.addressUsages)
 
   @Transactional(readOnly = true)
   suspend fun getMappingResultFromNomisIds(mappingRequest: CorePersonMappingsByNomisIdsRequest): CorePersonMappingsResult {
@@ -168,7 +168,7 @@ class CorePersonService(
   }
 }
 
-private fun CorePersonMappingsDto.toCorePersonMapping() = CorePersonMapping(
+private fun CorePersonAddressContactMappingsDto.toCorePersonMapping() = CorePersonMigrationAddressContact(
   cprId = personMapping.cprId,
   nomisPrisonNumber = personMapping.nomisPrisonNumber,
   label = label,
@@ -176,7 +176,7 @@ private fun CorePersonMappingsDto.toCorePersonMapping() = CorePersonMapping(
   whenCreated = whenCreated,
 )
 
-private fun CorePersonMapping.toDto() = CorePersonMappingDto(
+private fun CorePersonMigrationAddressContact.toDto() = CorePersonMappingDto(
   cprId = cprId,
   nomisPrisonNumber = nomisPrisonNumber,
   label = label,

@@ -45,7 +45,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
       content = [
         Content(
           mediaType = "application/json",
-          schema = Schema(implementation = CorePersonMappingsDto::class),
+          schema = Schema(implementation = CorePersonAddressContactMappingsDto::class),
         ),
       ],
     ),
@@ -75,7 +75,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   )
   suspend fun createCorePersonMappings(
     @RequestBody @Valid
-    mappings: CorePersonMappingsDto,
+    mappings: CorePersonAddressContactMappingsDto,
   ) = try {
     service.createMappings(mappings)
   } catch (e: DuplicateKeyException) {
@@ -113,7 +113,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   )
   suspend fun replaceCorePersonMappings(
     @RequestBody @Valid
-    mappings: CorePersonMappingsDto,
+    mappings: CorePersonAddressContactMappingsDto,
   ) = service.replaceMappings(mappings).also {
     log.info("Replaced mappings for nomis prisoner number ${mappings.personMapping.nomisPrisonNumber}")
   }
@@ -322,7 +322,7 @@ class CorePersonMappingResource(private val service: CorePersonService) {
   }
 }
 
-private fun CorePersonMappingsDto.asCorePersonMappingDto() = CorePersonMappingDto(
+private fun CorePersonAddressContactMappingsDto.asCorePersonMappingDto() = CorePersonMappingDto(
   cprId = personMapping.cprId,
   nomisPrisonNumber = personMapping.nomisPrisonNumber,
   mappingType = mappingType,

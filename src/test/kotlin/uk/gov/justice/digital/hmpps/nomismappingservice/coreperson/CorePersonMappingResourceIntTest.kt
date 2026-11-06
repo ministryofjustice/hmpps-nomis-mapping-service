@@ -36,7 +36,7 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class CorePersonMappingResourceIntTest(
-  @Autowired private val corePersonMappingRepository: CorePersonMappingRepository,
+  @Autowired private val corePersonMigrationAddressContactMappingRepository: CorePersonMigrationAddressContactMappingRepository,
   @Autowired private val offenderAliasMappingRepository: OffenderAliasMappingRepository,
   @Autowired private val corePersonAddressMappingRepository: CorePersonAddressMappingRepository,
   @Autowired private val corePersonAddressUsageMappingRepository: CorePersonAddressUsageMappingRepository,
@@ -51,7 +51,7 @@ class CorePersonMappingResourceIntTest(
     corePersonAddressMappingRepository.deleteAll()
     corePersonAddressUsageMappingRepository.deleteAll()
     corePersonContactMappingRepository.deleteAll()
-    corePersonMappingRepository.deleteAll()
+    corePersonMigrationAddressContactMappingRepository.deleteAll()
   }
 
   @Nested
@@ -60,7 +60,7 @@ class CorePersonMappingResourceIntTest(
 
     @Nested
     inner class Security {
-      val mappings = CorePersonMappingsDto(
+      val mappings = CorePersonAddressContactMappingsDto(
         personMapping = CorePersonMappingIdDto(
           cprId = UUID.randomUUID().toString(),
           nomisPrisonNumber = "A1234BC",
@@ -108,9 +108,9 @@ class CorePersonMappingResourceIntTest(
 
     @Nested
     inner class Validation {
-      private lateinit var existingCorePersonMapping: CorePersonMapping
+      private lateinit var existingCorePersonMapping: CorePersonMigrationAddressContact
 
-      val mappings = CorePersonMappingsDto(
+      val mappings = CorePersonAddressContactMappingsDto(
         personMapping = CorePersonMappingIdDto(
           cprId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
           nomisPrisonNumber = "A1234BC",
@@ -125,8 +125,8 @@ class CorePersonMappingResourceIntTest(
 
       @BeforeEach
       fun setUp() = runTest {
-        existingCorePersonMapping = corePersonMappingRepository.save(
-          CorePersonMapping(
+        existingCorePersonMapping = corePersonMigrationAddressContactMappingRepository.save(
+          CorePersonMigrationAddressContact(
             cprId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
             nomisPrisonNumber = "A1234BC",
             label = "2023-01-01T12:45:12",
@@ -198,7 +198,7 @@ class CorePersonMappingResourceIntTest(
 
     @Nested
     inner class HappyPath {
-      val mappings = CorePersonMappingsDto(
+      val mappings = CorePersonAddressContactMappingsDto(
         personMapping = CorePersonMappingIdDto(
           cprId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
           nomisPrisonNumber = "A1234BC",
@@ -233,7 +233,7 @@ class CorePersonMappingResourceIntTest(
           .expectStatus().isCreated
 
         val corePersonMapping =
-          corePersonMappingRepository.findOneByNomisPrisonNumber(mappings.personMapping.nomisPrisonNumber)!!
+          corePersonMigrationAddressContactMappingRepository.findOneByNomisPrisonNumber(mappings.personMapping.nomisPrisonNumber)!!
 
         assertThat(corePersonMapping.cprId).isEqualTo(mappings.personMapping.cprId)
         assertThat(corePersonMapping.nomisPrisonNumber).isEqualTo(mappings.personMapping.nomisPrisonNumber)
@@ -485,7 +485,7 @@ class CorePersonMappingResourceIntTest(
 
     @Nested
     inner class Security {
-      val mapping = CorePersonMappingsDto(
+      val mapping = CorePersonAddressContactMappingsDto(
         personMapping = CorePersonMappingIdDto(
           cprId = UUID.randomUUID().toString(),
           nomisPrisonNumber = nomisPrisonNumber,
@@ -533,7 +533,7 @@ class CorePersonMappingResourceIntTest(
 
     @Nested
     inner class HappyPath {
-      val mapping = CorePersonMappingsDto(
+      val mapping = CorePersonAddressContactMappingsDto(
         personMapping = CorePersonMappingIdDto(
           cprId = "9a1313b1-5c03-4225-b6fd-dbc5ce992760",
           nomisPrisonNumber = nomisPrisonNumber,
@@ -727,7 +727,7 @@ class CorePersonMappingResourceIntTest(
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CorePersonMappingsDto(
+              CorePersonAddressContactMappingsDto(
                 label = "2021-01-01T01:00",
                 mappingType = CorePersonMappingType.NOMIS_CREATED,
                 whenCreated = LocalDateTime.of(2021, 1, 1, 1, 0),
@@ -1474,16 +1474,16 @@ class CorePersonMappingResourceIntTest(
 
     @BeforeEach
     fun setUp() = runTest {
-      corePersonMappingRepository.save(
-        CorePersonMapping(
+      corePersonMigrationAddressContactMappingRepository.save(
+        CorePersonMigrationAddressContact(
           cprId = "084bde26-a0e4-43dc-8fa9-c7e2cceab7f1",
           nomisPrisonNumber = nomisPrisonNumber,
           label = "2023-01-01T12:45:12",
           mappingType = CorePersonMappingType.MIGRATED,
         ),
       )
-      corePersonMappingRepository.save(
-        CorePersonMapping(
+      corePersonMigrationAddressContactMappingRepository.save(
+        CorePersonMigrationAddressContact(
           cprId = "6a0d1f7a-98df-4fdd-b168-cbbc4f7e0b79",
           nomisPrisonNumber = "D1234EF",
           label = "2023-01-01T12:45:12",
@@ -1525,14 +1525,14 @@ class CorePersonMappingResourceIntTest(
     inner class HappyPath {
       @Test
       fun `will delete all core person mappings`() = runTest {
-        assertThat(corePersonMappingRepository.findAll().toList()).isNotEmpty()
+        assertThat(corePersonMigrationAddressContactMappingRepository.findAll().toList()).isNotEmpty()
         webTestClient.delete()
           .uri("/mapping/core-person/delete")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
 
-        assertThat(corePersonMappingRepository.findAll().toList()).isEmpty()
+        assertThat(corePersonMigrationAddressContactMappingRepository.findAll().toList()).isEmpty()
       }
     }
   }
@@ -1573,8 +1573,8 @@ class CorePersonMappingResourceIntTest(
       @Test
       fun `can retrieve all mappings by migration Id`() = runTest {
         (1L..4L).forEach {
-          corePersonMappingRepository.save(
-            CorePersonMapping(
+          corePersonMigrationAddressContactMappingRepository.save(
+            CorePersonMigrationAddressContact(
               cprId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
               nomisPrisonNumber = "A123${it}BC",
               label = "2023-01-01T12:45:12",
@@ -1583,8 +1583,8 @@ class CorePersonMappingResourceIntTest(
           )
         }
 
-        corePersonMappingRepository.save(
-          CorePersonMapping(
+        corePersonMigrationAddressContactMappingRepository.save(
+          CorePersonMigrationAddressContact(
             cprId = "edcd118c-91ba-42ea-b5c4-404b453ad58b",
             nomisPrisonNumber = "A4321BC",
             label = "2022-01-01T12:43:12",
@@ -1618,8 +1618,8 @@ class CorePersonMappingResourceIntTest(
       @Test
       fun `can request a different page size`() = runTest {
         (1L..6L).forEach {
-          corePersonMappingRepository.save(
-            CorePersonMapping(
+          corePersonMigrationAddressContactMappingRepository.save(
+            CorePersonMigrationAddressContact(
               cprId = "edcd118c-${it}1ba-42ea-b5c4-404b453ad58b",
               nomisPrisonNumber = "A${it}123BC",
               label = "2023-01-01T12:45:12",
@@ -1650,12 +1650,12 @@ class CorePersonMappingResourceIntTest(
   @DisplayName("GET /mapping/core-person/person/nomis-prison-number/{nomisPrisonNumber}")
   inner class GetCorePersonByNomisPrisonNumber {
     private val nomisPrisonNumber = "A1234BC"
-    private lateinit var personMapping: CorePersonMapping
+    private lateinit var personMapping: CorePersonMigrationAddressContact
 
     @BeforeEach
     fun setUp() = runTest {
-      personMapping = corePersonMappingRepository.save(
-        CorePersonMapping(
+      personMapping = corePersonMigrationAddressContactMappingRepository.save(
+        CorePersonMigrationAddressContact(
           cprId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisPrisonNumber = nomisPrisonNumber,
           label = "2023-01-01T12:45:12",
@@ -1729,12 +1729,12 @@ class CorePersonMappingResourceIntTest(
   @DisplayName("GET /mapping/core-person/person/cpr-id/{cprId}")
   inner class GetCorePersonByCprId {
     private val cprCoreId = "12345"
-    private lateinit var personMapping: CorePersonMapping
+    private lateinit var personMapping: CorePersonMigrationAddressContact
 
     @BeforeEach
     fun setUp() = runTest {
-      personMapping = corePersonMappingRepository.save(
-        CorePersonMapping(
+      personMapping = corePersonMigrationAddressContactMappingRepository.save(
+        CorePersonMigrationAddressContact(
           cprId = cprCoreId,
           nomisPrisonNumber = "A1234BC",
           label = "2023-01-01T12:45:12",
@@ -1809,7 +1809,7 @@ class CorePersonMappingResourceIntTest(
   inner class DeleteAllMappings {
     @BeforeEach
     fun setUp() {
-      val mappings = CorePersonMappingsDto(
+      val mappings = CorePersonAddressContactMappingsDto(
         personMapping = CorePersonMappingIdDto(
           cprId = "c5a02cec-4aa3-4aa7-9871-41e9c9af50f7",
           nomisPrisonNumber = "A1234BC",
@@ -1905,7 +1905,7 @@ class CorePersonMappingResourceIntTest(
         assertThat(corePersonAddressMappingRepository.findAll().count()).isEqualTo(1)
         assertThat(corePersonAddressUsageMappingRepository.findAll().count()).isEqualTo(1)
         assertThat(corePersonContactMappingRepository.findAll().count()).isEqualTo(2)
-        assertThat(corePersonMappingRepository.findAll().count()).isEqualTo(1)
+        assertThat(corePersonMigrationAddressContactMappingRepository.findAll().count()).isEqualTo(1)
 
         webTestClient.delete()
           .uri("/mapping/core-person")
@@ -1917,7 +1917,7 @@ class CorePersonMappingResourceIntTest(
         assertThat(corePersonAddressMappingRepository.findAll().count()).isEqualTo(0)
         assertThat(corePersonAddressUsageMappingRepository.findAll().count()).isEqualTo(0)
         assertThat(corePersonContactMappingRepository.findAll().count()).isEqualTo(0)
-        assertThat(corePersonMappingRepository.findAll().count()).isEqualTo(0)
+        assertThat(corePersonMigrationAddressContactMappingRepository.findAll().count()).isEqualTo(0)
       }
     }
   }

@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Mappings for a Core Person and its associated child entities")
-data class CorePersonMappingsDto(
+data class CorePersonAddressContactMappingsDto(
   @Schema(description = "Label (a timestamp for migrated ids)")
   val label: String? = null,
   @Schema(description = "Mapping type")
