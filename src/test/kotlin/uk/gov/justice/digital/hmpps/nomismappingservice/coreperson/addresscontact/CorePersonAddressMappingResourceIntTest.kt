@@ -14,9 +14,9 @@ import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMapping
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingRepository
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingType
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMigrationAddressContact
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMigrationAddressContactMappingRepository
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.isDuplicateMapping
 import java.time.LocalDateTime
@@ -24,12 +24,12 @@ import java.time.LocalDateTime
 class CorePersonAddressMappingResourceIntTest(
   @Autowired private val corePersonAddressUsageMappingRepository: CorePersonAddressUsageMappingRepository,
   @Autowired private val corePersonAddressMappingRepository: CorePersonAddressMappingRepository,
-  @Autowired private val corePersonMappingRepository: CorePersonMappingRepository,
+  @Autowired private val corePersonMigrationAddressContactMappingRepository: CorePersonMigrationAddressContactMappingRepository,
 ) : IntegrationTestBase() {
   private fun deleteAll() = runTest {
     corePersonAddressUsageMappingRepository.deleteAll()
     corePersonAddressMappingRepository.deleteAll()
-    corePersonMappingRepository.deleteAll()
+    corePersonMigrationAddressContactMappingRepository.deleteAll()
   }
 
   @Nested
@@ -42,8 +42,8 @@ class CorePersonAddressMappingResourceIntTest(
 
     @BeforeAll
     fun setUp() = runTest {
-      corePersonMappingRepository.save(
-        CorePersonMapping(
+      corePersonMigrationAddressContactMappingRepository.save(
+        CorePersonMigrationAddressContact(
           cprId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisPrisonNumber = "A1234AA",
           label = "2023-01-01T12:45:12",
@@ -135,8 +135,8 @@ class CorePersonAddressMappingResourceIntTest(
 
     @BeforeAll
     fun setUp() = runTest {
-      corePersonMappingRepository.save(
-        CorePersonMapping(
+      corePersonMigrationAddressContactMappingRepository.save(
+        CorePersonMigrationAddressContact(
           cprId = "edcd118c-41ba-42ea-b5c4-404b453ad58b",
           nomisPrisonNumber = "A1234AA",
           label = "2023-01-01T12:45:12",
@@ -227,8 +227,8 @@ class CorePersonAddressMappingResourceIntTest(
 
     @BeforeAll
     fun setUp() = runTest {
-      corePersonMappingRepository.save(
-        CorePersonMapping(
+      corePersonMigrationAddressContactMappingRepository.save(
+        CorePersonMigrationAddressContact(
           cprId = "c6f5c52c-1d13-4f86-bf2c-4a4f4f891e69",
           nomisPrisonNumber = "C1234CC",
           mappingType = CorePersonMappingType.MIGRATED,
@@ -330,8 +330,8 @@ class CorePersonAddressMappingResourceIntTest(
 
     @BeforeAll
     fun setUp() = runTest {
-      corePersonMappingRepository.save(
-        CorePersonMapping(
+      corePersonMigrationAddressContactMappingRepository.save(
+        CorePersonMigrationAddressContact(
           cprId = "d6f5c52c-1d13-4f86-bf2c-4a4f4f891e69",
           nomisPrisonNumber = "D1234DD",
           mappingType = CorePersonMappingType.MIGRATED,

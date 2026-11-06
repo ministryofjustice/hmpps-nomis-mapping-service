@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson
 import org.springframework.data.annotation.Id
 import java.time.LocalDateTime
 
-class CorePersonMapping(
+class CorePersonMigrationAddressContact(
   @Id
   val cprId: String,
   nomisPrisonNumber: String,
@@ -14,7 +14,7 @@ class CorePersonMapping(
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is CorePersonMapping) return false
+    if (other !is CorePersonMigrationAddressContact) return false
     if (cprId != other.cprId) return false
     return true
   }
