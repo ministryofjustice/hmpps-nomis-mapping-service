@@ -13,4 +13,5 @@ interface AdvanceMappingRepository : CoroutineCrudRepository<AdvanceMapping, Str
   suspend fun findAllBy(pageRequest: Pageable): Flow<AdvanceMapping>
   suspend fun findAllByLabelAndMappingTypeOrderByLabelDesc(label: String, mappingType: StandardMappingType, pageRequest: Pageable): Flow<AdvanceMapping>
   suspend fun countAllByLabelAndMappingType(migrationId: String, mappingType: StandardMappingType): Long
+  suspend fun deleteByNomisId(nomisId: Long)
 }

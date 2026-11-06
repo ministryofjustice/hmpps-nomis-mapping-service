@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
@@ -30,6 +32,10 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/advances", produces = [MediaType.APPLICATION_JSON_VALUE])
 class AdvanceMappingResource(private val service: AdvanceService) {
+  private companion object {
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
+  }
+
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -172,8 +178,8 @@ class AdvanceMappingResource(private val service: AdvanceService) {
 
   @DeleteMapping("/dps-id/{dpsId}")
   @Operation(
-    summary = "Deletes a Advance mapping",
-    description = "Deletes a Advance mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    summary = "Deletes an Advance mapping",
+    description = "Deletes an Advance mapping by DPS id. Requires role NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -256,5 +262,31 @@ class AdvanceMappingResource(private val service: AdvanceService) {
     service.getMappingByDpsIdOrNull(
       dpsId = mapping.dpsId,
     )
+  }
+
+  @PostMapping("/replace")
+  @Operation(
+    summary = "Replaces an advance mapping.",
+    description = """Creates an of advance mappings and removes the previous supplied one.
+      Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
+    responses = [
+      ApiResponse(responseCode = "200", description = "Mappings replaced"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun replaceAdvanceMapping(
+    @RequestBody @Valid
+    mapping: AdvanceMappingDto,
+  ) = service.replaceMapping(mapping).also {
+    log.info("Replaced mapping for nomis advance ${mapping.nomisAdvanceId}")
   }
 }

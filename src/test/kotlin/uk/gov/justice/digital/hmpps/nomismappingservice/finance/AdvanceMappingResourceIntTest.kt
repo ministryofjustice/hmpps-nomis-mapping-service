@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.finance
 
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
@@ -28,6 +27,11 @@ class AdvanceMappingResourceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var repository: AdvanceMappingRepository
 
+  @AfterEach
+  fun tearDown() = runTest {
+    repository.deleteAll()
+  }
+
   @Nested
   @DisplayName("GET /mapping/advances/nomis-id/{nomisAdvanceId}")
   inner class GetMappingByNomisId {
@@ -43,11 +47,6 @@ class AdvanceMappingResourceIntTest : IntegrationTestBase() {
           mappingType = MIGRATED,
         ),
       )
-    }
-
-    @AfterEach
-    fun tearDown() = runTest {
-      repository.deleteAll()
     }
 
     @Nested
@@ -126,11 +125,6 @@ class AdvanceMappingResourceIntTest : IntegrationTestBase() {
       )
     }
 
-    @AfterEach
-    fun tearDown() = runTest {
-      repository.deleteAll()
-    }
-
     @Nested
     inner class Security {
       @Test
@@ -205,11 +199,6 @@ class AdvanceMappingResourceIntTest : IntegrationTestBase() {
           mappingType = MIGRATED,
         ),
       )
-    }
-
-    @AfterEach
-    fun tearDown() = runTest {
-      repository.deleteAll()
     }
 
     @Nested
@@ -296,11 +285,6 @@ class AdvanceMappingResourceIntTest : IntegrationTestBase() {
           mappingType = MIGRATED,
         ),
       )
-    }
-
-    @AfterEach
-    fun tearDown() = runTest {
-      repository.deleteAll()
     }
 
     @Nested
@@ -518,11 +502,6 @@ class AdvanceMappingResourceIntTest : IntegrationTestBase() {
       )
     }
 
-    @AfterEach
-    fun tearDown() = runTest {
-      repository.deleteAll()
-    }
-
     @Nested
     inner class Security {
       @Test
@@ -590,11 +569,6 @@ class AdvanceMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("GET /mapping/advances/migration-id/{migrationId}")
   @Nested
   inner class GetMappingByMigrationId {
-
-    @AfterEach
-    internal fun deleteData() = runBlocking {
-      repository.deleteAll()
-    }
 
     @Nested
     inner class Security {
@@ -692,6 +666,136 @@ class AdvanceMappingResourceIntTest : IntegrationTestBase() {
         .jsonPath("page.number").isEqualTo(0)
         .jsonPath("page.totalPages").isEqualTo(3)
         .jsonPath("page.size").isEqualTo(2)
+    }
+  }
+
+  @Nested
+  @DisplayName("POST /mapping/advances/replace")
+  inner class ReplaceAdvanceMapping {
+    val nomisAdvanceId = 12345L
+    private val replacementMapping = AdvanceMappingDto(
+      dpsId = "random-new-dps-id",
+      nomisAdvanceId = nomisAdvanceId,
+      label = "2023-01-01T12:45:12",
+      mappingType = MIGRATED,
+      whenCreated = LocalDateTime.parse("2020-01-01T10:14"),
+    )
+
+    @Nested
+    inner class Security {
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/advances/replace")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(replacementMapping))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/advances/replace")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(replacementMapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/advances/replace")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(replacementMapping))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      private lateinit var existingMapping: AdvanceMapping
+
+      @BeforeEach
+      fun setUp() = runTest {
+        existingMapping = repository.save(
+          AdvanceMapping(
+            dpsId = "existing-random-dps-id",
+            nomisId = nomisAdvanceId,
+            label = "2023-01-01T12:45:12",
+            mappingType = MIGRATED,
+            whenCreated = LocalDateTime.parse("2026-03-03T10:14"),
+          ),
+        )
+      }
+
+      @Test
+      fun `returns 200 when mapping replaced`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/advances/replace")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(replacementMapping))
+          .exchange()
+          .expectStatus().isOk
+      }
+
+      @Test
+      fun `will persist the advance mapping`() = runTest {
+        webTestClient.post()
+          .uri("/mapping/advances/replace")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(replacementMapping))
+          .exchange()
+          .expectStatus().isOk
+
+        val expected = replacementMapping
+        with(repository.findOneByDpsId(expected.dpsId)!!) {
+          assertThat(nomisId).isEqualTo(expected.nomisAdvanceId)
+          assertThat(label).isEqualTo(expected.label)
+          assertThat(mappingType).isEqualTo(expected.mappingType)
+          assertThat(whenCreated).isCloseTo(LocalDateTime.now(), within(10, ChronoUnit.SECONDS))
+        }
+      }
+
+      @Test
+      fun `will delete any previous advance mapping`() = runTest {
+        assertThat(repository.findOneByNomisId(existingMapping.nomisId)).isNotNull()
+        assertThat(repository.findOneByDpsId(existingMapping.dpsId)).isNotNull()
+
+        webTestClient.post()
+          .uri("/mapping/advances/replace")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(replacementMapping))
+          .exchange()
+          .expectStatus().isOk
+
+        assertThat(repository.findOneByDpsId(existingMapping.dpsId)).isNull()
+      }
+
+      @Test
+      fun `will just create mapping if no previous advance mapping exists`() = runTest {
+        assertThat(repository.findOneByNomisId(99999)).isNull()
+        assertThat(repository.findOneByDpsId("no_existsing_mapping")).isNull()
+
+        webTestClient.post()
+          .uri("/mapping/advances/replace")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(replacementMapping.copy(nomisAdvanceId = 99999, dpsId = "no_existsing_mapping")))
+          .exchange()
+          .expectStatus().isOk
+
+        assertThat(repository.findOneByNomisId(99999)).isNotNull()
+        assertThat(repository.findOneByDpsId("no_existsing_mapping")).isNotNull()
+      }
     }
   }
 }
