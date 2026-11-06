@@ -91,10 +91,6 @@ class CorePersonService(
     ?.toDto()
     ?: throw NotFoundException("No core person mapping found for nomisPrisonNumber=$nomisPrisonNumber")
 
-  suspend fun getCorePersonMappingByCprId(cprId: String) = corePersonMigrationAddressContactMappingRepository.findOneByCprId(cprId = cprId)
-    ?.toDto()
-    ?: throw NotFoundException("No core person mapping found for cprId=$cprId")
-
   suspend fun getCorePersonMappingByCprIdOrNull(cprId: String) = corePersonMigrationAddressContactMappingRepository.findOneByCprId(cprId = cprId)
     ?.toDto()
 

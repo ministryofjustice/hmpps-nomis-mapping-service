@@ -224,35 +224,6 @@ class CorePersonAddressMappingResource(private val service: CorePersonAddressSer
     addressUsageCode: String,
   ) = service.deleteAddressUsageMappingByNomisId(nomisAddressId, addressUsageCode)
 
-  @GetMapping("/address-usage/cpr-address-usage-id/{cprAddressUsageId}")
-  @Operation(
-    summary = "Get a core person address usage mapping by cpr address usage Id",
-    description = "Retrieves the core person address usage mapping by CPR Address Usage Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(responseCode = "200", description = "Core Person address usage mapping data"),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Access this endpoint is forbidden",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "404",
-        description = "Id does not exist in mapping table",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun getCorePersonAddressUsageMappingByCprId(
-    @Schema(description = "CPR address usage id", example = "12345", required = true)
-    @PathVariable
-    cprAddressUsageId: String,
-  ): CorePersonAddressUsageMappingDto = service.getAddressUsageMappingByCprId(cprAddressUsageId)
-
   @PostMapping("/address-usage")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
