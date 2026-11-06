@@ -41,10 +41,6 @@ class CorePersonAddressService(
     ?.toDto()
     ?: throw NotFoundException("No core person address usage mapping found for nomisId=$nomisId and addressUsageCode=$addressUsageCode")
 
-  suspend fun getAddressUsageMappingByCprId(cprId: String) = corePersonAddressUsageMappingRepository.findOneByCprId(cprId)
-    ?.toDto()
-    ?: throw NotFoundException("No core person address usage mapping found for cprId=$cprId")
-
   suspend fun getAddressUsageMappingByCprIdOrNull(cprId: String) = corePersonAddressUsageMappingRepository.findOneByCprId(cprId)
     ?.toDto()
 

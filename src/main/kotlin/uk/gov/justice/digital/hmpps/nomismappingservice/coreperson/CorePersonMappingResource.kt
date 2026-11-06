@@ -227,38 +227,6 @@ class CorePersonMappingResource(private val service: CorePersonService) {
     nomisPrisonNumber: String,
   ): CorePersonMappingDto = service.getCorePersonMappingByNomisPrisonNumber(nomisPrisonNumber = nomisPrisonNumber)
 
-  @GetMapping("/person/cpr-id/{cprId}")
-  @Operation(
-    summary = "Get core person mapping by cpr core person Id",
-    description = "Retrieves the person mapping by CPR Core Person Id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Person mapping data",
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Access this endpoint is forbidden",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "404",
-        description = "Id does not exist in mapping table",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun getPersonMappingByCprId(
-    @Schema(description = "CPR core person id", example = "12345", required = true)
-    @PathVariable
-    cprId: String,
-  ): CorePersonMappingDto = service.getCorePersonMappingByCprId(cprId = cprId)
-
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
