@@ -82,6 +82,12 @@ class AdvanceService(
   suspend fun deleteAllMappings() {
     repository.deleteAll()
   }
+
+  @Transactional
+  suspend fun replaceMapping(mapping: AdvanceMappingDto) {
+    repository.deleteByNomisId(mapping.nomisAdvanceId)
+    createMapping(mapping)
+  }
 }
 
 fun AdvanceMappingDto.fromDto() = AdvanceMapping(
