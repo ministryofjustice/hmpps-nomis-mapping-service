@@ -31,7 +31,7 @@ class CorePersonAddressContactRepairResourceIntTest(
   }
 
   @Nested
-  @DisplayName("POST /mapping/core-person/replace")
+  @DisplayName("POST /mapping/core-person/address-contact/replace")
   inner class ReplaceCorePersonMappings {
     val nomisPrisonNumber = "A1234BC"
 
@@ -53,7 +53,7 @@ class CorePersonAddressContactRepairResourceIntTest(
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.post()
-          .uri("/mapping/core-person/replace")
+          .uri("/mapping/core-person/address-contact/replace")
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
           .exchange()
@@ -63,7 +63,7 @@ class CorePersonAddressContactRepairResourceIntTest(
       @Test
       fun `access forbidden when no role`() {
         webTestClient.post()
-          .uri("/mapping/core-person/replace")
+          .uri("/mapping/core-person/address-contact/replace")
           .headers(setAuthorisation(roles = listOf()))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
@@ -74,7 +74,7 @@ class CorePersonAddressContactRepairResourceIntTest(
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.post()
-          .uri("/mapping/core-person/replace")
+          .uri("/mapping/core-person/address-contact/replace")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
@@ -185,7 +185,7 @@ class CorePersonAddressContactRepairResourceIntTest(
       @Test
       fun `returns 200 when mappings replaced`() = runTest {
         webTestClient.post()
-          .uri("/mapping/core-person/replace")
+          .uri("/mapping/core-person/address-contact/replace")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
@@ -196,7 +196,7 @@ class CorePersonAddressContactRepairResourceIntTest(
       @Test
       fun `will persist the address, address usage, email and phone mappings`() = runTest {
         webTestClient.post()
-          .uri("/mapping/core-person/replace")
+          .uri("/mapping/core-person/address-contact/replace")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
@@ -252,7 +252,7 @@ class CorePersonAddressContactRepairResourceIntTest(
         assertEmailsForCprId(existingEmailAddressMapping.cprId).isNotNull()
         assertPhonesForCprId(existingPhoneMapping.cprId).isNotNull()
         webTestClient.post()
-          .uri("/mapping/core-person/replace")
+          .uri("/mapping/core-person/address-contact/replace")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mapping))
@@ -274,7 +274,7 @@ class CorePersonAddressContactRepairResourceIntTest(
         assertContactsForPrisonNumber(nomisPrisonNumber).isNotEmpty()
 
         webTestClient.post()
-          .uri("/mapping/core-person/replace")
+          .uri("/mapping/core-person/address-contact/replace")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
