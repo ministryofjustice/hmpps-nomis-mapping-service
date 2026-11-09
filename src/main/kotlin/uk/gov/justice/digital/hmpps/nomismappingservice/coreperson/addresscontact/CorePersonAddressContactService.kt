@@ -3,10 +3,6 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addressconta
 import jakarta.validation.ValidationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonAddressContactMappingsDto
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingsByNomisIdsRequest
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingsResult
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMergeMappingsDto
 
 @Service
 @Transactional(readOnly = true)
@@ -17,7 +13,7 @@ class CorePersonAddressContactService(
 ) {
 
   @Transactional
-  suspend fun merge(mappings: CorePersonMergeMappingsDto) {
+  suspend fun merge(mappings: CorePersonAddressContactMergeMappingsDto) {
     validate(mappings)
     corePersonAddressMappingRepository.deleteAllByNomisPrisonNumber(mappings.fromNomisPrisonNumber)
     corePersonContactMappingRepository.deleteAllByNomisPrisonNumber(mappings.fromNomisPrisonNumber)
@@ -30,7 +26,7 @@ class CorePersonAddressContactService(
     )
   }
 
-  private fun validate(mappings: CorePersonMergeMappingsDto) {
+  private fun validate(mappings: CorePersonAddressContactMergeMappingsDto) {
     if (mappings.toNomisPrisonNumber == mappings.fromNomisPrisonNumber) {
       throw ValidationException("to nomis prison number: ${mappings.toNomisPrisonNumber} and from nomis prison number: ${mappings.toNomisPrisonNumber} cannot be the same")
     }
@@ -86,7 +82,7 @@ class CorePersonAddressContactService(
   }
 
   @Transactional(readOnly = true)
-  suspend fun getMappingResultFromNomisIds(mappingRequest: CorePersonMappingsByNomisIdsRequest): CorePersonMappingsResult {
+  suspend fun getMappingResultFromNomisIds(mappingRequest: CorePersonAddressContactMappingsByNomisIdsRequest): CorePersonAddressContactMappingsResult {
     val matchingAddresses = corePersonAddressMappingRepository.findAllByNomisIdIn(mappingRequest.addresses).map { it.toDto() }
     val requestedContacts = mappingRequest.contacts
     val matchingContacts = corePersonContactMappingRepository.findAllByNomisIdIn(mappingRequest.contacts.map { it.nomisId })
@@ -96,7 +92,7 @@ class CorePersonAddressContactService(
     val matchingAddressUsages = corePersonAddressUsageMappingRepository.findAllByNomisIdIn(requestedAddressUsages.map { it.nomisId })
       .filter { mapping -> requestedAddressUsages.any { it.nomisId == mapping.nomisId && it.addressUsageCode == mapping.addressUsageCode } }
       .map { it.toDto() }
-    return CorePersonMappingsResult(
+    return CorePersonAddressContactMappingsResult(
       addresses = matchingAddresses,
       contacts = matchingContacts,
       addressUsages = matchingAddressUsages,

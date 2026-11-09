@@ -25,6 +25,10 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingException
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactMappingsByNomisIdsRequest
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactMappingsDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactMappingsResult
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactMergeMappingsDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactService
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonMigrationAddressContactService
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
@@ -144,7 +148,7 @@ class CorePersonMappingResource(
   )
   suspend fun merge(
     @RequestBody @Valid
-    mappings: CorePersonMergeMappingsDto,
+    mappings: CorePersonAddressContactMergeMappingsDto,
   ) = corePersonAddressContactService.merge(mappings).also {
     log.info("Replaced mappings for merged to nomis prisoner number ${mappings.toNomisPrisonNumber} deleted mappings for the merged from nomis prisoner number ${mappings.fromNomisPrisonNumber}")
   }
@@ -258,8 +262,8 @@ class CorePersonMappingResource(
     ],
   )
   suspend fun getMappingsFromNomisIds(
-    @RequestBody mappingRequest: CorePersonMappingsByNomisIdsRequest,
-  ): CorePersonMappingsResult = corePersonAddressContactService.getMappingResultFromNomisIds(mappingRequest)
+    @RequestBody mappingRequest: CorePersonAddressContactMappingsByNomisIdsRequest,
+  ): CorePersonAddressContactMappingsResult = corePersonAddressContactService.getMappingResultFromNomisIds(mappingRequest)
 
   private suspend fun getExistingCorePersonMappingSimilarTo(personMapping: CorePersonMappingIdDto) = runCatching {
     migrationService.getCorePersonMappingByNomisPrisonNumber(

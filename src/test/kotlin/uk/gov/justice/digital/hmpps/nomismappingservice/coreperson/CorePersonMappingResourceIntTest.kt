@@ -14,6 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.AddressUsageByNomisIdRequest
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.ContactByNomisIdRequest
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactMappingsByNomisIdsRequest
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactMappingsDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactMergeMappingsDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressMapping
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressMappingDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressMappingRepository
@@ -760,7 +765,7 @@ class CorePersonMappingResourceIntTest(
 
     @Nested
     inner class Security {
-      val mapping = CorePersonMergeMappingsDto(
+      val mapping = CorePersonAddressContactMergeMappingsDto(
         toNomisPrisonNumber = toNomisPrisonNumber,
         fromNomisPrisonNumber = fromNomisPrisonNumber,
         addresses = emptyList(),
@@ -811,7 +816,7 @@ class CorePersonMappingResourceIntTest(
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CorePersonMergeMappingsDto(
+              CorePersonAddressContactMergeMappingsDto(
                 toNomisPrisonNumber = toNomisPrisonNumber,
                 fromNomisPrisonNumber = toNomisPrisonNumber,
                 addresses = emptyList(),
@@ -832,7 +837,7 @@ class CorePersonMappingResourceIntTest(
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CorePersonMergeMappingsDto(
+              CorePersonAddressContactMergeMappingsDto(
                 toNomisPrisonNumber = toNomisPrisonNumber,
                 fromNomisPrisonNumber = fromNomisPrisonNumber,
                 addresses = listOf(
@@ -857,7 +862,7 @@ class CorePersonMappingResourceIntTest(
 
     @Nested
     inner class HappyPath {
-      val mapping = CorePersonMergeMappingsDto(
+      val mapping = CorePersonAddressContactMergeMappingsDto(
         toNomisPrisonNumber = toNomisPrisonNumber,
         fromNomisPrisonNumber = fromNomisPrisonNumber,
         addresses = listOf(
@@ -1098,7 +1103,7 @@ class CorePersonMappingResourceIntTest(
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CorePersonMergeMappingsDto(
+              CorePersonAddressContactMergeMappingsDto(
                 toNomisPrisonNumber = toNomisPrisonNumber,
                 fromNomisPrisonNumber = fromNomisPrisonNumber,
                 addresses = emptyList(),
@@ -1206,7 +1211,7 @@ class CorePersonMappingResourceIntTest(
 
     @Nested
     inner class Security {
-      val request = CorePersonMappingsByNomisIdsRequest(
+      val request = CorePersonAddressContactMappingsByNomisIdsRequest(
         addresses = listOf(101L),
         contacts = listOf(ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.EMAIL)),
         addressUsages = listOf(AddressUsageByNomisIdRequest(nomisId = 101L, addressUsageCode = "HOME")),
@@ -1269,7 +1274,7 @@ class CorePersonMappingResourceIntTest(
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CorePersonMappingsByNomisIdsRequest(
+              CorePersonAddressContactMappingsByNomisIdsRequest(
                 addresses = listOf(101L, 102L, 999L),
                 contacts = emptyList(),
                 addressUsages = emptyList(),
@@ -1305,7 +1310,7 @@ class CorePersonMappingResourceIntTest(
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CorePersonMappingsByNomisIdsRequest(
+              CorePersonAddressContactMappingsByNomisIdsRequest(
                 addresses = emptyList(),
                 contacts = listOf(
                   ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.EMAIL),
@@ -1335,7 +1340,7 @@ class CorePersonMappingResourceIntTest(
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CorePersonMappingsByNomisIdsRequest(
+              CorePersonAddressContactMappingsByNomisIdsRequest(
                 addresses = emptyList(),
                 contacts = listOf(
                   ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.PHONE),
@@ -1365,7 +1370,7 @@ class CorePersonMappingResourceIntTest(
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CorePersonMappingsByNomisIdsRequest(
+              CorePersonAddressContactMappingsByNomisIdsRequest(
                 addresses = emptyList(),
                 contacts = emptyList(),
                 addressUsages = listOf(
@@ -1396,7 +1401,7 @@ class CorePersonMappingResourceIntTest(
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CorePersonMappingsByNomisIdsRequest(
+              CorePersonAddressContactMappingsByNomisIdsRequest(
                 addresses = listOf(101L),
                 contacts = listOf(ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.EMAIL)),
                 addressUsages = listOf(
@@ -1427,7 +1432,7 @@ class CorePersonMappingResourceIntTest(
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CorePersonMappingsByNomisIdsRequest(
+              CorePersonAddressContactMappingsByNomisIdsRequest(
                 addresses = listOf(999L),
                 contacts = listOf(ContactByNomisIdRequest(nomisId = 999L, nomisContactType = NomisContactType.EMAIL)),
                 addressUsages = listOf(AddressUsageByNomisIdRequest(nomisId = 999L, addressUsageCode = "HOME")),
@@ -1450,7 +1455,7 @@ class CorePersonMappingResourceIntTest(
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CorePersonMappingsByNomisIdsRequest(
+              CorePersonAddressContactMappingsByNomisIdsRequest(
                 addresses = emptyList(),
                 contacts = emptyList(),
                 addressUsages = emptyList(),
