@@ -69,7 +69,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.post()
-          .uri("/mapping/core-person")
+          .uri("/mapping/core-person/address-contact-migration")
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
           .exchange()
@@ -79,7 +79,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
       @Test
       fun `access forbidden when no role`() {
         webTestClient.post()
-          .uri("/mapping/core-person")
+          .uri("/mapping/core-person/address-contact-migration")
           .headers(setAuthorisation(roles = listOf()))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
@@ -90,7 +90,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.post()
-          .uri("/mapping/core-person")
+          .uri("/mapping/core-person/address-contact-migration")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
@@ -152,7 +152,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
       @Test
       fun `will not allow the same core person to have duplicate mappings`() {
         webTestClient.post()
-          .uri("/mapping/core-person")
+          .uri("/mapping/core-person/address-contact-migration")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
@@ -163,7 +163,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
       @Test
       fun `will return details of the existing and duplicate mappings`() {
         val duplicateResponse = webTestClient.post()
-          .uri("/mapping/core-person")
+          .uri("/mapping/core-person/address-contact-migration")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
@@ -207,7 +207,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
       @Test
       fun `returns 201 when mappings created`() = runTest {
         webTestClient.post()
-          .uri("/mapping/core-person")
+          .uri("/mapping/core-person/address-contact-migration")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings))
@@ -218,7 +218,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
       @Test
       fun `will persist the core person mapping`() = runTest {
         webTestClient.post()
-          .uri("/mapping/core-person")
+          .uri("/mapping/core-person/address-contact-migration")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(BodyInserters.fromValue(mappings.copy(label = "2023-01-01T12:45:12")))
@@ -238,7 +238,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
       @Test
       fun `will persist the core person addresses mappings`() = runTest {
         webTestClient.post()
-          .uri("/mapping/core-person")
+          .uri("/mapping/core-person/address-contact-migration")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -294,7 +294,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
       @Test
       fun `will persist the core person address usage mappings`() = runTest {
         webTestClient.post()
-          .uri("/mapping/core-person")
+          .uri("/mapping/core-person/address-contact-migration")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -353,7 +353,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
       @Test
       fun `will persist the core person email addresses mappings`() = runTest {
         webTestClient.post()
-          .uri("/mapping/core-person")
+          .uri("/mapping/core-person/address-contact-migration")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -411,7 +411,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
       @Test
       fun `will persist the core person phone number mappings`() = runTest {
         webTestClient.post()
-          .uri("/mapping/core-person")
+          .uri("/mapping/core-person/address-contact-migration")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
           .body(
@@ -471,7 +471,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
     // TODO add other child mapping tests when implemented
   }
 
-  @DisplayName("GET /mapping/core-person/migration-id/{migrationId}")
+  @DisplayName("GET /mapping/core-person/address-contact-migration/migration-id/{migrationId}")
   @Nested
   inner class GetCorePersonMappingsByMigrationId {
 
@@ -479,14 +479,14 @@ class CorePersonMigrationAddressContactResourceIntTest(
     inner class Security {
       @Test
       fun `access not authorised when no authority`() {
-        webTestClient.get().uri("/mapping/core-person/migration-id/2022-01-01T00:00:00")
+        webTestClient.get().uri("/mapping/core-person/address-contact-migration/migration-id/2022-01-01T00:00:00")
           .exchange()
           .expectStatus().isUnauthorized
       }
 
       @Test
       fun `access forbidden when no role`() {
-        webTestClient.get().uri("/mapping/core-person/migration-id/2022-01-01T00:00:00")
+        webTestClient.get().uri("/mapping/core-person/address-contact-migration/migration-id/2022-01-01T00:00:00")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -494,7 +494,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
 
       @Test
       fun `access forbidden with wrong role`() {
-        webTestClient.get().uri("/mapping/core-person/migration-id/2022-01-01T00:00:00")
+        webTestClient.get().uri("/mapping/core-person/address-contact-migration/migration-id/2022-01-01T00:00:00")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -526,7 +526,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
           ),
         )
 
-        webTestClient.get().uri("/mapping/core-person/migration-id/2023-01-01T12:45:12")
+        webTestClient.get().uri("/mapping/core-person/address-contact-migration/migration-id/2023-01-01T12:45:12")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
@@ -540,7 +540,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
 
       @Test
       fun `200 response even when no mappings are found`() {
-        webTestClient.get().uri("/mapping/core-person/migration-id/2044-01-01")
+        webTestClient.get().uri("/mapping/core-person/address-contact-migration/migration-id/2044-01-01")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
@@ -562,7 +562,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
           )
         }
         webTestClient.get().uri {
-          it.path("/mapping/core-person/migration-id/2023-01-01T12:45:12")
+          it.path("/mapping/core-person/address-contact-migration/migration-id/2023-01-01T12:45:12")
             .queryParam("size", "2")
             .queryParam("sort", "nomisPrisonNumber,asc")
             .build()
@@ -581,7 +581,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
   }
 
   @Nested
-  @DisplayName("GET /mapping/core-person/person/nomis-prison-number/{nomisPrisonNumber}")
+  @DisplayName("GET /mapping/core-person/address-contact-migration/person/nomis-prison-number/{nomisPrisonNumber}")
   inner class GetCorePersonByNomisPrisonNumber {
     private val nomisPrisonNumber = "A1234BC"
     private lateinit var personMapping: CorePersonMigrationAddressContact
@@ -604,7 +604,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.get()
-          .uri("/mapping/core-person/person/nomis-prison-number/{nomisPrisonNumber}", nomisPrisonNumber)
+          .uri("/mapping/core-person/address-contact-migration/person/nomis-prison-number/{nomisPrisonNumber}", nomisPrisonNumber)
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -612,7 +612,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
       @Test
       fun `access forbidden when no role`() {
         webTestClient.get()
-          .uri("/mapping/core-person/person/nomis-prison-number/{nomisPrisonNumber}", nomisPrisonNumber)
+          .uri("/mapping/core-person/address-contact-migration/person/nomis-prison-number/{nomisPrisonNumber}", nomisPrisonNumber)
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -621,7 +621,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.get()
-          .uri("/mapping/core-person/person/nomis-prison-number/{nomisPrisonNumber}", nomisPrisonNumber)
+          .uri("/mapping/core-person/address-contact-migration/person/nomis-prison-number/{nomisPrisonNumber}", nomisPrisonNumber)
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -633,7 +633,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
       @Test
       fun `404 when mapping not found`() {
         webTestClient.get()
-          .uri("/mapping/core-person/person/nomis-prison-number/{nomisPrisonNumber}", 99999)
+          .uri("/mapping/core-person/address-contact-migration/person/nomis-prison-number/{nomisPrisonNumber}", 99999)
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNotFound
@@ -645,7 +645,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
       @Test
       fun `will return the mapping data`() {
         webTestClient.get()
-          .uri("/mapping/core-person/person/nomis-prison-number/{nomisPrisonNumber}", nomisPrisonNumber)
+          .uri("/mapping/core-person/address-contact-migration/person/nomis-prison-number/{nomisPrisonNumber}", nomisPrisonNumber)
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
@@ -660,7 +660,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
   }
 
   @Nested
-  @DisplayName("DELETE /mapping/core-person")
+  @DisplayName("DELETE /mapping/core-person/address-contact-migration")
   inner class DeleteAllMappings {
     @BeforeEach
     fun setUp() {
@@ -715,7 +715,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
         ),
       )
       webTestClient.post()
-        .uri("/mapping/core-person")
+        .uri("/mapping/core-person/address-contact-migration")
         .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(mappings))
@@ -728,7 +728,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
       @Test
       fun `access not authorised when no authority`() {
         webTestClient.delete()
-          .uri("/mapping/core-person")
+          .uri("/mapping/core-person/address-contact-migration")
           .exchange()
           .expectStatus().isUnauthorized
       }
@@ -736,7 +736,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
       @Test
       fun `access forbidden when no role`() {
         webTestClient.delete()
-          .uri("/mapping/core-person")
+          .uri("/mapping/core-person/address-contact-migration")
           .headers(setAuthorisation(roles = listOf()))
           .exchange()
           .expectStatus().isForbidden
@@ -745,7 +745,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
       @Test
       fun `access forbidden with wrong role`() {
         webTestClient.delete()
-          .uri("/mapping/core-person")
+          .uri("/mapping/core-person/address-contact-migration")
           .headers(setAuthorisation(roles = listOf("BANANAS")))
           .exchange()
           .expectStatus().isForbidden
@@ -763,7 +763,7 @@ class CorePersonMigrationAddressContactResourceIntTest(
         assertThat(corePersonMigrationAddressContactMappingRepository.findAll().count()).isEqualTo(1)
 
         webTestClient.delete()
-          .uri("/mapping/core-person")
+          .uri("/mapping/core-person/address-contact-migration")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isNoContent
