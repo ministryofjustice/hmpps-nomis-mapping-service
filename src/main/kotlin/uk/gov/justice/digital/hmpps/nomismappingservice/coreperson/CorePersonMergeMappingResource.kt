@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact
+package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -14,47 +14,24 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactMappingsByNomisIdsRequest
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactMappingsResult
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactMergeMappingsDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactService
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
 @PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
-@RequestMapping("/mapping/core-person", produces = [MediaType.APPLICATION_JSON_VALUE])
-class CorePersonAddressContactMappingResource(
+@RequestMapping("/mapping/core-person/merge", produces = [MediaType.APPLICATION_JSON_VALUE])
+class CorePersonMergeMappingResource(
   private val corePersonAddressContactService: CorePersonAddressContactService,
 ) {
   private companion object {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
-  @PostMapping("/replace")
-  @Operation(
-    summary = "Replaces addresses and contacts mappings.",
-    description = """Creates lists of addresses and contacts mappings and removes the previous supplied set.
-      This does not add or remove any data from any associated parent CorePersonMappingDto entry. 
-      Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
-    responses = [
-      ApiResponse(responseCode = "200", description = "Mappings replaced"),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Access forbidden for this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun replaceCorePersonMappings(
-    @RequestBody @Valid
-    mappings: CorePersonAddressContactMappingsDto,
-  ) = corePersonAddressContactService.replaceMappings(mappings).also {
-    log.info("Replaced mappings for nomis prisoner number ${mappings.personMapping.nomisPrisonNumber}")
-  }
-
-  @PostMapping("/merge")
+  @PostMapping
   @Operation(
     summary = "Replaces mappings for a merge",
     description = """Replaces mappings for a merge with the provided mappings on the to person. The mappings of the from person will be deleted 
