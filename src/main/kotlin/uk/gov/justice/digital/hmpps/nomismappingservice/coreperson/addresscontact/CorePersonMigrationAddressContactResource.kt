@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson
+package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -25,21 +25,16 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingErrorResponse
 import uk.gov.justice.digital.hmpps.nomismappingservice.config.DuplicateMappingException
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactMappingsByNomisIdsRequest
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactMappingsDto
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactMappingsResult
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactMergeMappingsDto
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactService
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonMigrationAddressContactService
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingDto
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingIdDto
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @Validated
 @PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/core-person", produces = [MediaType.APPLICATION_JSON_VALUE])
-class CorePersonMappingResource(
+class CorePersonMigrationAddressContactResource(
   private val migrationService: CorePersonMigrationAddressContactService,
-  private val corePersonAddressContactService: CorePersonAddressContactService,
 ) {
   private companion object {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -98,59 +93,6 @@ class CorePersonMappingResource(
       existing = existingMapping ?: mappings.asCorePersonMappingDto(),
       cause = e,
     )
-  }
-
-  @PostMapping("/replace")
-  @Operation(
-    summary = "Replaces addresses and contacts mappings.",
-    description = """Creates lists of addresses and contacts mappings and removes the previous supplied set.
-      This does not add or remove any data from any associated parent CorePersonMappingDto entry. 
-      Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
-    responses = [
-      ApiResponse(responseCode = "200", description = "Mappings replaced"),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Access forbidden for this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun replaceCorePersonMappings(
-    @RequestBody @Valid
-    mappings: CorePersonAddressContactMappingsDto,
-  ) = corePersonAddressContactService.replaceMappings(mappings).also {
-    log.info("Replaced mappings for nomis prisoner number ${mappings.personMapping.nomisPrisonNumber}")
-  }
-
-  @PostMapping("/merge")
-  @Operation(
-    summary = "Replaces mappings for a merge",
-    description = """Replaces mappings for a merge with the provided mappings on the to person. The mappings of the from person will be deleted 
-      Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
-    responses = [
-      ApiResponse(responseCode = "200", description = "Mappings replaced"),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Access forbidden for this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun merge(
-    @RequestBody @Valid
-    mappings: CorePersonAddressContactMergeMappingsDto,
-  ) = corePersonAddressContactService.merge(mappings).also {
-    log.info("Replaced mappings for merged to nomis prisoner number ${mappings.toNomisPrisonNumber} deleted mappings for the merged from nomis prisoner number ${mappings.fromNomisPrisonNumber}")
   }
 
   @GetMapping("/migration-id/{migrationId}")
@@ -235,35 +177,6 @@ class CorePersonMappingResource(
     ],
   )
   suspend fun deleteAllCorePersonMappings() = migrationService.deleteAllMappings()
-
-  @PostMapping("/mappings/by-nomis-ids")
-  @Operation(
-    summary = "Get mapping by nomis ids",
-    description = """Retrieves mappings by nomis ids. 
-    Used during a merge to find existing corresponding cpr ids. 
-    These can then be passed these to the cpr service and allow cpr to maintain them.
-    Maintaining cpr ids allows down stream services to continue to use them.
-    Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Mapping data",
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Access this endpoint is forbidden",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun getMappingsFromNomisIds(
-    @RequestBody mappingRequest: CorePersonAddressContactMappingsByNomisIdsRequest,
-  ): CorePersonAddressContactMappingsResult = corePersonAddressContactService.getMappingResultFromNomisIds(mappingRequest)
 
   private suspend fun getExistingCorePersonMappingSimilarTo(personMapping: CorePersonMappingIdDto) = runCatching {
     migrationService.getCorePersonMappingByNomisPrisonNumber(
