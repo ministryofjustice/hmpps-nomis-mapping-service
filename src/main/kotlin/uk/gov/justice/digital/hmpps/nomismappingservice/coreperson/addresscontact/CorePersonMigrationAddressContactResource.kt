@@ -32,7 +32,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RestController
 @Validated
 @PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
-@RequestMapping("/mapping/core-person", produces = [MediaType.APPLICATION_JSON_VALUE])
+@RequestMapping("/mapping/core-person/address-contact-migration", produces = [MediaType.APPLICATION_JSON_VALUE])
 class CorePersonMigrationAddressContactResource(
   private val migrationService: CorePersonMigrationAddressContactService,
 ) {
@@ -77,7 +77,7 @@ class CorePersonMigrationAddressContactResource(
       ),
     ],
   )
-  suspend fun createCorePersonMappings(
+  suspend fun createCorePersonAddressContactMappings(
     @RequestBody @Valid
     mappings: CorePersonAddressContactMappingsDto,
   ) = try {
@@ -116,7 +116,7 @@ class CorePersonMigrationAddressContactResource(
       ),
     ],
   )
-  suspend fun getPersonMappingsByMigrationId(
+  suspend fun getAddressContactMappingsByMigrationId(
     @PageableDefault pageRequest: Pageable,
     @Schema(description = "Migration Id", example = "2020-03-24T12:00:00", required = true)
     @PathVariable
@@ -149,7 +149,7 @@ class CorePersonMigrationAddressContactResource(
       ),
     ],
   )
-  suspend fun getPersonMappingByNomisPrisonNumber(
+  suspend fun getAddressContactMappingByNomisPrisonNumber(
     @Schema(description = "NOMIS prison Number aka offender no.", example = "A1234BC", required = true)
     @PathVariable
     nomisPrisonNumber: String,
@@ -176,7 +176,7 @@ class CorePersonMigrationAddressContactResource(
       ),
     ],
   )
-  suspend fun deleteAllCorePersonMappings() = migrationService.deleteAllMappings()
+  suspend fun deleteAllCorePersonAddressContactMappings() = migrationService.deleteAllMappings()
 
   private suspend fun getExistingCorePersonMappingSimilarTo(personMapping: CorePersonMappingIdDto) = runCatching {
     migrationService.getCorePersonMappingByNomisPrisonNumber(
