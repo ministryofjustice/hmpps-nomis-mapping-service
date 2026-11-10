@@ -15,19 +15,15 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundExceptio
 @Service
 @Transactional(readOnly = true)
 class CorePersonMigrationAliasIdentifierService(
+  private val corePersonAliasIdentifierService: CorePersonAliasIdentifierService,
   private val corePersonMigrationAliasIdentifierMappingRepository: CorePersonMigrationAliasIdentifierMappingRepository,
-  private val offenderAliasMappingRepository: OffenderAliasMappingRepository,
-  private val offenderIdentifierMappingRepository: OffenderIdentifierMappingRepository,
 ) {
 
   @Transactional
   suspend fun createMappings(mappings: CorePersonAliasIdentifierMappingsDto) {
     with(mappings) {
       corePersonMigrationAliasIdentifierMappingRepository.save(toCorePersonMapping())
-      offenderAliasMappingRepository.deleteAllByNomisPrisonNumber(personMapping.nomisPrisonNumber)
-      offenderIdentifierMappingRepository.deleteAllByNomisPrisonNumber(personMapping.nomisPrisonNumber)
-      aliases.forEach { offenderAliasMappingRepository.save(it.toMapping()) }
-      identifiers.forEach { offenderIdentifierMappingRepository.save(it.toMapping()) }
+      corePersonAliasIdentifierService.replaceMappings(this)
     }
   }
 
@@ -67,8 +63,7 @@ class CorePersonMigrationAliasIdentifierService(
   @Transactional
   suspend fun deleteAllMappings() {
     corePersonMigrationAliasIdentifierMappingRepository.deleteAll()
-    offenderAliasMappingRepository.deleteAll()
-    offenderIdentifierMappingRepository.deleteAll()
+    corePersonAliasIdentifierService.deleteAll()
   }
 }
 
