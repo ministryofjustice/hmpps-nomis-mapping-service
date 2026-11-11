@@ -30,7 +30,7 @@ class CorePersonAliasService(
     .save(mapping.toMapping())
 }
 
-private fun OffenderAliasMapping.toDto() = OffenderAliasMappingDto(
+internal fun OffenderAliasMapping.toDto() = OffenderAliasMappingDto(
   cprId = cprId,
   nomisOffenderId = nomisOffenderId,
   nomisPrisonNumber = nomisPrisonNumber,

@@ -53,4 +53,33 @@ class CorePersonAddressContactRepairResource(
   ) = corePersonAddressContactService.replaceMappings(mappings).also {
     log.info("Replaced mappings for nomis prisoner number ${mappings.personMapping.nomisPrisonNumber}")
   }
+
+  @PostMapping("/mappings/by-nomis-ids")
+  @Operation(
+    summary = "Get address and contact mappings by nomis ids",
+    description = """Retrieves address, contact and address usage mappings by nomis ids. 
+    Used during a merge to find existing corresponding cpr ids. 
+    These can then be passed these to the cpr service and allow cpr to maintain them.
+    Maintaining cpr ids allows down stream services to continue to use them.
+    Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Mapping data",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getMappingsFromNomisIdsForAddressContact(
+    @RequestBody mappingRequest: CorePersonAddressContactMappingsByNomisIdsRequest,
+  ): CorePersonAddressContactMappingsResult = corePersonAddressContactService.getMappingResultFromNomisIds(mappingRequest)
 }

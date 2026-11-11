@@ -15,9 +15,10 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactMappingsByNomisIdsRequest
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactMappingsResult
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactMergeMappingsDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactService
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier.CorePersonAliasIdentifierMappingsByNomisIdsRequest
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier.CorePersonAliasIdentifierService
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
@@ -26,6 +27,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @RequestMapping("/mapping/core-person/merge", produces = [MediaType.APPLICATION_JSON_VALUE])
 class CorePersonMergeMappingResource(
   private val corePersonAddressContactService: CorePersonAddressContactService,
+  private val corePersonAliasIdentifierService: CorePersonAliasIdentifierService,
 ) {
   private companion object {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -59,7 +61,7 @@ class CorePersonMergeMappingResource(
 
   @PostMapping("/mappings/by-nomis-ids")
   @Operation(
-    summary = "Get mapping by nomis ids",
+    summary = "Get alias, identifier, address and contact mappings by nomis ids",
     description = """Retrieves mappings by nomis ids. 
     Used during a merge to find existing corresponding cpr ids. 
     These can then be passed these to the cpr service and allow cpr to maintain them.
@@ -82,7 +84,28 @@ class CorePersonMergeMappingResource(
       ),
     ],
   )
-  suspend fun getMappingsFromNomisIds(
-    @RequestBody mappingRequest: CorePersonAddressContactMappingsByNomisIdsRequest,
-  ): CorePersonAddressContactMappingsResult = corePersonAddressContactService.getMappingResultFromNomisIds(mappingRequest)
+  suspend fun getMappingsFromNomisIdsForMerge(
+    @RequestBody mappingRequest: CorePersonMappingsByNomisIdsRequest,
+  ): CorePersonMappingsResult {
+    val aliasIdentifierMappings = corePersonAliasIdentifierService.getMappingResultFromNomisIds(
+      CorePersonAliasIdentifierMappingsByNomisIdsRequest(
+        aliases = mappingRequest.aliases,
+        identifiers = mappingRequest.identifiers,
+      ),
+    )
+    val addressContactMappings = corePersonAddressContactService.getMappingResultFromNomisIds(
+      CorePersonAddressContactMappingsByNomisIdsRequest(
+        addresses = mappingRequest.addresses,
+        contacts = mappingRequest.contacts,
+        addressUsages = mappingRequest.addressUsages,
+      ),
+    )
+    return CorePersonMappingsResult(
+      aliases = aliasIdentifierMappings.aliases,
+      identifiers = aliasIdentifierMappings.identifiers,
+      addresses = addressContactMappings.addresses,
+      contacts = addressContactMappings.contacts,
+      addressUsages = addressContactMappings.addressUsages,
+    )
+  }
 }
