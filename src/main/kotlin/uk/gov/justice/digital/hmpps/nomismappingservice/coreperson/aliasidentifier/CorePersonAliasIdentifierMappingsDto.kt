@@ -22,3 +22,30 @@ data class CorePersonAliasIdentifierMappingsDto(
   @Schema(description = "Offender identifier mappings")
   val identifiers: List<OffenderIdentifierMappingDto>,
 )
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Request for mappings on nomis ids")
+data class CorePersonAliasIdentifierMappingsByNomisIdsRequest(
+  @Schema(description = "Alias mappings with requested nomis ids")
+  val aliases: List<Long>,
+  @Schema(description = "Identifiers with requested nomis ids")
+  val identifiers: List<IdentifierByNomisIdRequest>,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Request for an identifier mapping on nomis id")
+data class IdentifierByNomisIdRequest(
+  @Schema(description = "NOMIS id")
+  val nomisId: Long,
+  @Schema(description = "NOMIS identifier sequence")
+  val nomisSequence: Int,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Alias and identifier mappings matching the requested nomis ids")
+data class CorePersonAliasIdentifierMappingsResult(
+  @Schema(description = "List of alias mappings requested")
+  val aliases: List<OffenderAliasMappingDto>,
+  @Schema(description = "List of identifier mappings requested")
+  val identifiers: List<OffenderIdentifierMappingDto>,
+)

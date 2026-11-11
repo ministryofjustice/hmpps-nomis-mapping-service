@@ -311,6 +311,223 @@ class CorePersonAliasIdentifierRepairResourceIntTest(
     }
   }
 
+  @Nested
+  @DisplayName("POST /mapping/core-person/alias-identifier/mappings/by-nomis-ids")
+  inner class GetMappingsFromNomisIds {
+    private val nomisPrisonNumber = "A1234BC"
+
+    @BeforeEach
+    fun setUp() = runTest {
+      offenderAliasMappingRepository.save(
+        OffenderAliasMapping(
+          cprId = "a1c4d6e8-1111-4b2a-9c3d-000000000101",
+          nomisOffenderId = 101L,
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+      offenderAliasMappingRepository.save(
+        OffenderAliasMapping(
+          cprId = "a1c4d6e8-1111-4b2a-9c3d-000000000102",
+          nomisOffenderId = 102L,
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+      offenderIdentifierMappingRepository.save(
+        OffenderIdentifierMapping(
+          cprId = "b2d5e7f9-2222-4c3b-8d4e-000000000201",
+          nomisOffenderId = 101L,
+          nomisIdentifierSequence = 1,
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+      offenderIdentifierMappingRepository.save(
+        OffenderIdentifierMapping(
+          cprId = "b2d5e7f9-2222-4c3b-8d4e-000000000202",
+          nomisOffenderId = 101L,
+          nomisIdentifierSequence = 2,
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+      offenderIdentifierMappingRepository.save(
+        OffenderIdentifierMapping(
+          cprId = "b2d5e7f9-2222-4c3b-8d4e-000000000203",
+          nomisOffenderId = 102L,
+          nomisIdentifierSequence = 1,
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      val request = CorePersonAliasIdentifierMappingsByNomisIdsRequest(
+        aliases = listOf(101L),
+        identifiers = listOf(IdentifierByNomisIdRequest(nomisId = 101L, nomisSequence = 1)),
+      )
+
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/alias-identifier/mappings/by-nomis-ids")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(request))
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/alias-identifier/mappings/by-nomis-ids")
+          .headers(setAuthorisation(roles = listOf()))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(request))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/alias-identifier/mappings/by-nomis-ids")
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(request))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `returns 400 when a required list is missing`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/alias-identifier/mappings/by-nomis-ids")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .bodyValue("""{ "aliases": [101] }""")
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return the alias mappings for the requested nomis ids`() {
+        getMappings(
+          CorePersonAliasIdentifierMappingsByNomisIdsRequest(
+            aliases = listOf(101L, 102L, 999L),
+            identifiers = emptyList(),
+          ),
+        )
+          .jsonPath("aliases.length()").isEqualTo(2)
+          .jsonPath("aliases[*].nomisOffenderId").value<List<Int>> {
+            assertThat(it).containsExactlyInAnyOrder(101, 102)
+          }
+          .jsonPath("aliases[*].cprId").value<List<String>> {
+            assertThat(it).containsExactlyInAnyOrder(
+              "a1c4d6e8-1111-4b2a-9c3d-000000000101",
+              "a1c4d6e8-1111-4b2a-9c3d-000000000102",
+            )
+          }
+          .jsonPath("aliases[0].nomisPrisonNumber").isEqualTo(nomisPrisonNumber)
+          .jsonPath("aliases[0].label").isEqualTo("2023-01-01T12:45:12")
+          .jsonPath("aliases[0].mappingType").isEqualTo("MIGRATED")
+          .jsonPath("aliases[0].whenCreated").isEqualTo("2023-01-01T12:45:12")
+          .jsonPath("identifiers").isEmpty
+      }
+
+      @Test
+      fun `will only return identifier mappings where both the nomis id and sequence match`() {
+        getMappings(
+          CorePersonAliasIdentifierMappingsByNomisIdsRequest(
+            aliases = emptyList(),
+            identifiers = listOf(
+              IdentifierByNomisIdRequest(nomisId = 101L, nomisSequence = 1),
+              // 102 only has sequence 1 so this should not match
+              IdentifierByNomisIdRequest(nomisId = 102L, nomisSequence = 2),
+            ),
+          ),
+        )
+          .jsonPath("identifiers.length()").isEqualTo(1)
+          .jsonPath("identifiers[0].cprId").isEqualTo("b2d5e7f9-2222-4c3b-8d4e-000000000201")
+          .jsonPath("identifiers[0].nomisOffenderId").isEqualTo(101)
+          .jsonPath("identifiers[0].nomisIdentifierSequence").isEqualTo(1)
+          .jsonPath("identifiers[0].nomisPrisonNumber").isEqualTo(nomisPrisonNumber)
+          .jsonPath("aliases").isEmpty
+      }
+
+      @Test
+      fun `will return all requested mapping types together`() {
+        getMappings(
+          CorePersonAliasIdentifierMappingsByNomisIdsRequest(
+            aliases = listOf(101L),
+            identifiers = listOf(
+              IdentifierByNomisIdRequest(nomisId = 101L, nomisSequence = 1),
+              IdentifierByNomisIdRequest(nomisId = 101L, nomisSequence = 2),
+            ),
+          ),
+        )
+          .jsonPath("aliases.length()").isEqualTo(1)
+          .jsonPath("aliases[0].nomisOffenderId").isEqualTo(101)
+          .jsonPath("identifiers.length()").isEqualTo(2)
+          .jsonPath("identifiers[*].nomisIdentifierSequence").value<List<Int>> {
+            assertThat(it).containsExactlyInAnyOrder(1, 2)
+          }
+      }
+
+      @Test
+      fun `will return empty lists when no mappings match`() {
+        getMappings(
+          CorePersonAliasIdentifierMappingsByNomisIdsRequest(
+            aliases = listOf(999L),
+            identifiers = listOf(IdentifierByNomisIdRequest(nomisId = 999L, nomisSequence = 1)),
+          ),
+        )
+          .jsonPath("aliases").isEmpty
+          .jsonPath("identifiers").isEmpty
+      }
+
+      @Test
+      fun `will return empty lists when no ids are requested`() {
+        getMappings(
+          CorePersonAliasIdentifierMappingsByNomisIdsRequest(
+            aliases = emptyList(),
+            identifiers = emptyList(),
+          ),
+        )
+          .jsonPath("aliases").isEmpty
+          .jsonPath("identifiers").isEmpty
+      }
+
+      private fun getMappings(request: CorePersonAliasIdentifierMappingsByNomisIdsRequest) = webTestClient.post()
+        .uri("/mapping/core-person/alias-identifier/mappings/by-nomis-ids")
+        .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(request))
+        .exchange()
+        .expectStatus().isOk
+        .expectBody()
+    }
+  }
+
   private suspend fun assertAliasesForPrisonNumber(prisonNumber: String) = assertThat(offenderAliasMappingRepository.findAll().toList().filter { it.nomisPrisonNumber == prisonNumber })
   private suspend fun assertIdentifiersForPrisonNumber(prisonNumber: String) = assertThat(offenderIdentifierMappingRepository.findAll().toList().filter { it.nomisPrisonNumber == prisonNumber })
 }

@@ -13,7 +13,6 @@ import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.AddressUsageByNomisIdRequest
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.ContactByNomisIdRequest
-import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactMappingsByNomisIdsRequest
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressContactMergeMappingsDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressMapping
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonAddressMappingDto
@@ -25,6 +24,11 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontac
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonContactMappingDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.CorePersonContactMappingRepository
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.NomisContactType
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier.IdentifierByNomisIdRequest
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier.OffenderAliasMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier.OffenderAliasMappingRepository
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier.OffenderIdentifierMapping
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier.OffenderIdentifierMappingRepository
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationTestBase
 import java.time.LocalDateTime
 
@@ -32,6 +36,8 @@ class CorePersonMergeMappingResourceIntTest(
   @Autowired private val corePersonAddressMappingRepository: CorePersonAddressMappingRepository,
   @Autowired private val corePersonAddressUsageMappingRepository: CorePersonAddressUsageMappingRepository,
   @Autowired private val corePersonContactMappingRepository: CorePersonContactMappingRepository,
+  @Autowired private val offenderAliasMappingRepository: OffenderAliasMappingRepository,
+  @Autowired private val offenderIdentifierMappingRepository: OffenderIdentifierMappingRepository,
 ) : IntegrationTestBase() {
 
   @AfterEach
@@ -39,6 +45,8 @@ class CorePersonMergeMappingResourceIntTest(
     corePersonAddressMappingRepository.deleteAll()
     corePersonAddressUsageMappingRepository.deleteAll()
     corePersonContactMappingRepository.deleteAll()
+    offenderAliasMappingRepository.deleteAll()
+    offenderIdentifierMappingRepository.deleteAll()
   }
 
   @Nested
@@ -491,11 +499,66 @@ class CorePersonMergeMappingResourceIntTest(
           whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
         ),
       )
+      offenderAliasMappingRepository.save(
+        OffenderAliasMapping(
+          cprId = "d4f7a9b1-4444-4e5d-8f6a-000000000401",
+          nomisOffenderId = 401L,
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+      offenderAliasMappingRepository.save(
+        OffenderAliasMapping(
+          cprId = "d4f7a9b1-4444-4e5d-8f6a-000000000402",
+          nomisOffenderId = 402L,
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+      offenderIdentifierMappingRepository.save(
+        OffenderIdentifierMapping(
+          cprId = "e5a8b0c2-5555-4f6e-9a7b-000000000501",
+          nomisOffenderId = 401L,
+          nomisIdentifierSequence = 1,
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+      offenderIdentifierMappingRepository.save(
+        OffenderIdentifierMapping(
+          cprId = "e5a8b0c2-5555-4f6e-9a7b-000000000502",
+          nomisOffenderId = 401L,
+          nomisIdentifierSequence = 2,
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
+      offenderIdentifierMappingRepository.save(
+        OffenderIdentifierMapping(
+          cprId = "e5a8b0c2-5555-4f6e-9a7b-000000000503",
+          nomisOffenderId = 402L,
+          nomisIdentifierSequence = 1,
+          nomisPrisonNumber = nomisPrisonNumber,
+          label = "2023-01-01T12:45:12",
+          mappingType = CorePersonMappingType.MIGRATED,
+          whenCreated = LocalDateTime.parse("2023-01-01T12:45:12"),
+        ),
+      )
     }
 
     @Nested
     inner class Security {
-      val request = CorePersonAddressContactMappingsByNomisIdsRequest(
+      val request = CorePersonMappingsByNomisIdsRequest(
+        aliases = emptyList(),
+        identifiers = emptyList(),
         addresses = listOf(101L),
         contacts = listOf(ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.EMAIL)),
         addressUsages = listOf(AddressUsageByNomisIdRequest(nomisId = 101L, addressUsageCode = "HOME")),
@@ -542,7 +605,7 @@ class CorePersonMergeMappingResourceIntTest(
           .uri("/mapping/core-person/merge/mappings/by-nomis-ids")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .contentType(MediaType.APPLICATION_JSON)
-          .bodyValue("""{ "addresses": [101], "contacts": [{"nomisId": 201, "nomisContactType": "EMAIL"}] }""")
+          .bodyValue("""{ "aliases": [], "identifiers": [], "addresses": [101], "contacts": [{"nomisId": 201, "nomisContactType": "EMAIL"}] }""")
           .exchange()
           .expectStatus().isBadRequest
       }
@@ -558,7 +621,9 @@ class CorePersonMergeMappingResourceIntTest(
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CorePersonAddressContactMappingsByNomisIdsRequest(
+              CorePersonMappingsByNomisIdsRequest(
+                aliases = emptyList(),
+                identifiers = emptyList(),
                 addresses = listOf(101L, 102L, 999L),
                 contacts = emptyList(),
                 addressUsages = emptyList(),
@@ -594,7 +659,9 @@ class CorePersonMergeMappingResourceIntTest(
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CorePersonAddressContactMappingsByNomisIdsRequest(
+              CorePersonMappingsByNomisIdsRequest(
+                aliases = emptyList(),
+                identifiers = emptyList(),
                 addresses = emptyList(),
                 contacts = listOf(
                   ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.EMAIL),
@@ -624,7 +691,9 @@ class CorePersonMergeMappingResourceIntTest(
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CorePersonAddressContactMappingsByNomisIdsRequest(
+              CorePersonMappingsByNomisIdsRequest(
+                aliases = emptyList(),
+                identifiers = emptyList(),
                 addresses = emptyList(),
                 contacts = listOf(
                   ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.PHONE),
@@ -654,7 +723,9 @@ class CorePersonMergeMappingResourceIntTest(
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CorePersonAddressContactMappingsByNomisIdsRequest(
+              CorePersonMappingsByNomisIdsRequest(
+                aliases = emptyList(),
+                identifiers = emptyList(),
                 addresses = emptyList(),
                 contacts = emptyList(),
                 addressUsages = listOf(
@@ -678,6 +749,79 @@ class CorePersonMergeMappingResourceIntTest(
       }
 
       @Test
+      fun `will return the alias mappings for the requested nomis ids`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/merge/mappings/by-nomis-ids")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CorePersonMappingsByNomisIdsRequest(
+                aliases = listOf(401L, 402L, 999L),
+                identifiers = emptyList(),
+                addresses = emptyList(),
+                contacts = emptyList(),
+                addressUsages = emptyList(),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("aliases.length()").isEqualTo(2)
+          .jsonPath("aliases[*].nomisOffenderId").value<List<Int>> {
+            assertThat(it).containsExactlyInAnyOrder(401, 402)
+          }
+          .jsonPath("aliases[*].cprId").value<List<String>> {
+            assertThat(it).containsExactlyInAnyOrder(
+              "d4f7a9b1-4444-4e5d-8f6a-000000000401",
+              "d4f7a9b1-4444-4e5d-8f6a-000000000402",
+            )
+          }
+          .jsonPath("aliases[0].nomisPrisonNumber").isEqualTo(nomisPrisonNumber)
+          .jsonPath("aliases[0].mappingType").isEqualTo("MIGRATED")
+          .jsonPath("identifiers").isEmpty
+          .jsonPath("addresses").isEmpty
+          .jsonPath("contacts").isEmpty
+          .jsonPath("addressUsages").isEmpty
+      }
+
+      @Test
+      fun `will only return identifier mappings where both the nomis id and sequence match`() {
+        webTestClient.post()
+          .uri("/mapping/core-person/merge/mappings/by-nomis-ids")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+            BodyInserters.fromValue(
+              CorePersonMappingsByNomisIdsRequest(
+                aliases = emptyList(),
+                identifiers = listOf(
+                  IdentifierByNomisIdRequest(nomisId = 401L, nomisSequence = 1),
+                  // 402 only has sequence 1 so this should not match
+                  IdentifierByNomisIdRequest(nomisId = 402L, nomisSequence = 2),
+                ),
+                addresses = emptyList(),
+                contacts = emptyList(),
+                addressUsages = emptyList(),
+              ),
+            ),
+          )
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("identifiers.length()").isEqualTo(1)
+          .jsonPath("identifiers[0].cprId").isEqualTo("e5a8b0c2-5555-4f6e-9a7b-000000000501")
+          .jsonPath("identifiers[0].nomisOffenderId").isEqualTo(401)
+          .jsonPath("identifiers[0].nomisIdentifierSequence").isEqualTo(1)
+          .jsonPath("identifiers[0].nomisPrisonNumber").isEqualTo(nomisPrisonNumber)
+          .jsonPath("aliases").isEmpty
+          .jsonPath("addresses").isEmpty
+          .jsonPath("contacts").isEmpty
+          .jsonPath("addressUsages").isEmpty
+      }
+
+      @Test
       fun `will return all requested mapping types together`() {
         webTestClient.post()
           .uri("/mapping/core-person/merge/mappings/by-nomis-ids")
@@ -685,7 +829,12 @@ class CorePersonMergeMappingResourceIntTest(
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CorePersonAddressContactMappingsByNomisIdsRequest(
+              CorePersonMappingsByNomisIdsRequest(
+                aliases = listOf(401L),
+                identifiers = listOf(
+                  IdentifierByNomisIdRequest(nomisId = 401L, nomisSequence = 1),
+                  IdentifierByNomisIdRequest(nomisId = 401L, nomisSequence = 2),
+                ),
                 addresses = listOf(101L),
                 contacts = listOf(ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.EMAIL)),
                 addressUsages = listOf(
@@ -706,6 +855,12 @@ class CorePersonMergeMappingResourceIntTest(
           .jsonPath("addressUsages[*].addressUsageCode").value<List<String>> {
             assertThat(it).containsExactlyInAnyOrder("HOME", "WORK")
           }
+          .jsonPath("aliases.length()").isEqualTo(1)
+          .jsonPath("aliases[0].nomisOffenderId").isEqualTo(401)
+          .jsonPath("identifiers.length()").isEqualTo(2)
+          .jsonPath("identifiers[*].nomisIdentifierSequence").value<List<Int>> {
+            assertThat(it).containsExactlyInAnyOrder(1, 2)
+          }
       }
 
       @Test
@@ -716,7 +871,9 @@ class CorePersonMergeMappingResourceIntTest(
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CorePersonAddressContactMappingsByNomisIdsRequest(
+              CorePersonMappingsByNomisIdsRequest(
+                aliases = listOf(999L),
+                identifiers = listOf(IdentifierByNomisIdRequest(nomisId = 999L, nomisSequence = 1)),
                 addresses = listOf(999L),
                 contacts = listOf(ContactByNomisIdRequest(nomisId = 999L, nomisContactType = NomisContactType.EMAIL)),
                 addressUsages = listOf(AddressUsageByNomisIdRequest(nomisId = 999L, addressUsageCode = "HOME")),
@@ -729,6 +886,8 @@ class CorePersonMergeMappingResourceIntTest(
           .jsonPath("addresses").isEmpty
           .jsonPath("contacts").isEmpty
           .jsonPath("addressUsages").isEmpty
+          .jsonPath("aliases").isEmpty
+          .jsonPath("identifiers").isEmpty
       }
 
       @Test
@@ -739,7 +898,9 @@ class CorePersonMergeMappingResourceIntTest(
           .contentType(MediaType.APPLICATION_JSON)
           .body(
             BodyInserters.fromValue(
-              CorePersonAddressContactMappingsByNomisIdsRequest(
+              CorePersonMappingsByNomisIdsRequest(
+                aliases = emptyList(),
+                identifiers = emptyList(),
                 addresses = emptyList(),
                 contacts = emptyList(),
                 addressUsages = emptyList(),
@@ -752,6 +913,8 @@ class CorePersonMergeMappingResourceIntTest(
           .jsonPath("addresses").isEmpty
           .jsonPath("contacts").isEmpty
           .jsonPath("addressUsages").isEmpty
+          .jsonPath("aliases").isEmpty
+          .jsonPath("identifiers").isEmpty
       }
     }
   }

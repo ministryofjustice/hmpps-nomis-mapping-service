@@ -38,6 +38,18 @@ class CorePersonAliasIdentifierService(
     identifiers.forEach { offenderIdentifierMappingRepository.save(it.toMapping()) }
   }
 
+  suspend fun getMappingResultFromNomisIds(mappingRequest: CorePersonAliasIdentifierMappingsByNomisIdsRequest): CorePersonAliasIdentifierMappingsResult {
+    val matchingAliases = offenderAliasMappingRepository.findAllByNomisOffenderIdIn(mappingRequest.aliases).map { it.toDto() }
+    val requestedIdentifiers = mappingRequest.identifiers
+    val matchingIdentifiers = offenderIdentifierMappingRepository.findAllByNomisOffenderIdIn(requestedIdentifiers.map { it.nomisId })
+      .filter { mapping -> requestedIdentifiers.any { it.nomisId == mapping.nomisOffenderId && it.nomisSequence == mapping.nomisIdentifierSequence } }
+      .map { it.toDto() }
+    return CorePersonAliasIdentifierMappingsResult(
+      aliases = matchingAliases,
+      identifiers = matchingIdentifiers,
+    )
+  }
+
   @Transactional
   suspend fun deleteAll() {
     offenderAliasMappingRepository.deleteAll()
