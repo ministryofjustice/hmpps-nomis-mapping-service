@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -68,6 +69,36 @@ class CorePersonIdentifierMappingResource(private val service: CorePersonIdentif
     nomisOffenderId = nomisOffenderId,
     nomisIdentifierSequence = nomisIdentifierSequence,
   )
+
+  @GetMapping("/nomis-offender-id/{nomisOffenderId}")
+  @Operation(
+    summary = "Get all offender identifier mappings by nomis offender id",
+    description = "Retrieves all the offender identifier mappings for a NOMIS offender id. Returns an empty list when none are found. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "List of offender identifier mappings",
+        content = [
+          Content(mediaType = "application/json", array = ArraySchema(schema = Schema(implementation = OffenderIdentifierMappingDto::class))),
+        ],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access this endpoint is forbidden",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun getOffenderIdentifierMappingsByNomisOffenderId(
+    @Schema(description = "NOMIS offender id", example = "12345", required = true)
+    @PathVariable
+    nomisOffenderId: Long,
+  ): List<OffenderIdentifierMappingDto> = service.getOffenderIdentifierMappingsByNomisOffenderId(nomisOffenderId = nomisOffenderId)
 
   @DeleteMapping("/nomis-offender-id/{nomisOffenderId}/nomis-identifier-sequence/{nomisIdentifierSequence}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
