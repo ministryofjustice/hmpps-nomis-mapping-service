@@ -13,4 +13,5 @@ interface ScheduledPaymentMappingRepository : CoroutineCrudRepository<ScheduledP
   suspend fun findAllBy(pageRequest: Pageable): Flow<ScheduledPaymentMapping>
   suspend fun findAllByLabelAndMappingTypeOrderByLabelDesc(label: String, mappingType: StandardMappingType, pageRequest: Pageable): Flow<ScheduledPaymentMapping>
   suspend fun countAllByLabelAndMappingType(migrationId: String, mappingType: StandardMappingType): Long
+  suspend fun deleteByNomisId(nomisId: Long)
 }
