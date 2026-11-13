@@ -100,6 +100,39 @@ class CorePersonIdentifierMappingResource(private val service: CorePersonIdentif
     nomisOffenderId: Long,
   ): List<OffenderIdentifierMappingDto> = service.getOffenderIdentifierMappingsByNomisOffenderId(nomisOffenderId = nomisOffenderId)
 
+  @PostMapping("/nomis-offender-id/{nomisOffenderId}/replace")
+  @Operation(
+    summary = "Replaces all offender identifier mappings for a nomis offender id",
+    description = """Removes all existing identifier mappings for the NOMIS offender id and replaces them with the supplied list.
+      Any existing mappings with the same CPR ids held against a different offender are also removed.
+      Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
+    responses = [
+      ApiResponse(responseCode = "200", description = "Mappings replaced"),
+      ApiResponse(
+        responseCode = "400",
+        description = "A mapping is for a different NOMIS offender id",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun replaceOffenderIdentifierMappings(
+    @Schema(description = "NOMIS offender id", example = "12345", required = true)
+    @PathVariable
+    nomisOffenderId: Long,
+    @RequestBody @Valid
+    mappings: List<OffenderIdentifierMappingDto>,
+  ) = service.replaceOffenderIdentifierMappings(nomisOffenderId = nomisOffenderId, mappings = mappings)
+
   @DeleteMapping("/nomis-offender-id/{nomisOffenderId}/nomis-identifier-sequence/{nomisIdentifierSequence}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
