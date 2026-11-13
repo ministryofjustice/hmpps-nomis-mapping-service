@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentif
 
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.tuple
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingType
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestDuplicateErrorResponse
@@ -186,26 +188,20 @@ class CorePersonIdentifierMappingResourceIntTest : IntegrationTestBase() {
     inner class HappyPath {
       @Test
       fun `will return all the mappings for the nomis offender id`() {
-        webTestClient.get()
+        val mappings = webTestClient.get()
           .uri("/mapping/core-person/identifier/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
-          .expectBody()
-          .jsonPath("length()").isEqualTo(2)
-          .jsonPath("[*].nomisOffenderId").value<List<Int>> {
-            assertThat(it).containsOnly(nomisOffenderId.toInt())
-          }
-          .jsonPath("[*].nomisIdentifierSequence").value<List<Int>> {
-            assertThat(it).containsExactlyInAnyOrder(1, 2)
-          }
-          .jsonPath("[*].cprId").value<List<String>> {
-            assertThat(it).containsExactlyInAnyOrder(
-              "1a2b3c4d-0000-4000-8000-000000000001",
-              "1a2b3c4d-0000-4000-8000-000000000002",
-            )
-          }
-          .jsonPath("[0].nomisPrisonNumber").isEqualTo("A1234BC")
+          .expectBody<List<OffenderIdentifierMappingDto>>()
+          .returnResult().responseBody!!
+
+        assertThat(mappings)
+          .extracting("cprId", "nomisOffenderId", "nomisIdentifierSequence", "nomisPrisonNumber")
+          .containsExactlyInAnyOrder(
+            tuple("1a2b3c4d-0000-4000-8000-000000000001", nomisOffenderId, 1, "A1234BC"),
+            tuple("1a2b3c4d-0000-4000-8000-000000000002", nomisOffenderId, 2, "A1234BC"),
+          )
       }
 
       @Test
