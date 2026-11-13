@@ -10,4 +10,5 @@ interface OffenderIdentifierMappingRepository : CoroutineCrudRepository<Offender
   suspend fun findAllByNomisOffenderIdIn(nomisOffenderIds: List<Long>): List<OffenderIdentifierMapping>
   suspend fun deleteByNomisOffenderIdAndNomisIdentifierSequence(nomisOffenderId: Long, nomisIdentifierSequence: Int)
   suspend fun deleteAllByNomisPrisonNumber(nomisPrisonNumber: String)
+  suspend fun deleteAllByNomisOffenderId(nomisOffenderId: Long)
 }

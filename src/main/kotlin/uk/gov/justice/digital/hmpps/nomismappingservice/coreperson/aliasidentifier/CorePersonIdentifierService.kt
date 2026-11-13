@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentifier
 
+import jakarta.validation.ValidationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.nomismappingservice.service.NotFoundException
@@ -37,6 +38,17 @@ class CorePersonIdentifierService(
   @Transactional
   suspend fun createOffenderIdentifierMapping(mapping: OffenderIdentifierMappingDto) {
     offenderIdentifierMappingRepository.save(mapping.toMapping())
+  }
+
+  @Transactional
+  suspend fun replaceOffenderIdentifierMappings(nomisOffenderId: Long, mappings: List<OffenderIdentifierMappingDto>) {
+    mappings.filter { it.nomisOffenderId != nomisOffenderId }.takeIf { it.isNotEmpty() }?.let { mismatched ->
+      throw ValidationException("All mappings must be for nomisOffenderId=$nomisOffenderId but found ${mismatched.map { it.nomisOffenderId }.distinct()}")
+    }
+    offenderIdentifierMappingRepository.deleteAllByNomisOffenderId(nomisOffenderId)
+    // Remove any dangling mappings held against another offender for the same CPR ids
+    mappings.forEach { offenderIdentifierMappingRepository.deleteById(it.cprId) }
+    mappings.forEach { offenderIdentifierMappingRepository.save(it.toMapping()) }
   }
 }
 
