@@ -15,7 +15,9 @@ import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
+import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingIdDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingType
 import uk.gov.justice.digital.hmpps.nomismappingservice.helper.TestDuplicateErrorResponse
@@ -439,16 +441,16 @@ class CorePersonMigrationAliasIdentifierResourceIntTest(
           ),
         )
 
-        webTestClient.get().uri("/mapping/core-person/alias-identifier-migration/migration-id/2023-01-01T12:45:12")
+        val page = webTestClient.get().uri("/mapping/core-person/alias-identifier-migration/migration-id/2023-01-01T12:45:12")
           .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
           .exchange()
           .expectStatus().isOk
-          .expectBody()
-          .jsonPath("totalElements").isEqualTo(4)
-          .jsonPath("$.content..nomisPrisonNumber").value<List<String>> {
-            assertThat(it).containsExactly("A1231BC", "A1232BC", "A1233BC", "A1234BC")
-          }
-          .jsonPath("$.content[0].whenCreated").isNotEmpty
+          .expectBody<CorePersonMappingPage>()
+          .returnResult().responseBody!!
+
+        assertThat(page.totalElements).isEqualTo(4)
+        assertThat(page.content).extracting("nomisPrisonNumber").containsExactly("A1231BC", "A1232BC", "A1233BC", "A1234BC")
+        assertThat(page.content[0].whenCreated).isNotNull()
       }
 
       @Test
@@ -681,3 +683,8 @@ class CorePersonMigrationAliasIdentifierResourceIntTest(
     }
   }
 }
+
+private data class CorePersonMappingPage(
+  val content: List<CorePersonMappingDto>,
+  val totalElements: Long,
+)

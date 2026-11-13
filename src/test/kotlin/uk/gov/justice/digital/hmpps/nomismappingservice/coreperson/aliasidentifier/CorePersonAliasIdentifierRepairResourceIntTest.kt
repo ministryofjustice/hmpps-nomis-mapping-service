@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.aliasidentif
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.tuple
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingIdDto
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.CorePersonMappingType
@@ -431,32 +433,31 @@ class CorePersonAliasIdentifierRepairResourceIntTest(
     inner class HappyPath {
       @Test
       fun `will return the alias mappings for the requested nomis ids`() {
-        getMappings(
+        val result = getMappings(
           CorePersonAliasIdentifierMappingsByNomisIdsRequest(
             aliases = listOf(101L, 102L, 999L),
             identifiers = emptyList(),
           ),
         )
-          .jsonPath("aliases.length()").isEqualTo(2)
-          .jsonPath("aliases[*].nomisOffenderId").value<List<Int>> {
-            assertThat(it).containsExactlyInAnyOrder(101, 102)
-          }
-          .jsonPath("aliases[*].cprId").value<List<String>> {
-            assertThat(it).containsExactlyInAnyOrder(
-              "a1c4d6e8-1111-4b2a-9c3d-000000000101",
-              "a1c4d6e8-1111-4b2a-9c3d-000000000102",
-            )
-          }
-          .jsonPath("aliases[0].nomisPrisonNumber").isEqualTo(nomisPrisonNumber)
-          .jsonPath("aliases[0].label").isEqualTo("2023-01-01T12:45:12")
-          .jsonPath("aliases[0].mappingType").isEqualTo("MIGRATED")
-          .jsonPath("aliases[0].whenCreated").isEqualTo("2023-01-01T12:45:12")
-          .jsonPath("identifiers").isEmpty
+
+        assertThat(result.aliases)
+          .extracting("cprId", "nomisOffenderId")
+          .containsExactlyInAnyOrder(
+            tuple("a1c4d6e8-1111-4b2a-9c3d-000000000101", 101L),
+            tuple("a1c4d6e8-1111-4b2a-9c3d-000000000102", 102L),
+          )
+        with(result.aliases.first { it.nomisOffenderId == 101L }) {
+          assertThat(nomisPrisonNumber).isEqualTo(this@GetMappingsFromNomisIds.nomisPrisonNumber)
+          assertThat(label).isEqualTo("2023-01-01T12:45:12")
+          assertThat(mappingType).isEqualTo(CorePersonMappingType.MIGRATED)
+          assertThat(whenCreated).isEqualTo(LocalDateTime.parse("2023-01-01T12:45:12"))
+        }
+        assertThat(result.identifiers).isEmpty()
       }
 
       @Test
       fun `will only return identifier mappings where both the nomis id and sequence match`() {
-        getMappings(
+        val result = getMappings(
           CorePersonAliasIdentifierMappingsByNomisIdsRequest(
             aliases = emptyList(),
             identifiers = listOf(
@@ -466,17 +467,16 @@ class CorePersonAliasIdentifierRepairResourceIntTest(
             ),
           ),
         )
-          .jsonPath("identifiers.length()").isEqualTo(1)
-          .jsonPath("identifiers[0].cprId").isEqualTo("b2d5e7f9-2222-4c3b-8d4e-000000000201")
-          .jsonPath("identifiers[0].nomisOffenderId").isEqualTo(101)
-          .jsonPath("identifiers[0].nomisIdentifierSequence").isEqualTo(1)
-          .jsonPath("identifiers[0].nomisPrisonNumber").isEqualTo(nomisPrisonNumber)
-          .jsonPath("aliases").isEmpty
+
+        assertThat(result.identifiers)
+          .extracting("cprId", "nomisOffenderId", "nomisIdentifierSequence", "nomisPrisonNumber")
+          .containsExactly(tuple("b2d5e7f9-2222-4c3b-8d4e-000000000201", 101L, 1, nomisPrisonNumber))
+        assertThat(result.aliases).isEmpty()
       }
 
       @Test
       fun `will return all requested mapping types together`() {
-        getMappings(
+        val result = getMappings(
           CorePersonAliasIdentifierMappingsByNomisIdsRequest(
             aliases = listOf(101L),
             identifiers = listOf(
@@ -485,46 +485,48 @@ class CorePersonAliasIdentifierRepairResourceIntTest(
             ),
           ),
         )
-          .jsonPath("aliases.length()").isEqualTo(1)
-          .jsonPath("aliases[0].nomisOffenderId").isEqualTo(101)
-          .jsonPath("identifiers.length()").isEqualTo(2)
-          .jsonPath("identifiers[*].nomisIdentifierSequence").value<List<Int>> {
-            assertThat(it).containsExactlyInAnyOrder(1, 2)
-          }
+
+        assertThat(result.aliases).extracting("nomisOffenderId").containsExactly(101L)
+        assertThat(result.identifiers).extracting("nomisIdentifierSequence").containsExactlyInAnyOrder(1, 2)
       }
 
       @Test
       fun `will return empty lists when no mappings match`() {
-        getMappings(
+        postMappings(
           CorePersonAliasIdentifierMappingsByNomisIdsRequest(
             aliases = listOf(999L),
             identifiers = listOf(IdentifierByNomisIdRequest(nomisId = 999L, nomisSequence = 1)),
           ),
         )
+          .expectBody()
           .jsonPath("aliases").isEmpty
           .jsonPath("identifiers").isEmpty
       }
 
       @Test
       fun `will return empty lists when no ids are requested`() {
-        getMappings(
+        postMappings(
           CorePersonAliasIdentifierMappingsByNomisIdsRequest(
             aliases = emptyList(),
             identifiers = emptyList(),
           ),
         )
+          .expectBody()
           .jsonPath("aliases").isEmpty
           .jsonPath("identifiers").isEmpty
       }
 
-      private fun getMappings(request: CorePersonAliasIdentifierMappingsByNomisIdsRequest) = webTestClient.post()
+      private fun postMappings(request: CorePersonAliasIdentifierMappingsByNomisIdsRequest) = webTestClient.post()
         .uri("/mapping/core-person/alias-identifier/mappings/by-nomis-ids")
         .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(request))
         .exchange()
         .expectStatus().isOk
-        .expectBody()
+
+      private fun getMappings(request: CorePersonAliasIdentifierMappingsByNomisIdsRequest) = postMappings(request)
+        .expectBody<CorePersonAliasIdentifierMappingsResult>()
+        .returnResult().responseBody!!
     }
   }
 

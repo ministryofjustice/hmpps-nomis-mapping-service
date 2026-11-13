@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.nomismappingservice.coreperson
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.tuple
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.AddressUsageByNomisIdRequest
 import uk.gov.justice.digital.hmpps.nomismappingservice.coreperson.addresscontact.ContactByNomisIdRequest
@@ -615,273 +617,188 @@ class CorePersonMergeMappingResourceIntTest(
     inner class HappyPath {
       @Test
       fun `will return the address mappings for the requested nomis ids`() {
-        webTestClient.post()
-          .uri("/mapping/core-person/merge/mappings/by-nomis-ids")
-          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(
-            BodyInserters.fromValue(
-              CorePersonMappingsByNomisIdsRequest(
-                aliases = emptyList(),
-                identifiers = emptyList(),
-                addresses = listOf(101L, 102L, 999L),
-                contacts = emptyList(),
-                addressUsages = emptyList(),
-              ),
-            ),
+        val result = getMappings(
+          CorePersonMappingsByNomisIdsRequest(
+            aliases = emptyList(),
+            identifiers = emptyList(),
+            addresses = listOf(101L, 102L, 999L),
+            contacts = emptyList(),
+            addressUsages = emptyList(),
+          ),
+        )
+
+        assertThat(result.addresses)
+          .extracting("cprId", "nomisId")
+          .containsExactlyInAnyOrder(
+            tuple("a1c4d6e8-1111-4b2a-9c3d-000000000101", 101L),
+            tuple("a1c4d6e8-1111-4b2a-9c3d-000000000102", 102L),
           )
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("addresses.length()").isEqualTo(2)
-          .jsonPath("addresses[*].nomisId").value<List<Int>> {
-            assertThat(it).containsExactlyInAnyOrder(101, 102)
-          }
-          .jsonPath("addresses[*].cprId").value<List<String>> {
-            assertThat(it).containsExactlyInAnyOrder(
-              "a1c4d6e8-1111-4b2a-9c3d-000000000101",
-              "a1c4d6e8-1111-4b2a-9c3d-000000000102",
-            )
-          }
-          .jsonPath("addresses[0].nomisPrisonNumber").isEqualTo(nomisPrisonNumber)
-          .jsonPath("addresses[0].label").isEqualTo("2023-01-01T12:45:12")
-          .jsonPath("addresses[0].mappingType").isEqualTo("MIGRATED")
-          .jsonPath("addresses[0].whenCreated").isEqualTo("2023-01-01T12:45:12")
-          .jsonPath("contacts").isEmpty
-          .jsonPath("addressUsages").isEmpty
+        with(result.addresses.first { it.nomisId == 101L }) {
+          assertThat(nomisPrisonNumber).isEqualTo(this@GetMappingsFromNomisIds.nomisPrisonNumber)
+          assertThat(label).isEqualTo("2023-01-01T12:45:12")
+          assertThat(mappingType).isEqualTo(CorePersonMappingType.MIGRATED)
+          assertThat(whenCreated).isEqualTo(LocalDateTime.parse("2023-01-01T12:45:12"))
+        }
+        assertThat(result.contacts).isEmpty()
+        assertThat(result.addressUsages).isEmpty()
       }
 
       @Test
       fun `will return the contact mappings for the requested nomis ids`() {
-        webTestClient.post()
-          .uri("/mapping/core-person/merge/mappings/by-nomis-ids")
-          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(
-            BodyInserters.fromValue(
-              CorePersonMappingsByNomisIdsRequest(
-                aliases = emptyList(),
-                identifiers = emptyList(),
-                addresses = emptyList(),
-                contacts = listOf(
-                  ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.EMAIL),
-                  ContactByNomisIdRequest(nomisId = 202L, nomisContactType = NomisContactType.PHONE),
-                ),
-                addressUsages = emptyList(),
-              ),
+        val result = getMappings(
+          CorePersonMappingsByNomisIdsRequest(
+            aliases = emptyList(),
+            identifiers = emptyList(),
+            addresses = emptyList(),
+            contacts = listOf(
+              ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.EMAIL),
+              ContactByNomisIdRequest(nomisId = 202L, nomisContactType = NomisContactType.PHONE),
             ),
+            addressUsages = emptyList(),
+          ),
+        )
+
+        assertThat(result.contacts)
+          .extracting("nomisId", "nomisContactType", "cprId")
+          .containsExactlyInAnyOrder(
+            tuple(201L, NomisContactType.EMAIL, "b2d5e7f9-2222-4c3b-8d4e-000000000201"),
+            tuple(202L, NomisContactType.PHONE, "b2d5e7f9-2222-4c3b-8d4e-000000000202"),
           )
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("contacts.length()").isEqualTo(2)
-          .jsonPath("contacts[?(@.nomisId == 201)].nomisContactType").isEqualTo("EMAIL")
-          .jsonPath("contacts[?(@.nomisId == 201)].cprId").isEqualTo("b2d5e7f9-2222-4c3b-8d4e-000000000201")
-          .jsonPath("contacts[?(@.nomisId == 202)].nomisContactType").isEqualTo("PHONE")
-          .jsonPath("contacts[?(@.nomisId == 202)].cprId").isEqualTo("b2d5e7f9-2222-4c3b-8d4e-000000000202")
-          .jsonPath("addresses").isEmpty
-          .jsonPath("addressUsages").isEmpty
+        assertThat(result.addresses).isEmpty()
+        assertThat(result.addressUsages).isEmpty()
       }
 
       @Test
       fun `will only return contact mappings where both the nomis id and contact type match`() {
-        webTestClient.post()
-          .uri("/mapping/core-person/merge/mappings/by-nomis-ids")
-          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(
-            BodyInserters.fromValue(
-              CorePersonMappingsByNomisIdsRequest(
-                aliases = emptyList(),
-                identifiers = emptyList(),
-                addresses = emptyList(),
-                contacts = listOf(
-                  ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.PHONE),
-                  ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.EMAIL),
-                  ContactByNomisIdRequest(nomisId = 202L, nomisContactType = NomisContactType.EMAIL),
-                ),
-                addressUsages = emptyList(),
-              ),
+        val result = getMappings(
+          CorePersonMappingsByNomisIdsRequest(
+            aliases = emptyList(),
+            identifiers = emptyList(),
+            addresses = emptyList(),
+            contacts = listOf(
+              ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.PHONE),
+              ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.EMAIL),
+              ContactByNomisIdRequest(nomisId = 202L, nomisContactType = NomisContactType.EMAIL),
             ),
-          )
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("contacts.length()").isEqualTo(1)
-          .jsonPath("contacts[0].nomisId").isEqualTo(201)
-          .jsonPath("contacts[0].nomisContactType").isEqualTo("EMAIL")
-          .jsonPath("contacts[0].cprId").isEqualTo("b2d5e7f9-2222-4c3b-8d4e-000000000201")
-          .jsonPath("addresses").isEmpty
-          .jsonPath("addressUsages").isEmpty
+            addressUsages = emptyList(),
+          ),
+        )
+
+        assertThat(result.contacts)
+          .extracting("nomisId", "nomisContactType", "cprId")
+          .containsExactly(tuple(201L, NomisContactType.EMAIL, "b2d5e7f9-2222-4c3b-8d4e-000000000201"))
+        assertThat(result.addresses).isEmpty()
+        assertThat(result.addressUsages).isEmpty()
       }
 
       @Test
       fun `will only return address usage mappings where both the nomis id and usage code match`() {
-        webTestClient.post()
-          .uri("/mapping/core-person/merge/mappings/by-nomis-ids")
-          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(
-            BodyInserters.fromValue(
-              CorePersonMappingsByNomisIdsRequest(
-                aliases = emptyList(),
-                identifiers = emptyList(),
-                addresses = emptyList(),
-                contacts = emptyList(),
-                addressUsages = listOf(
-                  AddressUsageByNomisIdRequest(nomisId = 101L, addressUsageCode = "HOME"),
-                  // 102 only has a HOME usage so this should not match
-                  AddressUsageByNomisIdRequest(nomisId = 102L, addressUsageCode = "WORK"),
-                ),
-              ),
+        val result = getMappings(
+          CorePersonMappingsByNomisIdsRequest(
+            aliases = emptyList(),
+            identifiers = emptyList(),
+            addresses = emptyList(),
+            contacts = emptyList(),
+            addressUsages = listOf(
+              AddressUsageByNomisIdRequest(nomisId = 101L, addressUsageCode = "HOME"),
+              // 102 only has a HOME usage so this should not match
+              AddressUsageByNomisIdRequest(nomisId = 102L, addressUsageCode = "WORK"),
             ),
-          )
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("addressUsages.length()").isEqualTo(1)
-          .jsonPath("addressUsages[0].cprId").isEqualTo("c3e6f8a0-3333-4d4c-9e5f-000000000301")
-          .jsonPath("addressUsages[0].nomisId").isEqualTo(101)
-          .jsonPath("addressUsages[0].addressUsageCode").isEqualTo("HOME")
-          .jsonPath("addressUsages[0].nomisPrisonNumber").isEqualTo(nomisPrisonNumber)
-          .jsonPath("addresses").isEmpty
-          .jsonPath("contacts").isEmpty
+          ),
+        )
+
+        assertThat(result.addressUsages)
+          .extracting("cprId", "nomisId", "addressUsageCode", "nomisPrisonNumber")
+          .containsExactly(tuple("c3e6f8a0-3333-4d4c-9e5f-000000000301", 101L, "HOME", nomisPrisonNumber))
+        assertThat(result.addresses).isEmpty()
+        assertThat(result.contacts).isEmpty()
       }
 
       @Test
       fun `will return the alias mappings for the requested nomis ids`() {
-        webTestClient.post()
-          .uri("/mapping/core-person/merge/mappings/by-nomis-ids")
-          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(
-            BodyInserters.fromValue(
-              CorePersonMappingsByNomisIdsRequest(
-                aliases = listOf(401L, 402L, 999L),
-                identifiers = emptyList(),
-                addresses = emptyList(),
-                contacts = emptyList(),
-                addressUsages = emptyList(),
-              ),
-            ),
+        val result = getMappings(
+          CorePersonMappingsByNomisIdsRequest(
+            aliases = listOf(401L, 402L, 999L),
+            identifiers = emptyList(),
+            addresses = emptyList(),
+            contacts = emptyList(),
+            addressUsages = emptyList(),
+          ),
+        )
+
+        assertThat(result.aliases)
+          .extracting("cprId", "nomisOffenderId", "nomisPrisonNumber", "mappingType")
+          .containsExactlyInAnyOrder(
+            tuple("d4f7a9b1-4444-4e5d-8f6a-000000000401", 401L, nomisPrisonNumber, CorePersonMappingType.MIGRATED),
+            tuple("d4f7a9b1-4444-4e5d-8f6a-000000000402", 402L, nomisPrisonNumber, CorePersonMappingType.MIGRATED),
           )
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("aliases.length()").isEqualTo(2)
-          .jsonPath("aliases[*].nomisOffenderId").value<List<Int>> {
-            assertThat(it).containsExactlyInAnyOrder(401, 402)
-          }
-          .jsonPath("aliases[*].cprId").value<List<String>> {
-            assertThat(it).containsExactlyInAnyOrder(
-              "d4f7a9b1-4444-4e5d-8f6a-000000000401",
-              "d4f7a9b1-4444-4e5d-8f6a-000000000402",
-            )
-          }
-          .jsonPath("aliases[0].nomisPrisonNumber").isEqualTo(nomisPrisonNumber)
-          .jsonPath("aliases[0].mappingType").isEqualTo("MIGRATED")
-          .jsonPath("identifiers").isEmpty
-          .jsonPath("addresses").isEmpty
-          .jsonPath("contacts").isEmpty
-          .jsonPath("addressUsages").isEmpty
+        assertThat(result.identifiers).isEmpty()
+        assertThat(result.addresses).isEmpty()
+        assertThat(result.contacts).isEmpty()
+        assertThat(result.addressUsages).isEmpty()
       }
 
       @Test
       fun `will only return identifier mappings where both the nomis id and sequence match`() {
-        webTestClient.post()
-          .uri("/mapping/core-person/merge/mappings/by-nomis-ids")
-          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(
-            BodyInserters.fromValue(
-              CorePersonMappingsByNomisIdsRequest(
-                aliases = emptyList(),
-                identifiers = listOf(
-                  IdentifierByNomisIdRequest(nomisId = 401L, nomisSequence = 1),
-                  // 402 only has sequence 1 so this should not match
-                  IdentifierByNomisIdRequest(nomisId = 402L, nomisSequence = 2),
-                ),
-                addresses = emptyList(),
-                contacts = emptyList(),
-                addressUsages = emptyList(),
-              ),
+        val result = getMappings(
+          CorePersonMappingsByNomisIdsRequest(
+            aliases = emptyList(),
+            identifiers = listOf(
+              IdentifierByNomisIdRequest(nomisId = 401L, nomisSequence = 1),
+              // 402 only has sequence 1 so this should not match
+              IdentifierByNomisIdRequest(nomisId = 402L, nomisSequence = 2),
             ),
-          )
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("identifiers.length()").isEqualTo(1)
-          .jsonPath("identifiers[0].cprId").isEqualTo("e5a8b0c2-5555-4f6e-9a7b-000000000501")
-          .jsonPath("identifiers[0].nomisOffenderId").isEqualTo(401)
-          .jsonPath("identifiers[0].nomisIdentifierSequence").isEqualTo(1)
-          .jsonPath("identifiers[0].nomisPrisonNumber").isEqualTo(nomisPrisonNumber)
-          .jsonPath("aliases").isEmpty
-          .jsonPath("addresses").isEmpty
-          .jsonPath("contacts").isEmpty
-          .jsonPath("addressUsages").isEmpty
+            addresses = emptyList(),
+            contacts = emptyList(),
+            addressUsages = emptyList(),
+          ),
+        )
+
+        assertThat(result.identifiers)
+          .extracting("cprId", "nomisOffenderId", "nomisIdentifierSequence", "nomisPrisonNumber")
+          .containsExactly(tuple("e5a8b0c2-5555-4f6e-9a7b-000000000501", 401L, 1, nomisPrisonNumber))
+        assertThat(result.aliases).isEmpty()
+        assertThat(result.addresses).isEmpty()
+        assertThat(result.contacts).isEmpty()
+        assertThat(result.addressUsages).isEmpty()
       }
 
       @Test
       fun `will return all requested mapping types together`() {
-        webTestClient.post()
-          .uri("/mapping/core-person/merge/mappings/by-nomis-ids")
-          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(
-            BodyInserters.fromValue(
-              CorePersonMappingsByNomisIdsRequest(
-                aliases = listOf(401L),
-                identifiers = listOf(
-                  IdentifierByNomisIdRequest(nomisId = 401L, nomisSequence = 1),
-                  IdentifierByNomisIdRequest(nomisId = 401L, nomisSequence = 2),
-                ),
-                addresses = listOf(101L),
-                contacts = listOf(ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.EMAIL)),
-                addressUsages = listOf(
-                  AddressUsageByNomisIdRequest(nomisId = 101L, addressUsageCode = "HOME"),
-                  AddressUsageByNomisIdRequest(nomisId = 101L, addressUsageCode = "WORK"),
-                ),
-              ),
+        val result = getMappings(
+          CorePersonMappingsByNomisIdsRequest(
+            aliases = listOf(401L),
+            identifiers = listOf(
+              IdentifierByNomisIdRequest(nomisId = 401L, nomisSequence = 1),
+              IdentifierByNomisIdRequest(nomisId = 401L, nomisSequence = 2),
             ),
-          )
-          .exchange()
-          .expectStatus().isOk
-          .expectBody()
-          .jsonPath("addresses.length()").isEqualTo(1)
-          .jsonPath("addresses[0].nomisId").isEqualTo(101)
-          .jsonPath("contacts.length()").isEqualTo(1)
-          .jsonPath("contacts[0].nomisId").isEqualTo(201)
-          .jsonPath("addressUsages.length()").isEqualTo(2)
-          .jsonPath("addressUsages[*].addressUsageCode").value<List<String>> {
-            assertThat(it).containsExactlyInAnyOrder("HOME", "WORK")
-          }
-          .jsonPath("aliases.length()").isEqualTo(1)
-          .jsonPath("aliases[0].nomisOffenderId").isEqualTo(401)
-          .jsonPath("identifiers.length()").isEqualTo(2)
-          .jsonPath("identifiers[*].nomisIdentifierSequence").value<List<Int>> {
-            assertThat(it).containsExactlyInAnyOrder(1, 2)
-          }
+            addresses = listOf(101L),
+            contacts = listOf(ContactByNomisIdRequest(nomisId = 201L, nomisContactType = NomisContactType.EMAIL)),
+            addressUsages = listOf(
+              AddressUsageByNomisIdRequest(nomisId = 101L, addressUsageCode = "HOME"),
+              AddressUsageByNomisIdRequest(nomisId = 101L, addressUsageCode = "WORK"),
+            ),
+          ),
+        )
+
+        assertThat(result.addresses).extracting("nomisId").containsExactly(101L)
+        assertThat(result.contacts).extracting("nomisId").containsExactly(201L)
+        assertThat(result.addressUsages).extracting("addressUsageCode").containsExactlyInAnyOrder("HOME", "WORK")
+        assertThat(result.aliases).extracting("nomisOffenderId").containsExactly(401L)
+        assertThat(result.identifiers).extracting("nomisIdentifierSequence").containsExactlyInAnyOrder(1, 2)
       }
 
       @Test
       fun `will return empty lists when no mappings match`() {
-        webTestClient.post()
-          .uri("/mapping/core-person/merge/mappings/by-nomis-ids")
-          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(
-            BodyInserters.fromValue(
-              CorePersonMappingsByNomisIdsRequest(
-                aliases = listOf(999L),
-                identifiers = listOf(IdentifierByNomisIdRequest(nomisId = 999L, nomisSequence = 1)),
-                addresses = listOf(999L),
-                contacts = listOf(ContactByNomisIdRequest(nomisId = 999L, nomisContactType = NomisContactType.EMAIL)),
-                addressUsages = listOf(AddressUsageByNomisIdRequest(nomisId = 999L, addressUsageCode = "HOME")),
-              ),
-            ),
-          )
-          .exchange()
-          .expectStatus().isOk
+        postMappings(
+          CorePersonMappingsByNomisIdsRequest(
+            aliases = listOf(999L),
+            identifiers = listOf(IdentifierByNomisIdRequest(nomisId = 999L, nomisSequence = 1)),
+            addresses = listOf(999L),
+            contacts = listOf(ContactByNomisIdRequest(nomisId = 999L, nomisContactType = NomisContactType.EMAIL)),
+            addressUsages = listOf(AddressUsageByNomisIdRequest(nomisId = 999L, addressUsageCode = "HOME")),
+          ),
+        )
           .expectBody()
           .jsonPath("addresses").isEmpty
           .jsonPath("contacts").isEmpty
@@ -892,23 +809,15 @@ class CorePersonMergeMappingResourceIntTest(
 
       @Test
       fun `will return empty lists when no ids are requested`() {
-        webTestClient.post()
-          .uri("/mapping/core-person/merge/mappings/by-nomis-ids")
-          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(
-            BodyInserters.fromValue(
-              CorePersonMappingsByNomisIdsRequest(
-                aliases = emptyList(),
-                identifiers = emptyList(),
-                addresses = emptyList(),
-                contacts = emptyList(),
-                addressUsages = emptyList(),
-              ),
-            ),
-          )
-          .exchange()
-          .expectStatus().isOk
+        postMappings(
+          CorePersonMappingsByNomisIdsRequest(
+            aliases = emptyList(),
+            identifiers = emptyList(),
+            addresses = emptyList(),
+            contacts = emptyList(),
+            addressUsages = emptyList(),
+          ),
+        )
           .expectBody()
           .jsonPath("addresses").isEmpty
           .jsonPath("contacts").isEmpty
@@ -916,6 +825,18 @@ class CorePersonMergeMappingResourceIntTest(
           .jsonPath("aliases").isEmpty
           .jsonPath("identifiers").isEmpty
       }
+
+      private fun postMappings(request: CorePersonMappingsByNomisIdsRequest) = webTestClient.post()
+        .uri("/mapping/core-person/merge/mappings/by-nomis-ids")
+        .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(BodyInserters.fromValue(request))
+        .exchange()
+        .expectStatus().isOk
+
+      private fun getMappings(request: CorePersonMappingsByNomisIdsRequest) = postMappings(request)
+        .expectBody<CorePersonMappingsResult>()
+        .returnResult().responseBody!!
     }
   }
 
