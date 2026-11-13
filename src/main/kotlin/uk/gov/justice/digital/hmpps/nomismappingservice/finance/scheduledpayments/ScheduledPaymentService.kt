@@ -32,6 +32,12 @@ class ScheduledPaymentService(
     repository.save(mapping.fromDto())
   }
 
+  @Transactional
+  suspend fun replaceMapping(mapping: ScheduledPaymentMappingDto) {
+    repository.deleteByNomisId(mapping.nomisScheduledPaymentId)
+    createMapping(mapping)
+  }
+
   suspend fun getAllMappings(pageRequest: Pageable): PagedModel<ScheduledPaymentMappingDto> = coroutineScope {
     val mappings = async {
       repository.findAllBy(

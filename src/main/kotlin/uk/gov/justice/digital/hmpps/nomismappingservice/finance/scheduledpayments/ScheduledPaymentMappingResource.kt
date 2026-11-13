@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
@@ -30,6 +32,10 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 @PreAuthorize("hasRole('NOMIS_MAPPING_API__SYNCHRONISATION__RW')")
 @RequestMapping("/mapping/scheduled-payments", produces = [MediaType.APPLICATION_JSON_VALUE])
 class ScheduledPaymentMappingResource(private val service: ScheduledPaymentService) {
+  private companion object {
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
+  }
+
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
@@ -256,5 +262,31 @@ class ScheduledPaymentMappingResource(private val service: ScheduledPaymentServi
     service.getMappingByDpsIdOrNull(
       dpsId = mapping.dpsId,
     )
+  }
+
+  @PostMapping("/replace")
+  @Operation(
+    summary = "Replaces a scheduled payment mapping.",
+    description = """Creates a new scheduled payment mapping and removes the previously supplied one (if one exists).
+      Requires ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW""",
+    responses = [
+      ApiResponse(responseCode = "200", description = "Mapping replaced"),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Access forbidden for this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun replaceScheduledPaymentMapping(
+    @RequestBody @Valid
+    mapping: ScheduledPaymentMappingDto,
+  ) = service.replaceMapping(mapping).also {
+    log.info("Replaced mapping for nomis scheduled payment ${mapping.nomisScheduledPaymentId}")
   }
 }
