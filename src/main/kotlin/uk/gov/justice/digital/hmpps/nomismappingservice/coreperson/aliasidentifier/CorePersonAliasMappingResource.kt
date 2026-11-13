@@ -67,7 +67,7 @@ class CorePersonAliasMappingResource(private val service: CorePersonAliasService
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Delete offender alias mapping by nomis offender id",
-    description = "Delete the offender alias mapping by NOMIS offender id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
+    description = "Delete the offender alias mapping and all associated offender identifier mappings by NOMIS offender id. Requires role ROLE_NOMIS_MAPPING_API__SYNCHRONISATION__RW",
     responses = [
       ApiResponse(
         responseCode = "204",
