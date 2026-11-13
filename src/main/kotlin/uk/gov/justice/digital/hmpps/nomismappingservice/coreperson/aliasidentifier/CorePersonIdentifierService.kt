@@ -16,6 +16,10 @@ class CorePersonIdentifierService(
     )?.toDto()
     ?: throw NotFoundException("No offender identifier mapping found for nomisOffenderId=$nomisOffenderId and nomisIdentifierSequence=$nomisIdentifierSequence")
 
+  suspend fun getOffenderIdentifierMappingsByNomisOffenderId(nomisOffenderId: Long) = offenderIdentifierMappingRepository
+    .findAllByNomisOffenderIdIn(nomisOffenderIds = listOf(nomisOffenderId))
+    .map { it.toDto() }
+
   @Transactional
   suspend fun deleteOffenderIdentifierMappingByNomisId(nomisOffenderId: Long, nomisIdentifierSequence: Int) = offenderIdentifierMappingRepository
     .deleteByNomisOffenderIdAndNomisIdentifierSequence(

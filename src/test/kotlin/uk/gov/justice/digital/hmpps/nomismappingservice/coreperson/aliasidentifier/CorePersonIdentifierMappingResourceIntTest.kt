@@ -106,6 +106,122 @@ class CorePersonIdentifierMappingResourceIntTest : IntegrationTestBase() {
   }
 
   @Nested
+  @DisplayName("GET /mapping/core-person/identifier/nomis-offender-id/{nomisOffenderId}")
+  inner class GetAllByNomisOffenderId {
+    private val nomisOffenderId = 12345L
+
+    @BeforeEach
+    fun setUp() = runTest {
+      offenderIdentifierMappingRepository.save(
+        OffenderIdentifierMapping(
+          cprId = "1a2b3c4d-0000-4000-8000-000000000001",
+          nomisOffenderId = nomisOffenderId,
+          nomisIdentifierSequence = 1,
+          nomisPrisonNumber = "A1234BC",
+          mappingType = CorePersonMappingType.CPR_CREATED,
+        ),
+      )
+      offenderIdentifierMappingRepository.save(
+        OffenderIdentifierMapping(
+          cprId = "1a2b3c4d-0000-4000-8000-000000000002",
+          nomisOffenderId = nomisOffenderId,
+          nomisIdentifierSequence = 2,
+          nomisPrisonNumber = "A1234BC",
+          mappingType = CorePersonMappingType.MIGRATED,
+        ),
+      )
+      offenderIdentifierMappingRepository.save(
+        OffenderIdentifierMapping(
+          cprId = "1a2b3c4d-0000-4000-8000-000000000003",
+          nomisOffenderId = 67890L,
+          nomisIdentifierSequence = 1,
+          nomisPrisonNumber = "A1234BC",
+          mappingType = CorePersonMappingType.CPR_CREATED,
+        ),
+      )
+    }
+
+    @Nested
+    inner class Security {
+      @Test
+      fun `access not authorised when no authority`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/identifier/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .exchange()
+          .expectStatus().isUnauthorized
+      }
+
+      @Test
+      fun `access forbidden when no role`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/identifier/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .headers(setAuthorisation(roles = listOf()))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+
+      @Test
+      fun `access forbidden with wrong role`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/identifier/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .headers(setAuthorisation(roles = listOf("BANANAS")))
+          .exchange()
+          .expectStatus().isForbidden
+      }
+    }
+
+    @Nested
+    inner class Validation {
+      @Test
+      fun `400 when nomis offender id is not a number`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/identifier/nomis-offender-id/{nomisOffenderId}", "BANANAS")
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isBadRequest
+      }
+    }
+
+    @Nested
+    inner class HappyPath {
+      @Test
+      fun `will return all the mappings for the nomis offender id`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/identifier/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("length()").isEqualTo(2)
+          .jsonPath("[*].nomisOffenderId").value<List<Int>> {
+            assertThat(it).containsOnly(nomisOffenderId.toInt())
+          }
+          .jsonPath("[*].nomisIdentifierSequence").value<List<Int>> {
+            assertThat(it).containsExactlyInAnyOrder(1, 2)
+          }
+          .jsonPath("[*].cprId").value<List<String>> {
+            assertThat(it).containsExactlyInAnyOrder(
+              "1a2b3c4d-0000-4000-8000-000000000001",
+              "1a2b3c4d-0000-4000-8000-000000000002",
+            )
+          }
+          .jsonPath("[0].nomisPrisonNumber").isEqualTo("A1234BC")
+      }
+
+      @Test
+      fun `will return an empty list when no mappings exist`() {
+        webTestClient.get()
+          .uri("/mapping/core-person/identifier/nomis-offender-id/{nomisOffenderId}", 99999)
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody()
+          .jsonPath("$").isEmpty
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("GET /mapping/core-person/identifier/cpr-id/{cprOffenderIdentifierId}")
   inner class GetByCprId {
     private val cprId = "c85ef4dd-0f66-41d4-a9b5-930cdd7f208f"
