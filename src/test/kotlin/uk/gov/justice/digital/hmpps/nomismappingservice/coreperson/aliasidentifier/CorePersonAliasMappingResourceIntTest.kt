@@ -17,12 +17,14 @@ import uk.gov.justice.digital.hmpps.nomismappingservice.integration.IntegrationT
 import uk.gov.justice.digital.hmpps.nomismappingservice.integration.isDuplicateMapping
 import java.time.LocalDateTime
 
-class CorePersonAliasMappingResourceIntTest : IntegrationTestBase() {
-  @Autowired
-  private lateinit var offenderAliasMappingRepository: OffenderAliasMappingRepository
+class CorePersonAliasMappingResourceIntTest(
+  @Autowired private val offenderAliasMappingRepository: OffenderAliasMappingRepository,
+  @Autowired private val offenderIdentifierMappingRepository: OffenderIdentifierMappingRepository,
+) : IntegrationTestBase() {
 
   @AfterEach
   fun tearDown() = runTest {
+    offenderIdentifierMappingRepository.deleteAll()
     offenderAliasMappingRepository.deleteAll()
   }
 
@@ -181,6 +183,7 @@ class CorePersonAliasMappingResourceIntTest : IntegrationTestBase() {
   @DisplayName("DELETE /mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}")
   inner class DeleteByNomisId {
     private val nomisOffenderId = 111L
+    private val otherNomisOffenderId = 222L
 
     @BeforeEach
     fun setUp() = runTest {
@@ -188,6 +191,26 @@ class CorePersonAliasMappingResourceIntTest : IntegrationTestBase() {
         OffenderAliasMapping(
           cprId = "b8985f10-595e-4937-8344-73a7e166e652",
           nomisOffenderId = nomisOffenderId,
+          nomisPrisonNumber = "C1234DE",
+          mappingType = CorePersonMappingType.CPR_CREATED,
+        ),
+      )
+      listOf(1, 2).forEach { sequence ->
+        offenderIdentifierMappingRepository.save(
+          OffenderIdentifierMapping(
+            cprId = "identifier-$sequence",
+            nomisOffenderId = nomisOffenderId,
+            nomisIdentifierSequence = sequence,
+            nomisPrisonNumber = "C1234DE",
+            mappingType = CorePersonMappingType.CPR_CREATED,
+          ),
+        )
+      }
+      offenderIdentifierMappingRepository.save(
+        OffenderIdentifierMapping(
+          cprId = "other-offender-identifier",
+          nomisOffenderId = otherNomisOffenderId,
+          nomisIdentifierSequence = 1,
           nomisPrisonNumber = "C1234DE",
           mappingType = CorePersonMappingType.CPR_CREATED,
         ),
@@ -234,6 +257,20 @@ class CorePersonAliasMappingResourceIntTest : IntegrationTestBase() {
           .expectStatus().isNoContent
 
         assertThat(offenderAliasMappingRepository.findOneByNomisOffenderId(nomisOffenderId)).isNull()
+      }
+
+      @Test
+      fun `will delete all identifier mappings for the offender alias`() = runTest {
+        webTestClient.delete()
+          .uri("/mapping/core-person/alias/nomis-offender-id/{nomisOffenderId}", nomisOffenderId)
+          .headers(setAuthorisation(roles = listOf("NOMIS_MAPPING_API__SYNCHRONISATION__RW")))
+          .exchange()
+          .expectStatus().isNoContent
+
+        assertThat(offenderIdentifierMappingRepository.findAllByNomisOffenderIdIn(listOf(nomisOffenderId))).isEmpty()
+        assertThat(offenderIdentifierMappingRepository.findAllByNomisOffenderIdIn(listOf(otherNomisOffenderId)))
+          .extracting<String> { it.cprId }
+          .containsExactly("other-offender-identifier")
       }
     }
   }
